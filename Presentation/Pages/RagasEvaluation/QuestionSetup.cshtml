@@ -1,0 +1,216 @@
+﻿@page "/RagasEvaluation/QuestionSetup"
+@model Presentation.Pages.RagasEvaluation.QuestionSetupModel
+
+@{
+    ViewData["Title"] = "Cấu hình benchmark - " + Model.ViewModel.SubjectName;
+}
+
+<div class="container-fluid px-4 py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item">
+                <a asp-page="/RagasEvaluation/Index" class="text-decoration-none">Đánh giá RAG</a>
+            </li>
+            <li class="breadcrumb-item">
+                <a asp-page="/RagasEvaluation/Questions"
+                   asp-route-subjectId="@Model.ViewModel.SubjectId"
+                   class="text-decoration-none">@Model.ViewModel.SubjectName</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Cấu hình gold data</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Cấu hình dữ liệu benchmark</h1>
+            <p class="text-muted mb-0">
+                Xác nhận các đoạn tài liệu chuẩn để Recall@5, MRR@10, nDCG@5 và Citation F1 có ý nghĩa.
+            </p>
+        </div>
+        <span class="badge @(Model.ViewModel.IsBenchmarkReady ? "bg-success" : "bg-warning text-dark") px-3 py-2">
+            @(Model.ViewModel.IsBenchmarkReady ? "Sẵn sàng benchmark" : "Chưa hoàn tất")
+        </span>
+    </div>
+
+    <section class="bg-white border rounded shadow-sm mb-4">
+        <div class="p-4 border-bottom">
+            <div class="text-muted small fw-semibold text-uppercase mb-2">Câu hỏi</div>
+            <div class="fw-semibold mb-3">@Model.ViewModel.Question</div>
+            <div class="text-muted small fw-semibold text-uppercase mb-2">Câu trả lời chuẩn</div>
+            <div class="text-body-secondary">@Model.ViewModel.GroundTruthAnswer</div>
+        </div>
+
+        <form method="get" class="p-4 border-bottom">
+            <input type="hidden" name="id" value="@Model.ViewModel.QuestionId" />
+            <label for="SearchTerm" class="form-label fw-semibold">Tìm trong tài liệu đã index</label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <span class="material-symbols-outlined fs-5">search</span>
+                </span>
+                <input id="SearchTerm"
+                       name="SearchTerm"
+                       value="@Model.ViewModel.SearchTerm"
+                       class="form-control"
+                       placeholder="Tên tài liệu hoặc nội dung chunk" />
+                <button class="btn btn-outline-primary" type="submit">Tìm</button>
+                @if (!string.IsNullOrWhiteSpace(Model.ViewModel.SearchTerm))
+                {
+                    <a asp-page="/RagasEvaluation/QuestionSetup"
+                       asp-route-id="@Model.ViewModel.QuestionId"
+                       class="btn btn-outline-secondary">Xóa lọc</a>
+                }
+            </div>
+            <div class="form-text">
+                Danh sách mặc định được gợi ý bằng độ trùng từ khóa, không ưu tiên embedding model nào.
+            </div>
+        </form>
+
+        <form method="post" class="p-4" id="benchmarkSetupForm">
+            <input asp-for="Input.QuestionId" type="hidden" />
+
+            <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-4">
+                <div>
+                    <label class="form-label fw-semibold mb-1">Khả năng trả lời</label>
+                    <div class="text-muted small">
+                        Câu không có đáp án dùng để tính No-answer F1 và không được gắn gold chunk.
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="Input.IsAnswerable"
+                           class="form-check-input"
+                           type="checkbox"
+                           role="switch"
+                           id="isAnswerableSwitch" />
+                    <label class="form-check-label fw-semibold" for="isAnswerableSwitch">
+                        Có đáp án trong tài liệu
+                    </label>
+                </div>
+            </div>
+
+            <div id="goldChunkSection">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <div>
+                        <h2 class="h6 fw-bold mb-1">Gold chunks</h2>
+                        <div class="text-muted small">
+                            Mức 2 chứa trực tiếp đáp án; mức 1 chỉ cung cấp thông tin hỗ trợ.
+                        </div>
+                    </div>
+                    <span class="text-muted small">Tối đa 20 ứng viên</span>
+                </div>
+
+                @if (Model.ViewModel.Candidates.Count == 0)
+                {
+                    <div class="border rounded text-center text-muted py-5">
+                        Không tìm thấy chunk phù hợp. Hãy kiểm tra tài liệu đã được index hoặc đổi từ khóa tìm kiếm.
+                    </div>
+                }
+                else
+                {
+                    <div class="border rounded overflow-hidden">
+                        @for (var index = 0; index < Model.ViewModel.Candidates.Count; index++)
+                        {
+                            var candidate = Model.ViewModel.Candidates[index];
+                            var location = candidate.PageNumber.HasValue
+                                ? $"Trang {candidate.PageNumber}"
+                                : candidate.SlideNumber.HasValue
+                                    ? $"Slide {candidate.SlideNumber}"
+                                    : $"Chunk {candidate.ChunkIndex + 1}";
+
+                            <div class="gold-chunk-row p-3 border-bottom">
+                                <input asp-for="Input.Candidates[index].ChunkId" type="hidden" />
+                                <div class="d-flex align-items-start gap-3">
+                                    <input asp-for="Input.Candidates[index].IsSelected"
+                                           class="form-check-input mt-1 gold-chunk-checkbox"
+                                           aria-label="Chọn chunk @candidate.ChunkId" />
+                                    <div class="flex-grow-1 min-width-0">
+                                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                                            <div>
+                                                <div class="fw-semibold">@candidate.DocumentTitle</div>
+                                                <div class="text-muted small">
+                                                    @candidate.OriginalFileName · @location · Gợi ý @candidate.SuggestionScore.ToString("P0")
+                                                </div>
+                                            </div>
+                                            <div style="width: 180px;">
+                                                <label asp-for="Input.Candidates[index].RelevanceGrade"
+                                                       class="visually-hidden">Mức liên quan</label>
+                                                <select asp-for="Input.Candidates[index].RelevanceGrade"
+                                                        class="form-select form-select-sm gold-grade-select">
+                                                    <option value="2">Mức 2 · Trực tiếp</option>
+                                                    <option value="1">Mức 1 · Hỗ trợ</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="small text-body-secondary gold-chunk-content">@candidate.Content</div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+
+            <div id="noAnswerNotice" class="alert alert-info mt-3 d-none">
+                Câu hỏi được đánh dấu không có đáp án. Khi lưu, toàn bộ gold chunk phải được bỏ chọn.
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <a asp-page="/RagasEvaluation/Questions"
+                   asp-route-subjectId="@Model.ViewModel.SubjectId"
+                   class="btn btn-outline-secondary">Hủy</a>
+                <button type="submit" class="btn btn-primary">
+                    <span class="material-symbols-outlined fs-5 align-middle">save</span>
+                    Lưu cấu hình
+                </button>
+            </div>
+        </form>
+    </section>
+</div>
+
+<style>
+    .min-width-0 { min-width: 0; }
+    .gold-chunk-row:last-child { border-bottom: 0 !important; }
+    .gold-chunk-content {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 8rem;
+        overflow-y: auto;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        (() => {
+            const answerableSwitch = document.getElementById("isAnswerableSwitch");
+            const goldChunkSection = document.getElementById("goldChunkSection");
+            const noAnswerNotice = document.getElementById("noAnswerNotice");
+
+            function updateAnswerableState() {
+                const isAnswerable = answerableSwitch.checked;
+                goldChunkSection.classList.toggle("opacity-50", !isAnswerable);
+                noAnswerNotice.classList.toggle("d-none", isAnswerable);
+
+                document.querySelectorAll(".gold-chunk-checkbox").forEach((checkbox) => {
+                    checkbox.disabled = !isAnswerable;
+                    if (!isAnswerable) {
+                        checkbox.checked = false;
+                    }
+                });
+                document.querySelectorAll(".gold-grade-select").forEach((select) => {
+                    select.disabled = !isAnswerable;
+                });
+            }
+
+            answerableSwitch.addEventListener("change", updateAnswerableState);
+            updateAnswerableState();
+        })();
+    </script>
+}

@@ -1,0 +1,186 @@
+@model Presentation.Models.SubjectPageViewModel
+
+@if (!Model.Subjects.Any())
+{
+    <div class="bg-surface-container-lowest rounded-2xl border border-surface-container-high py-16 text-center shadow-sm">
+        <span class="material-symbols-outlined text-on-surface-variant mb-3 block" style="font-size:48px">menu_book</span>
+        <p class="text-on-surface-variant text-lg font-medium" style="font-family:'Inter',sans-serif">Chưa có môn học nào.</p>
+        <p class="text-on-surface-variant/70 text-sm mt-1" style="font-family:'Inter',sans-serif">
+            @(Model.IsAdmin ? "Nhấn thêm môn học để tạo môn học mới." : "Bạn chưa được thêm vào môn học nào.")
+        </p>
+    </div>
+}
+else
+{
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach (var subject in Model.Subjects)
+        {
+            var primaryUrl = Model.IsAdmin
+                ? Url.Page("/Subject/Members", new { id = subject.Id })
+                : Url.Page("/Chat/Index", new { subjectId = subject.Id });
+            var cardClasses = subject.IsDeleted
+                ? "subject-card bg-surface-container-lowest rounded-2xl p-6 flex flex-col h-full relative overflow-hidden opacity-80"
+                : "subject-card bg-surface-container-lowest rounded-2xl p-6 flex flex-col h-full relative overflow-hidden group cursor-pointer";
+            string[] avatarPalette = { "#4f46e5", "#0891b2", "#059669", "#d97706", "#dc2626", "#7c3aed" };
+            var displayMembers = subject.MemberNames.Take(5).ToList();
+            var hiddenCount = subject.MemberNames.Count - 5;
+            var headTeacherName = string.IsNullOrWhiteSpace(subject.CreatedByName)
+                ? "Chưa phân công trưởng bộ môn"
+                : subject.CreatedByName;
+
+            <div class="@cardClasses"
+                 onclick="@(subject.IsDeleted ? "" : $"window.location='{primaryUrl}'")"
+                 role="button"
+                 tabindex="0"
+                 onkeypress="@(subject.IsDeleted ? "" : $"if(event.key==='Enter')window.location='{primaryUrl}'")">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-bl-full pointer-events-none"></div>
+
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex items-center gap-3 min-w-0">
+                            <div class="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-primary/10 text-primary-container transition-all group-hover:bg-primary-container group-hover:text-white">
+                                <span class="material-symbols-outlined text-2xl">menu_book</span>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="flex flex-wrap items-center gap-2 mb-0.5">
+                                    <span class="inline-block text-[10px] font-semibold uppercase tracking-wider text-on-surface-variant/70"
+                                          style="font-family:'Inter',sans-serif;letter-spacing:0.05em">
+                                        @subject.SubjectCode
+                                    </span>
+                                    @if (subject.IsDeleted)
+                                    {
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                                              style="background:#ffdad6;color:#ba1a1a;font-family:'Inter',sans-serif">
+                                            Đã xóa
+                                        </span>
+                                    }
+                                </div>
+                                <h3 class="font-bold text-lg text-on-surface group-hover:text-primary transition-colors line-clamp-1"
+                                    title="@subject.SubjectName"
+                                    style="font-family:'Be Vietnam Pro',sans-serif">
+                                    @subject.SubjectName
+                                </h3>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2.5 mb-5 flex-grow" style="font-family:'Inter',sans-serif">
+                        <div class="flex items-start gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5" style="color:#d97706">school</span>
+                            <div class="min-w-0">
+                                <div class="text-sm line-clamp-1" title="@headTeacherName">@headTeacherName</div>
+                                <div class="text-xs mt-0.5" style="color:rgba(70,69,85,0.72)">
+                                    @subject.TeacherCount Giảng viên
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[18px] flex-shrink-0" style="color:#059669">groups</span>
+                            <span class="text-sm">@subject.StudentCount Sinh viên</span>
+                        </div>
+
+                        <div class="flex items-center gap-2 text-on-surface-variant">
+                            <span class="material-symbols-outlined text-[18px] flex-shrink-0" style="color:#4f46e5">library_books</span>
+                            <span class="text-sm">
+                                @subject.DocumentCount Tài liệu
+                                @if (subject.IndexedDocumentCount > 0)
+                                {
+                                    <span class="ml-1 text-[11px] font-semibold" style="color:#059669">(@subject.IndexedDocumentCount indexed)</span>
+                                }
+                            </span>
+                        </div>
+
+                        @if (subject.IsDeleted && !string.IsNullOrWhiteSpace(subject.DeleteReason))
+                        {
+                            <div class="flex items-start gap-2 text-on-surface-variant">
+                                <span class="material-symbols-outlined text-[18px] flex-shrink-0 mt-0.5" style="color:#ba1a1a">info</span>
+                                <span class="text-sm line-clamp-2" title="@subject.DeleteReason">@subject.DeleteReason</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="pt-4 border-t border-outline-variant/30 flex items-center justify-between mt-auto"
+                         onclick="event.stopPropagation()">
+                        <div class="flex -space-x-2">
+                            @for (int i = 0; i < displayMembers.Count; i++)
+                            {
+                                var memberName = displayMembers[i];
+                                var parts = memberName.Trim().Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+                                var letter = parts.Length > 0 ? parts[^1][0].ToString().ToUpper() : "?";
+                                var bg = avatarPalette[i % avatarPalette.Length];
+                                <div class="w-8 h-8 rounded-full border-2 border-white flex items-center justify-center text-white text-xs avatar-initial flex-shrink-0"
+                                     style="background:@bg"
+                                     title="@memberName">
+                                    @letter
+                                </div>
+                            }
+                            @if (hiddenCount > 0)
+                            {
+                                <div class="w-8 h-8 rounded-full border-2 border-white bg-surface-container flex items-center justify-center text-on-surface-variant flex-shrink-0"
+                                     style="font-family:'Inter',sans-serif;font-size:11px;font-weight:600"
+                                     title="và @hiddenCount người khác">
+                                    +@hiddenCount
+                                </div>
+                            }
+                            @if (!subject.MemberNames.Any())
+                            {
+                                <div class="w-8 h-8 rounded-full border-2 border-dashed border-outline-variant/60 bg-surface-container-low flex items-center justify-center flex-shrink-0"
+                                     style="color:rgba(70,69,85,0.4)">
+                                    <span class="material-symbols-outlined text-[14px]">person</span>
+                                </div>
+                            }
+                        </div>
+
+                        @if (Model.IsAdmin)
+                        {
+                            <div class="flex items-center gap-1">
+                                @if (subject.IsDeleted)
+                                {
+                                    <form method="post" action="@Url.Page("/Subject/Restore")"
+                                          class="inline m-0"
+                                          onclick="event.stopPropagation()">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@subject.Id" />
+                                        <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                        <button type="submit"
+                                                class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-150 border-0 bg-transparent"
+                                                title="Khôi phục"
+                                                style="cursor:pointer"
+                                                onclick="event.stopPropagation()">
+                                            <span class="material-symbols-outlined text-[18px]">restore</span>
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a asp-page="/Subject/Members" asp-route-id="@subject.Id"
+                                       class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-150"
+                                       title="Thành viên"
+                                       style="text-decoration:none;cursor:pointer"
+                                       onclick="event.stopPropagation()">
+                                        <span class="material-symbols-outlined text-[18px]">group</span>
+                                    </a>
+                                    <a asp-page="/Subject/Edit" asp-route-id="@subject.Id"
+                                       class="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-primary transition-all duration-150"
+                                       title="Chỉnh sửa"
+                                       style="text-decoration:none;cursor:pointer"
+                                       onclick="event.stopPropagation()">
+                                        <span class="material-symbols-outlined text-[18px]">edit</span>
+                                    </a>
+                                    <button type="button"
+                                            class="p-2 rounded-lg text-on-surface-variant hover:bg-error-container hover:text-error transition-all duration-150 border-0 bg-transparent"
+                                            title="Xóa"
+                                            style="cursor:pointer"
+                                            onclick="event.stopPropagation();window.openSubjectDeleteModal?.(@subject.Id)">
+                                        <span class="material-symbols-outlined text-[18px]">delete</span>
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

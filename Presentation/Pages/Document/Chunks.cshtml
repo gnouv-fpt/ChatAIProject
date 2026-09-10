@@ -1,0 +1,533 @@
+﻿@page "/Document/Chunks"
+@model Presentation.Pages.Document.ChunksModel
+
+@using BusinessObject.Enums
+
+@{
+    ViewData["Title"] = "Chi tiết phân đoạn tài liệu";
+    var previousPage = Math.Max(1, Model.ViewModel.CurrentPage - 1);
+    var nextPage = Math.Min(Model.ViewModel.TotalPages, Model.ViewModel.CurrentPage + 1);
+}
+
+<div class="chunk-detail-page">
+    <div class="chunk-detail-header">
+        <div>
+            <a class="chunk-back-link" asp-page="/Document/Index" asp-route-subjectId="@Model.ViewModel.SubjectId">
+                <span class="material-symbols-outlined">arrow_back</span>
+                Quay lại tài liệu môn học
+            </a>
+            <div class="chunk-title-row">
+                <span class="chunk-file-badge">@Model.ViewModel.FileType</span>
+                <span class="chunk-subject">@Model.ViewModel.SubjectName</span>
+            </div>
+            <h1>@Model.ViewModel.OriginalFileName</h1>
+            <p>Kiểm tra cách hệ thống chia tài liệu thành phân đoạn theo từng trang hoặc từng slide.</p>
+        </div>
+        <div class="chunk-header-actions">
+            <a class="chunk-action-btn secondary" asp-page="/Document/Download" asp-route-id="@Model.ViewModel.DocumentId">
+                <span class="material-symbols-outlined">download</span>
+                Tải file
+            </a>
+            <a class="chunk-action-btn primary" asp-page="/Chat/Index" asp-route-subjectId="@Model.ViewModel.SubjectId">
+                <span class="material-symbols-outlined">psychology</span>
+                Hỏi AI
+            </a>
+        </div>
+    </div>
+
+    <div class="chunk-layout">
+        <main class="chunk-main">
+            <div class="chunk-toolbar">
+                <div>
+                    <h2>Phân đoạn tài liệu</h2>
+                    <p>Hiển thị @Model.ViewModel.Chunks.Count phân đoạn trong tổng số @Model.ViewModel.TotalChunks phân đoạn.</p>
+                </div>
+                <div class="chunk-page-size">
+                    <span>@Model.ViewModel.PageSize / trang</span>
+                </div>
+            </div>
+
+            @if (!Model.ViewModel.Chunks.Any())
+            {
+                <div class="chunk-empty">
+                    <span class="material-symbols-outlined">segment</span>
+                    <h3>Chưa có phân đoạn</h3>
+                    <p>Tài liệu này chưa có chunk để hiển thị.</p>
+                </div>
+            }
+            else
+            {
+                <div class="chunk-list">
+                    @foreach (var chunk in Model.ViewModel.Chunks)
+                    {
+                        var locationLabel = chunk.PageNumber.HasValue
+                            ? $"Trang {chunk.PageNumber}"
+                            : chunk.SlideNumber.HasValue
+                                ? $"Slide {chunk.SlideNumber}"
+                                : $"Chunk #{chunk.ChunkIndex}";
+
+                        <article class="chunk-item">
+                            <div class="chunk-item-header">
+                                <div>
+                                    <span class="chunk-location">@locationLabel</span>
+                                    <h3>Chunk #@chunk.ChunkIndex</h3>
+                                </div>
+                                <div class="chunk-token-chip">
+                                    @chunk.TokenCount.ToString("N0") token
+                                </div>
+                            </div>
+                            <pre class="chunk-content">@chunk.Content</pre>
+                        </article>
+                    }
+                </div>
+
+                <nav class="chunk-pagination" aria-label="Phân trang chunk">
+                    <a class="chunk-page-btn @(Model.ViewModel.CurrentPage <= 1 ? "disabled" : "")"
+                       asp-page="/Document/Chunks"
+                       asp-route-id="@Model.ViewModel.DocumentId"
+                       asp-route-currentPage="@previousPage"
+                       asp-route-pageSize="@Model.ViewModel.PageSize">
+                        <span class="material-symbols-outlined">chevron_left</span>
+                        Trước
+                    </a>
+                    <div class="chunk-page-info">
+                        Trang <strong>@Model.ViewModel.CurrentPage</strong> / @Model.ViewModel.TotalPages
+                    </div>
+                    <a class="chunk-page-btn @(Model.ViewModel.CurrentPage >= Model.ViewModel.TotalPages ? "disabled" : "")"
+                       asp-page="/Document/Chunks"
+                       asp-route-id="@Model.ViewModel.DocumentId"
+                       asp-route-currentPage="@nextPage"
+                       asp-route-pageSize="@Model.ViewModel.PageSize">
+                        Sau
+                        <span class="material-symbols-outlined">chevron_right</span>
+                    </a>
+                </nav>
+            }
+        </main>
+
+        <aside class="chunk-sidebar">
+            <section class="chunk-meta-section">
+                <h2>Metadata</h2>
+                <dl>
+                    <dt>Trạng thái</dt>
+                    <dd><span class="chunk-status @GetStatusClass(Model.ViewModel.Status)">@GetStatusText(Model.ViewModel.Status)</span></dd>
+                    <dt>Người tải lên</dt>
+                    <dd>@(Model.ViewModel.UploadedByName ?? "Không rõ")</dd>
+                    <dt>Dung lượng</dt>
+                    <dd>@FormatFileSize(Model.ViewModel.FileSizeBytes)</dd>
+                    <dt>Ngày tải lên</dt>
+                    <dd>@Model.ViewModel.UploadedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</dd>
+                    <dt>Ngày index</dt>
+                    <dd>@(Model.ViewModel.IndexedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "--")</dd>
+                </dl>
+            </section>
+
+            <section class="chunk-meta-section">
+                <h2>Thống kê chunk</h2>
+                <div class="chunk-stat-grid">
+                    <div>
+                        <span>@Model.ViewModel.TotalChunks.ToString("N0")</span>
+                        <small>Tổng chunk</small>
+                    </div>
+                    <div>
+                        <span>@Model.ViewModel.TotalTokens.ToString("N0")</span>
+                        <small>Tổng token</small>
+                    </div>
+                </div>
+                <p class="chunk-note">
+                    Với tài liệu index mới, mỗi trang PDF hoặc mỗi slide PPTX sẽ tương ứng một chunk.
+                </p>
+            </section>
+        </aside>
+    </div>
+</div>
+
+<style>
+    .chunk-detail-page {
+        min-height: 100vh;
+        background: #f7f9fb;
+        padding: 32px;
+        color: #191c1e;
+        font-family: Inter, sans-serif;
+    }
+
+    .chunk-detail-header {
+        display: flex;
+        justify-content: space-between;
+        gap: 24px;
+        align-items: flex-start;
+        margin-bottom: 28px;
+    }
+
+    .chunk-back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: #464555;
+        font-size: 14px;
+        text-decoration: none;
+        margin-bottom: 18px;
+    }
+
+    .chunk-back-link:hover {
+        color: #4f46e5;
+    }
+
+    .chunk-title-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .chunk-file-badge,
+    .chunk-subject,
+    .chunk-page-size,
+    .chunk-token-chip {
+        border-radius: 9999px;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 6px 10px;
+    }
+
+    .chunk-file-badge {
+        background: #e2dfff;
+        color: #3525cd;
+    }
+
+    .chunk-subject,
+    .chunk-page-size,
+    .chunk-token-chip {
+        background: #eceef0;
+        color: #464555;
+    }
+
+    .chunk-detail-header h1 {
+        font-family: "Be Vietnam Pro", sans-serif;
+        font-size: 40px;
+        line-height: 1.2;
+        margin: 0;
+        max-width: 900px;
+        overflow-wrap: anywhere;
+    }
+
+    .chunk-detail-header p,
+    .chunk-toolbar p,
+    .chunk-note {
+        color: #464555;
+        margin: 8px 0 0;
+    }
+
+    .chunk-header-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .chunk-action-btn,
+    .chunk-page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border-radius: 8px;
+        border: 1px solid #c7c4d8;
+        min-height: 40px;
+        padding: 0 14px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .chunk-action-btn.primary {
+        background: #4f46e5;
+        border-color: #4f46e5;
+        color: #fff;
+    }
+
+    .chunk-action-btn.secondary,
+    .chunk-page-btn {
+        background: #fff;
+        color: #3525cd;
+    }
+
+    .chunk-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 320px;
+        gap: 24px;
+        align-items: start;
+    }
+
+    .chunk-main,
+    .chunk-meta-section {
+        background: #fff;
+        border: 1px solid #e6e8ea;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.04);
+    }
+
+    .chunk-main {
+        overflow: hidden;
+    }
+
+    .chunk-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 22px 24px;
+        border-bottom: 1px solid #e6e8ea;
+    }
+
+    .chunk-toolbar h2,
+    .chunk-meta-section h2 {
+        font-family: "Be Vietnam Pro", sans-serif;
+        font-size: 20px;
+        margin: 0;
+    }
+
+    .chunk-list {
+        display: grid;
+        gap: 16px;
+        padding: 20px 24px 24px;
+    }
+
+    .chunk-item {
+        border: 1px solid #e0e3e5;
+        border-radius: 12px;
+        background: #ffffff;
+        overflow: hidden;
+    }
+
+    .chunk-item-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px 18px;
+        background: #f2f4f6;
+        border-bottom: 1px solid #e0e3e5;
+    }
+
+    .chunk-location {
+        color: #3525cd;
+        display: block;
+        font-size: 12px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .chunk-item h3 {
+        font-size: 16px;
+        margin: 0;
+    }
+
+    .chunk-content {
+        margin: 0;
+        padding: 18px;
+        background: #fff;
+        color: #191c1e;
+        font-family: "Cascadia Mono", Consolas, monospace;
+        font-size: 13px;
+        line-height: 1.65;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        max-height: 460px;
+        overflow: auto;
+    }
+
+    .chunk-pagination {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        border-top: 1px solid #e6e8ea;
+        padding: 16px 24px;
+    }
+
+    .chunk-page-btn.disabled {
+        pointer-events: none;
+        opacity: 0.45;
+    }
+
+    .chunk-page-info {
+        color: #464555;
+        font-size: 14px;
+    }
+
+    .chunk-sidebar {
+        display: grid;
+        gap: 16px;
+        position: sticky;
+        top: 24px;
+    }
+
+    .chunk-meta-section {
+        padding: 20px;
+    }
+
+    .chunk-meta-section dl {
+        display: grid;
+        gap: 12px;
+        margin: 16px 0 0;
+    }
+
+    .chunk-meta-section dt {
+        color: #777587;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .chunk-meta-section dd {
+        margin: -8px 0 0;
+        color: #191c1e;
+        font-weight: 600;
+        overflow-wrap: anywhere;
+    }
+
+    .chunk-status {
+        border-radius: 9999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 5px 10px;
+    }
+
+    .status-indexed {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-processing {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-failed,
+    .status-rejected {
+        background: #ffdad6;
+        color: #ba1a1a;
+    }
+
+    .status-uploaded {
+        background: #e2dfff;
+        color: #3525cd;
+    }
+
+    .chunk-stat-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .chunk-stat-grid div {
+        border: 1px solid #e0e3e5;
+        border-radius: 12px;
+        padding: 14px;
+        background: #f7f9fb;
+    }
+
+    .chunk-stat-grid span {
+        display: block;
+        font-size: 22px;
+        font-weight: 800;
+        color: #3525cd;
+    }
+
+    .chunk-stat-grid small {
+        color: #464555;
+        font-weight: 600;
+    }
+
+    .chunk-empty {
+        text-align: center;
+        padding: 72px 24px;
+        color: #464555;
+    }
+
+    .chunk-empty .material-symbols-outlined {
+        font-size: 52px;
+        color: #c7c4d8;
+    }
+
+    @@media (max-width: 992px) {
+        .chunk-detail-page {
+            padding: 20px 16px;
+        }
+
+        .chunk-detail-header,
+        .chunk-toolbar {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .chunk-detail-header h1 {
+            font-size: 30px;
+        }
+
+        .chunk-layout {
+            grid-template-columns: 1fr;
+        }
+
+        .chunk-sidebar {
+            position: static;
+        }
+    }
+</style>
+
+@functions {
+    private static string FormatFileSize(long? bytes)
+    {
+        if (!bytes.HasValue)
+        {
+            return "--";
+        }
+
+        string[] units = ["B", "KB", "MB", "GB"];
+        var size = (double)bytes.Value;
+        var unitIndex = 0;
+        while (size >= 1024 && unitIndex < units.Length - 1)
+        {
+            size /= 1024;
+            unitIndex++;
+        }
+
+        return $"{size:0.#} {units[unitIndex]}";
+    }
+
+    private static string GetStatusClass(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Indexed => "status-indexed",
+            DocumentStatus.Processing => "status-processing",
+            DocumentStatus.Failed => "status-failed",
+            DocumentStatus.Rejected => "status-rejected",
+            DocumentStatus.NeedsReview => "status-needs-review",
+            DocumentStatus.Deleted => "status-failed",
+            DocumentStatus.Uploaded => "status-uploaded",
+            _ => "status-uploaded"
+        };
+    }
+
+    private static string GetStatusText(DocumentStatus status)
+    {
+        return status switch
+        {
+            DocumentStatus.Uploaded => "Chờ xử lý",
+            DocumentStatus.Processing => "Đang xử lý",
+            DocumentStatus.Indexed => "Đã index",
+            DocumentStatus.Failed => "Lỗi",
+            DocumentStatus.Rejected => "Từ chối",
+            DocumentStatus.NeedsReview => "Cần kiểm tra",
+            DocumentStatus.Deleted => "Đã xóa mềm",
+            _ => status.ToString()
+        };
+    }
+}
+
+
+

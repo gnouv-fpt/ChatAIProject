@@ -1,0 +1,225 @@
+@page
+@model Presentation.Pages.DocumentConflictReview.DetailsModel
+
+@{
+    var review = Model.Review!;
+    ViewData["Title"] = "Kiểm tra sai lệch tài liệu";
+}
+
+<div class="mb-3">
+    <a class="doc-back-link" asp-page="/Document/Index" asp-route-subjectId="@review.SubjectId">
+        <span class="material-symbols-outlined" style="font-size:1.1rem;vertical-align:middle" aria-hidden="true">arrow_back</span>
+        Quay lại kho tài liệu
+    </a>
+</div>
+
+<div class="page-heading">
+    <h1 class="page-title">Kiểm tra sai lệch tài liệu</h1>
+    <p class="page-subtitle">@review.SubjectName</p>
+</div>
+
+@if (TempData["ErrorMessage"] is string errorMessage)
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+@if (TempData["SuccessMessage"] is string successMessage)
+{
+    <div class="alert alert-success">@successMessage</div>
+}
+
+<section class="surface-card padded mb-4">
+    <div class="d-flex flex-column flex-lg-row justify-content-between gap-3">
+        <div>
+            <p class="text-muted mb-1" style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Tài liệu mới</p>
+            <h2 class="h4 fw-bold mb-2">@review.NewDocumentName</h2>
+            <p class="mb-0">@review.Summary</p>
+        </div>
+        <div class="text-lg-end">
+            <span class="status-badge status-needs-review">Cần kiểm tra sai lệch</span>
+            <div class="text-muted mt-2" style="font-size:0.875rem">
+                @review.FindingCount điểm nghi vấn · Similarity cao nhất @FormatScore(review.HighestSimilarityScore)
+            </div>
+        </div>
+    </div>
+</section>
+
+@foreach (var candidate in review.Candidates)
+{
+    <section class="surface-card padded mb-4">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-2 mb-3">
+            <div>
+                <p class="text-muted mb-1" style="font-size:0.82rem;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">Tài liệu đã có</p>
+                <h2 class="h5 fw-bold mb-1">@candidate.CandidateDocumentName</h2>
+                <p class="text-muted mb-0">@candidate.Summary</p>
+            </div>
+            <div class="text-lg-end text-muted" style="font-size:0.875rem">
+                @candidate.FindingCount điểm · Max @FormatScore(candidate.MaxSimilarityScore)
+            </div>
+        </div>
+
+        <div class="conflict-finding-list">
+            @foreach (var finding in candidate.Findings)
+            {
+                <article class="conflict-finding">
+                    <div class="d-flex flex-column flex-md-row justify-content-between gap-2 mb-2">
+                        <div>
+                            <span class="chip">@GetSeverityText(finding.Severity)</span>
+                            <span class="text-muted ms-2" style="font-size:0.82rem">Similarity @FormatScore(finding.SimilarityScore)</span>
+                        </div>
+                        <div class="text-muted" style="font-size:0.82rem">
+                            Mới: chunk @finding.NewChunkIndex @FormatLocation(finding.NewPageNumber, finding.NewSlideNumber)
+                            · Cũ: chunk @finding.ExistingChunkIndex @FormatLocation(finding.ExistingPageNumber, finding.ExistingSlideNumber)
+                        </div>
+                    </div>
+                    <p class="mb-2">@finding.Explanation</p>
+                    <div class="conflict-score-lines mb-3">
+                        <div>Điểm tương đồng ngữ nghĩa: <strong>@FormatScore(finding.SimilarityScore)</strong></div>
+                        <div>Độ giống văn bản: <strong>@FormatScore(finding.TextSimilarityScore)</strong></div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-lg-6">
+                            <div class="conflict-snippet">
+                                <div class="conflict-snippet-title">Nội dung tài liệu mới</div>
+                                <p>@finding.NewSnippet</p>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="conflict-snippet">
+                                <div class="conflict-snippet-title">Nội dung tài liệu đã có</div>
+                                <p>@finding.ExistingSnippet</p>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </section>
+}
+
+@if (string.Equals(review.Status, "Pending", StringComparison.OrdinalIgnoreCase) && User.IsInRole("Teacher"))
+{
+    <section class="surface-card padded">
+        <h2 class="h5 fw-bold mb-3">Quyết định của trưởng bộ môn</h2>
+        <form method="post" asp-page-handler="Resolve" class="d-flex flex-column gap-3">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@review.Id" />
+            <div>
+                <label class="form-label" for="note">Ghi chú xử lý</label>
+                <textarea id="note" name="note" class="form-control" rows="3" maxlength="800" placeholder="Ghi chú ngắn về lý do chọn tài liệu đúng."></textarea>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="btn btn-primary" type="submit" name="resolutionChoice" value="AcceptNew">
+                    Chọn tài liệu mới là đúng
+                </button>
+                <button class="btn btn-outline-primary" type="submit" name="resolutionChoice" value="KeepExisting">
+                    Giữ tài liệu cũ
+                </button>
+                <button class="btn btn-outline-secondary" type="submit" name="resolutionChoice" value="NoConflict">
+                    Không có xung đột
+                </button>
+            </div>
+        </form>
+    </section>
+}
+else if (string.Equals(review.Status, "Pending", StringComparison.OrdinalIgnoreCase))
+{
+    <section class="surface-card padded">
+        <h2 class="h5 fw-bold mb-2">Đang chờ trưởng bộ môn xử lý</h2>
+        <p class="text-muted mb-0">Admin có thể xem báo cáo để audit, nhưng quyết định chọn tài liệu đúng thuộc về trưởng bộ môn.</p>
+    </section>
+}
+else
+{
+    <section class="surface-card padded">
+        <h2 class="h5 fw-bold mb-2">Báo cáo đã được xử lý</h2>
+        <p class="mb-1">Kết quả: <strong>@review.ResolutionChoice</strong></p>
+        <p class="text-muted mb-0">Người xử lý: @(review.ResolvedByName ?? "--") · @(review.ResolvedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "--")</p>
+        @if (!string.IsNullOrWhiteSpace(review.ResolutionNote))
+        {
+            <p class="mt-3 mb-0">@review.ResolutionNote</p>
+        }
+    </section>
+}
+
+<style>
+    .status-needs-review {
+        color: #7e3000;
+        background: #ffdbcc;
+        border: 1px solid #ffb695;
+    }
+
+    .conflict-finding-list {
+        display: grid;
+        gap: 16px;
+    }
+
+    .conflict-finding {
+        padding: 18px;
+        background: var(--surface);
+        border: 1px solid rgba(199,196,216,0.5);
+        border-radius: var(--radius-md);
+    }
+
+    .conflict-score-lines {
+        display: grid;
+        gap: 4px;
+        color: var(--on-surface-variant);
+        font-size: 0.86rem;
+        line-height: 1.45;
+    }
+
+    .conflict-snippet {
+        height: 100%;
+        padding: 14px;
+        background: var(--surface-lowest);
+        border: 1px solid rgba(199,196,216,0.45);
+        border-left: 3px solid var(--primary-container);
+        border-radius: var(--radius-sm);
+    }
+
+    .conflict-snippet-title {
+        margin-bottom: 8px;
+        color: var(--on-surface-variant);
+        font-size: 0.76rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+    }
+
+    .conflict-snippet p {
+        margin: 0;
+        color: var(--on-surface);
+        font-size: 0.88rem;
+        line-height: 1.55;
+    }
+</style>
+
+@functions {
+    private static string GetSeverityText(string severity) => severity switch
+    {
+        "High" => "Mức cao",
+        "Medium" => "Mức vừa",
+        _ => "Mức thấp"
+    };
+
+    private static string FormatLocation(int? pageNumber, int? slideNumber)
+    {
+        if (pageNumber.HasValue)
+        {
+            return $"trang {pageNumber.Value}";
+        }
+
+        if (slideNumber.HasValue)
+        {
+            return $"slide {slideNumber.Value}";
+        }
+
+        return string.Empty;
+    }
+
+    private static string FormatScore(decimal score)
+    {
+        return $"{score:0.000} ({score * 100:0.#}%)";
+    }
+}

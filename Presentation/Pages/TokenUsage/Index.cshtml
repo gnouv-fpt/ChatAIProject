@@ -1,0 +1,54 @@
+@page "/TokenUsage/Index"
+@model Presentation.Pages.TokenUsage.IndexModel
+
+@{
+    ViewData["Title"] = "Thống kê token của tôi";
+}
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Thống kê token của tôi</h1>
+            <p class="text-muted mb-0">Theo dõi lượng token bạn đã sử dụng khi hỏi Gia sư AI.</p>
+        </div>
+        <a class="btn btn-outline-primary" asp-page="/Chat/Sessions">
+            <span class="material-symbols-outlined align-middle me-1" style="font-size:1.1rem">history</span>
+            Lịch sử hội thoại
+        </a>
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="border rounded-3 bg-white p-4 h-100">
+                <div class="text-muted small text-uppercase fw-semibold">Tổng token</div>
+                <div class="display-6 fw-bold">@Model.ViewModel.TotalTokens.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded-3 bg-white p-4 h-100">
+                <div class="text-muted small text-uppercase fw-semibold">Input token</div>
+                <div class="display-6 fw-bold">@Model.ViewModel.PromptTokens.ToString("N0")</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="border rounded-3 bg-white p-4 h-100">
+                <div class="text-muted small text-uppercase fw-semibold">Output token</div>
+                <div class="display-6 fw-bold">@Model.ViewModel.CompletionTokens.ToString("N0")</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="border rounded-3 bg-white p-4 mb-4">
+        <h2 class="h5 mb-3">Chi tiết sử dụng</h2>
+        <dl class="row mb-0">
+            <dt class="col-sm-3">Số câu trả lời đã tính token</dt>
+            <dd class="col-sm-9">@Model.ViewModel.AnswerCount.ToString("N0")</dd>
+
+            <dt class="col-sm-3">Lần dùng đầu tiên</dt>
+            <dd class="col-sm-9">@(Model.ViewModel.FirstUsedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "Chưa có dữ liệu")</dd>
+
+            <dt class="col-sm-3">Lần dùng gần nhất</dt>
+            <dd class="col-sm-9">@(Model.ViewModel.LastUsedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "Chưa có dữ liệu")</dd>
+        </dl>
+    </div>
+</div>

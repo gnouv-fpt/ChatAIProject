@@ -1,0 +1,538 @@
+﻿@page "/RagasEvaluation/Details"
+@model Presentation.Pages.RagasEvaluation.DetailsModel
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Kết quả benchmark embedding - " + Model.ViewModel.SubjectName;
+
+    string ScoreClass(decimal? score)
+    {
+        if (!score.HasValue) return "text-muted";
+        if (score.Value >= 0.8m) return "text-success";
+        if (score.Value >= 0.5m) return "text-warning";
+        return "text-danger";
+    }
+
+    string Percent(decimal? score) => score?.ToString("P1") ?? "N/A";
+
+    var rankedModels = Model.ViewModel.ModelSummaries
+        .OrderByDescending(item => item.AvgRecallAt5)
+        .ThenByDescending(item => item.AvgMrrAt10)
+        .ThenByDescending(item => item.AvgFaithfulness)
+        .ThenByDescending(item => item.AvgCitationF1)
+        .ThenBy(item => item.EndToEndLatencyP95Ms)
+        .ToList();
+    var bestModel = rankedModels.FirstOrDefault();
+}
+
+<div class="container-fluid px-4 py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a asp-page="/RagasEvaluation/Index" class="text-decoration-none">Đánh giá RAG</a></li>
+            <li class="breadcrumb-item">
+                <a asp-page="/RagasEvaluation/History"
+                   asp-route-subjectId="@Model.ViewModel.SubjectId"
+                   class="text-decoration-none">Lịch sử @Model.ViewModel.SubjectName</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Chi tiết lần chạy</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="h3 fw-bold mb-1">Kết quả benchmark embedding</h1>
+            <p class="text-muted mb-0">
+                @Model.ViewModel.SubjectName · @Model.ViewModel.RunDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+            </p>
+        </div>
+        <a asp-page="/RagasEvaluation/History"
+           asp-route-subjectId="@Model.ViewModel.SubjectId"
+           class="btn btn-outline-primary">
+            <span class="material-symbols-outlined align-middle fs-5">history</span>
+            Lịch sử
+        </a>
+    </div>
+
+    <section class="row g-3 mb-4" aria-label="Tóm tắt benchmark">
+        <div class="col-sm-6 col-xl-3">
+            <div class="border bg-white rounded p-3 h-100 shadow-sm">
+                <div class="text-muted small">Model dẫn đầu</div>
+                <div class="h5 fw-bold mb-1">@(bestModel?.EmbeddingModel ?? "-")</div>
+                <div class="small text-muted">@(bestModel?.ChunkingStrategy ?? "-")</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="border bg-white rounded p-3 h-100 shadow-sm">
+                <div class="text-muted small">Recall@5 tốt nhất</div>
+                <div class="h3 fw-bold mb-0 @ScoreClass(bestModel?.AvgRecallAt5)">@Percent(bestModel?.AvgRecallAt5)</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="border bg-white rounded p-3 h-100 shadow-sm">
+                <div class="text-muted small">End-to-end p95</div>
+                <div class="h3 fw-bold mb-0">@Model.ViewModel.EndToEndLatencyP95Ms.ToString("N0") ms</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="border bg-white rounded p-3 h-100 shadow-sm">
+                <div class="text-muted small">Test set</div>
+                <div class="h3 fw-bold mb-0">@Model.ViewModel.QuestionCount câu</div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="retrieval-chart-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="retrieval-chart-title" class="h6 fw-bold text-primary mb-1">Chất lượng retrieval</h2>
+            <div class="text-muted small">Recall@5 là tiêu chí xếp hạng chính; MRR@10 và nDCG@5 phản ánh thứ tự kết quả.</div>
+        </div>
+        <div class="card-body p-4">
+            <div class="metric-legend mb-3">
+                <span><i class="metric-swatch metric-recall"></i>Recall@5</span>
+                <span><i class="metric-swatch metric-mrr"></i>MRR@10</span>
+                <span><i class="metric-swatch metric-ndcg"></i>nDCG@5</span>
+            </div>
+            <div class="metric-chart-scroll">
+                <div class="metric-chart" style="min-width: @(Math.Max(680, rankedModels.Count * 190))px;">
+                    @foreach (var summary in rankedModels)
+                    {
+                        var metrics = new[]
+                        {
+                            (Name: "Recall@5", Value: summary.AvgRecallAt5, Css: "metric-recall"),
+                            (Name: "MRR@10", Value: summary.AvgMrrAt10, Css: "metric-mrr"),
+                            (Name: "nDCG@5", Value: summary.AvgNdcgAt5, Css: "metric-ndcg")
+                        };
+                        <div class="metric-group">
+                            <div class="metric-bars">
+                                @foreach (var metric in metrics)
+                                {
+                                    var height = Math.Clamp(metric.Value * 100, 0, 100).ToString("0.##", CultureInfo.InvariantCulture);
+                                    <div class="metric-bar-slot" title="@metric.Name: @metric.Value.ToString("P1")">
+                                        <span class="metric-value" style="--metric-height: @height%;">@metric.Value.ToString("P0")</span>
+                                        <i class="metric-bar @metric.Css" style="--metric-height: @height%;"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="metric-group-label">
+                                <strong>@summary.EmbeddingModel</strong>
+                                <span>@summary.ChunkingStrategy</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="quality-chart-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="quality-chart-title" class="h6 fw-bold text-primary mb-1">Chất lượng câu trả lời và nguồn</h2>
+            <div class="text-muted small">Kiểm tra câu trả lời đúng, bám tài liệu, trích dẫn đúng và biết từ chối.</div>
+        </div>
+        <div class="card-body p-4">
+            <div class="metric-legend mb-3">
+                <span><i class="metric-swatch metric-correctness"></i>Answer Correctness</span>
+                <span><i class="metric-swatch metric-faithfulness"></i>Faithfulness</span>
+                <span><i class="metric-swatch metric-citation"></i>Citation F1</span>
+                <span><i class="metric-swatch metric-noanswer"></i>No-answer F1</span>
+            </div>
+            <div class="metric-chart-scroll">
+                <div class="metric-chart" style="min-width: @(Math.Max(680, rankedModels.Count * 210))px;">
+                    @foreach (var summary in rankedModels)
+                    {
+                        var metrics = new[]
+                        {
+                            (Name: "Answer Correctness", Value: (decimal?)summary.AvgAnswerCorrectness, Css: "metric-correctness"),
+                            (Name: "Faithfulness", Value: (decimal?)summary.AvgFaithfulness, Css: "metric-faithfulness"),
+                            (Name: "Citation F1", Value: (decimal?)summary.AvgCitationF1, Css: "metric-citation"),
+                            (Name: "No-answer F1", Value: summary.NoAnswerF1, Css: "metric-noanswer")
+                        };
+                        <div class="metric-group metric-group-wide">
+                            <div class="metric-bars">
+                                @foreach (var metric in metrics)
+                                {
+                                    var value = metric.Value ?? 0;
+                                    var height = Math.Clamp(value * 100, 0, 100).ToString("0.##", CultureInfo.InvariantCulture);
+                                    <div class="metric-bar-slot" title="@metric.Name: @Percent(metric.Value)">
+                                        <span class="metric-value" style="--metric-height: @height%;">@(metric.Value?.ToString("P0") ?? "N/A")</span>
+                                        <i class="metric-bar @metric.Css" style="--metric-height: @height%;"></i>
+                                    </div>
+                                }
+                            </div>
+                            <div class="metric-group-label">
+                                <strong>@summary.EmbeddingModel</strong>
+                                <span>@summary.ChunkingStrategy</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="metric-help-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="metric-help-title" class="h6 fw-bold text-primary mb-0">Cách đọc các metric</h2>
+        </div>
+        <div class="metric-help-grid">
+            <div><strong>Recall@5</strong><span>Tỷ lệ gold chunk được tìm thấy trong 5 kết quả đầu. Đây là metric chính vì thiếu context đúng thì LLM khó trả lời chính xác.</span></div>
+            <div><strong>MRR@10</strong><span>Đo vị trí của gold chunk đầu tiên trong top 10. Gold chunk càng gần vị trí số 1 thì điểm càng cao.</span></div>
+            <div><strong>nDCG@5</strong><span>Đánh giá cả thứ tự và mức liên quan 2/1 của các gold chunk trong top 5.</span></div>
+            <div><strong>Answer Correctness</strong><span>Gemini LLM Judge so sánh câu trả lời sinh ra với đáp án chuẩn về độ đúng và đầy đủ.</span></div>
+            <div><strong>Faithfulness</strong><span>Tỷ lệ nội dung trong câu trả lời được context hỗ trợ, giúp phát hiện thông tin bị bịa thêm.</span></div>
+            <div><strong>Citation F1</strong><span>Cân bằng citation đúng và mức bao phủ gold chunks. Citation chính là các context chunk được đính kèm.</span></div>
+            <div><strong>No-answer F1</strong><span>Khả năng từ chối đúng khi tài liệu không có đáp án và không từ chối nhầm câu có đáp án.</span></div>
+            <div><strong>Latency p95</strong><span>95% câu hỏi hoàn tất không chậm hơn giá trị này. Không bao gồm thời gian LLM Judge.</span></div>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="ranking-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="ranking-title" class="h6 fw-bold text-primary mb-1">Bảng xếp hạng model</h2>
+            <div class="text-muted small">Recall@5 → MRR@10 → Faithfulness → Citation F1 → end-to-end p95.</div>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">Hạng</th>
+                        <th>Model · Strategy</th>
+                        <th class="text-center">Recall@5</th>
+                        <th class="text-center">MRR@10</th>
+                        <th class="text-center">nDCG@5</th>
+                        <th class="text-center">Correctness</th>
+                        <th class="text-center">Faithfulness</th>
+                        <th class="text-center">Citation F1</th>
+                        <th class="text-center">No-answer F1</th>
+                        <th class="text-end px-4">E2E p95</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (var index = 0; index < rankedModels.Count; index++)
+                    {
+                        var summary = rankedModels[index];
+                        <tr>
+                            <td class="px-4"><span class="badge @(index == 0 ? "bg-primary" : "bg-light text-dark border")">#@(index + 1)</span></td>
+                            <td>
+                                <div class="fw-semibold">@summary.EmbeddingModel</div>
+                                <div class="text-muted small">@summary.ChunkingStrategy · @summary.VectorStore</div>
+                            </td>
+                            <td class="text-center fw-bold @ScoreClass(summary.AvgRecallAt5)">@summary.AvgRecallAt5.ToString("P1")</td>
+                            <td class="text-center">@summary.AvgMrrAt10.ToString("P1")</td>
+                            <td class="text-center">@summary.AvgNdcgAt5.ToString("P1")</td>
+                            <td class="text-center">@summary.AvgAnswerCorrectness.ToString("P1")</td>
+                            <td class="text-center">@summary.AvgFaithfulness.ToString("P1")</td>
+                            <td class="text-center">@summary.AvgCitationF1.ToString("P1")</td>
+                            <td class="text-center">@Percent(summary.NoAnswerF1)</td>
+                            <td class="text-end px-4">@summary.EndToEndLatencyP95Ms.ToString("N0") ms</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="latency-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="latency-title" class="h6 fw-bold text-primary mb-0">Hiệu năng truy vấn</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">Model · Strategy</th>
+                        <th class="text-end">Embedding p50 / p95</th>
+                        <th class="text-end">Retrieval p50 / p95</th>
+                        <th class="text-end px-4">End-to-end p50 / p95</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var summary in rankedModels)
+                    {
+                        <tr>
+                            <td class="px-4 fw-semibold">@summary.EmbeddingModel · @summary.ChunkingStrategy</td>
+                            <td class="text-end">@summary.EmbeddingLatencyP50Ms / @summary.EmbeddingLatencyP95Ms ms</td>
+                            <td class="text-end">@summary.RetrievalLatencyP50Ms / @summary.RetrievalLatencyP95Ms ms</td>
+                            <td class="text-end px-4">@summary.EndToEndLatencyP50Ms / @summary.EndToEndLatencyP95Ms ms</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card border-0 shadow-sm mb-4" aria-labelledby="token-title">
+        <div class="card-header bg-white border-bottom py-3">
+            <h2 id="token-title" class="h6 fw-bold text-primary mb-0">Token ước tính trong 7 ngày</h2>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="px-4">Model</th>
+                        <th class="text-center">Lượt chạy</th>
+                        <th class="text-center">Câu hỏi</th>
+                        <th class="text-end">Embedding</th>
+                        <th class="text-end">Prompt</th>
+                        <th class="text-end">Completion</th>
+                        <th class="text-end">Tổng</th>
+                        <th class="text-center px-4">Recall@5</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var usage in Model.ViewModel.WeeklyTokenUsage)
+                    {
+                        <tr>
+                            <td class="px-4 fw-semibold">@usage.EmbeddingModel</td>
+                            <td class="text-center">@usage.RunCount</td>
+                            <td class="text-center">@usage.QuestionCount</td>
+                            <td class="text-end">@usage.EstimatedEmbeddingTokens.ToString("N0")</td>
+                            <td class="text-end">@usage.EstimatedPromptTokens.ToString("N0")</td>
+                            <td class="text-end">@usage.EstimatedCompletionTokens.ToString("N0")</td>
+                            <td class="text-end fw-bold">@usage.EstimatedTotalTokens.ToString("N0")</td>
+                            <td class="text-center px-4">@usage.AvgRecallAt5.ToString("P1")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+    <section class="mt-5" aria-labelledby="detail-title">
+        <h2 id="detail-title" class="h5 fw-bold mb-1">Chi tiết từng câu hỏi</h2>
+        <p class="text-muted small mb-3">Chọn model và strategy để kiểm tra retrieval, câu trả lời và latency.</p>
+
+        <ul class="nav nav-tabs ragas-model-tabs" role="tablist">
+            @for (var modelIndex = 0; modelIndex < Model.ViewModel.ResultGroups.Count; modelIndex++)
+            {
+                var group = Model.ViewModel.ResultGroups[modelIndex];
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link @(modelIndex == 0 ? "active" : "")"
+                            id="model-tab-@modelIndex"
+                            data-bs-toggle="tab"
+                            data-bs-target="#model-panel-@modelIndex"
+                            type="button"
+                            role="tab"
+                            aria-controls="model-panel-@modelIndex"
+                            aria-selected="@(modelIndex == 0 ? "true" : "false")">
+                        @group.EmbeddingModel
+                    </button>
+                </li>
+            }
+        </ul>
+
+        <div class="tab-content border border-top-0 bg-white p-3 p-lg-4">
+            @for (var modelIndex = 0; modelIndex < Model.ViewModel.ResultGroups.Count; modelIndex++)
+            {
+                var group = Model.ViewModel.ResultGroups[modelIndex];
+                var accordionId = $"results-{modelIndex}";
+                <div class="tab-pane fade @(modelIndex == 0 ? "show active" : "")"
+                     id="model-panel-@modelIndex"
+                     role="tabpanel"
+                     aria-labelledby="model-tab-@modelIndex">
+                    <div class="d-flex justify-content-between align-items-end flex-wrap gap-3 mb-3">
+                        <div>
+                            <h3 class="h6 fw-bold mb-1">@group.EmbeddingModel</h3>
+                            <div class="text-muted small">@group.Results.Count kết quả.</div>
+                        </div>
+                        <div style="width: min(100%, 260px);">
+                            <label for="strategy-filter-@modelIndex" class="form-label small fw-semibold">Strategy</label>
+                            <select id="strategy-filter-@modelIndex"
+                                    class="form-select form-select-sm ragas-strategy-filter"
+                                    data-panel="model-panel-@modelIndex">
+                                <option value="">Tất cả strategy</option>
+                                @foreach (var strategy in group.ChunkingStrategies)
+                                {
+                                    <option value="@strategy">@strategy</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="accordion border rounded" id="@accordionId">
+                        @for (var resultIndex = 0; resultIndex < group.Results.Count; resultIndex++)
+                        {
+                            var result = group.Results[resultIndex];
+                            var headingId = $"heading-{modelIndex}-{resultIndex}";
+                            var collapseId = $"collapse-{modelIndex}-{resultIndex}";
+                            var headlineScore = result.IsAnswerable
+                                ? Percent(result.RecallAt5)
+                                : result.PredictedNoAnswer ? "Từ chối đúng" : "Không từ chối";
+                            <div class="accordion-item ragas-result-item border-0 border-bottom"
+                                 data-strategy="@result.ChunkingStrategy">
+                                <h3 class="accordion-header" id="@headingId">
+                                    <button class="accordion-button @(resultIndex == 0 ? "" : "collapsed")"
+                                            type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#@collapseId"
+                                            aria-expanded="@(resultIndex == 0 ? "true" : "false")"
+                                            aria-controls="@collapseId">
+                                        <span class="flex-grow-1 pe-3">
+                                            <span class="fw-semibold">@result.Question</span>
+                                            <span class="badge bg-light text-dark border ms-2">@result.ChunkingStrategy</span>
+                                            <span class="badge @(result.IsAnswerable ? "bg-primary" : "bg-secondary") ms-1">
+                                                @(result.IsAnswerable ? "Có đáp án" : "Không có đáp án")
+                                            </span>
+                                        </span>
+                                        <span class="badge bg-light text-dark border me-3">@headlineScore</span>
+                                    </button>
+                                </h3>
+                                <div id="@collapseId"
+                                     class="accordion-collapse collapse @(resultIndex == 0 ? "show" : "")"
+                                     aria-labelledby="@headingId"
+                                     data-bs-parent="#@accordionId">
+                                    <div class="accordion-body bg-light">
+                                        <div class="row g-4">
+                                            <div class="col-xl-7">
+                                                <h4 class="h6 fw-bold text-success">Ground Truth</h4>
+                                                <div class="bg-white border rounded p-3 mb-4">@result.GroundTruthAnswer</div>
+                                                <h4 class="h6 fw-bold text-primary">Câu trả lời sinh ra</h4>
+                                                <div class="bg-white border rounded p-3 generated-answer">@(result.GeneratedAnswer ?? "Không có câu trả lời.")</div>
+                                                <div class="row g-3 mt-1">
+                                                    <div class="col-md-6">
+                                                        <div class="bg-white border rounded p-3 h-100">
+                                                            <div class="small fw-semibold mb-2">Top chunk IDs</div>
+                                                            <div class="d-flex flex-wrap gap-1">
+                                                                @foreach (var chunkId in result.RetrievedChunkIds.Take(10))
+                                                                {
+                                                                    <span class="badge bg-light text-dark border">#@chunkId</span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="bg-white border rounded p-3 h-100">
+                                                            <div class="small fw-semibold mb-2">Citation chunk IDs</div>
+                                                            <div class="d-flex flex-wrap gap-1">
+                                                                @foreach (var chunkId in result.CitationChunkIds)
+                                                                {
+                                                                    <span class="badge bg-light text-dark border">#@chunkId</span>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-5">
+                                                <div class="bg-white border rounded overflow-hidden">
+                                                    <div class="px-3 py-2 border-bottom fw-bold">Metric câu h?i</div>
+                                                    <div class="detail-metric-list">
+                                                        <div><span>Recall@5</span><strong>@Percent(result.RecallAt5)</strong></div>
+                                                        <div><span>MRR@10</span><strong>@Percent(result.MrrAt10)</strong></div>
+                                                        <div><span>nDCG@5</span><strong>@Percent(result.NdcgAt5)</strong></div>
+                                                        <div><span>Answer Correctness</span><strong>@Percent(result.AnswerCorrectness)</strong></div>
+                                                        <div><span>Faithfulness</span><strong>@Percent(result.Faithfulness)</strong></div>
+                                                        <div><span>Citation Precision</span><strong>@Percent(result.CitationPrecision)</strong></div>
+                                                        <div><span>Citation Recall</span><strong>@Percent(result.CitationRecall)</strong></div>
+                                                        <div><span>Citation F1</span><strong>@Percent(result.CitationF1)</strong></div>
+                                                        <div><span>No-answer expected / predicted</span><strong>@(result.ExpectedNoAnswer ? "Có" : "Không") / @(result.PredictedNoAnswer ? "Có" : "Không")</strong></div>
+                                                    </div>
+                                                </div>
+                                                <div class="bg-white border rounded overflow-hidden mt-3">
+                                                    <div class="px-3 py-2 border-bottom fw-bold">Latency</div>
+                                                    <div class="detail-metric-list">
+                                                        <div><span>Embedding</span><strong>@result.EmbeddingLatencyMs ms</strong></div>
+                                                        <div><span>Retrieval</span><strong>@result.RetrievalLatencyMs ms</strong></div>
+                                                        <div><span>Generation</span><strong>@result.GenerationLatencyMs ms</strong></div>
+                                                        <div><span>End-to-end</span><strong>@result.EndToEndLatencyMs ms</strong></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                    <div class="ragas-filter-empty text-center text-muted border rounded py-4 mt-3" hidden>
+                        Không có kết quả cho strategy đã chọn.
+                    </div>
+                </div>
+            }
+        </div>
+    </section>
+</div>
+<style>
+    .metric-legend { display: flex; flex-wrap: wrap; gap: 12px 20px; font-size: .875rem; }
+    .metric-legend span { display: inline-flex; align-items: center; gap: 7px; }
+    .metric-swatch { width: 12px; height: 12px; border-radius: 2px; display: inline-block; }
+    .metric-chart-scroll { overflow-x: auto; padding-top: 22px; }
+    .metric-chart {
+        display: flex;
+        align-items: flex-start;
+        height: 315px;
+        border-bottom: 1px solid #dfe3e8;
+    }
+    .metric-group { flex: 0 0 190px; min-width: 190px; padding: 0 16px; }
+    .metric-group-wide { flex-basis: 210px; min-width: 210px; }
+    .metric-bars {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(28px, 1fr);
+        align-items: end;
+        gap: 8px;
+        height: 245px;
+    }
+    .metric-bar-slot { position: relative; height: 245px; }
+    .metric-bar, .metric-value { position: absolute; left: 0; right: 0; bottom: 0; }
+    .metric-bar { height: var(--metric-height); min-height: 2px; border-radius: 3px 3px 0 0; }
+    .metric-value {
+        bottom: calc(var(--metric-height) + 4px);
+        text-align: center;
+        font-size: .68rem;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .metric-group-label { min-height: 70px; padding-top: 10px; text-align: center; overflow-wrap: anywhere; }
+    .metric-group-label strong, .metric-group-label span { display: block; }
+    .metric-group-label span { color: #6c757d; font-size: .75rem; margin-top: 3px; }
+    .metric-recall { background: #0d6efd; }
+    .metric-mrr { background: #198754; }
+    .metric-ndcg { background: #d97706; }
+    .metric-correctness { background: #7c3aed; }
+    .metric-faithfulness { background: #00897b; }
+    .metric-citation { background: #dc3545; }
+    .metric-noanswer { background: #495057; }
+    .metric-help-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .metric-help-grid > div { padding: 18px 20px; border-bottom: 1px solid #e5e7eb; }
+    .metric-help-grid > div:nth-child(odd) { border-right: 1px solid #e5e7eb; }
+    .metric-help-grid strong, .metric-help-grid span { display: block; }
+    .metric-help-grid span { color: #6c757d; font-size: .875rem; margin-top: 5px; }
+    .ragas-model-tabs { overflow-x: auto; overflow-y: hidden; flex-wrap: nowrap; }
+    .ragas-model-tabs .nav-link { white-space: nowrap; }
+    .generated-answer { white-space: pre-wrap; }
+    .detail-metric-list > div {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 10px 14px;
+        border-bottom: 1px solid #e5e7eb;
+    }
+    .detail-metric-list > div:last-child { border-bottom: 0; }
+    .detail-metric-list span { color: #6c757d; }
+
+    @@media (max-width: 767.98px) {
+        .metric-help-grid { grid-template-columns: 1fr; }
+        .metric-help-grid > div:nth-child(odd) { border-right: 0; }
+        .accordion-button { align-items: flex-start; }
+    }
+</style>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll(".ragas-strategy-filter").forEach((select) => {
+            select.addEventListener("change", () => {
+                const panel = document.getElementById(select.dataset.panel);
+                if (!panel) return;
+
+                let visible = 0;
+                panel.querySelectorAll(".ragas-result-item").forEach((item) => {
+                    const show = !select.value || item.dataset.strategy === select.value;
+                    item.hidden = !show;
+                    if (show) visible += 1;
+                });
+
+                const emptyState = panel.querySelector(".ragas-filter-empty");
+                if (emptyState) emptyState.hidden = visible !== 0;
+            });
+        });
+    </script>
+}

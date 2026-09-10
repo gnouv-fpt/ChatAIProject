@@ -1,0 +1,262 @@
+@{
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? string.Empty;
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+    var displayName = User.Identity?.Name ?? "User";
+    var avatarLetter = string.IsNullOrWhiteSpace(displayName) ? "U" : displayName.Trim()[0].ToString();
+    var canUploadDocuments = User.IsInRole("Teacher");
+
+    bool IsActive(params string[] pagePrefixes) { return pagePrefixes.Any(prefix => currentPage.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)); }
+}
+@using System.Security.Claims
+@using BusinessLogic.Services.Interfaces
+@inject INotificationService NotificationService
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - ChatAIWeb</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Presentation.styles.css" asp-append-version="true" />
+</head>
+<body class="app-body">
+    @if (isAuthenticated)
+    {
+        <button class="shell-scrim" type="button" data-shell-close aria-label="Đóng menu"></button>
+        <aside class="app-sidebar" id="appSidebar" aria-label="Điều hướng chính">
+            <div class="brand-block">
+                <a class="brand-mark" asp-page="/Chat/Index" aria-label="ChatAIWeb">
+                    <span class="material-symbols-outlined" aria-hidden="true" style="font-variation-settings:'FILL' 1;">auto_awesome</span>
+                </a>
+                <div style="flex:1;min-width:0">
+                    <a class="brand-title" asp-page="/Chat/Index">Insightful AI</a>
+                    <div class="brand-subtitle">Hệ thống học tập thông minh</div>
+                </div>
+                @* Desktop collapse/expand button inside brand-block for correct flow layout *@
+                <button class="sidebar-collapse-btn"
+                        type="button"
+                        data-sidebar-collapse
+                        aria-label="Thu gọn menu"
+                        title="Thu gọn / Mở rộng menu">
+                    <span class="material-symbols-outlined" style="font-size:1rem">chevron_left</span>
+                </button>
+            </div>
+
+            <nav class="shell-nav">
+                @if (!User.IsInRole("Admin"))
+                {
+                    <a class="shell-nav-link @(IsActive("/Dashboard/Index") ? "active" : "")" asp-page="/Dashboard/Index" title="Bảng điều khiển">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/Dashboard/Index") ? "icon-fill" : "")" aria-hidden="true">dashboard</span>
+                        <span>Bảng điều khiển</span>
+                    </a>
+                }
+                <a class="shell-nav-link @(IsActive("/Chat/Index", "/Dashboard/SelectSubject") ? "active" : "")" asp-page="/Dashboard/SelectSubject" title="Gia sư AI">
+                    <span class="material-symbols-outlined shell-nav-icon @(IsActive("/Chat/Index", "/Dashboard/SelectSubject") ? "icon-fill" : "")" aria-hidden="true">psychology</span>
+                    <span>Gia sư AI</span>
+                </a>
+                <a class="shell-nav-link @(IsActive("/Document") ? "active" : "")" asp-page="/Document/Index" title="Kho tài liệu">
+                    <span class="material-symbols-outlined shell-nav-icon @(IsActive("/Document") ? "icon-fill" : "")" aria-hidden="true">folder_open</span>
+                    <span>Kho tài liệu</span>
+                </a>
+                <a class="shell-nav-link @(IsActive("/Chat/Sessions", "/Chat/History") ? "active" : "")" asp-page="/Chat/Sessions" title="Lịch sử hội thoại">
+                    <span class="material-symbols-outlined shell-nav-icon" aria-hidden="true">history</span>
+                    <span>Lịch sử hội thoại</span>
+                </a>
+                <a class="shell-nav-link @(IsActive("/TokenUsage") ? "active" : "")" asp-page="/TokenUsage/Index" title="Thống kê token của tôi">
+                    <span class="material-symbols-outlined shell-nav-icon @(IsActive("/TokenUsage") ? "icon-fill" : "")" aria-hidden="true">data_usage</span>
+                    <span>Token của tôi</span>
+                </a>
+                @if (User.IsInRole("Admin") || User.IsInRole("Teacher"))
+                {
+                    <a class="shell-nav-link @(IsActive("/Subject") ? "active" : "")" asp-page="/Subject/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/Subject") ? "icon-fill" : "")" aria-hidden="true">menu_book</span>
+                        <span>@(User.IsInRole("Admin") ? "Quản lý môn học" : "Danh sách môn học")</span>
+                    </a>
+                }
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="sidebar-section-label mt-3 mb-2 px-3 text-muted" style="font-size: 0.75rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Hệ thống</div>
+                    <a class="shell-nav-link @(IsActive("/AdminDashboard") ? "active" : "")" asp-page="/AdminDashboard/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/AdminDashboard") ? "icon-fill" : "")" aria-hidden="true">insert_chart</span>
+                        <span>Dashboard Quản trị</span>
+                    </a>
+                    <a class="shell-nav-link @(IsActive("/AdminUsers") ? "active" : "")" asp-page="/AdminUsers/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/AdminUsers") ? "icon-fill" : "")" aria-hidden="true">admin_panel_settings</span>
+                        <span>Tài khoản</span>
+                    </a>
+                    <a class="shell-nav-link @(IsActive("/RagasEvaluation") ? "active" : "")" asp-page="/RagasEvaluation/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/RagasEvaluation") ? "icon-fill" : "")" aria-hidden="true">model_training</span>
+                        <span>Đánh giá mô hình</span>
+                    </a>
+                    <a class="shell-nav-link @(IsActive("/AdminTokenUsage") ? "active" : "")" asp-page="/AdminTokenUsage/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/AdminTokenUsage") ? "icon-fill" : "")" aria-hidden="true">query_stats</span>
+                        <span>Thống kê token</span>
+                    </a>
+                    <a class="shell-nav-link @(IsActive("/SystemSettings") ? "active" : "")" asp-page="/SystemSettings/Index">
+                        <span class="material-symbols-outlined shell-nav-icon @(IsActive("/SystemSettings") ? "icon-fill" : "")" aria-hidden="true">settings</span>
+                        <span>Cấu hình AI</span>
+                    </a>
+                }
+            </nav>
+
+
+            <div class="sidebar-footer">
+                <a class="shell-nav-link compact" asp-page="/Account/Profile">
+                    <span class="material-symbols-outlined shell-nav-icon" aria-hidden="true">account_circle</span>
+                    <span>@User.Identity?.Name</span>
+                </a>
+                <form asp-page="/Account/Logout" method="post">
+                    <button type="submit" class="shell-nav-link compact danger w-100">
+                        <span class="material-symbols-outlined shell-nav-icon" aria-hidden="true">logout</span>
+                        <span>Đăng xuất</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <div class="app-shell">
+            <header class="app-topbar">
+                <div class="d-flex align-items-center gap-2">
+                    <button class="app-icon-button" type="button" data-shell-toggle aria-controls="appSidebar" aria-expanded="false" aria-label="Mở/Đóng menu">
+                        <span class="material-symbols-outlined" aria-hidden="true">menu</span>
+                    </button>
+                    <div class="topbar-title d-none d-sm-block">ChatAIWeb</div>
+                </div>
+                @{
+                    var notificationSummary = new BusinessLogic.DTOs.Responses.NotificationSummaryDto(0, []);
+                    var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (int.TryParse(currentUserIdClaim, out var currentUserId))
+                    {
+                        notificationSummary = await NotificationService.GetSummaryAsync(currentUserId);
+                    }
+                }
+                <div class="topbar-actions">
+                    @if (canUploadDocuments)
+                    {
+                        <a class="app-icon-button" asp-page="/Document/Upload" aria-label="Tải tài liệu lên" title="Tải tài liệu lên">
+                            <span class="material-symbols-outlined" aria-hidden="true">upload_file</span>
+                        </a>
+                    }
+                    <div class="notification-shell" data-notification-shell>
+                        @Html.AntiForgeryToken()
+                        @await Html.PartialAsync("/Pages/Shared/_NotificationDropdown.cshtml", notificationSummary)
+                    </div>
+                    <a class="user-chip" asp-page="/Account/Profile">
+                        <span class="avatar-dot" aria-hidden="true">@avatarLetter</span>
+                        <span class="d-none d-md-inline">@displayName</span>
+                    </a>
+                </div>
+            </header>
+
+            <main class="app-main @(ViewData["MainClass"])" role="main">
+                @RenderBody()
+            </main>
+        </div>
+        @await Html.PartialAsync("/Pages/Shared/_RagasEvaluationProgressWidget.cshtml")
+    }
+    else
+    {
+        <main class="guest-main" role="main">
+            @RenderBody()
+        </main>
+    }
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @if (isAuthenticated)
+    {
+        <script src="~/lib/signalr/signalr.min.js"></script>
+        @if (User.IsInRole("Admin"))
+        {
+            <script src="~/js/ragas-evaluation-jobs.js" asp-append-version="true"></script>
+        }
+        <script>
+            (() => {
+                const shell = document.querySelector('[data-notification-shell]');
+                if (!shell || !window.signalR) {
+                    return;
+                }
+
+                const summaryUrl = '/Notifications/Summary';
+                const markReadUrl = '/Notifications/Summary?handler=MarkRead';
+                const markAllUrl = '/Notifications/Summary?handler=MarkAllRead';
+
+                async function refreshNotifications() {
+                    const response = await fetch(summaryUrl, {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (response.ok) {
+                        const token = shell.querySelector('input[name="__RequestVerificationToken"]')?.outerHTML ?? '';
+                        shell.innerHTML = token + await response.text();
+                    }
+                }
+
+                async function postNotification(url, formData) {
+                    await fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'RequestVerificationToken': shell.querySelector('input[name="__RequestVerificationToken"]')?.value ?? ''
+                        },
+                        body: formData
+                    });
+                    await refreshNotifications();
+                }
+
+                shell.addEventListener('click', async (event) => {
+                    const toggle = event.target.closest('[data-notification-toggle]');
+                    const markAll = event.target.closest('[data-notification-mark-all]');
+                    const item = event.target.closest('[data-notification-id]');
+                    const menu = shell.querySelector('[data-notification-menu]');
+
+                    if (toggle) {
+                        menu?.classList.toggle('open');
+                        return;
+                    }
+
+                    if (markAll) {
+                        event.preventDefault();
+                        await postNotification(markAllUrl, new FormData());
+                        return;
+                    }
+
+                    if (item) {
+                        const formData = new FormData();
+                        formData.append('id', item.dataset.notificationId);
+                        await postNotification(markReadUrl, formData);
+                    }
+                });
+
+                document.addEventListener('click', (event) => {
+                    if (!shell.contains(event.target)) {
+                        shell.querySelector('[data-notification-menu]')?.classList.remove('open');
+                    }
+                });
+
+                const connection = new signalR.HubConnectionBuilder()
+                    .withUrl('/hubs/notifications')
+                    .withAutomaticReconnect()
+                    .build();
+
+                connection.on('NotificationReceived', refreshNotifications);
+                connection.onreconnected(async () => {
+                    try {
+                        await connection.invoke('JoinNotifications');
+                        await refreshNotifications();
+                    } catch {
+                    }
+                });
+                connection.start()
+                    .then(() => connection.invoke('JoinNotifications'))
+                    .catch(() => {});
+            })();
+        </script>
+    }
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

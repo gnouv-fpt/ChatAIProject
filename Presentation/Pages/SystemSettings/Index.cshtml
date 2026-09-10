@@ -1,0 +1,256 @@
+@page "/SystemSettings/Index"
+@model Presentation.Pages.SystemSettings.IndexModel
+
+@{
+    ViewData["Title"] = "Cấu hình RAG";
+}
+
+<div class="rag-config-page">
+    <header class="rag-config-header">
+        <div>
+            <p class="rag-config-eyebrow">QUẢN TRỊ HỆ THỐNG</p>
+            <h1>Cấu hình RAG</h1>
+            <p>Điều chỉnh model embedding, chiến lược chia chunk và tham số truy xuất dữ liệu.</p>
+        </div>
+        <div class="rag-config-status"><span></span>Cấu hình đang hoạt động</div>
+    </header>
+
+    @if (!string.IsNullOrEmpty(Model.ViewModel.SuccessMessage))
+    {
+        <div class="alert alert-success alert-dismissible fade show rag-config-alert" role="alert">
+            <span class="material-symbols-outlined">check_circle</span>
+            <span>@Model.ViewModel.SuccessMessage</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+    @if (!string.IsNullOrEmpty(Model.ViewModel.ErrorMessage))
+    {
+        <div class="alert alert-danger alert-dismissible fade show rag-config-alert" role="alert">
+            <span class="material-symbols-outlined">error</span>
+            <span>@Model.ViewModel.ErrorMessage</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+    <form asp-page="/SystemSettings/Save" method="post" id="settingsForm">
+        <div class="rag-config-grid">
+            <div class="rag-config-column">
+                <section class="rag-config-card">
+                    <div class="rag-card-heading">
+                        <span class="rag-card-icon green material-symbols-outlined">account_tree</span>
+                        <div><h2>Cấu hình mô hình Vector</h2><p>Chọn model dùng để tạo embedding cho tài liệu và câu hỏi.</p></div>
+                    </div>
+                    <div class="rag-card-body">
+                        <input asp-for="ViewModel.EmbeddingProvider" type="hidden" id="EmbeddingProvider" />
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.EmbeddingModel">Model embedding</label>
+                            <div class="rag-select-with-icon">
+                                <span class="material-symbols-outlined">memory</span>
+                                <select asp-for="ViewModel.EmbeddingModel" id="EmbeddingModel">
+                                    @foreach (var embeddingModel in Model.EmbeddingModels)
+                                    {
+                                        <option value="@embeddingModel.Key"
+                                                data-provider="@embeddingModel.Provider"
+                                                data-model="@embeddingModel.Model"
+                                                data-dimension="@embeddingModel.Dimension">
+                                            @embeddingModel.Label
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+                            <span asp-validation-for="ViewModel.EmbeddingModel" class="text-danger small"></span>
+                            <p class="rag-field-help">Chỉ hiển thị các model embedding đang bật trong dự án.</p>
+                        </div>
+                        <div class="rag-model-meta">
+                            <span><span class="material-symbols-outlined">hub</span><strong id="EmbeddingProviderLabel">@Model.ViewModel.EmbeddingProvider</strong></span>
+                            <span><span class="material-symbols-outlined">deployed_code</span><strong id="EmbeddingModelNameLabel"></strong></span>
+                            <span><span class="material-symbols-outlined">data_object</span><strong id="EmbeddingDimensionLabel">--</strong></span>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rag-config-card">
+                    <div class="rag-card-heading">
+                        <span class="rag-card-icon blue material-symbols-outlined">segment</span>
+                        <div><h2>Cấu hình chia chunk</h2><p>Kiểm soát kích thước và độ chồng lấn của nội dung được index.</p></div>
+                    </div>
+                    <div class="rag-card-body">
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.ChunkSizeMode">Kiểu chia chunk</label>
+                            <input asp-for="ViewModel.ChunkSizeMode" type="hidden" id="ChunkSizeMode" />
+                            <div class="dropdown">
+                                <button class="rag-chunk-select" type="button" id="ChunkSizeModeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <span id="ChunkSizeModeIcon" class="material-symbols-outlined">auto_stories</span>
+                                    <span id="ChunkSizeModeLabel">Theo trang/slide</span>
+                                    <span class="material-symbols-outlined chevron">expand_more</span>
+                                </button>
+                                <ul class="dropdown-menu rag-chunk-menu" aria-labelledby="ChunkSizeModeDropdown">
+                                    <li><button class="dropdown-item chunk-mode-option" type="button" data-value="Page" data-icon="auto_stories" data-label="Theo trang/slide"><span class="material-symbols-outlined">auto_stories</span>Theo trang/slide</button></li>
+                                    <li><button class="dropdown-item chunk-mode-option" type="button" data-value="Word" data-icon="short_text" data-label="Theo số từ"><span class="material-symbols-outlined">short_text</span>Theo số từ</button></li>
+                                    <li><button class="dropdown-item chunk-mode-option" type="button" data-value="Character" data-icon="text_fields" data-label="Theo số ký tự"><span class="material-symbols-outlined">text_fields</span>Theo số ký tự</button></li>
+                                </ul>
+                            </div>
+                            <span asp-validation-for="ViewModel.ChunkSizeMode" class="text-danger small"></span>
+                        </div>
+
+                        <div class="rag-chunk-fields">
+                            <div class="rag-field chunk-size-config" id="chunk-size-Page">
+                                <label asp-for="ViewModel.PageChunkSize">Số trang/slide mỗi chunk</label>
+                                <input asp-for="ViewModel.PageChunkSize" type="number" min="1" max="20" />
+                                <span asp-validation-for="ViewModel.PageChunkSize" class="text-danger small"></span>
+                            </div>
+                            <div class="rag-field chunk-size-config" id="chunk-size-Word">
+                                <label asp-for="ViewModel.WordChunkSize">Số từ mỗi chunk</label>
+                                <input asp-for="ViewModel.WordChunkSize" type="number" min="50" max="3000" />
+                                <span asp-validation-for="ViewModel.WordChunkSize" class="text-danger small"></span>
+                            </div>
+                            <div class="rag-field chunk-size-config" id="chunk-size-Character">
+                                <label asp-for="ViewModel.CharacterChunkSize">Số ký tự mỗi chunk</label>
+                                <input asp-for="ViewModel.CharacterChunkSize" type="number" min="200" max="20000" />
+                                <span asp-validation-for="ViewModel.CharacterChunkSize" class="text-danger small"></span>
+                            </div>
+                            <div class="rag-field" id="chunk-overlap-field">
+                                <label asp-for="ViewModel.ChunkOverlapSize">Độ chồng lấn</label>
+                                <input asp-for="ViewModel.ChunkOverlapSize" type="number" min="0" max="2000" />
+                                <span asp-validation-for="ViewModel.ChunkOverlapSize" class="text-danger small"></span>
+                            </div>
+                            <div class="rag-field">
+                                <label asp-for="ViewModel.MinChunkCharacters">Độ dài tối thiểu</label>
+                                <input asp-for="ViewModel.MinChunkCharacters" type="number" min="1" max="1000" />
+                                <span asp-validation-for="ViewModel.MinChunkCharacters" class="text-danger small"></span>
+                            </div>
+                        </div>
+                        <div class="rag-info-note"><span class="material-symbols-outlined">info</span>Cấu hình mới chỉ áp dụng cho tài liệu được index sau khi lưu.</div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="rag-config-column">
+                <section class="rag-config-card">
+                    <div class="rag-card-heading">
+                        <span class="rag-card-icon amber material-symbols-outlined">tune</span>
+                        <div><h2>Tham số thuật toán RAG</h2><p>Điều chỉnh phạm vi và độ chính xác của kết quả truy xuất.</p></div>
+                    </div>
+                    <div class="rag-card-body rag-retrieval-grid">
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.TopK">Top K</label>
+                            <input asp-for="ViewModel.TopK" type="number" min="1" max="20" />
+                            <p class="rag-field-help">Số chunk đưa vào prompt.</p>
+                        </div>
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.SimilarityThreshold">Ngưỡng tương đồng</label>
+                            <input asp-for="ViewModel.SimilarityThreshold" type="number" step="0.05" min="0" max="1" />
+                            <p class="rag-field-help">Cosine similarity tối thiểu.</p>
+                        </div>
+                        <div class="rag-field wide">
+                            <label asp-for="ViewModel.MaxCitationSnippetLength">Độ dài trích dẫn tối đa</label>
+                            <div class="rag-input-suffix">
+                                <input asp-for="ViewModel.MaxCitationSnippetLength" type="number" min="50" max="1000" />
+                                <span>ký tự</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="rag-config-card">
+                    <div class="rag-card-heading">
+                        <span class="rag-card-icon purple material-symbols-outlined">chat</span>
+                        <div><h2>System Prompts</h2><p>Định hướng cách chatbot trả lời và cách hệ thống đánh giá kết quả.</p></div>
+                    </div>
+                    <div class="rag-card-body rag-prompt-stack">
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.ChatSystemPrompt">System Prompt cho Chatbot</label>
+                            <textarea asp-for="ViewModel.ChatSystemPrompt" rows="6" placeholder="Bạn là AI trợ giảng. Hãy dùng ngữ cảnh sau..."></textarea>
+                            <p class="rag-field-help">Áp dụng cho mọi câu trả lời được sinh trong luồng chat.</p>
+                        </div>
+                        <div class="rag-field">
+                            <label asp-for="ViewModel.EvaluationSystemPrompt">System Prompt cho LLM-as-a-judge</label>
+                            <textarea asp-for="ViewModel.EvaluationSystemPrompt" rows="6" placeholder="Bạn là hệ thống chấm điểm RAG..."></textarea>
+                            <p class="rag-field-help">Dùng trong quá trình benchmark RAGAS.</p>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <div class="rag-config-actions">
+            <p><span class="material-symbols-outlined">sync</span>Các thay đổi sẽ có hiệu lực sau khi lưu.</p>
+            <div>
+                <button type="button" class="rag-button secondary" onclick="location.reload()">Hủy thay đổi</button>
+                <button type="submit" class="rag-button primary"><span class="material-symbols-outlined">save</span>Lưu cấu hình</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<style>
+    .rag-config-page{--primary:#4f46e5;--text:#172033;--muted:#667085;--border:#e4e7ec;max-width:1440px;margin:0 auto;padding:32px 40px 48px;color:var(--text)}
+    .rag-config-header{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px}
+    .rag-config-eyebrow{margin:0 0 6px!important;color:var(--primary)!important;font-size:12px!important;font-weight:700}
+    .rag-config-header h1{margin:0;font-size:32px;line-height:1.25;font-weight:700}.rag-config-header p{margin:8px 0 0;color:var(--muted);font-size:15px}
+    .rag-config-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid #d7f0df;border-radius:8px;background:#f3fbf6;color:#18794e;font-size:13px;font-weight:600;white-space:nowrap}
+    .rag-config-status span{width:8px;height:8px;border-radius:50%;background:#22a06b;box-shadow:0 0 0 3px #d7f0df}
+    .rag-config-alert{display:flex;align-items:center;gap:10px;border:0;border-radius:8px}.rag-config-alert .btn-close{margin-left:auto}
+    .rag-config-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:24px;align-items:start}.rag-config-column{display:grid;gap:24px}
+    .rag-config-card{overflow:hidden;border:1px solid var(--border);border-radius:8px;background:#fff;box-shadow:0 4px 14px rgba(79,70,229,.045)}
+    .rag-card-heading{display:flex;gap:14px;align-items:flex-start;padding:20px 22px 16px;border-bottom:1px solid #eef0f3}.rag-card-heading h2{margin:0;font-size:16px;line-height:1.4;font-weight:700}.rag-card-heading p{margin:4px 0 0;color:var(--muted);font-size:13px;line-height:1.45}
+    .rag-card-icon{display:grid;place-items:center;flex:0 0 36px;width:36px;height:36px;border-radius:8px;font-size:20px}.rag-card-icon.green{color:#16845b;background:#e8f7f0}.rag-card-icon.blue{color:#2563eb;background:#eaf1ff}.rag-card-icon.amber{color:#b54708;background:#fff3e0}.rag-card-icon.purple{color:#6941c6;background:#f0ebff}
+    .rag-card-body{padding:22px}.rag-field{min-width:0}.rag-field label{display:block;margin-bottom:8px;color:#344054;font-size:13px;font-weight:650}
+    .rag-field input,.rag-field select,.rag-field textarea,.rag-chunk-select{width:100%;min-height:42px;border:1px solid #d0d5dd;border-radius:8px;background:#fff;color:#101828;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s}
+    .rag-field input{padding:9px 12px}.rag-field select{padding:9px 38px}.rag-field textarea{display:block;min-height:132px;padding:12px;resize:vertical;line-height:1.55}
+    .rag-field input:focus,.rag-field select:focus,.rag-field textarea:focus,.rag-chunk-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.12)}
+    .rag-field-help{margin:7px 0 0;color:var(--muted);font-size:12px;line-height:1.45}.rag-select-with-icon{position:relative}.rag-select-with-icon>.material-symbols-outlined{position:absolute;left:12px;top:50%;z-index:1;transform:translateY(-50%);color:#667085;font-size:18px;pointer-events:none}
+    .rag-model-meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}.rag-model-meta>span{display:inline-flex;align-items:center;gap:6px;min-height:30px;padding:5px 9px;border:1px solid #e4e7ec;border-radius:8px;background:#f8fafc;color:#475467;font-size:12px}.rag-model-meta .material-symbols-outlined{font-size:15px;color:var(--primary)}.rag-model-meta strong{font-weight:600}
+    .rag-chunk-select{display:flex;align-items:center;gap:9px;padding:8px 12px;text-align:left}.rag-chunk-select>.material-symbols-outlined:first-child{color:#475467;font-size:19px}.rag-chunk-select .chevron{margin-left:auto;color:#667085;font-size:19px}
+    .rag-chunk-menu{width:100%;padding:6px;border:1px solid #e4e7ec;border-radius:8px;box-shadow:0 10px 24px rgba(16,24,40,.12)}.rag-chunk-menu .dropdown-item{display:flex;align-items:center;gap:9px;min-height:38px;border-radius:6px;font-size:14px}.rag-chunk-menu .dropdown-item .material-symbols-outlined{font-size:18px;color:#667085}.rag-chunk-menu .dropdown-item.active{background:#eeecff;color:#3525cd}
+    .rag-chunk-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}.rag-info-note{display:flex;align-items:flex-start;gap:8px;margin-top:18px;padding:10px 12px;border-radius:8px;background:#f4f6ff;color:#4842a8;font-size:12px;line-height:1.5}.rag-info-note .material-symbols-outlined{font-size:17px}
+    .rag-retrieval-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}.rag-retrieval-grid .wide{grid-column:1/-1}.rag-input-suffix{position:relative}.rag-input-suffix input{padding-right:58px}.rag-input-suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#667085;font-size:12px}.rag-prompt-stack{display:grid;gap:20px}
+    .rag-config-actions{position:sticky;bottom:0;z-index:10;display:flex;justify-content:space-between;align-items:center;gap:18px;margin-top:24px;padding:14px 16px;border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.96);box-shadow:0 -5px 18px rgba(16,24,40,.07);backdrop-filter:blur(8px)}
+    .rag-config-actions p{display:flex;align-items:center;gap:7px;margin:0;color:var(--muted);font-size:12px}.rag-config-actions p .material-symbols-outlined{font-size:17px}.rag-config-actions>div{display:flex;gap:10px}
+    .rag-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:9px 16px;border-radius:8px;font-size:14px;font-weight:650;transition:transform .15s,background .15s}.rag-button:active{transform:scale(.98)}.rag-button .material-symbols-outlined{font-size:18px}.rag-button.secondary{border:1px solid #d0d5dd;background:#fff;color:#344054}.rag-button.secondary:hover{background:#f8fafc}.rag-button.primary{border:1px solid var(--primary);background:var(--primary);color:#fff}.rag-button.primary:hover{background:#4338ca}
+    @@media(max-width:991.98px){.rag-config-page{padding:24px}.rag-config-grid{grid-template-columns:1fr}}
+    @@media(max-width:575.98px){.rag-config-page{padding:20px 16px 32px}.rag-config-header{display:block}.rag-config-header h1{font-size:27px}.rag-config-status{width:max-content;margin-top:16px}.rag-card-heading,.rag-card-body{padding:18px}.rag-chunk-fields,.rag-retrieval-grid{grid-template-columns:1fr}.rag-retrieval-grid .wide{grid-column:auto}.rag-config-actions{align-items:stretch;flex-direction:column}.rag-config-actions>div{display:grid;grid-template-columns:1fr 1fr}.rag-config-actions p{justify-content:center}}
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            function updateEmbeddingModelMeta() {
+                const selected = $('#EmbeddingModel option:selected');
+                const provider = selected.data('provider') || '';
+                const model = selected.data('model') || '';
+                const dimension = selected.data('dimension');
+
+                $('#EmbeddingProvider').val(provider);
+                $('#EmbeddingProviderLabel').text(provider || 'N/A');
+                $('#EmbeddingModelNameLabel').text(model || selected.val() || 'N/A');
+                $('#EmbeddingDimensionLabel').text(dimension ? dimension + ' chiều' : 'N/A');
+            }
+
+            $('#EmbeddingModel').change(updateEmbeddingModelMeta);
+            updateEmbeddingModelMeta();
+
+            function setChunkMode(value) {
+                const selectedOption = $('.chunk-mode-option[data-value="' + value + '"]');
+                const fallbackOption = $('.chunk-mode-option[data-value="Page"]');
+                const option = selectedOption.length ? selectedOption : fallbackOption;
+                const mode = option.data('value');
+
+                $('#ChunkSizeMode').val(mode);
+                $('#ChunkSizeModeIcon').text(option.data('icon'));
+                $('#ChunkSizeModeLabel').text(option.data('label'));
+                $('.chunk-mode-option').removeClass('active');
+                option.addClass('active');
+                $('.chunk-size-config').hide();
+                $('#chunk-size-' + mode).show();
+                $('#chunk-overlap-field').toggle(mode !== 'Page');
+            }
+
+            $('.chunk-mode-option').click(function () {
+                setChunkMode($(this).data('value'));
+            });
+            setChunkMode($('#ChunkSizeMode').val());
+        });
+    </script>
+}

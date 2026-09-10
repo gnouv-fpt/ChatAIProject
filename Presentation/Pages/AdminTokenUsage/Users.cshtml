@@ -1,0 +1,149 @@
+@page "/AdminTokenUsage/Users"
+@model Presentation.Pages.AdminTokenUsage.UsersModel
+
+@{
+    ViewData["Title"] = "Token theo từng user";
+}
+
+<style>
+    .role-badge {
+        display: inline-flex;
+        align-items: center;
+        min-width: 72px;
+        justify-content: center;
+        padding: 0.35rem 0.65rem;
+        border-radius: 999px;
+        background: #eef2ff;
+        border: 1px solid #c7d2fe;
+        color: #312e81;
+        font-weight: 700;
+        font-size: 0.78rem;
+        line-height: 1;
+    }
+
+    .token-filter-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 1.5fr) minmax(160px, 0.8fr) minmax(180px, 0.9fr) auto auto;
+        gap: 0.75rem;
+        align-items: end;
+    }
+
+    @@media (max-width: 992px) {
+        .token-filter-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .token-filter-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid py-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-1">Token theo từng user</h1>
+            <p class="text-muted mb-0">Theo dõi lượng token từng người dùng đã sử dụng trong Gia sư AI.</p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-outline-primary" asp-page="/AdminTokenUsage/Index">
+                <span class="material-symbols-outlined align-middle me-1" style="font-size:1.1rem">query_stats</span>
+                Thống kê token
+            </a>
+            <a class="btn btn-outline-secondary" asp-page="/AdminDashboard/Index">
+                <span class="material-symbols-outlined align-middle me-1" style="font-size:1.1rem">insert_chart</span>
+                Dashboard
+            </a>
+        </div>
+    </div>
+
+    <form method="get" class="border rounded-3 bg-white p-4 mb-4">
+        <div class="token-filter-grid">
+            <div>
+                <label class="form-label fw-semibold" for="SearchTerm">Tên hoặc email</label>
+                <input id="SearchTerm"
+                       name="SearchTerm"
+                       value="@Model.SearchTerm"
+                       class="form-control"
+                       placeholder="Tìm theo tên hoặc email" />
+            </div>
+            <div>
+                <label class="form-label fw-semibold" for="Role">Vai trò</label>
+                <select id="Role" name="Role" class="form-select">
+                    <option value="">Tất cả vai trò</option>
+                    @foreach (var role in Model.RoleOptions)
+                    {
+                        <option value="@role" selected="@(string.Equals(Model.Role, role, StringComparison.OrdinalIgnoreCase))">@role</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label fw-semibold" for="SortOrder">Sắp xếp</label>
+                <select id="SortOrder" name="SortOrder" class="form-select">
+                    <option value="token_desc" selected="@(Model.SortOrder == "token_desc")">Token cao đến thấp</option>
+                    <option value="token_asc" selected="@(Model.SortOrder == "token_asc")">Token thấp đến cao</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <span class="material-symbols-outlined align-middle me-1" style="font-size:1.1rem">filter_alt</span>
+                Lọc
+            </button>
+            <a class="btn btn-outline-secondary" asp-page="/AdminTokenUsage/Users">
+                <span class="material-symbols-outlined align-middle me-1" style="font-size:1.1rem">restart_alt</span>
+                Xóa lọc
+            </a>
+        </div>
+    </form>
+
+    <div class="border rounded-3 bg-white overflow-hidden">
+        <div class="px-4 py-3 border-bottom d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h2 class="h5 mb-0">Token theo từng user</h2>
+            <span class="text-muted small">@Model.Users.Count.ToString("N0") user</span>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Người dùng</th>
+                        <th>Vai trò</th>
+                        <th class="text-end">Input</th>
+                        <th class="text-end">Output</th>
+                        <th class="text-end">Tổng token</th>
+                        <th class="text-end">Câu trả lời</th>
+                        <th>Lần dùng gần nhất</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Users.Any())
+                    {
+                        foreach (var user in Model.Users)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="fw-semibold">@user.FullName</div>
+                                    <div class="text-muted small">@user.Email</div>
+                                </td>
+                                <td><span class="role-badge">@user.Role</span></td>
+                                <td class="text-end">@user.PromptTokens.ToString("N0")</td>
+                                <td class="text-end">@user.CompletionTokens.ToString("N0")</td>
+                                <td class="text-end fw-semibold">@user.TotalTokens.ToString("N0")</td>
+                                <td class="text-end">@user.AnswerCount.ToString("N0")</td>
+                                <td>@(user.LastUsedAt?.ToLocalTime().ToString("dd/MM/yyyy HH:mm") ?? "Chưa có dữ liệu")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                @(Model.HasActiveFilters ? "Không tìm thấy user phù hợp." : "Chưa có dữ liệu token.")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

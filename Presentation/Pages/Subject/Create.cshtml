@@ -1,0 +1,90 @@
+﻿@page "/Subject/Create"
+@model Presentation.Pages.Subject.CreateModel
+
+@{
+    ViewData["Title"] = "Thêm môn học mới";
+    Layout = "_Layout";
+}
+
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+
+<div class="bg-[#f7f9fb] min-h-screen p-6 md:p-10 flex items-start justify-center">
+    <div class="w-full max-w-xl">
+        <div class="mb-6">
+            <a asp-page="/Subject/Index"
+               class="inline-flex items-center gap-1 text-sm text-[#464555] hover:text-[#4f46e5] transition-colors mb-4"
+               style="font-family:'Inter',sans-serif;text-decoration:none">
+                <span class="material-symbols-outlined text-[18px]">arrow_back</span>
+                Quay lại danh sách
+            </a>
+            <h1 class="text-3xl font-bold text-[#191c1e]" style="font-family:'Be Vietnam Pro',sans-serif">Thêm môn học mới</h1>
+            <p class="text-[#464555] mt-1" style="font-family:'Inter',sans-serif">Admin tạo môn học và phân công trưởng bộ môn nếu cần.</p>
+        </div>
+
+        <div class="bg-white rounded-2xl p-8 border border-[#e6e8ea]"
+             style="box-shadow:0 4px 16px rgba(79,70,229,0.06)">
+            <form asp-page="/Subject/Create" method="post">
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="mb-4 p-3 rounded-xl text-sm" style="background:#ffdad6;color:#ba1a1a;font-family:'Inter',sans-serif"></div>
+
+                <div class="space-y-5">
+                    <div>
+                        <label asp-for="ViewModel.SubjectCode" class="block text-sm font-semibold text-[#191c1e] mb-1.5" style="font-family:'Inter',sans-serif"></label>
+                        <input asp-for="ViewModel.SubjectCode" type="text" placeholder="VD: CS101"
+                               class="w-full px-4 py-3 rounded-xl border border-[#c7c4d8] bg-white text-[#191c1e] outline-none transition-all focus:border-[#4f46e5] focus:ring-2"
+                               style="font-family:'Inter',sans-serif;--tw-ring-color:rgba(79,70,229,0.2)" />
+                        <span asp-validation-for="ViewModel.SubjectCode" class="text-xs text-[#ba1a1a] mt-1 block" style="font-family:'Inter',sans-serif"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ViewModel.SubjectName" class="block text-sm font-semibold text-[#191c1e] mb-1.5" style="font-family:'Inter',sans-serif"></label>
+                        <input asp-for="ViewModel.SubjectName" type="text" placeholder="VD: Nhập môn lập trình"
+                               class="w-full px-4 py-3 rounded-xl border border-[#c7c4d8] bg-white text-[#191c1e] outline-none transition-all focus:border-[#4f46e5] focus:ring-2"
+                               style="font-family:'Inter',sans-serif;--tw-ring-color:rgba(79,70,229,0.2)" />
+                        <span asp-validation-for="ViewModel.SubjectName" class="text-xs text-[#ba1a1a] mt-1 block" style="font-family:'Inter',sans-serif"></span>
+                    </div>
+
+                    <div>
+                        <label asp-for="ViewModel.HeadTeacherId" class="block text-sm font-semibold text-[#191c1e] mb-1.5" style="font-family:'Inter',sans-serif"></label>
+                        <select asp-for="ViewModel.HeadTeacherId"
+                                class="w-full px-4 py-3 rounded-xl border border-[#c7c4d8] bg-white text-[#191c1e] outline-none transition-all focus:border-[#4f46e5] focus:ring-2"
+                                style="font-family:'Inter',sans-serif;--tw-ring-color:rgba(79,70,229,0.2)">
+                            <option value="">-- Chưa phân công --</option>
+                            @foreach (var teacher in Model.ViewModel.TeacherOptions)
+                            {
+                                <option value="@teacher.UserId">@teacher.FullName (@teacher.Email)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label asp-for="ViewModel.Description" class="block text-sm font-semibold text-[#191c1e] mb-1.5" style="font-family:'Inter',sans-serif"></label>
+                        <textarea asp-for="ViewModel.Description" rows="3" placeholder="Mô tả ngắn về môn học này..."
+                                  class="w-full px-4 py-3 rounded-xl border border-[#c7c4d8] bg-white text-[#191c1e] outline-none transition-all focus:border-[#4f46e5] resize-none"
+                                  style="font-family:'Inter',sans-serif"></textarea>
+                        <span asp-validation-for="ViewModel.Description" class="text-xs text-[#ba1a1a] mt-1 block" style="font-family:'Inter',sans-serif"></span>
+                    </div>
+                </div>
+
+                <div class="mt-8 flex gap-3">
+                    <button type="submit"
+                            class="flex-1 py-3 rounded-xl font-semibold text-white transition-all active:scale-95 shadow-sm hover:shadow-md"
+                            style="background:#4f46e5;font-family:'Inter',sans-serif">
+                        Tạo môn học
+                    </button>
+                    <a asp-page="/Subject/Index"
+                       class="flex-1 py-3 rounded-xl font-semibold text-[#191c1e] text-center transition-all active:scale-95 border border-[#c7c4d8] hover:bg-[#eceef0]"
+                       style="font-family:'Inter',sans-serif;text-decoration:none">
+                        Hủy
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
+

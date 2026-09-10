@@ -1,0 +1,26 @@
+namespace BusinessLogic.DTOs.Responses;
+
+public sealed record RagasEvaluationJobStatusDto(
+    string EvaluationId,
+    int UserId,
+    int SubjectId,
+    string SubjectName,
+    string Status,
+    string Stage,
+    int Percent,
+    int CompletedSteps,
+    int TotalSteps,
+    string? CurrentModel,
+    string? CurrentStrategy,
+    int? CurrentQuestion,
+    int TotalQuestions,
+    int ElapsedSeconds,
+    int? EstimatedRemainingSeconds,
+    string Message,
+    int? QueuePosition,
+    int QueuedJobsForUser,
+    DateTimeOffset EnqueuedAt,
+    DateTimeOffset? StartedAt,
+    DateTimeOffset? FinishedAt,
+    bool IsCompleted,
+    bool IsFailed);

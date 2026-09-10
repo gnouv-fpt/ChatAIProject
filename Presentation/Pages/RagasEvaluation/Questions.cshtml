@@ -1,0 +1,274 @@
+﻿@page "/RagasEvaluation/Questions"
+@model Presentation.Pages.RagasEvaluation.QuestionsModel
+
+@{
+    ViewData["Title"] = "Quản lý câu hỏi mẫu - " + Model.ViewModel.SubjectName;
+}
+
+<div class="container-fluid px-4 py-4">
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success">@successMessage</div>
+    }
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    <div id="runEvaluationAntiforgery" class="d-none">
+        @Html.AntiForgeryToken()
+    </div>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item"><a asp-page="/RagasEvaluation/Index" class="text-decoration-none">Đánh giá RAG</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.ViewModel.SubjectName</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="h3 mb-1 text-gray-800 fw-bold">Bộ câu hỏi đánh giá</h1>
+            <p class="text-muted mb-0">Ground-truth dataset cho môn học: <strong class="text-primary">@Model.ViewModel.SubjectName</strong></p>
+        </div>
+        <div class="d-flex gap-2">
+            @if (Model.ViewModel.Questions.Count < 50)
+            {
+                <form asp-page="/RagasEvaluation/SeedQuestions" method="post" class="d-inline">
+                    <input type="hidden" name="subjectId" value="@Model.ViewModel.SubjectId" />
+                    <button type="submit" class="btn btn-outline-success rounded-pill px-4 d-flex align-items-center gap-2">
+                        <span class="material-symbols-outlined fs-5">auto_awesome</span> Tạo dữ liệu mẫu
+                    </button>
+                </form>
+            }
+            <button type="button" class="btn btn-primary rounded-pill px-4 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addQuestionModal">
+                <span class="material-symbols-outlined fs-5">add</span> Thêm câu hỏi
+            </button>
+            <button type="button" id="btnRunEvaluation" class="btn btn-warning rounded-pill px-4 d-flex align-items-center gap-2" @(Model.ViewModel.Readiness.IsReady ? "" : "disabled")>
+                <span class="material-symbols-outlined fs-5">play_arrow</span> Chạy đánh giá (Benchmark)
+            </button>
+        </div>
+    </div>
+
+    <section class="border rounded bg-white shadow-sm p-3 mb-4" aria-label="Trạng thái dữ liệu benchmark">
+        <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+            <div>
+                <div class="fw-bold mb-1">Mức sẵn sàng của test set</div>
+                <div class="text-muted small">
+                    @Model.ViewModel.Readiness.ReadyQuestions/@Model.ViewModel.Readiness.TotalQuestions câu đã cấu hình ·
+                    @Model.ViewModel.Readiness.AnswerableQuestions có đáp án ·
+                    @Model.ViewModel.Readiness.UnanswerableQuestions không có đáp án
+                </div>
+            </div>
+            <span class="badge @(Model.ViewModel.Readiness.IsReady ? "bg-success" : "bg-warning text-dark") px-3 py-2">
+                @(Model.ViewModel.Readiness.IsReady ? "Sẵn sàng chạy" : "Chưa sẵn sàng")
+            </span>
+        </div>
+        @if (Model.ViewModel.Readiness.Errors.Count > 0)
+        {
+            <ul class="small text-danger mt-3 mb-0 ps-3">
+                @foreach (var error in Model.ViewModel.Readiness.Errors)
+                {
+                    <li>@error</li>
+                }
+            </ul>
+        }
+    </section>
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 font-weight-bold text-primary">Embedding models benchmark</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var embeddingModel in Model.ViewModel.EmbeddingModels)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <label class="border rounded-3 p-3 w-100 h-100 d-flex gap-2 align-items-start">
+                            <input class="form-check-input benchmark-model" type="checkbox" value="@embeddingModel.Key" checked="@embeddingModel.IsSelected" />
+                            <span>
+                                <span class="fw-semibold d-block">@embeddingModel.Key</span>
+                                <span class="text-muted small">@embeddingModel.Provider - @embeddingModel.Model</span>
+                            </span>
+                        </label>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white py-3 border-bottom">
+            <h6 class="m-0 font-weight-bold text-primary">Chunking / retrieval strategies</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                @foreach (var strategy in Model.ViewModel.ChunkingStrategies)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <label class="border rounded-3 p-3 w-100 h-100 d-flex gap-2 align-items-start">
+                            <input class="form-check-input benchmark-strategy" type="checkbox" value="@strategy.Key" checked="@strategy.IsSelected" />
+                            <span>
+                                <span class="fw-semibold d-block">@strategy.DisplayName</span>
+                                <span class="text-muted small">@strategy.Description</span>
+                            </span>
+                        </label>
+                    </div>
+                }
+            </div>
+            <div class="text-muted small mt-3">
+                Phase 4 se luu rieng ket qua theo tung cap embedding model va strategy de so sanh bang diem.
+            </div>
+        </div>
+    </div>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="border-0 px-4 py-3" style="width: 32%">Câu hỏi</th>
+                            <th class="border-0 py-3" style="width: 38%">Câu trả lời chuẩn (Ground Truth)</th>
+                            <th class="border-0 py-3 text-center" style="width: 12%">Benchmark</th>
+                            <th class="border-0 py-3 text-center" style="width: 8%">Ngày tạo</th>
+                            <th class="border-0 py-3 text-end px-4" style="width: 10%">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.ViewModel.Questions.Any())
+                        {
+                            foreach (var q in Model.ViewModel.Questions)
+                            {
+                                <tr>
+                                    <td class="px-4 py-3 fw-medium text-gray-800">@q.Question</td>
+                                    <td class="py-3 text-muted small">@q.GroundTruthAnswer</td>
+                                    <td class="py-3 text-center">
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="badge @(q.IsBenchmarkReady ? "bg-success" : "bg-warning text-dark") rounded-pill">
+                                                @(q.IsBenchmarkReady ? "Sẵn sàng" : "Chưa cấu hình")
+                                            </span>
+                                            <span class="badge @(q.IsAnswerable ? "bg-primary" : "bg-secondary") rounded-pill">
+                                                @(q.IsAnswerable ? $"{q.GoldChunkCount} gold chunk" : "Không có đáp án")
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 text-center text-muted small">@q.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td class="py-3 text-end px-4">
+                                        <a asp-page="/RagasEvaluation/QuestionSetup"
+                                           asp-route-id="@q.Id"
+                                           class="btn btn-sm btn-outline-primary btn-icon rounded-circle me-1"
+                                           title="Cấu hình gold data">
+                                            <span class="material-symbols-outlined fs-6">tune</span>
+                                        </a>
+                                        <form asp-page="/RagasEvaluation/DeleteQuestion" method="post" class="d-inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa câu hỏi này?');">
+                                            <input type="hidden" name="id" value="@q.Id" />
+                                            <input type="hidden" name="subjectId" value="@Model.ViewModel.SubjectId" />
+                                            <button type="submit" class="btn btn-sm btn-outline-danger btn-icon rounded-circle" title="Xóa">
+                                                <span class="material-symbols-outlined fs-6">delete</span>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="text-muted mb-3">Chưa có câu hỏi nào cho môn học này.</div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Add Question -->
+<div class="modal fade" id="addQuestionModal" tabindex="-1" aria-labelledby="addQuestionModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <form asp-page="/RagasEvaluation/AddQuestion" method="post">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold" id="addQuestionModalLabel">Thêm câu hỏi mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="SubjectId" value="@Model.ViewModel.SubjectId" />
+                    
+                    <div class="mb-3">
+                        <label for="Question" class="form-label fw-semibold">Câu hỏi</label>
+                        <input type="text" class="form-control" id="Question" name="Question" required placeholder="Nhập câu hỏi sinh viên có thể hỏi...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="GroundTruthAnswer" class="form-label fw-semibold">Câu trả lời chuẩn (Ground Truth)</label>
+                        <textarea class="form-control" id="GroundTruthAnswer" name="GroundTruthAnswer" rows="4" required placeholder="Nhập câu trả lời chính xác, đầy đủ làm căn cứ để AI chấm điểm..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-light">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu câu hỏi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            function showEvaluationError(message) {
+                var existing = $('#evaluationQueueError');
+                if (existing.length === 0) {
+                    existing = $('<div id="evaluationQueueError" class="alert alert-danger shadow-sm border-0 mb-4" role="alert"></div>');
+                    existing.insertBefore($('.card.shadow-sm.border-0').first());
+                }
+                existing.text(message).removeClass('d-none');
+            }
+
+            $('#btnRunEvaluation').click(async function() {
+                var btn = $(this);
+                var subjectId = @Model.ViewModel.SubjectId;
+                var embeddingModels = $('.benchmark-model:checked').map(function() {
+                    return $(this).val();
+                }).get();
+                var chunkingStrategies = $('.benchmark-strategy:checked').map(function() {
+                    return $(this).val();
+                }).get();
+
+                $('#evaluationQueueError').addClass('d-none');
+
+                if (embeddingModels.length === 0) {
+                    showEvaluationError('Vui lòng chọn ít nhất một embedding model để benchmark.');
+                    return;
+                }
+
+                if (chunkingStrategies.length === 0) {
+                    showEvaluationError('Vui lòng chọn ít nhất một chunking strategy để benchmark.');
+                    return;
+                }
+
+                if (!window.ragasEvaluationJobs) {
+                    showEvaluationError('Không thể khởi tạo tiến trình realtime. Vui lòng tải lại trang và thử lại.');
+                    return;
+                }
+
+                btn.prop('disabled', true);
+                try {
+                    await window.ragasEvaluationJobs.enqueue({
+                        subjectId: subjectId,
+                        embeddingModels: embeddingModels,
+                        chunkingStrategies: chunkingStrategies,
+                        antiforgeryToken: $('#runEvaluationAntiforgery input[name="__RequestVerificationToken"]').val()
+                    });
+                } catch (error) {
+                    showEvaluationError(error.message || 'Không thể gửi yêu cầu đánh giá. Vui lòng thử lại.');
+                    btn.prop('disabled', false);
+                    return;
+                }
+
+                btn.prop('disabled', false);
+            });
+        });
+    </script>
+}

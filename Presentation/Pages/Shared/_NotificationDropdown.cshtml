@@ -1,0 +1,37 @@
+@model BusinessLogic.DTOs.Responses.NotificationSummaryDto
+
+<button class="app-icon-button notification-trigger" type="button" data-notification-toggle aria-label="Thông báo" title="Thông báo">
+    <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+    @if (Model.UnreadCount > 0)
+    {
+        <span class="notification-badge">@Model.UnreadCount</span>
+    }
+</button>
+<div class="notification-menu" data-notification-menu>
+    <div class="notification-menu-header">
+        <strong>Thông báo</strong>
+        @if (Model.UnreadCount > 0)
+        {
+            <button type="button" data-notification-mark-all>Đánh dấu đã đọc</button>
+        }
+    </div>
+    @if (!Model.RecentNotifications.Any())
+    {
+        <div class="notification-empty">Chưa có thông báo nào.</div>
+    }
+    else
+    {
+        <div class="notification-list">
+            @foreach (var notification in Model.RecentNotifications)
+            {
+                <button type="button"
+                        class="notification-item @(notification.IsRead ? "" : "unread")"
+                        data-notification-id="@notification.Id">
+                    <span class="notification-title">@notification.Title</span>
+                    <span class="notification-message">@notification.Message</span>
+                    <span class="notification-time">@notification.CreatedAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</span>
+                </button>
+            }
+        </div>
+    }
+</div>

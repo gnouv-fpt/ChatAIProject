@@ -1,0 +1,15 @@
+{
+  "embeddingProvider": "Ollama",
+  "embeddingModel": "bge-m3",
+  "topK": 5,
+  "similarityThreshold": 0.6,
+  "maxCitationSnippetLength": 250,
+  "chunkSizeMode": "Character",
+  "pageChunkSize": 1,
+  "wordChunkSize": 700,
+  "characterChunkSize": 300,
+  "chunkOverlapSize": 50,
+  "minChunkCharacters": 10,
+  "chatSystemPrompt": "",
+  "evaluationSystemPrompt": ""
+}

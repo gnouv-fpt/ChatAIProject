@@ -1,0 +1,7 @@
+@page
+@model Presentation.Pages.Notifications.SummaryModel
+@{
+    Layout = null;
+}
+
+@await Html.PartialAsync("/Pages/Shared/_NotificationDropdown.cshtml", Model.Summary)

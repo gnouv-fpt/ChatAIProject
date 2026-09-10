@@ -1,0 +1,248 @@
+@model Presentation.Models.SubjectMembersViewModel
+
+@{
+    var teachers = Model.Members
+        .Where(m => m.RoleInClass == "Teacher")
+        .OrderByDescending(m => m.IsHeadTeacher)
+        .ThenBy(m => m.FullName)
+        .ToList();
+
+    var students = Model.Members
+        .Where(m => m.RoleInClass != "Teacher")
+        .OrderBy(m => m.FullName)
+        .ToList();
+}
+
+<div class="members-topbar">
+    <div>
+        <a asp-page="/Subject/Index" class="members-back-link">
+            <span class="material-symbols-outlined">arrow_back</span>
+            Quay lại quản lý môn học
+        </a>
+        <div class="members-subject-badges">
+            <span class="badge-code">@Model.SubjectCode</span>
+            @if (!string.IsNullOrWhiteSpace(Model.HeadTeacherName))
+            {
+                <span class="badge-head">
+                    <span class="material-symbols-outlined icon-fill" style="font-size:0.9rem">workspace_premium</span>
+                    Trưởng bộ môn: @Model.HeadTeacherName
+                </span>
+            }
+        </div>
+        <h1 class="members-title">@Model.SubjectName</h1>
+        <p class="members-subtitle">Quản lý giảng viên, sinh viên và danh sách tham gia trong môn học.</p>
+    </div>
+    <a asp-page="/Subject/Edit" asp-route-id="@Model.SubjectId" class="members-edit-btn">
+        <span class="material-symbols-outlined" style="font-size:1.1rem">edit</span>
+        Sửa môn học
+    </a>
+</div>
+
+<div class="members-grid">
+    <div class="members-accordion">
+        <div class="accordion-card open" id="accordion-teachers">
+            <button class="accordion-header" type="button" onclick="toggleAccordion('accordion-teachers')" aria-expanded="true">
+                <span class="accordion-role-icon teacher">
+                    <span class="material-symbols-outlined icon-fill">school</span>
+                </span>
+                <div class="accordion-header-info">
+                    <p class="accordion-role-label">Giảng viên</p>
+                    <p class="accordion-count">@teachers.Count người</p>
+                </div>
+                <span class="material-symbols-outlined accordion-chevron">expand_more</span>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <div style="overflow-x:auto">
+                        <table class="member-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Ngày tham gia</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!teachers.Any())
+                                {
+                                    <tr class="empty-table-row">
+                                        <td colspan="4">Chưa có giảng viên nào.</td>
+                                    </tr>
+                                }
+                                @foreach (var member in teachers)
+                                {
+                                    <tr class="@(member.IsHeadTeacher ? "is-head-teacher" : "")">
+                                        <td class="member-name-cell">
+                                            <div class="member-name">
+                                                @if (member.IsHeadTeacher)
+                                                {
+                                                    <span class="material-symbols-outlined icon-fill crown-icon" title="Trưởng bộ môn">workspace_premium</span>
+                                                }
+                                                @member.FullName
+                                            </div>
+                                            @if (member.IsHeadTeacher)
+                                            {
+                                                <div class="head-teacher-badge">
+                                                    <span class="material-symbols-outlined" style="font-size:0.75rem">star</span>
+                                                    Trưởng bộ môn
+                                                </div>
+                                            }
+                                        </td>
+                                        <td>
+                                            <span class="member-email" title="@member.Email">@member.Email</span>
+                                        </td>
+                                        <td class="member-date">
+                                            @member.EnrolledAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="member-actions">
+                                            @if (member.EnrollmentId.HasValue && !member.IsHeadTeacher)
+                                            {
+                                                <form asp-page="/Subject/RemoveMember" method="post" style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+                                                    <input type="hidden" name="enrollmentId" value="@member.EnrollmentId.Value" />
+                                                    <button type="submit" class="remove-btn"
+                                                            onclick="return confirm('Xóa thành viên này khỏi môn học?')">
+                                                        <span class="material-symbols-outlined" style="font-size:0.9rem">person_remove</span>
+                                                        Xóa
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="cannot-remove-text">Không thể xóa</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="accordion-card open" id="accordion-students">
+            <button class="accordion-header" type="button" onclick="toggleAccordion('accordion-students')" aria-expanded="true">
+                <span class="accordion-role-icon student">
+                    <span class="material-symbols-outlined icon-fill">person</span>
+                </span>
+                <div class="accordion-header-info">
+                    <p class="accordion-role-label">Sinh viên</p>
+                    <p class="accordion-count">@students.Count người</p>
+                </div>
+                <span class="material-symbols-outlined accordion-chevron">expand_more</span>
+            </button>
+            <div class="accordion-body">
+                <div class="accordion-body-inner">
+                    <div style="overflow-x:auto">
+                        <table class="member-table">
+                            <thead>
+                                <tr>
+                                    <th>Họ tên</th>
+                                    <th>Email</th>
+                                    <th>Ngày tham gia</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!students.Any())
+                                {
+                                    <tr class="empty-table-row">
+                                        <td colspan="4">Chưa có sinh viên nào.</td>
+                                    </tr>
+                                }
+                                @foreach (var member in students)
+                                {
+                                    <tr>
+                                        <td class="member-name-cell">
+                                            <div class="member-name">@member.FullName</div>
+                                        </td>
+                                        <td>
+                                            <span class="member-email" title="@member.Email">@member.Email</span>
+                                        </td>
+                                        <td class="member-date">
+                                            @member.EnrolledAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td class="member-actions">
+                                            @if (member.EnrollmentId.HasValue)
+                                            {
+                                                <form asp-page="/Subject/RemoveMember" method="post" style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+                                                    <input type="hidden" name="enrollmentId" value="@member.EnrollmentId.Value" />
+                                                    <button type="submit" class="remove-btn"
+                                                            onclick="return confirm('Xóa thành viên này khỏi môn học?')">
+                                                        <span class="material-symbols-outlined" style="font-size:0.9rem">person_remove</span>
+                                                        Xóa
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span class="cannot-remove-text">Không thể xóa</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <aside>
+        <div class="sidebar-card">
+            <h2 class="sidebar-card-title">Thêm thành viên</h2>
+            <form asp-page="/Subject/AddMember" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+
+                <label class="sidebar-label" for="addMemberUserId">Người dùng</label>
+                <select asp-for="AddMember.UserId" id="addMemberUserId" class="sidebar-select">
+                    <option value="">-- Chọn người dùng --</option>
+                    @foreach (var candidate in Model.Candidates)
+                    {
+                        <option value="@candidate.UserId">
+                            @candidate.FullName — @candidate.Email (@(candidate.Role == "Teacher" ? "Giảng viên" : "Sinh viên"))
+                        </option>
+                    }
+                </select>
+
+                <label class="sidebar-label" for="addMemberRole">Role trong môn</label>
+                <select asp-for="AddMember.RoleInClass" id="addMemberRole" class="sidebar-select">
+                    <option value="Student">Sinh viên</option>
+                    <option value="Teacher">Giảng viên</option>
+                </select>
+
+                <button type="submit" class="sidebar-add-btn">
+                    <span class="material-symbols-outlined" style="font-size:1.1rem">person_add</span>
+                    Thêm vào môn học
+                </button>
+            </form>
+        </div>
+
+        <div class="sidebar-card" style="margin-top:20px">
+            <h2 class="sidebar-card-title">Import danh sách lớp</h2>
+            <p class="sidebar-hint">
+                File CSV/XLS/XLSX gồm cột email và role.<br>
+                Role nhận <strong>Teacher</strong> hoặc <strong>Student</strong>.
+            </p>
+            <form asp-page="/Subject/ImportMembers" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="subjectId" value="@Model.SubjectId" />
+                <input type="file"
+                       name="file"
+                       accept=".csv,.xls,.xlsx,.xlsm"
+                       class="sidebar-file-input" />
+                <button type="submit" class="sidebar-import-btn">
+                    <span class="material-symbols-outlined" style="font-size:1.1rem">upload_file</span>
+                    Import danh sách
+                </button>
+            </form>
+        </div>
+    </aside>
+</div>

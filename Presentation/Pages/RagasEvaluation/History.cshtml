@@ -1,0 +1,170 @@
+﻿@page "/RagasEvaluation/History"
+@model Presentation.Pages.RagasEvaluation.HistoryModel
+
+@{
+    ViewData["Title"] = "Lịch sử đánh giá RAG - " + Model.ViewModel.SubjectName;
+
+    string GetScoreClass(decimal score)
+    {
+        if (score >= 0.8m) return "text-success";
+        if (score >= 0.5m) return "text-warning";
+        return "text-danger";
+    }
+
+    var firstPage = Math.Max(1, Model.ViewModel.PageNumber - 2);
+    var lastPage = Math.Min(Model.ViewModel.TotalPages, firstPage + 4);
+    firstPage = Math.Max(1, lastPage - 4);
+}
+
+<div class="container-fluid px-4 py-4">
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger">@errorMessage</div>
+    }
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-4">
+            <li class="breadcrumb-item">
+                <a asp-page="/RagasEvaluation/Index" class="text-decoration-none">Đánh giá RAG</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page">Lịch sử @Model.ViewModel.SubjectName</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+        <div>
+            <h1 class="h3 mb-1 fw-bold">Lịch sử đánh giá mô hình</h1>
+            <p class="text-muted mb-0">
+                Các lần benchmark đã chạy cho môn <strong class="text-primary">@Model.ViewModel.SubjectName</strong>.
+            </p>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            <a asp-page="/RagasEvaluation/Questions"
+               asp-route-subjectId="@Model.ViewModel.SubjectId"
+               class="btn btn-outline-primary">
+                <span class="material-symbols-outlined align-middle fs-5">quiz</span>
+                Bộ câu hỏi
+            </a>
+            <a asp-page="/RagasEvaluation/Index" class="btn btn-outline-secondary">
+                <span class="material-symbols-outlined align-middle fs-5">arrow_back</span>
+                Danh sách môn học
+            </a>
+        </div>
+    </div>
+
+    <section class="card shadow-sm border-0" aria-label="Danh sách lịch sử benchmark">
+        <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center gap-3">
+            <div>
+                <h2 class="h6 m-0 fw-bold text-primary">Các lần đánh giá</h2>
+                <div class="text-muted small mt-1">@Model.ViewModel.TotalRuns lần chạy được lưu.</div>
+            </div>
+        </div>
+
+        @if (Model.ViewModel.Items.Count == 0)
+        {
+            <div class="text-center py-5 px-3">
+                <span class="material-symbols-outlined text-muted mb-2" style="font-size: 40px;">history</span>
+                <h3 class="h6 fw-semibold">Chưa có lịch sử benchmark</h3>
+                <p class="text-muted mb-3">Hãy chạy đánh giá để bắt đầu theo dõi kết quả của môn học này.</p>
+                <a asp-page="/RagasEvaluation/Questions"
+                   asp-route-subjectId="@Model.ViewModel.SubjectId"
+                   class="btn btn-primary">
+                    Đi đến bộ câu hỏi
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="px-4 py-3 border-0">Thời gian</th>
+                            <th class="py-3 border-0">Embedding model</th>
+                            <th class="py-3 border-0">Strategy</th>
+                            <th class="py-3 border-0 text-center">Câu hỏi</th>
+                            <th class="py-3 border-0 text-center">Recall@5 trung bình</th>
+                            <th class="py-3 border-0 text-end px-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var run in Model.ViewModel.Items)
+                        {
+                            <tr>
+                                <td class="px-4 py-3 text-nowrap">
+                                    <div class="fw-semibold">@run.RunDate.ToLocalTime().ToString("dd/MM/yyyy")</div>
+                                    <div class="text-muted small">@run.RunDate.ToLocalTime().ToString("HH:mm:ss")</div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var embeddingModel in run.EmbeddingModels)
+                                        {
+                                            <span class="badge bg-light text-dark border">@embeddingModel</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3">
+                                    <div class="d-flex flex-wrap gap-1">
+                                        @foreach (var strategy in run.ChunkingStrategies)
+                                        {
+                                            <span class="badge bg-light text-dark border">@strategy</span>
+                                        }
+                                    </div>
+                                </td>
+                                <td class="py-3 text-center">@run.QuestionCount</td>
+                                <td class="py-3 text-center">
+                                    <span class="fw-bold @GetScoreClass(run.AvgRecallAt5)">
+                                        @run.AvgRecallAt5.ToString("P1")
+                                    </span>
+                                </td>
+                                <td class="py-3 text-end px-4">
+                                    <a asp-page="/RagasEvaluation/Details"
+                                       asp-route-subjectId="@Model.ViewModel.SubjectId"
+                                       asp-route-runId="@run.RunId"
+                                       class="btn btn-sm btn-outline-primary text-nowrap">
+                                        <span class="material-symbols-outlined align-middle fs-6">visibility</span>
+                                        Xem kết quả
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            @if (Model.ViewModel.TotalPages > 1)
+            {
+                <nav class="border-top px-4 py-3" aria-label="Phân trang lịch sử benchmark">
+                    <ul class="pagination justify-content-end mb-0">
+                        <li class="page-item @(Model.ViewModel.PageNumber == 1 ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-page="/RagasEvaluation/History"
+                               asp-route-subjectId="@Model.ViewModel.SubjectId"
+                               asp-route-pageNumber="@(Model.ViewModel.PageNumber - 1)"
+                               aria-label="Trang trước">
+                                <span class="material-symbols-outlined fs-6 align-middle">chevron_left</span>
+                            </a>
+                        </li>
+                        @for (var pageNumberItem = firstPage; pageNumberItem <= lastPage; pageNumberItem++)
+                        {
+                            <li class="page-item @(pageNumberItem == Model.ViewModel.PageNumber ? "active" : "")">
+                                <a class="page-link"
+                                   asp-page="/RagasEvaluation/History"
+                                   asp-route-subjectId="@Model.ViewModel.SubjectId"
+                                   asp-route-pageNumber="@pageNumberItem">@pageNumberItem</a>
+                            </li>
+                        }
+                        <li class="page-item @(Model.ViewModel.PageNumber == Model.ViewModel.TotalPages ? "disabled" : "")">
+                            <a class="page-link"
+                               asp-page="/RagasEvaluation/History"
+                               asp-route-subjectId="@Model.ViewModel.SubjectId"
+                               asp-route-pageNumber="@(Model.ViewModel.PageNumber + 1)"
+                               aria-label="Trang sau">
+                                <span class="material-symbols-outlined fs-6 align-middle">chevron_right</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        }
+    </section>
+</div>
