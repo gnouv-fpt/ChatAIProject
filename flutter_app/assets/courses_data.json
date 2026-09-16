@@ -1,0 +1,28 @@
+{
+  "courses": [
+    {
+      "code": "DEMO101",
+      "name": "Môn học minh họa 1",
+      "credits": 3,
+      "semester": 1,
+      "learningOutcomes": ["Mô tả mục tiêu học tập mẫu."],
+      "prerequisites": []
+    },
+    {
+      "code": "DEMO102",
+      "name": "Môn học minh họa 2",
+      "credits": 2,
+      "semester": 1,
+      "learningOutcomes": [],
+      "prerequisites": ["DEMO101"]
+    },
+    {
+      "code": "DEMO201",
+      "name": "Môn học minh họa 3",
+      "credits": 3,
+      "semester": 2,
+      "learningOutcomes": ["Mô tả mục tiêu học tập mẫu cho học kỳ 2."],
+      "prerequisites": ["DEMO102"]
+    }
+  ]
+}
