@@ -371,3 +371,10 @@ python_services/.venv/
 # FLM scraper temporary files & credentials
 scripts/flm_cookie.txt
 flm_raw_syllabi/
+
+# Environment files & caches
+.env
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
