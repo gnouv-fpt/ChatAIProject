@@ -1,0 +1,20 @@
+---
+code: "SWE202c"
+name_en: "Introduction to Software Engineering (Practice)"
+name_vi: "Nhập môn Kỹ thuật phần mềm (Mã môn cũ/tương đương)"
+credits: 3
+semester: 4
+equivalent_to: "SWE201c"
+curriculum: "BIT_SE_K19B"
+---
+
+# SWE202c - Nhập môn Kỹ thuật phần mềm (SWE202c)
+
+> [!NOTE] Môn học tương đương
+> Trong khung chương trình BIT_SE_K19B, môn này được kế thừa và thay thế bởi mã môn [[SWE201c]].
+
+---
+## 🔗 Mối quan hệ tiên quyết
+- Mở khóa môn sau: [[SWD392]], [[SWP391]], [[SWR302]], [[SWT301]]
+- Môn tương đương hiện hành: [[SWE201c]]
+- Xem toàn bộ chương trình: [[_Curriculum_Overview]]
