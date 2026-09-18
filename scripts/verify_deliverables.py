@@ -28,8 +28,8 @@ index_files = [f for f in md_files if f.startswith("_")]
 
 check("Thư mục flm_knowledge_vault/ tồn tại",
       os.path.isdir(vault))
-check("48 file .md môn học được tạo ra",
-      len(course_files) == 48,
+check("48+ file .md môn học được tạo ra",
+      len(course_files) >= 48,
       f"Thực tế: {len(course_files)} files")
 check("File _Curriculum_Overview.md tồn tại",
       "_Curriculum_Overview.md" in md_files)

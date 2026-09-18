@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_flm_app/features/chat/models/chat_message.dart';
-import 'package:flutter_flm_app/features/chat/services/chat_api_service.dart';
-import 'package:flutter_flm_app/features/chat/providers/chat_provider.dart';
+import 'package:flm_courses/features/chat/models/chat_message.dart';
+import 'package:flm_courses/features/chat/services/chat_api_service.dart';
+import 'package:flm_courses/features/chat/providers/chat_provider.dart';
 
 void main() {
   group('ChatMessage Model Tests', () {

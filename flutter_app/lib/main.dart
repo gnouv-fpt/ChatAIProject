@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'features/chat/providers/chat_provider.dart';
+import 'features/chat/views/chat_screen.dart';
+import 'features/graph/views/graph_view_screen.dart';
 import 'pages/course_detail_page.dart';
 import 'pages/course_list_page.dart';
 import 'state/course_catalog.dart';
@@ -12,14 +15,21 @@ class FlmApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => CourseCatalog()..load(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
+        ChangeNotifierProvider(create: (_) => ChatProvider()),
+      ],
       child: MaterialApp(
-        title: 'Môn học FLM',
+        title: 'Hệ thống Môn học & Trợ lý Chat AI (FLM)',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF6750A4)),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF1976D2),
+            primary: const Color(0xFF1976D2),
+          ),
           useMaterial3: true,
+          fontFamily: 'Roboto',
         ),
         home: const AppShell(),
         onGenerateRoute: (settings) {
@@ -49,24 +59,29 @@ class AppShell extends StatefulWidget {
 class _AppShellState extends State<AppShell> {
   int selectedIndex = 0;
 
+  final List<String> _titles = const [
+    'Danh sách Môn học FLM',
+    'Sơ đồ Đồ thị Môn học (Obsidian Graph)',
+    'Trợ lý AI FLM (RAG)',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Môn học FLM')),
+      appBar: AppBar(
+        title: Text(
+          _titles[selectedIndex],
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        elevation: 2,
+        backgroundColor: Theme.of(context).colorScheme.surfaceVariant,
+      ),
       body: IndexedStack(
         index: selectedIndex,
         children: const [
           CourseListPage(),
-          _IntegrationPage(
-            icon: Icons.hub_outlined,
-            title: 'Sơ đồ môn học',
-            message: 'Màn hình Graph View sẽ được tích hợp tại đây.',
-          ),
-          _IntegrationPage(
-            icon: Icons.chat_bubble_outline,
-            title: 'Trợ lý AI',
-            message: 'Màn hình Chat AI sẽ được tích hợp tại đây.',
-          ),
+          GraphViewScreen(),
+          ChatScreen(),
         ],
       ),
       bottomNavigationBar: NavigationBar(
@@ -75,45 +90,20 @@ class _AppShellState extends State<AppShell> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.menu_book_outlined),
+            selectedIcon: Icon(Icons.menu_book),
             label: 'Môn học',
           ),
-          NavigationDestination(icon: Icon(Icons.hub_outlined), label: 'Sơ đồ'),
+          NavigationDestination(
+            icon: Icon(Icons.hub_outlined),
+            selectedIcon: Icon(Icons.hub),
+            label: 'Sơ đồ',
+          ),
           NavigationDestination(
             icon: Icon(Icons.chat_bubble_outline),
+            selectedIcon: Icon(Icons.chat_bubble),
             label: 'Trợ lý AI',
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _IntegrationPage extends StatelessWidget {
-  const _IntegrationPage({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(height: 16),
-            Text(title, style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(message, textAlign: TextAlign.center),
-          ],
-        ),
       ),
     );
   }
