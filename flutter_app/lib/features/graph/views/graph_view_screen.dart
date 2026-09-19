@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -14,8 +15,10 @@ class GraphNodeData {
     required this.title,
     required this.semester,
     required this.credits,
-    required this.colorHex,
+    required this.color,
     required this.position,
+    required this.radius,
+    this.isHub = false,
   });
 
   final String id;
@@ -23,18 +26,22 @@ class GraphNodeData {
   final String title;
   final int semester;
   final int credits;
-  final String colorHex;
+  final Color color;
   Offset position;
+  final double radius;
+  final bool isHub;
 }
 
 class GraphEdgeData {
   GraphEdgeData({
     required this.from,
     required this.to,
+    this.label = 'Môn tiên quyết',
   });
 
   final String from;
   final String to;
+  final String label;
 }
 
 class GraphViewScreen extends StatefulWidget {
@@ -51,6 +58,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
   bool _isLoading = true;
   String? _selectedNodeId;
   String _searchQuery = '';
+  bool _showArrows = true;
 
   @override
   void initState() {
@@ -73,59 +81,121 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
         coursesMap[c.code] = c;
       }
 
-      // Group nodes by semester for organized layout
+      final nodes = <GraphNodeData>[];
+      final nodeMap = <String, GraphNodeData>{};
+
+      // Organic Force/Semester Clustered Layout (Obsidian Graph view style)
+      // Hub nodes placed in center, courses grouped in semester arcs/columns
+      const double centerX = 1200.0;
+      const double centerY = 800.0;
+
+      // Add Hubs
+      final hub1 = GraphNodeData(
+        id: '_Curriculum_Overview',
+        label: 'BIT_SE_K19B',
+        title: 'Tổng quan chương trình đào tạo',
+        semester: 0,
+        credits: 145,
+        color: const Color(0xFFEAB308),
+        position: const Offset(centerX - 100, centerY),
+        radius: 28,
+        isHub: true,
+      );
+      final hub2 = GraphNodeData(
+        id: '_Program_Learning_Outcomes',
+        label: '13 PLOs',
+        title: '13 Chuẩn đầu ra ngành',
+        semester: 0,
+        credits: 13,
+        color: const Color(0xFFF59E0B),
+        position: const Offset(centerX + 100, centerY),
+        radius: 26,
+        isHub: true,
+      );
+      nodes.add(hub1);
+      nodes.add(hub2);
+      nodeMap[hub1.id] = hub1;
+      nodeMap[hub2.id] = hub2;
+
+      // Semester layout radius
       final semesterGroups = <int, List<Map<String, dynamic>>>{};
       for (final raw in rawNodes) {
-        final nodeMap = raw as Map<String, dynamic>;
-        final id = nodeMap['id'] as String;
+        final nodeMapRaw = raw as Map<String, dynamic>;
+        final id = nodeMapRaw['id'] as String;
+        if (id == '_Curriculum_Overview' || id == '_Program_Learning_Outcomes') continue;
         final course = coursesMap[id];
-        final semester = course?.semester ?? 1;
-
-        semesterGroups.putIfAbsent(semester, () => []).add(nodeMap);
+        final semester = course?.semester ?? (nodeMapRaw['semester'] as int? ?? 1);
+        semesterGroups.putIfAbsent(semester, () => []).add(nodeMapRaw);
       }
-
-      final nodes = <GraphNodeData>[];
-      const double colWidth = 240.0;
-      const double rowHeight = 100.0;
-      const double startX = 60.0;
-      const double startY = 80.0;
 
       final sortedSemesters = semesterGroups.keys.toList()..sort();
 
-      for (int col = 0; col < sortedSemesters.length; col++) {
-        final sem = sortedSemesters[col];
+      for (int i = 0; i < sortedSemesters.length; i++) {
+        final sem = sortedSemesters[i];
         final group = semesterGroups[sem]!;
-        final x = startX + col * colWidth;
+        final angleStep = (2 * pi) / (group.length == 0 ? 1 : group.length);
+        final baseRadius = 260.0 + (sem * 130.0);
 
-        for (int row = 0; row < group.length; row++) {
-          final nMap = group[row];
+        for (int j = 0; j < group.length; j++) {
+          final nMap = group[j];
           final id = nMap['id'] as String;
           final course = coursesMap[id];
-          final y = startY + row * rowHeight;
 
-          nodes.add(
-            GraphNodeData(
-              id: id,
-              label: nMap['label'] as String? ?? id,
-              title: course?.name ?? (nMap['title'] as String? ?? id),
-              semester: sem,
-              credits: course?.credits ?? 3,
-              colorHex: nMap['group'] as String? ?? 'general',
-              position: Offset(x, y),
-            ),
+          // Offset angle based on semester to create organic radial graph
+          final angle = j * angleStep + (sem * 0.4);
+          final x = centerX + baseRadius * cos(angle);
+          final y = centerY + baseRadius * sin(angle);
+
+          Color nodeColor = const Color(0xFF0284C7); // Default Core Blue
+          double radius = 15;
+
+          if (id.startsWith('PRN')) {
+            nodeColor = const Color(0xFFEA580C); // .NET Track Orange
+            radius = 17;
+          } else if (id.startsWith('PRM')) {
+            nodeColor = const Color(0xFF9333EA); // Mobile Track Purple
+            radius = 17;
+          } else if (id == 'SEP490' || id == 'SWP391') {
+            nodeColor = const Color(0xFFDC2626); // Capstone Red
+            radius = 18;
+          } else if (id == 'PRO192' || id == 'PRF192' || id == 'CSD201' || id == 'DBI202' || id == 'LAB211') {
+            nodeColor = const Color(0xFF0284C7); // Fundamental Blue
+            radius = 16;
+          } else if (sem == 0 || sem == 1) {
+            nodeColor = const Color(0xFF64748B); // Slate
+            radius = 13;
+          }
+
+          final nodeObj = GraphNodeData(
+            id: id,
+            label: id,
+            title: course?.name ?? (nMap['title'] as String? ?? id),
+            semester: sem,
+            credits: course?.credits ?? (nMap['credits'] as int? ?? 3),
+            color: nodeColor,
+            position: Offset(x, y),
+            radius: radius,
           );
+          nodes.add(nodeObj);
+          nodeMap[id] = nodeObj;
         }
       }
 
       final edges = <GraphEdgeData>[];
       for (final raw in rawEdges) {
         final edgeMap = raw as Map<String, dynamic>;
-        edges.add(
-          GraphEdgeData(
-            from: edgeMap['from'] as String,
-            to: edgeMap['to'] as String,
-          ),
-        );
+        final from = (edgeMap['from'] as String? ?? edgeMap['source'] as String? ?? '');
+        final to = (edgeMap['to'] as String? ?? edgeMap['target'] as String? ?? '');
+        if (from.isNotEmpty && to.isNotEmpty) {
+          edges.add(GraphEdgeData(from: from, to: to));
+        }
+      }
+
+      // Connect hub nodes to courses
+      for (final n in nodes) {
+        if (!n.isHub) {
+          edges.add(GraphEdgeData(from: '_Curriculum_Overview', to: n.id));
+        }
       }
 
       if (mounted) {
@@ -147,6 +217,44 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
     setState(() {
       _selectedNodeId = node.id;
     });
+
+    if (node.isHub) {
+      showModalBottomSheet<void>(
+        context: context,
+        backgroundColor: Colors.transparent,
+        builder: (modalContext) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                node.title,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Color(0xFFD97706)),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mã chương trình: BIT_SE_K19B\n'
+                'Tổng số môn học: 48 môn | 145 tín chỉ\n'
+                'Độ bao phủ: 13 Chuẩn đầu ra ngành (PLOs)',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey.shade800, height: 1.4),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(modalContext),
+                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFD97706), foregroundColor: Colors.white),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
 
     showModalBottomSheet<void>(
       context: context,
@@ -187,18 +295,18 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
               Row(
                 children: [
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                      color: node.color.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: node.color),
                     ),
                     child: Text(
                       node.id,
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        color: node.color,
                       ),
                     ),
                   ),
@@ -281,7 +389,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
                         );
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        backgroundColor: node.color,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
@@ -310,23 +418,6 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
     });
   }
 
-  Color _getNodeColor(String group, bool isSelected, bool matchesSearch) {
-    if (matchesSearch) return Colors.amber.shade700;
-    if (isSelected) return Colors.deepPurple;
-    switch (group) {
-      case 'core':
-        return const Color(0xFF1976D2);
-      case 'specialized':
-        return const Color(0xFF388E3C);
-      case 'general':
-        return const Color(0xFF7B1FA2);
-      case 'capstone':
-        return const Color(0xFFD32F2F);
-      default:
-        return const Color(0xFF0288D1);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -334,122 +425,217 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
     }
 
     return Scaffold(
-      body: Column(
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Stack(
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.5),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: 'Tìm kiếm node môn học (VD: PRM392)...',
-                      prefixIcon: const Icon(Icons.search),
-                      isDense: true,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                    ),
-                    onChanged: (val) {
-                      setState(() {
-                        _searchQuery = val.trim();
-                      });
-                    },
-                  ),
+          // Main Graph Canvas View (InteractiveViewer for Zoom & Pan)
+          InteractiveViewer(
+            transformationController: _transformationController,
+            constrained: false,
+            boundaryMargin: const EdgeInsets.all(800),
+            minScale: 0.1,
+            maxScale: 3.0,
+            child: SizedBox(
+              width: 2600,
+              height: 1800,
+              child: CustomPaint(
+                painter: ObsidianGraphPainter(
+                  nodes: _nodes,
+                  edges: _edges,
+                  selectedNodeId: _selectedNodeId,
+                  searchQuery: _searchQuery,
+                  showArrows: _showArrows,
                 ),
-                const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  icon: const Icon(Icons.center_focus_strong),
-                  tooltip: 'Reset xem toàn cảnh',
-                  onPressed: () {
-                    _transformationController.value = Matrix4.identity();
-                  },
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              constrained: false,
-              boundaryMargin: const EdgeInsets.all(500),
-              minScale: 0.2,
-              maxScale: 2.5,
-              child: SizedBox(
-                width: 2500,
-                height: 1800,
-                child: CustomPaint(
-                  painter: GraphPainter(
-                    nodes: _nodes,
-                    edges: _edges,
-                    selectedNodeId: _selectedNodeId,
-                    searchQuery: _searchQuery,
-                  ),
-                  child: Stack(
-                    children: [
-                      for (final node in _nodes) ...[
-                        Positioned(
-                          left: node.position.dx - 70,
-                          top: node.position.dy - 25,
-                          child: GestureDetector(
-                            onTap: () => _showNodeModal(context, node),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 140,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: _getNodeColor(
-                                  node.colorHex,
-                                  node.id == _selectedNodeId,
-                                  _searchQuery.isNotEmpty &&
-                                      (node.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-                                       node.title.toLowerCase().contains(_searchQuery.toLowerCase())),
+                child: Stack(
+                  children: [
+                    for (final node in _nodes) ...[
+                      Positioned(
+                        left: node.position.dx - node.radius,
+                        top: node.position.dy - node.radius,
+                        child: GestureDetector(
+                          onTap: () => _showNodeModal(context, node),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Circular Node (Matching Obsidian Graph View Circles)
+                              AnimatedContainer(
+                                duration: const Duration(milliseconds: 200),
+                                width: node.radius * 2,
+                                height: node.radius * 2,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: (_searchQuery.isNotEmpty &&
+                                          (node.id.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+                                           node.title.toLowerCase().contains(_searchQuery.toLowerCase())))
+                                      ? Colors.amber.shade400
+                                      : (node.id == _selectedNodeId ? Colors.purpleAccent : node.color),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: (node.id == _selectedNodeId)
+                                          ? Colors.purple.withOpacity(0.6)
+                                          : node.color.withOpacity(0.3),
+                                      blurRadius: (node.id == _selectedNodeId) ? 14 : 6,
+                                      spreadRadius: (node.id == _selectedNodeId) ? 3 : 1,
+                                    )
+                                  ],
+                                  border: Border.all(
+                                    color: node.id == _selectedNodeId ? Colors.white : Colors.white70,
+                                    width: 2,
+                                  ),
                                 ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: (node.id == _selectedNodeId)
-                                        ? Colors.purple.withOpacity(0.5)
-                                        : Colors.black12,
-                                    blurRadius: (node.id == _selectedNodeId) ? 12 : 4,
-                                    spreadRadius: (node.id == _selectedNodeId) ? 2 : 0,
-                                  )
-                                ],
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Text(
-                                    node.id,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
+                              const SizedBox(height: 4),
+                              // Node Text Label underneath circle
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.9),
+                                  borderRadius: BorderRadius.circular(4),
+                                  boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 2)],
+                                ),
+                                child: Text(
+                                  node.id,
+                                  style: TextStyle(
+                                    fontSize: node.isHub ? 12 : 11,
+                                    fontWeight: node.isHub ? FontWeight.bold : FontWeight.w600,
+                                    color: node.isHub ? const Color(0xFFD97706) : const Color(0xFF1E293B),
                                   ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'HK ${node.semester} • ${node.credits}TC',
-                                    style: const TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
+            ),
+          ),
+
+          // Top Bar Search & Reset View
+          Positioned(
+            top: 12,
+            left: 12,
+            right: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 8)],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Tìm kiếm node môn học trên Obsidian Graph (VD: PRM393, PRO192)...',
+                        prefixIcon: const Icon(Icons.search, color: Colors.indigo),
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey.shade100,
+                      ),
+                      onChanged: (val) {
+                        setState(() {
+                          _searchQuery = val.trim();
+                        });
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  IconButton.filledTonal(
+                    icon: const Icon(Icons.center_focus_strong),
+                    tooltip: 'Reset xem toàn cảnh',
+                    onPressed: () {
+                      _transformationController.value = Matrix4.identity();
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Obsidian Graph Group Filter Panel (Floating Overlay like Obsidian Screenshot 5)
+          Positioned(
+            bottom: 16,
+            right: 16,
+            child: Container(
+              width: 240,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.95),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: Colors.grey.shade300),
+                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.hub, size: 18, color: Colors.indigo),
+                      SizedBox(width: 6),
+                      Text(
+                        'Obsidian Graph Groups',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                      ),
+                    ],
+                  ),
+                  const Divider(height: 12),
+                  _buildLegendItem(const Color(0xFFEAB308), 'Curriculum & PLOs Hubs'),
+                  _buildLegendItem(const Color(0xFFEA580C), '.NET Track (PRN212, PRN222)'),
+                  _buildLegendItem(const Color(0xFF9333EA), 'Mobile Track (PRM393)'),
+                  _buildLegendItem(const Color(0xFFDC2626), 'Capstone (SEP490, SWP391)'),
+                  _buildLegendItem(const Color(0xFF0284C7), 'Core & Prerequisites'),
+                  _buildLegendItem(const Color(0xFF64748B), 'General Courses'),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Mũi tên (Arrows):', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500)),
+                      Switch(
+                        value: _showArrows,
+                        activeColor: Colors.indigo,
+                        onChanged: (val) {
+                          setState(() {
+                            _showArrows = val;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLegendItem(Color color, String label) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11.5, color: Colors.black87),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -458,18 +644,20 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
   }
 }
 
-class GraphPainter extends CustomPainter {
-  GraphPainter({
+class ObsidianGraphPainter extends CustomPainter {
+  ObsidianGraphPainter({
     required this.nodes,
     required this.edges,
     required this.selectedNodeId,
     required this.searchQuery,
+    required this.showArrows,
   });
 
   final List<GraphNodeData> nodes;
   final List<GraphEdgeData> edges;
   final String? selectedNodeId;
   final String searchQuery;
+  final bool showArrows;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -479,14 +667,27 @@ class GraphPainter extends CustomPainter {
     }
 
     final paintNormal = Paint()
-      ..color = Colors.grey.shade400
-      ..strokeWidth = 1.5
+      ..color = Colors.grey.shade300
+      ..strokeWidth = 1.2
+      ..style = PaintingStyle.stroke;
+
+    final paintHubEdge = Paint()
+      ..color = Colors.amber.shade200.withOpacity(0.5)
+      ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
     final paintHighlight = Paint()
       ..color = Colors.deepPurple
-      ..strokeWidth = 3.0
+      ..strokeWidth = 2.8
       ..style = PaintingStyle.stroke;
+
+    final arrowPaint = Paint()
+      ..color = Colors.grey.shade500
+      ..style = PaintingStyle.fill;
+
+    final arrowHighlightPaint = Paint()
+      ..color = Colors.deepPurple
+      ..style = PaintingStyle.fill;
 
     for (final edge in edges) {
       final fromNode = nodeMap[edge.from];
@@ -496,32 +697,49 @@ class GraphPainter extends CustomPainter {
       final isHighlighted = selectedNodeId != null &&
           (edge.from == selectedNodeId || edge.to == selectedNodeId);
 
-      final p = isHighlighted ? paintHighlight : paintNormal;
+      final isHubConnection = fromNode.isHub || toNode.isHub;
+
+      final p = isHighlighted
+          ? paintHighlight
+          : (isHubConnection ? paintHubEdge : paintNormal);
 
       final start = fromNode.position;
       final end = toNode.position;
 
-      final controlPoint1 = Offset(start.dx + (end.dx - start.dx) / 2, start.dy);
-      final controlPoint2 = Offset(start.dx + (end.dx - start.dx) / 2, end.dy);
+      // Draw edge line
+      canvas.drawLine(start, end, p);
 
-      final path = Path()
-        ..moveTo(start.dx + 70, start.dy)
-        ..cubicTo(
-          controlPoint1.dx,
-          controlPoint1.dy,
-          controlPoint2.dx,
-          controlPoint2.dy,
-          end.dx - 70,
-          end.dy,
+      // Draw Arrowhead if enabled (Obsidian Graph Directed Arrows)
+      if (showArrows && !isHubConnection) {
+        final double angle = atan2(end.dy - start.dy, end.dx - start.dx);
+        final double arrowRadius = toNode.radius + 4;
+        final Offset arrowPos = Offset(
+          end.dx - arrowRadius * cos(angle),
+          end.dy - arrowRadius * sin(angle),
         );
 
-      canvas.drawPath(path, p);
+        const double arrowSize = 6.0;
+        final path = Path()
+          ..moveTo(
+            arrowPos.dx - arrowSize * cos(angle - pi / 6),
+            arrowPos.dy - arrowSize * sin(angle - pi / 6),
+          )
+          ..lineTo(arrowPos.dx, arrowPos.dy)
+          ..lineTo(
+            arrowPos.dx - arrowSize * cos(angle + pi / 6),
+            arrowPos.dy - arrowSize * sin(angle + pi / 6),
+          )
+          ..close();
+
+        canvas.drawPath(path, isHighlighted ? arrowHighlightPaint : arrowPaint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant GraphPainter oldDelegate) {
+  bool shouldRepaint(covariant ObsidianGraphPainter oldDelegate) {
     return oldDelegate.selectedNodeId != selectedNodeId ||
-        oldDelegate.searchQuery != searchQuery;
+        oldDelegate.searchQuery != searchQuery ||
+        oldDelegate.showArrows != showArrows;
   }
 }

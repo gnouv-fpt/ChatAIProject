@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/chat_provider.dart';
 import 'widgets/chat_bubble.dart';
-import 'widgets/quick_prompts_widget.dart';
 import 'widgets/server_status_bar.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -122,11 +121,6 @@ class _ChatScreenState extends State<ChatScreen> {
                       },
                     ),
             ),
-          ),
-
-          // Quick Prompt Chips (Kịch bản mẫu FLM)
-          QuickPromptsWidget(
-            onPromptSelected: (prompt) => _handleSend(provider, prompt),
           ),
 
           const Divider(height: 1),
