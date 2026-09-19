@@ -187,6 +187,13 @@ def main():
         all_codes.add(code_orig)
         all_codes.add(code_safe)
         
+        learning_outcomes = [
+            f"Nắm vững kiến thức nền tảng và chuyên sâu về môn {name_en} ({code_safe}).",
+            f"Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ {semester}.",
+            "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+            "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+        ]
+
         raw_courses.append({
             "code": code_safe,
             "code_original": code_orig,
@@ -196,7 +203,8 @@ def main():
             "semester": semester,
             "credits": credits,
             "prerequisite_raw": prereq_raw,
-            "syllabus_url": syllabus_url
+            "syllabus_url": syllabus_url,
+            "learning_outcomes": learning_outcomes
         })
         
     print(f"      -> Found {len(raw_courses)} subjects.")
@@ -465,7 +473,13 @@ Quay lại trang chủ chương trình: [[_Curriculum_Overview]]
     
     with open(FLUTTER_JSON, "w", encoding="utf-8") as f_out:
         json.dump(flutter_export, f_out, ensure_ascii=False, indent=2)
-        
+
+    app_assets_json = "flutter_app/assets/courses_data.json"
+    if os.path.exists(os.path.dirname(app_assets_json)):
+        with open(app_assets_json, "w", encoding="utf-8") as f_out:
+            json.dump(flutter_export, f_out, ensure_ascii=False, indent=2)
+        print(f"      -> Successfully saved '{app_assets_json}'")
+
     print(f"      -> Successfully saved '{FLUTTER_JSON}'")
     print(f"         - Nodes: {len(nodes)}")
     print(f"         - Edges: {len(edges)}")

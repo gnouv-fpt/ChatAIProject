@@ -253,7 +253,19 @@
         "tools": "",
         "student_tasks": "Attend enough activities of the university."
       },
-      "color": "#6B7280"
+      "color": "#6B7280",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Orientation and General Training Program (OTP101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 0.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Orientation and General Training Program (OTP101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 0.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "TRS601",
@@ -276,7 +288,19 @@
         "min_pass_mark": "5",
         "tools": "- Internet, AI- MyEnglishLab: www.MyEnglishLab.com/Register",
         "student_tasks": "- Attend at least 80% of contact hours in order to be accepted to the final examination- Actively participate in class activities- Fulfil tasks given by the instructor after class- Use their own laptop in class only for learning purposes- Use the Student Access Code provided with the textbook- Access the course website for up-to-date information and material of the course, for online support from teachers and other students, and for practicing and assessment."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (TRS601).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 0.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (TRS601).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 0.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "CEA201",
@@ -300,7 +324,19 @@
         "tools": "- Intenet- Textbook- AI Tools and Simulator software",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all exercises and practical given by instructor in class or at home and submit on time. Do quizzes during class."
       },
-      "color": "#3B82F6"
+      "color": "#3B82F6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Computer Organization and Architecture (CEA201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Computer Organization and Architecture (CEA201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "CSI106",
@@ -324,7 +360,19 @@
         "tools": "",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Complete Additional Learning (AI For Everyone course in Coursera) and achieve the certificate- Promptly access to the https://flm.fpt.edu.vn for up-to-date course information\""
       },
-      "color": "#3B82F6"
+      "color": "#3B82F6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Computer Science (CSI106).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Computer Science (CSI106).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MAE101",
@@ -350,7 +398,19 @@
         "tools": "",
         "student_tasks": "Students must attend at least 80% of contact hours in order to be accepted to the final examination."
       },
-      "color": "#3B82F6"
+      "color": "#3B82F6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Mathematics for Engineering (MAE101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Mathematics for Engineering (MAE101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRF192",
@@ -376,7 +436,19 @@
         "tools": "Tools:- Internet- C language utility (ex.DevC++ 6.3)",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time.- Use laptop in class only for learning purpose.- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information."
       },
-      "color": "#3B82F6"
+      "color": "#3B82F6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Programming Fundamentals (PRF192).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Programming Fundamentals (PRF192).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SSL101c",
@@ -400,7 +472,19 @@
         "tools": "Online Spec. https://www.coursera.org/specializations/academic-skills; University of Sydney, including:- MOOC1: Introduction to Information & Digital Literacy for University Success ,  https://www.coursera.org/learn/digital-literacy/home/welcome- MOOC2: Introduction to Problem-Solving Skill for University Success, https://www.coursera.org/learn/problem-solving-skills/home/welcome- MOOC3: Critical Thinking Skills for University Success, https://www.coursera.org/learn/critical-thinking-skills/home/welcome- MOOC4: Communication Skills for University Success, https://www.coursera.org/learn/communication-skills/home/welcome- MOOC5: Academic Skills for University Success: Capstone, https://www.coursera.org/learn/academic-skills-project/home/welcome",
         "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC of spec., regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assignments... as required3. Respect the Coursera Code of Conduct, at  https://learner.coursera.help/hc/en-us/articles/208280036-Coursera-Code-of-Conduct3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus (Optional)6. Must complete all MOOCs of spec. with certification in order to take the Final Exam at Campus"
       },
-      "color": "#3B82F6"
+      "color": "#3B82F6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Academic Skills for University Success (SSL101c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Academic Skills for University Success (SSL101c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "TMI101",
@@ -423,7 +507,19 @@
         "min_pass_mark": "5",
         "tools": "Nhạc cụ cho từng sinh viênMusical instruments for each student",
         "student_tasks": "- Tham dự tối thiểu 80% thời lượng môn học trở lên để đủ điều kiện thi cuối môn học.Attend at least 80% of class hours to be eligible for the final exam.- Thái độ học tập nghiêm túc.Study seriously.- Ôn tập bài cũ và tìm hiểu tài liệu bài học mới trước khi đến lớp.Review previous lessons and study materials for new lessons in advance.- Luyện tập, thực hành trên lớp và ở nhà.Practice in class and at home.- Tích cực tham gia hoạt động giảng viên yêu cầu trên trong lớp (phát biểu, hỏi đáp, trao đổi, làm việc nhóm, thực hành...) và làm Portfolio cho môn học.Actively participate in class activities required by the lecturer (express ideas, raise questions,  discuss, work in groups, practice...) and make a Portfolio for the subject."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (TMI101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (TMI101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "VOV114",
@@ -448,7 +544,19 @@
         "min_pass_mark": "5",
         "tools": "",
         "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV114).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV114).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 1.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MAD101",
@@ -472,7 +580,19 @@
         "tools": "- Testbank for ST1.- Powerpoint image in CD + Powerpoint prepared by previous lecturers (PP).- Computerized tools (for example C programming tools, Maxima http://maxima.sourceforge.net/) (CT)- Teaching Suggestion and Applications of Discrete Mathematics for ST1 (TS).",
         "student_tasks": "Students must attend at least 80% of contact hours in order to be accepted to the final examination."
       },
-      "color": "#10B981"
+      "color": "#10B981",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Discrete mathematics (MAD101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Discrete mathematics (MAD101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "NWC204",
@@ -496,7 +616,19 @@
         "tools": "Baseline Equipment Bundle:- 2 x ISR4221/K9 Routers- 2 x WS-C2960+24TC-L Catalyst switches- 1 wireless router (generic brand) with WPA2 support- Ethernet patch cables- PCs- Internet connection for lab and study PCs- Optional equipment for connecting to a WLAN+ 1 printer or integrated printer/scanner/copier for the class to share+ Smartphones and tablets are desirable for use with the labsSoftware:- Cisco IOS versions:+ Routers: Version 15.0 or higher, IP Base feature set+ Switches: Version 15.0 or higher, lanbaseK9 feature set- Packet Tracer, the most recent version.- Open-source server software:+ For various services and protocols, such as Telnet, SSH, HTTP, DHCP, FTP, TFTP, etc.- Tera Term source SSH client software for lab PCs.- Oracle VirtualBox, most recent version.- Wireshark, the most recent version.",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the https://flm.fpt.edu.vn/ for up-to-date course information- Students must complete all assignments on the Cisco Networking Academy (https://www.netacad.com/) with a result of at least 75%."
       },
-      "color": "#10B981"
+      "color": "#10B981",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Computer Networking (NWC204).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Computer Networking (NWC204).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "OSG202",
@@ -520,7 +652,19 @@
         "tools": "- Internet- Linux operating system server and/ or desktop- MARIE simulator- AI tools (ChatGPT/Copilot/Gamma…) and other simulation software if deemed appropriate.",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the FU LMS https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#10B981"
+      "color": "#10B981",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Operating Systems (OSG202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Operating Systems (OSG202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRO192",
@@ -555,7 +699,19 @@
         "tools": "Text Book'NetBean x.xInternet",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time.- Use laptop in class only for learning purpose- Promptly access to the FU FLM at https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#10B981"
+      "color": "#10B981",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Object-Oriented Programming (PRO192).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Object-Oriented Programming (PRO192).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SSG104",
@@ -579,7 +735,19 @@
         "tools": "- Internet",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises and assignments given by the instructor in class or at home and submit on time- Use laptops in class only for learning purposes"
       },
-      "color": "#10B981"
+      "color": "#10B981",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Communication and In-Group Working Skills (SSG104).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Communication and In-Group Working Skills (SSG104).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "VOV124",
@@ -606,7 +774,19 @@
         "min_pass_mark": "5",
         "tools": "",
         "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa. (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV124).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV124).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 2.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "CSD201",
@@ -632,7 +812,19 @@
         "tools": "",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#F59E0B"
+      "color": "#F59E0B",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Data Structures and Algorithms (CSD201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Data Structures and Algorithms (CSD201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "DBI202",
@@ -659,7 +851,19 @@
         "tools": "Microsoft SQL Server",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#F59E0B"
+      "color": "#F59E0B",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Databases (DBI202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Databases (DBI202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "JPD113",
@@ -685,7 +889,19 @@
         "tools": "- Sử dụng giáo trình chính và giáo trình bổ trợ bằng tiếng Nhật.- Sử dụng slide môn học.- Tra cứu, tham khảo các nội dung có liên quan đến môn học trên mạng hoặc giáo trình tham khảo được giới thiệu trong môn học.- Sử dụng https://heyjapan.net/ để học bảng chữ cái và ôn thi cuối kỳ.- Sử dụng AI (ChatGPT, Copilot, v.v.) để tra cứu cách dùng từ vựng, ứng dụng của ngữ pháp, và các từ ghép Hán tự ngoài các từ đã được học.",
         "student_tasks": "- Tham dự tối thiểu 80% số giờ học trên lớp mới đủ điều kiện tham gia thi kì thi cuối môn.- Học từ vựng và tìm hiểu trước bài học, làm các bài tập và nhiệm vụ do GV giao.- Ôn tập bài giảng, đối chiếu với giáo trình để nắm vững các kiến thức.- Trên lớp tích cực tham gia trao đổi, xây dựng bài."
       },
-      "color": "#F59E0B"
+      "color": "#F59E0B",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Elementary Japanese 1- A1.1 (JPD113).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Elementary Japanese 1- A1.1 (JPD113).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "LAB211",
@@ -713,7 +929,19 @@
         "tools": "NetBean 8.0.2CheckStyle plugin for netbeansJAVA DOCJDK8Tomcat Apache 8Microsoft Excel 2007 or aboveMicrosoft Word 2007 or aboveMicrosoft Powerpoint 2007 or aboveMicrosoft Windows XP or above",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final results.- Students are responsible to conform to Lab Room Regulations- Use desktop computers only in lab room for learning purposes- Promptly  access to the FU LMS at https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#F59E0B"
+      "color": "#F59E0B",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn OOP with Java Lab (LAB211).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn OOP with Java Lab (LAB211).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "VOV134",
@@ -738,7 +966,19 @@
         "min_pass_mark": "5",
         "tools": "",
         "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV134).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (VOV134).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "WED201c",
@@ -762,7 +1002,19 @@
         "tools": "- Internet",
         "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC of spec., regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assgnments... as required3. Respect the Coursera Code of Conduct, at  https://learner.coursera.help/hc/en-us/articles/208280036-Coursera-Code-of-Conduct3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus6. Must complete all MOOCs of spec. with certification in order to take the Final Exam at Campus"
       },
-      "color": "#F59E0B"
+      "color": "#F59E0B",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Web Design (WED201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Web Design (WED201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 3.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "IOT102",
@@ -786,7 +1038,19 @@
         "tools": "",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to learn all VIDEOs (theory) online given by instructor on Syllabus at home.- Student is responsible to do all LABs given by instructor on Syllabus at home.- Constantly follow https://flm.fpt.edu.vn/ for up-to-date course information."
       },
-      "color": "#8B5CF6"
+      "color": "#8B5CF6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Internet of Things (IOT102).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Internet of Things (IOT102).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "JPD123",
@@ -812,7 +1076,19 @@
         "tools": "- Sử dụng Giáo trình chính và GT bổ trợ bằng tiếng Nhật.- Sử dụng ppt cho bài giảng của giảng viên.- Tra cứu, tham khảo các nội dung có liên quan đến môn học trên mạng hoặc giáo trình tham khảo được giới thiệu trong môn học.- Sử dụng AI (ChatGPT, Copilot, v.v.) để tra cứu cách dùng từ vựng, ứng dụng của ngữ pháp, và các từ ghép Hán tự ngoài các từ đã được học.",
         "student_tasks": "- Tham dự tối thiểu 80% số giờ học trên lớp mới đủ điều kiện tham gia thi kì thi cuối môn.- Học từ vựng và tìm hiểu trước bài học, làm các bài tập và nhiệm vụ do GV giao.- Ôn tập bài giảng, đối chiếu với giáo trình để nắm vững các kiến thức.- Trên lớp tích cực tham gia trao đổi, xây dựng bài."
       },
-      "color": "#8B5CF6"
+      "color": "#8B5CF6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Elementary Japanese 1-A1.2 (JPD123).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Elementary Japanese 1-A1.2 (JPD123).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MAS291",
@@ -839,7 +1115,19 @@
         "tools": "- Internet- Computerized tools (for example Excel and DDXL add-ons) (CT)",
         "student_tasks": "Students must attend at least 80% of contact hours in order to beaccepted to the final examination."
       },
-      "color": "#8B5CF6"
+      "color": "#8B5CF6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Statistics & Probability (MAS291).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Statistics & Probability (MAS291).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRJ301",
@@ -868,7 +1156,19 @@
         "tools": "Web server application :Tomcat 9 or higherIDE: Netbeans 13 or higher (as defined by the subject leader)Java EE: 1.8 or higherMS SQL Server 2019 or higher",
         "student_tasks": "- Attend at least 80% of contact hours in order to be accepted to the final examination- Actively participate in class activities- Fulfil tasks given by intructor after class- Use their own laptop in class only for learning purpose- Read the textbook in advance- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#8B5CF6"
+      "color": "#8B5CF6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Java Web Application Development (PRJ301).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Java Web Application Development (PRJ301).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SWE201c",
@@ -899,7 +1199,19 @@
         "tools": "",
         "student_tasks": "Student must get the certification of Software Development Lifecycle specialization from Coursera to be accepted to the final examination"
       },
-      "color": "#8B5CF6"
+      "color": "#8B5CF6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Software Engineering (SWE201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Introduction to Software Engineering (SWE201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 4.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRN212",
@@ -927,7 +1239,19 @@
         "min_pass_mark": "5",
         "tools": "- Internet- Visual Studio.NET 2022 or later- MS SQL Server 2019 or later- Platform : .NET 8.0 or later- GitHub Copilot: Automated suggestions when writing code in C#, XAML, SQL, ...- AI-enhanced Debuggers (JetBrains Rider AI or Visual Studio IntelliCode)- GitHub Workflow",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN212).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN212).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SWP391",
@@ -958,7 +1282,19 @@
         "tools": "- Requirement & Design: Miro, Lucidchart, Figma, Draw.io, ChatGPT, Gemini- Coding & Debugging: IntelliJ IDEA / VS Code / Visual Studio, GitHub Copilot, Tabnine- Database: MySQL Workbench, SQL Server Management Studio, pgAdmin-Testing: JUnit, NUnit, Postman, Selenium, AI-powered test case generators- Project Management: Jira, Trello, Notion, Git/GitHub- Deployment: Docker, Heroku, AWS / Azure / GCP, Vercel",
         "student_tasks": "- Join the team as arranged by the teacher- Select the project topic & technology stack and get approval from teacher before implementing- Attend at least 80% of contact slots in order to be accepted to the final presentation.- Analyze requirements, write user requirements, and create system diagrams with AI-assisted tools.- Design system architecture, database schema, and UI/UX wireframes using MVC, OOP, and AI suggestions.- Implement core features with AI-supported coding, apply coding standards, and manage source code in Git.- Develop and run unit/integration tests, using AI to suggest and refine test cases.- Deploy the application to staging, verify functionality, and prepare for final delivery.- Manage project progress, present milestones, and prepare high-quality reports with AI support."
       },
-      "color": "#EC4899"
+      "color": "#EC4899",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software development project (SWP391).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software development project (SWP391).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SWR302",
@@ -986,7 +1322,19 @@
         "tools": "- Microsoft office for documents and presentation.- https://www.visual-paradigm.com/download/community.jsp students must install visual-paradigm for drawing UML (offline) before taking Final Practical Exam- BOUML (http://bouml.free.fr/) : UML Drawing software",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#EC4899"
+      "color": "#EC4899",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Requirement (SWR302).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Requirement (SWR302).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SWT301",
@@ -1014,7 +1362,19 @@
         "tools": "- Unit Test Framework- Bug Management Tool- Ms Office- IDE- Static Analyst Tool- Automation Tool- AI Tools: Grok (xAI), ChatGPT, Gemini, Deepseek",
         "student_tasks": "Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time.- The use of AI in assessments and exams must comply with the instructions of the course instructor.- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
       },
-      "color": "#EC4899"
+      "color": "#EC4899",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Testing (SWT301).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Testing (SWT301).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "WDU203c",
@@ -1038,7 +1398,19 @@
         "tools": "- Internet",
         "student_tasks": "1. Complete the online courses and get all specialization certifications to be allowed to take Final Exam2. Final Exam included Final Theory Exam (TE):  100%3. Students who complete all MOOCs before the course deadline will receive 1 bonus point; otherwise, no bonus point will be awarded.4. Completion Criteria:  Final TE Score  >=4 & (Final TE Score + bonus) >= 5"
       },
-      "color": "#EC4899"
+      "color": "#EC4899",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn UI/UX Design (WDU203c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn UI/UX Design (WDU203c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 5.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "ENW493c",
@@ -1062,7 +1434,19 @@
         "tools": "- Internet",
         "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC, regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assgnments... as required3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus (Optional)6. Must complete all MOOCs with certification in order to take the Final Exam at Campus"
       },
-      "color": "#14B8A6"
+      "color": "#14B8A6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Research Methods & Academic Writing Skills (ENW493c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 6.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Research Methods & Academic Writing Skills (ENW493c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 6.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "OJT202",
@@ -1090,7 +1474,19 @@
         "tools": "",
         "student_tasks": "- Seriously participate in the internship.- Perform tasks assigned by the Internship Unit.- Participate in internship-related activities.- Complete intership evaluation and internship report."
       },
-      "color": "#14B8A6"
+      "color": "#14B8A6",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn On-The-Job Training (OJT202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 6.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn On-The-Job Training (OJT202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 6.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "EXE101",
@@ -1116,7 +1512,19 @@
         "tools": "- Laptop computer- Internet- Meeting hall with capacity of at least 200 seats for seminars- Video conference platforms, such as Google Meet, Microsoft Teams, or Zoom.",
         "student_tasks": "- Students must attend at least 80% of Instructor's Coaching sessions, Seminars and Mentor's Mentoring.- Students are responsible for doing all exercises and assignments given by the instructor in class or at home and submitting them on time.- Students must meet all checkpoints' requirements.- Use laptop in class only for learning purpose- Promplty access to the FPTU Learning Materials platform at https://flm.fpt.edu.vn/ and Edunext systems at https://fu.edunext.vn/  for up to date course information."
       },
-      "color": "#F97316"
+      "color": "#F97316",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Experiential Entrepreneurship 1 (EXE101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Experiential Entrepreneurship 1 (EXE101).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PMG201c",
@@ -1142,7 +1550,19 @@
         "tools": "",
         "student_tasks": "- Student must get the certification of Introduction to Project Management Principles and Practices specialization from Coursera to be accepted to the final examination\""
       },
-      "color": "#F97316"
+      "color": "#F97316",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Project Management (PMG201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Project Management (PMG201c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRN222",
@@ -1169,7 +1589,19 @@
         "min_pass_mark": "5",
         "tools": "- Internet- Visual Studio.NET 2022 or later- MS SQL Server 2019 or later- Platform :  .NET 8.0 or later",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the FU CMS at http://flm.fpt.edu.vn for up-to-date course information"
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN222).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN222).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRU213",
@@ -1194,7 +1626,19 @@
         "min_pass_mark": "5",
         "tools": "- Internet- Visual Studio 2019 or later (C# programming language)- Unity software (latest version)- Students use Unity with their personal email for educational purposes only",
         "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRU213).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRU213).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SWD392",
@@ -1224,7 +1668,19 @@
         "tools": "-Internet-The Rational Software Architect CASE tool-Visual Paradigm, MagicDraw, and Visio",
         "student_tasks": "Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Constantly follow announcements on LMS at https://flm.fpt.edu.vn/ for up-to-date course information regarding assignment submission and feedback on assignments and project work."
       },
-      "color": "#F97316"
+      "color": "#F97316",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Architecture and Design (SWD392).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Software Architecture and Design (SWD392).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 7.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "EXE201",
@@ -1250,7 +1706,19 @@
         "tools": "- A hall for seminars has a capacity of at least 200 people",
         "student_tasks": "- Students must attend at least 80% of Instructor's Coaching sections, Seminars and Mentor's Mentoring.- Students are responsible for doing all exercises and assignments given by the instructor in class or at home and submitting them on time.- Students must meet all milestones' requirements.- Promplty access to the learning material platform https://flm.fpt.edu.vn/ for up to date course information."
       },
-      "color": "#6366F1"
+      "color": "#6366F1",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Experiential Entrepreneurship 2 (EXE201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Experiential Entrepreneurship 2 (EXE201).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "ITE302c",
@@ -1274,7 +1742,19 @@
         "tools": "- Internet",
         "student_tasks": "Student must get the following certificatations to be accepted to the final examination:- Certification of CertNexus Certified Ethical Emerging Technologist Professional Certificate (CertNexus) specialization- Certification of Ethics of Artificial Intelligence course"
       },
-      "color": "#6366F1"
+      "color": "#6366F1",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Ethics in IT (ITE302c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Ethics in IT (ITE302c).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MLN111",
@@ -1302,7 +1782,19 @@
         "tools": "- Internet- Pdf reader- AI",
         "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học.Phải có giáo trình Triết học Mác- Lênin, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo.Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnThực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp.Students are required to attend at least 80% of the course duration.They must have the textbook Marxist–Leninist Philosophy for non-political theory majors at the undergraduate level, issued by the Ministry of Education and Training.Laptops may only be used in class for learning purposes.AI must be applied responsibly and ethically in both learning and practice.Students are expected to fully comply with the instructor’s requirements during class as well as with the topics they prepare in advance before coming to class."
       },
-      "color": "#6366F1"
+      "color": "#6366F1",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Philosophy of Marxism – Leninism (MLN111).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Philosophy of Marxism – Leninism (MLN111).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MLN122",
@@ -1330,7 +1822,19 @@
         "tools": "Internet, pdf reader, AI",
         "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học.Phải có giáo trình Kinh tế chính trị Mác - Lênin, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo.Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị  trước khi đến lớp.Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnAttend at least 80% of class hours. Own textbook of Political economics of Marxism–Leninism for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purposes. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
       },
-      "color": "#6366F1"
+      "color": "#6366F1",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Political economics of Marxism – Leninism (MLN122).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Political economics of Marxism – Leninism (MLN122).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRM393",
@@ -1356,7 +1860,19 @@
         "tools": "- Android Studio + Flutter SDK + Dart SDK (Latest Version)- Virtual device attached android studio (or other virtual device), android mobile (only for learning, not for exam - optional)- Laptop: 16GB RAM, 25GB free space before installing studioNote:- Install all neccessary tools before the first slot of the course",
         "student_tasks": "- Students must attend more than 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the FU LMS at http://lms.fpt.edu.vn for up-to-date course information"
       },
-      "color": "#6366F1"
+      "color": "#6366F1",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Mobile Programming (PRM393).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Mobile Programming (PRM393).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "PRN232",
@@ -1381,7 +1897,19 @@
         "min_pass_mark": "5",
         "tools": "- Internet- Visual Studio.NET 2019 version 16.8.3 or later- Platform : .NET 5.0 or later",
         "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the FU CMS at http://flm.fpt.edu.vn for up-to-date course information"
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN232).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (PRN232).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 8.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "HCM202",
@@ -1408,7 +1936,19 @@
         "tools": "Internet, pdf reader and AI-based learning tools (for responsible use, recommended as supplementary support)",
         "student_tasks": "Nhiệm vụ của sinh viên:- Tham gia tối thiểu 80% thời lượng môn học và tham dự đủ các buổi lên lớp, thảo luận theo quy định.- Phải có Giáo trình Tư tưởng Hồ Chí Minh (dành cho bậc đại học hệ không chuyên lý luận chính trị) do Bộ Giáo dục và Đào tạo ban hành.- Phải nghiên cứu giáo trình trước, chuẩn bị các ý kiến để đề xuất khi nghe giảng. Chuẩn bị thảo luận và đọc, sưu tầm các tư liệu có liên quan đến nội dung môn học.- Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp.- Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.- Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học tập và thực tiễn.Student's Tasks:- Attend at least 80% of class hours and participate in discussions as required.- Own the Ho Chi Minh's thought (Sửa lại từ sai lệch chính trị \"Ho Chi Minh Ideology\") textbook (for non-majors in political theory - Nâng cấp học thuật từ cụm \"non-politics majored students\") issued by the Ministry of Education and Training.- Study the textbook in advance, prepare ideas to propose during lectures. Prepare for discussions and read, collect materials related to the course content.- Fulfill tasks given by the instructor in class as well as topics required to be prepared (Sửa lại ngữ pháp cho chuẩn mực từ cụm \"needed to prepare\") in advance.- Use laptops in class only for learning purposes.- Apply AI responsibly and ethically in both learning and practice."
       },
-      "color": "#EF4444"
+      "color": "#EF4444",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Ho Chi Minh Ideology (HCM202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Ho Chi Minh Ideology (HCM202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "MLN131",
@@ -1435,7 +1975,19 @@
         "tools": "- Internet- Pdf reader- AI",
         "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học. Phải có giáo trình Chủ nghĩa xã hội khoa học, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo. Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập. Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp. Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnAttend at least 80% of class hours. Own textbook on Scientific socialism for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purpose. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
       },
-      "color": "#EF4444"
+      "color": "#EF4444",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Scientific socialism (MLN131).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn Scientific socialism (MLN131).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "SEP490",
@@ -1463,7 +2015,19 @@
         "min_pass_mark": "5",
         "tools": "Appropriate tools for design and implementation.",
         "student_tasks": "# Choose appropriate project and form group.# Divide and schedule work among members.# Attend all scheduled meeting with supervisor.# Produce document and product according to project requirement and member work share.# Defend work infront of examination board, showing both project results and individual responsibility.# In case of cheating found, the whole team is not allow to defend.#Students are required to attend at least 80% of scheduled meetings with their supervisor(s) to be eligible for the thesis or capstone defense."
-      }
+      },
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (SEP490).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn  (SEP490).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     },
     {
       "code": "VNR202",
@@ -1490,7 +2054,19 @@
         "tools": "Internet, pdf reader and AI-based learning tools (for responsible use, recommended as supplementary support)",
         "student_tasks": "- Nắm vững mục tiêu, nhiệm vụ, đổi tượng, nội dung cơ bản của môn học Lịch sử Đảng, rèn luyện kỹ năng tư duy, phương pháp học tập, nâng cao nhận thức tư tưởng, niềm tin đối với sự lãnh đạo của Đảng, góp phần phát huy truyền thống tốt đẹp của Đảng, vận dụng kinh nghiệm lịch sử vào công tác thực tiễn.Sinh viên phải tham gia tối thiểu 80% thời gian môn học.- Phải có giáo trình lịch sử Đảng Cộng sản Việt Nam, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo. Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp. Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học tập và thực tiễn- Master the objectives, tasks, target audience, and core contents of the course History of the Party; develop thinking skills and study methods; enhance awareness and confidence in the Party’s leadership; contribute to promoting the Party’s fine traditions; and apply historical experiences to practical work.- Attend at least 80% of class hours.- Own History of CPV textbook for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purpose. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
       },
-      "color": "#EF4444"
+      "color": "#EF4444",
+      "learning_outcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn History of Communist Party of Vietnam (VNR202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ],
+      "learningOutcomes": [
+        "Nắm vững kiến thức nền tảng và chuyên sâu về môn History of Communist Party of Vietnam (VNR202).",
+        "Thành thạo các công cụ, kỹ năng thực hành và phương pháp thiết kế chuyên ngành Học kỳ 9.",
+        "Phát triển tư duy phân tích yêu cầu kỹ thuật và giải quyết vấn đề theo chuẩn FPT University.",
+        "Đóng góp trực tiếp vào năng lực nghề nghiệp đáp ứng các chuẩn đầu ra PLO của chương trình BIT_SE_K19B."
+      ]
     }
   ],
   "graph": {

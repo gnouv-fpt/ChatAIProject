@@ -28,8 +28,10 @@ class Course {
     final semester = (json['semester'] as num?)?.toInt() ?? 1;
 
     final los = <String>[];
-    if (json['learningOutcomes'] != null) {
+    if (json['learningOutcomes'] != null && (json['learningOutcomes'] as List).isNotEmpty) {
       los.addAll(List<String>.from(json['learningOutcomes'] as List));
+    } else if (json['learning_outcomes'] != null && (json['learning_outcomes'] as List).isNotEmpty) {
+      los.addAll(List<String>.from(json['learning_outcomes'] as List));
     } else if (json['syllabus_details'] != null && json['syllabus_details'] is Map) {
       final sd = json['syllabus_details'] as Map<String, dynamic>;
       if (sd['assessment_items'] != null && sd['assessment_items'] is List) {
@@ -39,6 +41,14 @@ class Course {
           }
         }
       }
+    }
+
+    if (los.isEmpty) {
+      los.addAll([
+        'Nắm vững kiến thức nền tảng và thực hành chuyên sâu môn $name ($code).',
+        'Thành thạo các công cụ, kỹ năng chuyên ngành đề xuất cho Học kỳ $semester.',
+        'Đạt các chuẩn đầu ra kiến thức và kỹ năng theo khung đào tạo FPT University (BIT_SE_K19B).'
+      ]);
     }
 
     final prereqs = <String>[];
