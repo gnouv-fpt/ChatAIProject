@@ -24,23 +24,14 @@ void main() {
     });
   });
 
-  group('ChatApiService Offline Resilience Tests', () {
-    test('sendMessage triggers offline fallback when server is unreachable', () async {
+  group('ChatApiService Error Handling Tests', () {
+    test('sendMessage returns clear error message when server is unreachable', () async {
       final service = ChatApiService(baseUrl: 'http://invalid-unreachable-host:9999');
       final result = await service.sendMessage('Môn PRM392 có thi PE hay không?');
 
-      expect(result.isOfflineFallback, isTrue);
-      expect(result.answer, contains('PRM392'));
-      expect(result.answer, contains('PE'));
-      expect(result.sources, contains('PRM392 Syllabus - Assessment Scheme'));
-    });
-
-    test('sendMessage offline response for credits question', () async {
-      final service = ChatApiService(baseUrl: 'http://invalid-unreachable-host:9999');
-      final result = await service.sendMessage('Môn SWD392 có mấy tín chỉ?');
-
-      expect(result.isOfflineFallback, isTrue);
-      expect(result.answer, contains('3 tín chỉ'));
+      expect(result.isOfflineFallback, isFalse);
+      expect(result.answer, contains('Không thể kết nối đến AI Server Backend'));
+      expect(result.errorMessage, isNotNull);
     });
   });
 
@@ -61,8 +52,6 @@ void main() {
       
       final lastMsg = provider.messages.last;
       expect(lastMsg.sender, equals(ChatSender.ai));
-      expect(lastMsg.status, equals(MessageStatus.offlineFallback));
-      expect(lastMsg.text, contains('PE'));
     });
   });
 }

@@ -3422,28 +3422,6 @@
   "graph": {
     "nodes": [
       {
-        "id": "_Curriculum_Overview",
-        "code": "_Curriculum_Overview",
-        "label": "Tổng Quan Ngành (BIT_SE_K19B)",
-        "name": "Curriculum Overview",
-        "name_vi": "Tổng quan chương trình đào tạo",
-        "credits": 145,
-        "semester": 0,
-        "color": "#EAB308",
-        "group": "hub"
-      },
-      {
-        "id": "_Program_Learning_Outcomes",
-        "code": "_Program_Learning_Outcomes",
-        "label": "Chuẩn Đầu Ra (PLOs)",
-        "name": "Program Learning Outcomes",
-        "name_vi": "13 Chuẩn đầu ra ngành",
-        "credits": 13,
-        "semester": 0,
-        "color": "#F59E0B",
-        "group": "hub"
-      },
-      {
         "id": "OTP101",
         "name_en": "Orientation and General Training Program",
         "name_vi": "Định hướng và Rèn luyện tập trung",
@@ -3928,174 +3906,243 @@
       {
         "from": "PRF192",
         "to": "PRO192",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRF192",
+        "target": "PRO192"
       },
       {
         "from": "VOV114",
         "to": "VOV124",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "VOV114",
+        "target": "VOV124"
       },
       {
         "from": "PRO192",
         "to": "CSD201",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "CSD201"
       },
       {
         "from": "PRO192",
         "to": "LAB211",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "LAB211"
       },
       {
         "from": "VOV124",
         "to": "VOV134",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "VOV124",
+        "target": "VOV134"
       },
       {
         "from": "JPD113",
         "to": "JPD123",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "JPD113",
+        "target": "JPD123"
       },
       {
         "from": "MAE101",
         "to": "MAS291",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MAE101",
+        "target": "MAS291"
       },
       {
         "from": "DBI202",
         "to": "PRJ301",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "DBI202",
+        "target": "PRJ301"
       },
       {
         "from": "PRO192",
         "to": "PRJ301",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "PRJ301"
       },
       {
         "from": "PRO192",
         "to": "SWE201c",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "SWE201c"
       },
       {
         "from": "PRO192",
         "to": "PRN212",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "PRN212"
       },
       {
         "from": "DBI202",
         "to": "PRN212",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "DBI202",
+        "target": "PRN212"
       },
       {
         "from": "PRJ301",
         "to": "SWP391",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRJ301",
+        "target": "SWP391"
       },
       {
         "from": "SWE201c",
         "to": "SWP391",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWE201c",
+        "target": "SWP391"
       },
       {
         "from": "LAB211",
         "to": "SWP391",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "LAB211",
+        "target": "SWP391"
       },
       {
         "from": "SWE201c",
         "to": "SWR302",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWE201c",
+        "target": "SWR302"
       },
       {
         "from": "SWE201c",
         "to": "SWT301",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWE201c",
+        "target": "SWT301"
       },
       {
         "from": "PRN212",
         "to": "PRN222",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRN212",
+        "target": "PRN222"
       },
       {
         "from": "PRO192",
         "to": "PRU213",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "PRU213"
       },
       {
         "from": "SWE201c",
         "to": "SWD392",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWE201c",
+        "target": "SWD392"
       },
       {
         "from": "PRO192",
         "to": "SWD392",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "SWD392"
       },
       {
         "from": "EXE101",
         "to": "EXE201",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "EXE101",
+        "target": "EXE201"
       },
       {
         "from": "PRO192",
         "to": "PRM393",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRO192",
+        "target": "PRM393"
       },
       {
         "from": "PRN222",
         "to": "PRN232",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PRN222",
+        "target": "PRN232"
       },
       {
         "from": "MLN111",
         "to": "HCM202",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN111",
+        "target": "HCM202"
       },
       {
         "from": "MLN122",
         "to": "HCM202",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN122",
+        "target": "HCM202"
       },
       {
         "from": "MLN111",
         "to": "MLN131",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN111",
+        "target": "MLN131"
       },
       {
         "from": "MLN122",
         "to": "MLN131",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN122",
+        "target": "MLN131"
       },
       {
         "from": "SWP391",
         "to": "SEP490",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWP391",
+        "target": "SEP490"
       },
       {
         "from": "SWD392",
         "to": "SEP490",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "SWD392",
+        "target": "SEP490"
       },
       {
         "from": "PMG201c",
         "to": "SEP490",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "PMG201c",
+        "target": "SEP490"
       },
       {
         "from": "OJT202",
         "to": "SEP490",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "OJT202",
+        "target": "SEP490"
       },
       {
         "from": "MLN111",
         "to": "VNR202",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN111",
+        "target": "VNR202"
       },
       {
         "from": "MLN122",
         "to": "VNR202",
-        "type": "prerequisite"
+        "type": "prerequisite",
+        "source": "MLN122",
+        "target": "VNR202"
       }
-    ]
+    ],
+    "node_count": 48
   },
   "specialization": {
     "name": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",

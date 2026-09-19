@@ -452,6 +452,8 @@ Quay lại trang chủ chương trình: [[_Curriculum_Overview]]
             # Only connect if both source and target exist in this curriculum to prevent Flutter null errors
             if pre in all_codes:
                 edges.append({
+                    "from": pre,
+                    "to": c["code"],
                     "source": pre,
                     "target": c["code"],
                     "relation": "prerequisite",

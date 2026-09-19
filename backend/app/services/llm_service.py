@@ -282,8 +282,7 @@ class LLMService:
                     if line_s and not line_s.startswith("#") and "cấu trúc đánh giá" not in line_s.lower():
                         lines.append(f"• {line_s}" if not line_s.startswith(("-", "•", "*")) else line_s)
             else:
-                lines.append(f"• Theo Syllabus chuẩn của FLM: Quiz & Labs (20%), Practical Exam / Progress Tests (30%), Final Exam (50%).")
-                lines.append(f"• Điều kiện dự thi: Tham gia tối thiểu 80% số buổi học trên lớp và đạt điểm trung bình thành phần.")
+                lines.append(f"• Chưa tìm thấy thông tin cấu trúc đánh giá chi tiết cho môn `{course_code}` trong dữ liệu FLM hiện tại.")
 
             return "\n".join(lines)
 
@@ -307,9 +306,7 @@ class LLMService:
                     if line_s and not line_s.startswith("#") and "mục tiêu môn học (" not in line_s.lower():
                         lines.append(line_s)
             else:
-                lines.append("1. **Nắm vững kiến thức chuyên môn cốt lõi:** Nền tảng lý thuyết và kỹ thuật thực hành chuẩn ngành.")
-                lines.append("2. **Kỹ năng phát triển ứng dụng thực tế:** Phân tích, thiết kế và hiện thực hóa giải pháp phần mềm.")
-                lines.append("3. **Đóng góp chuẩn đầu ra (PLOs):** Đáp ứng các tiêu chí năng lực nghề nghiệp trong khung chương trình SE.")
+                lines.append(f"• Chưa tìm thấy danh sách chuẩn đầu ra (LOs) chi tiết cho môn `{course_code}` trong dữ liệu FLM hiện tại.")
 
             return "\n".join(lines)
 
@@ -326,12 +323,20 @@ class LLMService:
             if semester_val:
                 lines.append(f"• Môn học này được đề xuất học tại **Học kỳ {semester_val}**.")
             
-            # If query mentions other courses, mention them too
+            # If query mentions other courses, mention them too using real retrieved metadata
             if len(detected_courses) > 1:
-                lines.append("\n**Các môn học khác bạn có thể quan tâm:**")
+                lines.append("\n**Các môn học khác trong câu hỏi:**")
                 for c_code in detected_courses:
                     if c_code != course_code:
-                        lines.append(f"• Môn **`{c_code}`**: 3 tín chỉ.")
+                        other_credits = None
+                        for chk, _ in retrieved_chunks:
+                            if chk.course_code == c_code and "credits" in chk.metadata:
+                                other_credits = chk.metadata["credits"]
+                                break
+                        if other_credits is not None:
+                            lines.append(f"• Môn **`{c_code}`**: {other_credits} tín chỉ.")
+                        else:
+                            lines.append(f"• Môn **`{c_code}`**.")
 
             return "\n".join(lines)
 
