@@ -1,29 +1,25 @@
-﻿using System;
-using System.Collections.Generic;
-
 namespace BusinessObject.Entities;
 
-public partial class Citation
+public class Citation
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public int ChatMessageId { get; set; }
+    public Guid ChatMessageId { get; set; }
 
-    public int DocumentId { get; set; }
+    // Nullable: the gRPC CitationDto carries title/article/clause but no chunk id.
+    public Guid? DocumentChunkId { get; set; }
 
-    public int ChunkId { get; set; }
+    public string? DocumentTitle { get; set; }
 
-    public int? PageNumber { get; set; }
+    public string? ArticleNumber { get; set; }
 
-    public int? SlideNumber { get; set; }
+    public string? ClauseNumber { get; set; }
 
-    public decimal? SimilarityScore { get; set; }
+    public string? Excerpt { get; set; }
 
-    public DateTime CreatedAt { get; set; }
+    public string? SourceUrl { get; set; }
 
-    public virtual ChatMessage ChatMessage { get; set; } = null!;
+    public ChatMessage ChatMessage { get; set; } = null!;
 
-    public virtual DocumentChunk Chunk { get; set; } = null!;
-
-    public virtual Document Document { get; set; } = null!;
+    public DocumentChunk? DocumentChunk { get; set; }
 }

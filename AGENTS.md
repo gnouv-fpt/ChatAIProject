@@ -2,736 +2,176 @@
 
 ## 1. Project Overview
 
-This repository is an ASP.NET Core Razor Pages project named **ChatAIWeb**.
+PRN232 assignment: **Vietnam Traffic Law Advanced RAG System** — a microservices system that answers Vietnamese road-traffic law questions using only verified legal documents from thuvienphapluat.vn, with citations (Điều, Khoản, Điểm, document title, source URL).
 
-The system is a Vietnamese RAG-based chatbot that allows students to ask questions based on uploaded course documents.
+Services (see `requirement.md` for the full spec):
 
-Main goals:
+- **REST API Service** — this .NET solution (`Presentation` project): ASP.NET Core 8 Web API, JWT, Swagger.
+- **gRPC Inference & Verification Service** — moderation + RAG over Qdrant (separate service).
+- **Message Broker** — Redis Pub/Sub / Kafka, topics `chat-completed-events`, `document-updated-events`.
+- **Worker Service** — consumes `ChatCompletedEvent` (quota deduction, violation email) + midnight cron jobs.
+- **Docker Compose** — sqlserver, qdrant, redis, grpc-inference-service, rest-api-service, worker-service.
 
-- Allow users to upload learning documents such as PDF, DOCX, and PPTX.
-- Extract text from uploaded documents.
-- Split extracted text into chunks.
-- Generate embeddings for chunks.
-- Store document metadata, chunks, chat sessions, and citations.
-- Let students ask questions in Vietnamese.
-- Retrieve relevant chunks using semantic search.
-- Generate answers using an LLM.
-- Show answers with citations from uploaded documents.
-- Support future RAGAS benchmarking and model comparison.
-
-The project must follow a strict **3-layer architecture**.
+The REST API solution must follow a strict **3-layer architecture**. There are no Razor Pages; the API is consumed by React/mobile/Postman clients.
 
 ---
 
 ## 2. Solution Structure
 
-The solution contains 4 projects:
-
 ```text
-ChatAIWeb
-├── BusinessLogic
-│   ├── DTOs
-│   │   ├── Requests
-│   │   ├── Responses
-│   ├── Infrastructure
-│   └── Services
-│
-├── BusinessObject
-│   ├── Entities
-│   └── Enums
-│
-├── DataAccess
-│   └── Repositories
-│
-└── Presentation
-    ├── Pages
-    ├── Models
-    ├── wwwroot
-    ├── appsettings.json
-    └── Program.cs
+ChatAIWeb.slnx
+├── BusinessObject      Entities, Enums
+├── DataAccess          ChatAIWebDbContext, Migrations, Repositories
+├── BusinessLogic       DTOs, Exceptions, Infrastructure, Services
+└── Presentation        Controllers, Middleware, Extensions, Program.cs, appsettings.json
 ```
 
-Layer meaning:
-
 ```text
-Presentation   = ASP.NET Core Razor Pages UI layer
-BusinessLogic  = business rules, orchestration, RAG pipeline
+Presentation   = ASP.NET Core Web API (controllers, auth, Swagger, DI)
+BusinessLogic  = business rules and orchestration
 DataAccess     = EF Core, database access, repositories
-BusinessObject = shared entities, enums, and common domain models
+BusinessObject = shared entities and enums
 ```
 
 ---
 
 ## 3. Architecture Rules
 
-Codex must strictly follow the architecture below.
+### 3.1. Presentation
 
-### 3.1. Presentation Layer
+Allowed: `[ApiController]` controllers under `Controllers/`, routing (`api/...`), `[Authorize]` attributes, middleware, DI registration in `Program.cs`, reading configuration.
 
-Project: `Presentation`
+Not allowed: EF Core queries, business rules, LLM/gRPC business logic inside controllers.
 
-Allowed responsibilities:
-
-- Razor Pages (`.cshtml` + `.cshtml.cs` PageModels)
-- Razor view markup
-- ViewModels and input models (bound via `[BindProperty]`)
-- UI validation
-- Routing (page-based routing, `@page` directives)
-- Dependency injection setup in `Program.cs`
-- Reading configuration from `appsettings.json`
-
-Not allowed:
-
-- Do not query EF Core directly in PageModels.
-- Do not access the database directly.
-- Do not implement document chunking logic.
-- Do not implement embedding logic.
-- Do not implement LLM API logic.
-- Do not put business rules inside PageModels.
-
-PageModels must be thin and only call services from `BusinessLogic`.
-
-Correct pattern:
+Controllers must be thin and only call `BusinessLogic` services:
 
 ```csharp
-public class AskModel : PageModel
+[ApiController]
+[Route("api/chats")]
+[Authorize]
+public class ChatsController : ControllerBase
 {
-    private readonly IChatbotService _chatbotService;
+    private readonly IChatService _chatService;
 
-    public AskModel(IChatbotService chatbotService)
+    public ChatsController(IChatService chatService) => _chatService = chatService;
+
+    [HttpGet("{sessionId:guid}")]
+    public async Task<ActionResult<ChatSessionDetailDto>> Get(Guid sessionId, CancellationToken cancellationToken)
     {
-        _chatbotService = chatbotService;
-    }
-
-    [BindProperty]
-    public ChatRequestViewModel Input { get; set; } = new();
-
-    public async Task<IActionResult> OnPostAsync()
-    {
-        if (!ModelState.IsValid)
-        {
-            return Page();
-        }
-
-        var result = await _chatbotService.AskAsync(Input);
-        return new JsonResult(result);
+        return await _chatService.GetSessionAsync(User.GetUserId(), sessionId, cancellationToken);
     }
 }
 ```
 
----
+- Get the current user with `User.GetUserId()` (`Presentation/Extensions/ClaimsPrincipalExtensions.cs`).
+- Admin-only endpoints: `[Authorize(Roles = nameof(UserRole.Admin))]`.
+- Request DTOs are validated with DataAnnotations; `[ApiController]` returns 400 automatically.
 
-### 3.2. BusinessLogic Layer
+### 3.2. BusinessLogic
 
-Project: `BusinessLogic`
+Business rules, orchestration, calling repositories and external clients (gRPC client, broker producer, crawler).
 
-Allowed responsibilities:
+- Signal errors by throwing the exceptions in `BusinessLogic/Exceptions/AppException.cs` (`BadRequestException`, `UnauthorizedException`, `ForbiddenException`, `NotFoundException`, `ConflictException`). The global handler (`Presentation/Middleware/GlobalExceptionHandler.cs`) turns them into RFC 7807 ProblemDetails with the right status code. Do not return error flags or catch-and-swallow.
+- Must not contain controller/HTTP concerns.
 
-- Business rules
-- Upload workflow orchestration
-- Document processing workflow
-- Text extraction orchestration
-- Chunking strategy
-- Embedding orchestration
-- RAG retrieval workflow
-- Prompt construction
-- LLM response handling
-- Citation handling
-- Chat history workflow
-- Benchmark workflow
+### 3.3. DataAccess
 
-This layer may call:
+`ChatAIWebDbContext`, migrations, repositories. No business decisions.
 
-- DataAccess repositories
-- Infrastructure services
-- External API wrappers
+- `IGenericRepository<T>` / `GenericRepository<T>` provides `GetByIdAsync`, `FindAsync`, `AnyAsync`, `AddAsync`, `Update`, `Remove`, `SaveChangesAsync`. It is registered as an open generic, so `IGenericRepository<ChatSession>` can be injected directly.
+- Add a specific repository (`IXxxRepository : IGenericRepository<Xxx>`) only when you need custom queries (includes, paging, filtering).
+- All repositories share the scoped DbContext: one `SaveChangesAsync` persists every pending change in the request.
 
-This layer must not contain:
+### 3.4. BusinessObject
 
-- Razor Pages or view code
-- Direct UI concerns
-- Direct EF Core queries when a repository already exists
-
-Recommended services:
-
-```text
-Services/
-├── IDocumentService.cs
-├── DocumentService.cs
-├── IChunkingService.cs
-├── ChunkingService.cs
-├── IEmbeddingService.cs
-├── EmbeddingService.cs
-├── IVectorSearchService.cs
-├── VectorSearchService.cs
-├── IChatbotService.cs
-├── ChatbotService.cs
-├── ICitationService.cs
-├── CitationService.cs
-├── IBenchmarkService.cs
-└── BenchmarkService.cs
-
-Infrastructure/
-├── IFileStorageService.cs
-├── LocalFileStorageService.cs
-├── ITextExtractionService.cs
-├── PdfTextExtractionService.cs
-├── DocxTextExtractionService.cs
-├── PptxTextExtractionService.cs
-├── ILlmService.cs
-├── OpenAiLlmService.cs
-├── GeminiLlmService.cs
-├── IQdrantVectorService.cs
-└── QdrantVectorService.cs
-```
-
----
-
-### 3.3. DataAccess Layer
-
-Project: `DataAccess`
-
-Allowed responsibilities:
-
-- EF Core `DbContext`
-- Repository interfaces and implementations
-- Database queries
-- CRUD operations
-- Transactions
-- Persistence logic
-
-Not allowed:
-
-- Do not write Razor Pages or UI code.
-- Do not write LLM code.
-- Do not write document chunking logic.
-- Do not write business decision logic.
-
-Recommended structure:
-
-```text
-Repositories/
-├── IGenericRepository.cs
-├── GenericRepository.cs
-├── IUserRepository.cs
-├── UserRepository.cs
-├── ISubjectRepository.cs
-├── SubjectRepository.cs
-├── IDocumentRepository.cs
-├── DocumentRepository.cs
-├── IDocumentChunkRepository.cs
-├── DocumentChunkRepository.cs
-├── IChatRepository.cs
-├── ChatRepository.cs
-├── ICitationRepository.cs
-└── CitationRepository.cs
-```
-
-All database operations should be asynchronous.
-
-Use:
-
-```csharp
-await _context.SaveChangesAsync();
-```
-
-Avoid:
-
-```csharp
-_context.SaveChanges();
-.Result
-.Wait()
-```
-
----
-
-### 3.4. BusinessObject Layer
-
-Project: `BusinessObject`
-
-Allowed responsibilities:
-
-- Entity classes
-- Enums
-- Shared constants
-- Simple DTOs if needed
-
-Not allowed:
-
-- Do not write EF query logic.
-- Do not write service logic.
-- Do not write PageModel or UI logic.
-- Do not write external API logic.
-
-Recommended structure:
-
-```text
-Entities/
-├── User.cs
-├── Subject.cs
-├── SubjectEnrollment.cs
-├── Document.cs
-├── DocumentChunk.cs
-├── ChatSession.cs
-├── ChatMessage.cs
-├── Citation.cs
-├── EvaluationQuestion.cs
-└── RagasBenchmarkResult.cs
-
-Enums/
-├── UserRole.cs
-├── DocumentStatus.cs
-├── ChatRole.cs
-├── FileType.cs
-└── BenchmarkMetric.cs
-```
+Entity classes and enums only. No dependencies on other layers.
 
 ---
 
 ## 4. Dependency Rules
 
-Allowed dependency direction:
-
 ```text
-Presentation
-→ BusinessLogic
-→ DataAccess
-→ BusinessObject
+Presentation → BusinessLogic → DataAccess → BusinessObject
 ```
 
-Also allowed:
-
-```text
-Presentation → BusinessObject
-BusinessLogic → BusinessObject
-DataAccess → BusinessObject
-```
-
-Forbidden dependency direction:
-
-```text
-BusinessObject → DataAccess
-BusinessObject → BusinessLogic
-BusinessObject → Presentation
-
-DataAccess → BusinessLogic
-DataAccess → Presentation
-
-BusinessLogic → Presentation
-```
-
-Do not create reverse dependencies.
+Forbidden: `BusinessObject → *`, `DataAccess → BusinessLogic/Presentation`, `BusinessLogic → Presentation`.
 
 ---
 
 ## 5. Database Rules
 
-The SQL Server database is named:
+SQL Server database `ChatAIWebDb`, EF Core **code-first migrations** (in `DataAccess/Migrations`). The API applies pending migrations on startup (`Database:MigrateOnStartup`).
 
-```text
-ChatAIWebDb
-```
+Tables: `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`, `ViolationLogs`, `UsageReports`.
 
-Main tables:
-
-- `Users`
-- `Subjects`
-- `SubjectEnrollments`
-- `Documents`
-- `DocumentChunks`
-- `ChatSessions`
-- `ChatMessages`
-- `Citations`
-- `EvaluationQuestions`
-- `RagasBenchmarkResults`
-
-Use EF Core with SQL Server.
-
-The connection string must be placed in `Presentation/appsettings.json`.
-
-Example:
-
-```json
-{
-  "ConnectionStrings": {
-    "DefaultConnection": "Server=.;Database=ChatAIWebDb;Trusted_Connection=True;TrustServerCertificate=True"
-  }
-}
-```
-
-Do not hard-code connection strings inside repositories or services.
-
----
-
-## 6. RAG Pipeline Rules
-
-The expected RAG flow is:
-
-```text
-User question
-→ Generate question embedding
-→ Search top-k relevant chunks
-→ Build prompt with retrieved chunks
-→ Call LLM
-→ Return Vietnamese answer
-→ Attach citations
-→ Save chat history
-```
-
-When implementing chatbot logic, follow this workflow:
-
-```text
-Chat PageModel
-→ IChatbotService
-→ IEmbeddingService
-→ IVectorSearchService
-→ ILlmService
-→ IChatRepository
-→ ICitationRepository
-```
-
-Answers must:
-
-- Be in Vietnamese by default.
-- Use only retrieved document context when the question is document-specific.
-- Clearly say when the answer cannot be found in the uploaded documents.
-- Include citations when source chunks are available.
-
-Example answer format:
-
-```text
-Theo tài liệu đã tải lên, ...
-
-Nguồn tham khảo:
-[1] Database_Lecture_01.pdf, trang 5
-[2] Normalization_Slides.pptx, slide 12
-```
-
----
-
-## 7. Document Processing Rules
-
-Document upload flow:
-
-```text
-Upload file
-→ Validate file type
-→ Save file
-→ Create Document record
-→ Extract text
-→ Split into chunks
-→ Generate embeddings
-→ Save chunks and vector IDs
-→ Mark document as Indexed
-```
-
-Supported file types:
-
-- PDF
-- DOCX
-- PPTX
-
-At the beginning, implement PDF first if full support is too much.
-
-Document status values:
-
-```text
-Uploaded
-Processing
-Indexed
-Failed
-```
-
-Each chunk should store:
-
-- `DocumentId`
-- `ChunkIndex`
-- `Content`
-- `PageNumber` or `SlideNumber`
-- `TokenCount`
-- `VectorId`
-- `CreatedAt`
-
-Chunking rules:
-
-- Keep chunk content understandable.
-- Preserve page number or slide number if available.
-- Avoid chunks that are too short and meaningless.
-- Avoid chunks that exceed the embedding model context limit.
-
----
-
-## 8. Coding Style
-
-General rules:
-
-- Use C# async/await.
-- Use dependency injection.
-- Use interfaces for services and repositories.
-- Keep PageModels thin.
-- Keep services focused.
-- Avoid duplicate logic.
-- Use meaningful names.
-- Prefer clear code over clever code.
-- Validate input before processing.
-- Handle exceptions gracefully.
-- Use logging for important workflows.
-
-Naming conventions:
-
-- Interfaces start with `I`.
-- Services end with `Service`.
-- Repositories end with `Repository`.
-- ViewModels end with `ViewModel`.
-- Async methods end with `Async`.
-
-Examples:
-
-```text
-IChatbotService
-ChatbotService
-IDocumentRepository
-DocumentRepository
-ChatRequestViewModel
-AskAsync()
-UploadDocumentAsync()
-```
-
----
-
-## 9. Security Rules
-
-Do not expose API keys in source code.
-
-API keys must be stored in one of these places:
-
-- User secrets for local development
-- Environment variables
-- `appsettings.Development.json` ignored by Git
-
-Never commit:
-
-- OpenAI API key
-- Gemini API key
-- Qdrant API key
-- Real database password
-- Personal credentials
-
-Validate uploaded files:
-
-- Check extension.
-- Check content type where possible.
-- Limit file size.
-- Store files outside executable code paths when possible.
-- Never execute uploaded files.
-
----
-
-## 10. UI Rules
-
-The UI should be simple and suitable for a student learning system.
-
-Main pages:
-
-- Login / Register
-- Dashboard
-- Subject management
-- Document upload
-- Document list
-- Chatbot page
-- Chat history
-- Benchmark page
-
-Chat page should include:
-
-- Subject selector
-- Question input
-- Chat message area
-- Answer area
-- Citation area
-- Loading indicator
-
-User-facing text should be Vietnamese.
-
-Code identifiers should remain English.
-
-Good C# naming:
-
-```csharp
-public class DocumentService
-{
-}
-```
-
-Good UI text:
-
-```text
-Tải tài liệu lên
-Danh sách tài liệu
-Đặt câu hỏi
-Nguồn tham khảo
-```
-
-Avoid Vietnamese class names such as:
-
-```csharp
-public class DichVuTaiLieu
-{
-}
-```
-
----
-
-## 11. Error Handling Rules
-
-Use clear Vietnamese error messages for end users.
-
-Examples:
-
-- `Không thể đọc nội dung tài liệu.`
-- `Tài liệu chưa được index.`
-- `Không tìm thấy nội dung liên quan trong tài liệu.`
-- `Có lỗi khi gọi mô hình AI.`
-- `File không đúng định dạng được hỗ trợ.`
-
-Do not show raw exception stack traces to end users.
-
-Log technical details using `ILogger`.
-
----
-
-## 12. Testing and Verification
-
-When adding or changing functionality:
-
-- Build the solution.
-- Fix compile errors.
-- Check dependency direction.
-- Check async usage.
-- Check that PageModels do not contain business logic.
-- Check that repositories do not contain business rules.
-- Check that services do not directly return Razor Pages or views.
-
-Preferred commands:
+- Primary keys are `Guid`. Enums are stored as strings. All `DateTime` values are UTC (`DateTime.UtcNow`).
+- After changing entities or `ChatAIWebDbContext`, add a migration:
 
 ```bash
-dotnet restore
-dotnet build
+dotnet ef migrations add <Name> --project DataAccess --startup-project Presentation --output-dir Migrations
 ```
 
-If tests are added:
+- The connection string lives in `Presentation/appsettings.json` (`ConnectionStrings:DefaultConnection`); never hard-code it.
+
+---
+
+## 6. Authentication
+
+- `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh-token`, `POST /api/auth/logout`, `GET /api/auth/profile`.
+- Access token = JWT (HS256) with claims `sub` (UserId), `unique_name`, `email`, `role`, `token_quota` (names in `BusinessLogic/Infrastructure/AppClaimTypes.cs`).
+- Refresh tokens are random, stored as SHA-256 hashes, single-use (rotated on refresh), revoked on logout.
+- Passwords are hashed with PBKDF2-HMACSHA256 (`PasswordHasher`).
+
+---
+
+## 7. Coding Style
+
+- async/await everywhere; never `.Result`, `.Wait()` or `SaveChanges()`.
+- Pass `CancellationToken` through controllers → services → repositories.
+- Interfaces start with `I`; services end with `Service`; repositories end with `Repository`; async methods end with `Async`; DTOs end with `Dto`.
+- Code identifiers in English; user-facing messages (validation, errors) in Vietnamese, e.g. `Không tìm thấy phiên chat.`
+- Log technical details with `ILogger`; never return stack traces to clients.
+
+---
+
+## 8. Security Rules
+
+Never commit secrets (JWT secret key, OpenAI/Gemini/Qdrant keys, DB passwords, SMTP credentials).
+
+- Local development: `dotnet user-secrets` on the `Presentation` project.
+- Docker / servers: environment variables (e.g. `Jwt__SecretKey`, `Auth__SeedAdmin__Password`).
+
+Required local secrets — run once after cloning/pulling, instead of setting them by hand:
 
 ```bash
-dotnet test
+pwsh -File scripts/setup.ps1   # Windows
+bash scripts/setup.sh          # macOS/Linux
 ```
+
+This restores packages, generates a random `Jwt:SecretKey` (skipped if one already exists), seeds a default `Auth:SeedAdmin` (admin@chataiweb.local / Admin@123456), and builds the solution. To set secrets manually instead:
+
+```bash
+dotnet user-secrets set "Jwt:SecretKey" "<random string of at least 32 bytes>" --project Presentation
+dotnet user-secrets set "Auth:SeedAdmin:Email" "admin@chataiweb.local" --project Presentation
+dotnet user-secrets set "Auth:SeedAdmin:Password" "<password>" --project Presentation
+```
+
+Requires a reachable SQL Server (`ConnectionStrings:DefaultConnection` in `Presentation/appsettings.json`, default is `localhost` with Windows Authentication) — install SQL Server/LocalDB or point it at a container. The API creates/migrates `ChatAIWebDb` automatically on startup.
 
 ---
 
-## 13. Implementation Priority
+## 9. Verification
 
-When asked to implement the project, follow this priority:
-
-1. Database connection and entities.
-2. Repository layer.
-3. Service layer.
-4. Razor Pages and PageModels.
-5. Upload document feature.
-6. PDF text extraction.
-7. Chunking and saving chunks.
-8. Embedding integration.
-9. Vector search.
-10. Chatbot RAG answer.
-11. Citation display.
-12. Chat history.
-13. RAGAS benchmark page.
-
-If the request is too large, implement the smallest working vertical slice first:
-
-```text
-Upload one PDF
-→ Extract text
-→ Chunk text
-→ Save chunks
-→ Ask a question
-→ Return answer with source chunks
+```bash
+dotnet run --project Presentation --launch-profile http   # Swagger: http://localhost:5039/swagger
 ```
+
+Check: dependency direction, async usage, thin controllers, no business rules in repositories, no pending model changes (`dotnet ef migrations has-pending-model-changes --project DataAccess --startup-project Presentation`).
 
 ---
 
-## 14. ASP.NET Core Razor Pages Rules
+## 10. Git Safety
 
-Use ASP.NET Core Razor Pages conventions.
-
-Pages should be in:
-
-```text
-Presentation/Pages
-```
-
-Each page is a `.cshtml` file with a matching `.cshtml.cs` PageModel.
-
-Static assets should be in:
-
-```text
-Presentation/wwwroot
-```
-
-Use ViewModels for form input and UI rendering. Bind input with `[BindProperty]` and handle requests via `OnGet`/`OnPost` handlers.
-
-Do not pass EF entities directly to complex forms when a ViewModel is more appropriate.
-
----
-
-## 15. Vietnamese Academic Context
-
-This project is for a Vietnamese academic software project.
-
-When generating:
-
-- Page titles
-- Menu labels
-- Form labels
-- Validation messages
-- Notifications
-- Demo data
-
-Prefer Vietnamese.
-
-When generating:
-
-- Class names
-- Method names
-- Variable names
-- Interface names
-- Repository names
-- Service names
-
-Use English.
-
----
-
-## 16. Git and Commit Safety
-
-Before suggesting or generating code, avoid changes that:
-
-- Delete existing user code without explanation.
-- Rewrite the whole project unnecessarily.
-- Mix many unrelated features in one change.
-- Move files between layers without checking dependency direction.
-
-Prefer small, incremental changes.
-
----
-
-## 17. Final Reminder for Codex
-
-Always preserve the 3-layer architecture.
-
-The most important rule:
-
-```text
-PageModel does not contain business logic.
-BusinessLogic does not contain UI logic.
-DataAccess does not contain business workflow.
-BusinessObject does not depend on other layers.
-```
+- Small, incremental changes; do not rewrite unrelated code.
+- Do not move files between layers without checking dependency direction.
+- The previous Razor Pages / course-document implementation is recoverable from commit `f178699` if any logic needs to be ported.

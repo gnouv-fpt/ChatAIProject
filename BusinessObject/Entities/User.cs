@@ -1,39 +1,28 @@
-﻿using System;
-using System.Collections.Generic;
+using BusinessObject.Enums;
 
 namespace BusinessObject.Entities;
 
-public partial class User
+public class User
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public string FullName { get; set; } = null!;
+    public string Username { get; set; } = null!;
 
     public string Email { get; set; } = null!;
 
     public string PasswordHash { get; set; } = null!;
 
-    public string Role { get; set; } = null!;
+    public UserRole Role { get; set; } = UserRole.User;
 
-    public bool IsActive { get; set; }
+    public int TokenQuota { get; set; }
+
+    public int TokenBalance { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
-    public DateTime? UpdatedAt { get; set; }
+    public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
 
-    public virtual ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
+    public ICollection<ViolationLog> ViolationLogs { get; set; } = new List<ViolationLog>();
 
-    public virtual ICollection<Document> Documents { get; set; } = new List<Document>();
-
-    public virtual ICollection<EvaluationQuestion> EvaluationQuestions { get; set; } = new List<EvaluationQuestion>();
-
-    public virtual ICollection<DocumentConflictReview> ResolvedDocumentConflictReviews { get; set; } = new List<DocumentConflictReview>();
-
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-
-    public virtual ICollection<Subject> DeletedSubjects { get; set; } = new List<Subject>();
-
-    public virtual ICollection<SubjectEnrollment> SubjectEnrollments { get; set; } = new List<SubjectEnrollment>();
-
-    public virtual ICollection<Subject> Subjects { get; set; } = new List<Subject>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

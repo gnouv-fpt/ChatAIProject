@@ -1,28 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
 using BusinessObject.Enums;
 
 namespace BusinessObject.Entities;
 
-public partial class ChatMessage
+public class ChatMessage
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; }
 
-    public int ChatSessionId { get; set; }
+    public Guid SessionId { get; set; }
 
-    public ChatRole Role { get; set; }
+    public SenderRole SenderRole { get; set; }
 
     public string Content { get; set; } = null!;
 
-    public string? ModelName { get; set; }
+    public int TokensUsed { get; set; }
 
-    public int? PromptTokens { get; set; }
-
-    public int? CompletionTokens { get; set; }
+    public bool IsViolation { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
-    public virtual ChatSession ChatSession { get; set; } = null!;
+    public ChatSession Session { get; set; } = null!;
 
-    public virtual ICollection<Citation> Citations { get; set; } = new List<Citation>();
+    public ICollection<Citation> Citations { get; set; } = new List<Citation>();
 }
