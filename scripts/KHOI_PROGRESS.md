@@ -5,7 +5,7 @@ Nhánh: `feature/khoi-grpc-rag` (hoặc tích hợp trên `PRN-BAO-dev`)
 ## 1. Các hạng mục đã hoàn thành
 
 ### 1.1. Thiết kế Protobuf Contract (`Protos/chat_inference.proto`)
-- [x] Tạo file proto dùng chung [Protos/chat_inference.proto](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/Protos/chat_inference.proto) (và bản sao trong [grpc_inference_service/protos/chat_inference.proto](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/grpc_inference_service/protos/chat_inference.proto)).
+- [x] Tạo file proto dùng chung [Protos/chat_inference.proto](../Protos/chat_inference.proto) (và bản sao trong [grpc_inference_service/protos/chat_inference.proto](../grpc_inference_service/protos/chat_inference.proto)).
 - [x] RPC `ProcessChatMessage(ChatInferenceRequest) returns (ChatInferenceResponse)`
 - [x] RPC `VerifyLegalDocument(VerificationRequest) returns (VerificationResponse)`
 - [x] RPC `IndexDocument(IndexDocumentRequest) returns (IndexDocumentResponse)`
@@ -58,15 +58,15 @@ Nhánh: `feature/khoi-grpc-rag` (hoặc tích hợp trên `PRN-BAO-dev`)
 
 ### 1.8. Xây dựng .NET gRPC Client hoàn chỉnh trong BusinessLogic (Hỗ trợ nhóm)
 - [x] Cấu hình gRPC Client vào `BusinessLogic.csproj` (`Grpc.Net.Client`, `Grpc.Tools`, proto compilation).
-- [x] Định nghĩa đầy đủ DTOs trung gian tại [BusinessLogic/DTOs/GrpcDtos.cs](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/BusinessLogic/DTOs/GrpcDtos.cs):
+- [x] Định nghĩa đầy đủ DTOs trung gian tại [BusinessLogic/DTOs/GrpcDtos.cs](../BusinessLogic/DTOs/GrpcDtos.cs):
   - `ChatInferenceResultDto`, `CitationResultDto`
   - `VerificationResultDto`, `DocumentChunkInputDto`, `IndexDocumentResultDto`
-- [x] Interface [IGrpcInferenceService](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/BusinessLogic/Services/Interfaces/IGrpcInferenceService.cs) bao phủ đủ **3 RPCs**:
+- [x] Interface [IGrpcInferenceService](../BusinessLogic/Services/Interfaces/IGrpcInferenceService.cs) bao phủ đủ **3 RPCs**:
   - `ProcessChatMessageAsync(...)`
   - `VerifyLegalDocumentAsync(...)`
   - `IndexDocumentAsync(...)`
-- [x] Implementation [GrpcInferenceService](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/BusinessLogic/Services/Implementations/GrpcInferenceService.cs) gọi service Python và map sang DTOs sạch sẽ.
-- [x] Đăng ký DI trong [Presentation/Program.cs](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/Presentation/Program.cs) và config endpoint tại [Presentation/appsettings.json](file:///c:/AK/HOCKI8/PRN232/Assignment/ChatAIProject/Presentation/appsettings.json).
+- [x] Implementation [GrpcInferenceService](../BusinessLogic/Services/Implementations/GrpcInferenceService.cs) gọi service Python và map sang DTOs sạch sẽ.
+- [x] Đăng ký DI trong [Presentation/Program.cs](../Presentation/Program.cs) và config endpoint tại [Presentation/appsettings.json](../Presentation/appsettings.json).
 - [x] Solution .NET biên dịch thành công: **0 Errors, 0 Warnings**.
 
 ---
