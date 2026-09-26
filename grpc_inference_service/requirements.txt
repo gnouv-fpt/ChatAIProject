@@ -1,0 +1,8 @@
+grpcio>=1.60.0
+grpcio-tools>=1.60.0
+protobuf>=4.25.0
+qdrant-client>=1.8.0
+google-generativeai>=0.5.0
+python-dotenv>=1.0.0
+numpy>=1.24.0,<2.0.0
+sentence-transformers>=2.6.0

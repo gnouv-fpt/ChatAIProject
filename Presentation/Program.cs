@@ -4,6 +4,7 @@ using BusinessLogic.Infrastructure;
 using BusinessLogic.Infrastructure.Implementations;
 using BusinessLogic.Infrastructure.Interfaces;
 using BusinessLogic.Infrastructure.Settings;
+using BusinessLogic.Protos;
 using BusinessLogic.Services.Implementations;
 using BusinessLogic.Services.Interfaces;
 using DataAccess;
@@ -92,6 +93,14 @@ builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
+
+// ==================== gRPC Client ====================
+var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
+builder.Services.AddGrpcClient<TrafficRagInference.TrafficRagInferenceClient>(o =>
+{
+    o.Address = new Uri(grpcAddress);
+});
+builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
 
 var app = builder.Build();
 
