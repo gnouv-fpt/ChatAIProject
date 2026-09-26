@@ -1,0 +1,19 @@
+# Qdrant local file storage (use remote server or :memory: instead)
+qdrant_storage/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Generated Protobuf stubs (auto-generated at runtime by generate_protos.py)
+chat_inference_pb2.py
+chat_inference_pb2_grpc.py
+
+# Environment / secrets
+.env
+.env.*
+
+# Test outputs
+*.log

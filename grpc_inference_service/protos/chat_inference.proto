@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package traffic_rag;
+
+option csharp_namespace = "BusinessLogic.Protos";
+
+service TrafficRagInference {
+  rpc ProcessChatMessage (ChatInferenceRequest) returns (ChatInferenceResponse);
+  rpc VerifyLegalDocument (VerificationRequest) returns (VerificationResponse);
+  rpc IndexDocument (IndexDocumentRequest) returns (IndexDocumentResponse);
+}
+
+message ChatInferenceRequest {
+  string user_id = 1;
+  string session_id = 2;
+  string prompt = 3;
+}
+
+message CitationDto {
+  string document_title = 1;
+  string article_number = 2;
+  string clause_number = 3;
+  string source_url = 4;
+  string excerpt = 5;
+}
+
+message ChatInferenceResponse {
+  string response_text = 1;
+  int32 tokens_used = 2;
+  bool is_violation = 3;
+  repeated string violation_keywords = 4;
+  repeated CitationDto citations = 5;
+  bool data_verified = 6;
+}
+
+message VerificationRequest {
+  string document_title = 1;
+  string document_number = 2;
+  string content = 3;
+}
+
+message VerificationResponse {
+  bool is_valid = 1;
+  string status = 2; // "Verified", "Outdated", "Pending"
+  string notes = 3;
+}
+
+message DocumentChunkItem {
+  string chunk_id = 1;
+  string document_title = 2;
+  string document_number = 3;
+  string chapter = 4;
+  string article = 5;
+  string clause = 6;
+  string content = 7;
+  string source_url = 8;
+  bool is_verified = 9;
+  bool is_active = 10;
+}
+
+message IndexDocumentRequest {
+  repeated DocumentChunkItem chunks = 1;
+}
+
+message IndexDocumentResponse {
+  bool success = 1;
+  int32 indexed_count = 2;
+  string message = 3;
+}

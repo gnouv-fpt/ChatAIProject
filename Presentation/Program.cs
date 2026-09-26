@@ -4,6 +4,7 @@ using BusinessLogic.Infrastructure;
 using BusinessLogic.Infrastructure.Implementations;
 using BusinessLogic.Infrastructure.Interfaces;
 using BusinessLogic.Infrastructure.Settings;
+using BusinessLogic.Protos;
 using BusinessLogic.Services.Implementations;
 using BusinessLogic.Services.Interfaces;
 using DataAccess;
@@ -86,12 +87,24 @@ builder.Services.AddDbContext<ChatAIWebDbContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
+builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
 
 // ==================== Services injection ====================
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+builder.Services.AddSingleton<IEventPublisher, RedisEventPublisher>();
+
+// ==================== gRPC Client ====================
+var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
+builder.Services.AddGrpcClient<TrafficRagInference.TrafficRagInferenceClient>(o =>
+{
+    o.Address = new Uri(grpcAddress);
+});
+builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
 
 var app = builder.Build();
 

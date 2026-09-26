@@ -1,0 +1,115 @@
+version: '3.8'
+
+services:
+  # 1. Database: SQL Server 2022
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: traffic-rag-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${SA_PASSWORD:-Passw@rd123456}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sql_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD:-Passw@rd123456}' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - traffic-rag-net
+
+  # 2. Vector DB: Qdrant
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: traffic-rag-qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    networks:
+      - traffic-rag-net
+
+  # 3. Message Broker & Cache: Redis
+  redis:
+    image: redis:7-alpine
+    container_name: traffic-rag-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - traffic-rag-net
+
+  # 4. gRPC Inference & Verification Service (Python / AI Engine)
+  grpc-inference-service:
+    build:
+      context: ./grpc_inference_service
+      dockerfile: Dockerfile
+    container_name: traffic-rag-grpc-service
+    ports:
+      - "50051:50051"
+    environment:
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - QDRANT_GRPC_PORT=6334
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - GRPC_PORT=50051
+    depends_on:
+      - qdrant
+    networks:
+      - traffic-rag-net
+
+  # 5. REST API Service Gateway (ASP.NET Core 8 Web API)
+  rest-api-service:
+    build:
+      context: .
+      dockerfile: Presentation/Dockerfile
+    container_name: traffic-rag-rest-api
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD:-Passw@rd123456};TrustServerCertificate=true;Encrypt=false;
+      - ConnectionStrings__Redis=redis:6379
+      - GrpcService__Address=http://grpc-inference-service:50051
+      - Jwt__SecretKey=${JWT_SECRET_KEY:-ThisIsASecretKeyForJwtTokenAuthLongerThan32Bytes}
+      - Auth__SeedAdmin__Email=admin@chataiweb.local
+      - Auth__SeedAdmin__Password=Admin@123456
+      - Database__MigrateOnStartup=true
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      grpc-inference-service:
+        condition: service_started
+    networks:
+      - traffic-rag-net
+
+  # 6. Worker Service Consumer (Trừ quota, gửi Email cảnh báo & Cron Job)
+  worker-service:
+    image: mcr.microsoft.com/dotnet/runtime:8.0-alpine
+    container_name: traffic-rag-worker-service
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD:-Passw@rd123456};TrustServerCertificate=true;
+      - ConnectionStrings__Redis=redis:6379
+    depends_on:
+      - redis
+      - sqlserver
+    command: ["echo", "Worker Service: Ready for integration by Khanh"]
+    networks:
+      - traffic-rag-net
+
+networks:
+  traffic-rag-net:
+    driver: bridge
+
+volumes:
+  sql_data:
+  qdrant_data:
+  redis_data:
