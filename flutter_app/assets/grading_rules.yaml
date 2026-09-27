@@ -1,0 +1,28 @@
+gpa_scale: 10
+excluded_from_gpa:
+  - GDQP
+  - ENT
+  - VOV
+  - TRS
+  - DSA
+  - LAB
+  - OJS
+  - OJT
+  - SYB301
+
+retake:
+  counts_in_gpa: true
+  gpa_policy: last_attempt
+  penalty_threshold: 2
+  penalty_levels: 1
+  applies_to:
+    - Excellent
+    - Good
+  count_excluded_subjects: true
+  count_grade_improvement: false
+
+graduation_grades:
+  Excellent: 9.0
+  Good: 8.0
+  Fair: 6.5
+  Pass: 5.0
