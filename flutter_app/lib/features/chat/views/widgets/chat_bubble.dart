@@ -143,7 +143,7 @@ class ChatBubble extends StatelessWidget {
                       runSpacing: 4,
                       children: [
                         const Text(
-                          '📚 Nguồn:',
+                          'Nguồn:',
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,

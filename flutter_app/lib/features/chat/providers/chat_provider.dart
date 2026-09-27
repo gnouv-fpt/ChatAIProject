@@ -10,17 +10,28 @@ class ChatProvider extends ChangeNotifier {
   bool? _isServerOnline;
   String _baseUrl = 'http://localhost:8000';
   String? _lastError;
+  String _currentScope = 'curriculum';
+  String _currentScopeId = 'BIT_SE_K19B';
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
   bool? get isServerOnline => _isServerOnline;
   String get baseUrl => _baseUrl;
   String? get lastError => _lastError;
+  String get currentScope => _currentScope;
+  String get currentScopeId => _currentScopeId;
 
   ChatProvider({ChatApiService? apiService}) {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
     checkServerHealth();
+  }
+
+  void updateScope({required String scope, required String id}) {
+    if (_currentScope == scope && _currentScopeId == id) return;
+    _currentScope = scope;
+    _currentScopeId = id;
+    notifyListeners();
   }
 
   void updateBaseUrl(String newUrl) {
@@ -35,12 +46,12 @@ class ChatProvider extends ChangeNotifier {
     _messages.add(
       ChatMessage(
         id: 'welcome_msg',
-        text: '👋 **Xin chào! Tôi là Trợ lý AI môn học FLM.**\n\n'
-            'Bạn có thể hỏi tôi về các thông tin trong Đề cương & Khung chương trình FLM:\n'
-            '• *Hình thức thi/đánh giá môn PRM392?*\n'
-            '• *Mục tiêu môn học (Learning Outcomes)?*\n'
-            '• *Số tín chỉ của môn PRM392 / SWD392?*\n'
-            '• *Kế hoạch môn SWD392 học ở học kỳ mấy?*',
+        text: 'Xin chào, tôi là Trợ lý AI môn học FLM.\n\n'
+            'Tôi có thể giải đáp thông tin và tư vấn chiến lược học tập theo đúng ngữ cảnh bạn đang xem:\n'
+            '• Hình thức thi và cấu trúc đánh giá môn học (PE/FE)\n'
+            '• Mục tiêu và chuẩn đầu ra môn học (LOs)\n'
+            '• Số tín chỉ, môn tiên quyết và kế hoạch học tập\n'
+            '• Phương pháp học và chiến lược ôn thi',
         sender: ChatSender.ai,
         timestamp: DateTime.now(),
         status: MessageStatus.success,
@@ -50,7 +61,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> checkServerHealth() async {
-    _isServerOnline = null; // Loading state
+    _isServerOnline = null;
     notifyListeners();
 
     final isOnline = await _apiService.checkHealth();
@@ -58,9 +69,12 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendPrompt(String text) async {
+  Future<void> sendPrompt(String text, {String? scope, String? id}) async {
     final prompt = text.trim();
     if (prompt.isEmpty || _isLoading) return;
+
+    final activeScope = scope ?? _currentScope;
+    final activeId = id ?? _currentScopeId;
 
     final timestamp = DateTime.now();
     final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
@@ -90,10 +104,14 @@ class ChatProvider extends ChangeNotifier {
     _lastError = null;
     notifyListeners();
 
-    // Call API Service
-    final result = await _apiService.sendMessage(prompt);
+    // Call API Service with scope & id
+    final result = await _apiService.sendMessage(
+      prompt,
+      scope: activeScope,
+      id: activeId,
+    );
 
-    // Update AI Message with real result or fallback
+    // Update AI Message
     final index = _messages.indexWhere((m) => m.id == aiMsgId);
     if (index != -1) {
       _messages[index] = ChatMessage(

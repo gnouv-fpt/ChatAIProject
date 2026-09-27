@@ -39,15 +39,36 @@ class ChatApiService {
   }
 
   /// Gửi câu hỏi đến FastAPI RAG Chatbot Endpoint (`/api/v1/chat`)
-  Future<ChatResponseResult> sendMessage(String prompt) async {
+  /// Hỗ trợ scope ('curriculum' | 'subject') và target id/courseCode theo Mục 5.1
+  Future<ChatResponseResult> sendMessage(
+    String prompt, {
+    String? scope,
+    String? id,
+    String? courseCode,
+  }) async {
     try {
+      final payload = <String, dynamic>{
+        'question': prompt,
+        'prompt': prompt,
+      };
+      if (scope != null && scope.isNotEmpty) {
+        payload['scope'] = scope;
+      }
+      if (id != null && id.isNotEmpty) {
+        payload['id'] = id;
+      }
+      final targetCourse = courseCode ?? (scope == 'subject' ? id : null);
+      if (targetCourse != null && targetCourse.isNotEmpty) {
+        payload['course_code'] = targetCourse;
+      }
+
       final response = await client
           .post(
             Uri.parse('$baseUrl/api/v1/chat'),
             headers: {'Content-Type': 'application/json; charset=utf-8'},
-            body: jsonEncode({'question': prompt}),
+            body: jsonEncode(payload),
           )
-          .timeout(const Duration(seconds: 7));
+          .timeout(const Duration(seconds: 12));
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
@@ -76,7 +97,7 @@ class ChatApiService {
       );
     } on TimeoutException catch (_) {
       return ChatResponseResult(
-        answer: '⚠️ **Kết nối quá thời gian chờ (Timeout):** AI Server không phản hồi trong 7 giây. Vui lòng kiểm tra lại server.',
+        answer: '⚠️ **Kết nối quá thời gian chờ (Timeout):** AI Server không phản hồi trong 12 giây. Vui lòng kiểm tra lại server.',
         sources: const [],
         isOfflineFallback: false,
         errorMessage: 'TimeoutException',

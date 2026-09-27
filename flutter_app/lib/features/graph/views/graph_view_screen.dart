@@ -68,6 +68,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
 
   Future<void> _loadGraphData() async {
     try {
+      final catalog = context.read<CourseCatalog>();
       final rawJson = await rootBundle.loadString('assets/courses_data.json');
       final data = jsonDecode(rawJson) as Map<String, dynamic>;
 
@@ -76,7 +77,6 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
       final rawEdges = graphData['edges'] as List<dynamic>? ?? [];
 
       final coursesMap = <String, Course>{};
-      final catalog = context.read<CourseCatalog>();
       for (final c in catalog.courses) {
         coursesMap[c.code] = c;
       }
@@ -133,7 +133,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
       for (int i = 0; i < sortedSemesters.length; i++) {
         final sem = sortedSemesters[i];
         final group = semesterGroups[sem]!;
-        final angleStep = (2 * pi) / (group.length == 0 ? 1 : group.length);
+        final angleStep = (2 * pi) / (group.isEmpty ? 1 : group.length);
         final baseRadius = 260.0 + (sem * 130.0);
 
         for (int j = 0; j < group.length; j++) {
@@ -424,9 +424,9 @@ class _GraphViewScreenState extends State<GraphViewScreen> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Stack(
+    return Container(
+      color: const Color(0xFFF8FAFC),
+      child: Stack(
         children: [
           // Main Graph Canvas View (InteractiveViewer for Zoom & Pan)
           InteractiveViewer(
