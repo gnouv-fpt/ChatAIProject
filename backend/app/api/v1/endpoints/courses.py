@@ -1,8 +1,9 @@
-from typing import List, Optional
-from fastapi import APIRouter, HTTPException, Query, status
-from ....schemas.course import CourseDetail, CourseListResponse, CourseSummary
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, HTTPException, Query, Body, status
+from ....schemas.course import CourseDetail, CourseListResponse, CourseSummary, CurriculumStats, PrerequisiteCheckResult
 from ....schemas.chat import SourceChunk
 from ....services.rag_engine import rag_engine
+
 
 router = APIRouter()
 
@@ -64,3 +65,50 @@ async def search_chunks(
         )
         for chunk, score in results
     ]
+
+
+@router.get(
+    "/curricula/{curriculum_id}/stats",
+    response_model=CurriculumStats,
+    summary="Get Curriculum Statistics",
+    description="Returns structured statistics of a curriculum: total semesters, courses, credits, and semester distribution.",
+)
+async def get_curriculum_stats(curriculum_id: str = "BIT_SE_K19B") -> CurriculumStats:
+    stats = rag_engine.get_curriculum_stats(curriculum_id)
+    if not stats:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Curriculum '{curriculum_id}' không tìm thấy.",
+        )
+    return stats
+
+
+@router.get(
+    "/courses/{code}/presence",
+    response_model=List[Dict[str, Any]],
+    summary="Check where course appears across curricula",
+    description="Returns the list of curricula and semesters in which this course appears.",
+)
+async def get_course_presence(code: str) -> List[Dict[str, Any]]:
+    presence = rag_engine.get_course_presence(code)
+    return presence
+
+
+@router.post(
+    "/courses/{code}/check-prerequisites",
+    response_model=PrerequisiteCheckResult,
+    summary="Check prerequisite satisfaction for a course",
+    description="Evaluates whether a student has completed all required prerequisites for a course.",
+)
+async def check_prerequisites(
+    code: str,
+    completed_courses: List[str] = Body(..., embed=True, description="List of passed course codes"),
+) -> PrerequisiteCheckResult:
+    result = rag_engine.check_prerequisites(code, completed_courses)
+    if not result:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Môn học '{code}' không tồn tại.",
+        )
+    return result
+

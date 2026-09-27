@@ -50,7 +50,13 @@ class RAGEngine:
 
         # 1. Detect target courses & query intent
         detected_courses = self.vector_store.extract_target_courses(query)
-        target_course = request.course_code or (request.id if request.scope == "subject" else None) or (detected_courses[0] if detected_courses else None)
+        target_course = (
+            request.course_code
+            or (request.id if request.scope == "subject" else None)
+            or (detected_courses[0] if detected_courses else None)
+        )
+        if request.scope == "curriculum" and not target_course:
+            target_course = request.id or "BIT_SE_K19B"
 
         top_k = request.top_k or settings.TOP_K_CHUNKS
 
@@ -66,10 +72,14 @@ class RAGEngine:
         answer_text, provider_name = await self.llm_service.generate_response(
             question=query,
             retrieved_chunks=retrieved_results,
-            detected_courses=detected_courses or ([target_course] if target_course else []),
+            detected_courses=detected_courses or ([target_course] if target_course and target_course not in ["BIT_SE_K19B", "CURRICULUM"] else []),
             scope=request.scope,
             scope_id=request.id or target_course,
+            student_context=request.student_context,
+            all_courses=self.courses,
+            curriculum_info=self.parser.curriculum_info if self.parser else {},
         )
+
 
         # 4. Construct human-readable sources list & detailed source chunks
         sources_list: List[str] = []
@@ -133,6 +143,25 @@ class RAGEngine:
             return self.courses["PRM393"]
 
         return None
+
+    def get_curriculum_stats(self, curriculum_id: str = "BIT_SE_K19B"):
+        """Returns structured stats of a curriculum."""
+        if self.parser:
+            return self.parser.get_curriculum_stats(curriculum_id)
+        return None
+
+    def get_course_presence(self, code: str):
+        """Returns list of curricula where course appears."""
+        if self.parser:
+            return self.parser.get_course_presence(code)
+        return []
+
+    def check_prerequisites(self, code: str, completed_courses: List[str]):
+        """Checks if prerequisites for course are satisfied."""
+        if self.parser:
+            return self.parser.check_prerequisites(code, completed_courses)
+        return None
+
 
 
 # Global singleton instance

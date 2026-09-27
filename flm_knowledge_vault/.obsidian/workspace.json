@@ -51,7 +51,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "",
+                "query": "tag:#HK5",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -75,7 +75,8 @@
               "title": "Bookmarks"
             }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "horizontal",
@@ -172,8 +173,8 @@
   },
   "left-ribbon": {
     "hiddenItems": {
-      "switcher:Open quick switcher": false,
       "graph:Open graph view": false,
+      "switcher:Open quick switcher": false,
       "canvas:Create new canvas": false,
       "daily-notes:Open today's daily note": false,
       "templates:Insert template": false,
@@ -183,8 +184,13 @@
   },
   "active": "52305a0657d700f2",
   "lastOpenFiles": [
-    "SEP490.md",
+    "IOT102.md",
     "_Curriculum_Overview.md",
+    "Untitled.base",
+    "Untitled.canvas",
+    "SWP391.md",
+    "PRN212.md",
+    "SEP490.md",
     "OTP101.md",
     "_Program_Learning_Outcomes.md",
     "JPD133.md",
@@ -193,7 +199,6 @@
     "MAC101.md",
     "WED201c.md",
     "PRJ301.md",
-    "Untitled.canvas",
     "PRN222.md",
     "PRF192.md",
     "Untitled 1.canvas",
@@ -203,10 +208,8 @@
     "MAD101.md",
     "ITE302c.md",
     "JPD113.md",
-    "IOT102.md",
     "CSD201.md",
     "CSI106.md",
-    "PRN232.md",
-    "PRN212.md"
+    "PRN232.md"
   ]
 }
