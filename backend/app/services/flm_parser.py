@@ -104,6 +104,8 @@ class FLMKnowledgeVaultParser:
         unlocks = frontmatter.get("unlocks", []) or []
         curriculum = frontmatter.get("curriculum", "BIT_SE_K19B")
         syllabus_url = frontmatter.get("syllabus_url", "")
+        has_pe_val = bool(frontmatter.get("has_pe", False))
+        counts_in_gpa_val = bool(frontmatter.get("counts_in_gpa", True))
 
         # Extract structured sections from markdown body
         sections = self._extract_sections(markdown_body)
@@ -166,7 +168,13 @@ class FLMKnowledgeVaultParser:
             title=f"Thông Tin Tổng Quan & Số Tín Chỉ {course_code}",
             content=overview_chunk_content,
             file_name=file_name,
-            metadata={"credits": credits_val, "semester": semester_val, "prerequisites": prerequisites}
+            metadata={
+                "credits": credits_val,
+                "semester": semester_val,
+                "prerequisites": prerequisites,
+                "has_pe": has_pe_val,
+                "counts_in_gpa": counts_in_gpa_val,
+            }
         ))
 
         # Chunk 2: Assessment Scheme (PE, FE, Labs, Quizzes, Grading)
@@ -181,7 +189,10 @@ class FLMKnowledgeVaultParser:
                         f"Điểm đạt tối thiểu: {min_pass_mark}/10\n"
                         f"Yêu cầu thi PE (Practical Exam) / FE (Final Exam): Kiểm tra chi tiết trong bảng thành phần điểm.",
                 file_name=file_name,
-                metadata={"has_pe": "practical exam" in assessment_text.lower() or "pe" in assessment_text.lower()}
+                metadata={
+                    "has_pe": has_pe_val,
+                    "counts_in_gpa": counts_in_gpa_val,
+                }
             ))
 
         # Chunk 3: Learning Outcomes (LOs / CLOs / PLOs)

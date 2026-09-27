@@ -50,7 +50,7 @@ class RAGEngine:
 
         # 1. Detect target courses & query intent
         detected_courses = self.vector_store.extract_target_courses(query)
-        target_course = request.course_code or (detected_courses[0] if detected_courses else None)
+        target_course = request.course_code or (request.id if request.scope == "subject" else None) or (detected_courses[0] if detected_courses else None)
 
         top_k = request.top_k or settings.TOP_K_CHUNKS
 
@@ -62,11 +62,13 @@ class RAGEngine:
             similarity_threshold=settings.SIMILARITY_THRESHOLD,
         )
 
-        # 3. Generate Answer via LLM / Synthesizer
+        # 3. Generate Answer via LLM / Advanced Synthesizer
         answer_text, provider_name = await self.llm_service.generate_response(
             question=query,
             retrieved_chunks=retrieved_results,
-            detected_courses=detected_courses,
+            detected_courses=detected_courses or ([target_course] if target_course else []),
+            scope=request.scope,
+            scope_id=request.id or target_course,
         )
 
         # 4. Construct human-readable sources list & detailed source chunks
@@ -126,7 +128,7 @@ class RAGEngine:
         if code_upper in self.courses:
             return self.courses[code_upper]
         
-        # Alias fallback (e.g. PRM392 -> PRM393)
+        # Alias fallback
         if code_upper == "PRM392" and "PRM393" in self.courses:
             return self.courses["PRM393"]
 

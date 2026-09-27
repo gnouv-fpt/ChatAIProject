@@ -18,6 +18,23 @@ class AssessmentItem {
   }
 }
 
+class CourseAppearsIn {
+  final String curriculum;
+  final int semester;
+
+  const CourseAppearsIn({
+    required this.curriculum,
+    required this.semester,
+  });
+
+  factory CourseAppearsIn.fromJson(Map<String, dynamic> json) {
+    return CourseAppearsIn(
+      curriculum: (json['curriculum'] as String? ?? json['id'] as String? ?? '').trim(),
+      semester: (json['semester'] as num?)?.toInt() ?? 1,
+    );
+  }
+}
+
 class Course {
   const Course({
     required this.code,
@@ -38,6 +55,12 @@ class Course {
     this.timeAllocation = '',
     this.teachingMethods = '',
     this.colorHex,
+    this.hasPe = false,
+    this.hasPeSource = '',
+    this.countsInGpa = true,
+    this.appearsIn = const [],
+    this.inCurriculum = true,
+    this.prerequisitesNorm = const [],
   });
 
   final String code;
@@ -58,9 +81,15 @@ class Course {
   final String timeAllocation;
   final String teachingMethods;
   final String? colorHex;
+  final bool hasPe;
+  final String hasPeSource;
+  final bool countsInGpa;
+  final List<CourseAppearsIn> appearsIn;
+  final bool inCurriculum;
+  final List<String> prerequisitesNorm;
 
   factory Course.fromJson(Map<String, dynamic> json) {
-    final code = (json['code'] as String? ?? '').trim();
+    final code = (json['code'] as String? ?? '').trim().toUpperCase();
     final codeOrig = (json['code_original'] as String? ?? code).trim();
     final nameEng = (json['name'] as String? ?? '').trim();
     final nameVi = (json['name_vi'] as String? ?? '').trim();
@@ -81,7 +110,7 @@ class Course {
       los.addAll([
         'Nắm vững kiến thức nền tảng và thực hành chuyên sâu môn $name ($code).',
         'Thành thạo các công cụ, kỹ năng chuyên ngành đề xuất cho Học kỳ $semester.',
-        'Đạt các chuẩn đầu ra kiến thức và kỹ năng theo khung đào tạo FPT University (BIT_SE_K19B).'
+        'Đạt các chuẩn đầu ra kiến thức và kỹ năng theo khung đào tạo FPT University.'
       ]);
     }
 
@@ -111,6 +140,20 @@ class Course {
       ]);
     }
 
+    final appears = <CourseAppearsIn>[];
+    if (json['appears_in'] != null && json['appears_in'] is List) {
+      for (final ap in json['appears_in'] as List) {
+        if (ap is Map<String, dynamic>) {
+          appears.add(CourseAppearsIn.fromJson(ap));
+        }
+      }
+    }
+
+    final prereqsNorm = <String>[];
+    if (json['prerequisites_norm'] != null && json['prerequisites_norm'] is List) {
+      prereqsNorm.addAll(List<String>.from(json['prerequisites_norm'] as List));
+    }
+
     return Course(
       code: code,
       codeOriginal: codeOrig,
@@ -130,6 +173,12 @@ class Course {
       timeAllocation: json['time_allocation'] as String? ?? '150h (45h Contact + 105h Self-study)',
       teachingMethods: json['teaching_methods'] as String? ?? 'In-class lecture, Lab practice, Project-based',
       colorHex: json['color'] as String?,
+      hasPe: json['has_pe'] == true,
+      hasPeSource: json['has_pe_source'] as String? ?? '',
+      countsInGpa: json['counts_in_gpa'] != false,
+      appearsIn: appears,
+      inCurriculum: json['in_curriculum'] != false,
+      prerequisitesNorm: prereqsNorm,
     );
   }
 }

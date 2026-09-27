@@ -15,15 +15,19 @@ class ChatRequest(BaseModel):
     prompt: Optional[str] = Field(None, description="Alternative alias for question")
     top_k: Optional[int] = Field(None, description="Number of context chunks to retrieve (optional)")
     course_code: Optional[str] = Field(None, description="Optional target course code filter (e.g. PRM393)")
+    scope: Optional[str] = Field(None, description="Scope of conversation: 'curriculum' or 'subject'")
+    id: Optional[str] = Field(None, description="Identifier for active scope (e.g. 'BIT_SE_K19B' or 'PRM393')")
 
     @model_validator(mode="before")
     @classmethod
-    def unify_question_and_prompt(cls, data: Any) -> Any:
+    def unify_fields(cls, data: Any) -> Any:
         if isinstance(data, dict):
             if not data.get("question") and data.get("prompt"):
                 data["question"] = data["prompt"]
             elif not data.get("prompt") and data.get("question"):
                 data["prompt"] = data["question"]
+            if not data.get("course_code") and data.get("scope") == "subject" and data.get("id"):
+                data["course_code"] = data["id"]
         return data
 
     @property
