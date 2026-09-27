@@ -1,16 +1,26 @@
 ---
-code: "PMG201c"
-code_original: "PMG201c"
-name_en: "Project Management"
-name_vi: "Project Management"
+type: subject
+code: PMG201c
+title: Project Management
+title_vi: Project Management
 credits: 3
-semester: 7
 prerequisites: []
-unlocks: []
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PMG201c&curriculumID=3338"
+has_pe: true
+has_pe_source: detailed_assessment_table:pe_keyword
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 7
+in_curriculum: true
+tags:
+- HK7
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PMG201c&curriculumID=3338
+code_original: PMG201c
+name_en: Project Management
+name_vi: Project Management
+semester: 7
+curriculum: BIT_SE_K19B
 ---
-
 # PMG201c - Project Management (Project Management)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  

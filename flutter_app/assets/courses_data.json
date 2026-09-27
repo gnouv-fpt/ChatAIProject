@@ -8,7 +8,209 @@
     "decision_no": "1140/QĐ-ĐHFPT dated 09/11/2026",
     "degree_level": "Bachelor / Đại học chính quy",
     "institution": "FPT University (FPTU)",
-    "major": "Software Engineering (SE)"
+    "major": "Software Engineering (SE)",
+    "id": "BIT_SE_K19B",
+    "subjects": [
+      {
+        "code": "OTP101",
+        "semester": 0
+      },
+      {
+        "code": "TRS601",
+        "semester": 0
+      },
+      {
+        "code": "CEA201",
+        "semester": 1
+      },
+      {
+        "code": "CSI106",
+        "semester": 1
+      },
+      {
+        "code": "MAE101",
+        "semester": 1
+      },
+      {
+        "code": "PRF192",
+        "semester": 1
+      },
+      {
+        "code": "SSL101c",
+        "semester": 1
+      },
+      {
+        "code": "TMI101",
+        "semester": 1
+      },
+      {
+        "code": "VOV114",
+        "semester": 1
+      },
+      {
+        "code": "MAD101",
+        "semester": 2
+      },
+      {
+        "code": "NWC204",
+        "semester": 2
+      },
+      {
+        "code": "OSG202",
+        "semester": 2
+      },
+      {
+        "code": "PRO192",
+        "semester": 2
+      },
+      {
+        "code": "SSG104",
+        "semester": 2
+      },
+      {
+        "code": "VOV124",
+        "semester": 2
+      },
+      {
+        "code": "CSD201",
+        "semester": 3
+      },
+      {
+        "code": "DBI202",
+        "semester": 3
+      },
+      {
+        "code": "JPD113",
+        "semester": 3
+      },
+      {
+        "code": "LAB211",
+        "semester": 3
+      },
+      {
+        "code": "VOV134",
+        "semester": 3
+      },
+      {
+        "code": "WED201c",
+        "semester": 3
+      },
+      {
+        "code": "IOT102",
+        "semester": 4
+      },
+      {
+        "code": "JPD123",
+        "semester": 4
+      },
+      {
+        "code": "MAS291",
+        "semester": 4
+      },
+      {
+        "code": "PRJ301",
+        "semester": 4
+      },
+      {
+        "code": "SWE201c",
+        "semester": 4
+      },
+      {
+        "code": "PRN212",
+        "semester": 5
+      },
+      {
+        "code": "SWP391",
+        "semester": 5
+      },
+      {
+        "code": "SWR302",
+        "semester": 5
+      },
+      {
+        "code": "SWT301",
+        "semester": 5
+      },
+      {
+        "code": "WDU203c",
+        "semester": 5
+      },
+      {
+        "code": "ENW493c",
+        "semester": 6
+      },
+      {
+        "code": "OJT202",
+        "semester": 6
+      },
+      {
+        "code": "EXE101",
+        "semester": 7
+      },
+      {
+        "code": "PMG201c",
+        "semester": 7
+      },
+      {
+        "code": "PRN222",
+        "semester": 7
+      },
+      {
+        "code": "PRU213",
+        "semester": 7
+      },
+      {
+        "code": "SWD392",
+        "semester": 7
+      },
+      {
+        "code": "EXE201",
+        "semester": 8
+      },
+      {
+        "code": "ITE302c",
+        "semester": 8
+      },
+      {
+        "code": "MLN111",
+        "semester": 8
+      },
+      {
+        "code": "MLN122",
+        "semester": 8
+      },
+      {
+        "code": "PRM393",
+        "semester": 8
+      },
+      {
+        "code": "PRN232",
+        "semester": 8
+      },
+      {
+        "code": "HCM202",
+        "semester": 9
+      },
+      {
+        "code": "MLN131",
+        "semester": 9
+      },
+      {
+        "code": "SEP490",
+        "semester": 9
+      },
+      {
+        "code": "VNR202",
+        "semester": 9
+      }
+    ],
+    "curricula": [
+      {
+        "id": "BIT_SE_K19B",
+        "name": "The Bachelor Program of Information Technology, Software Engineering Major",
+        "name_vi": "Chương trình cử nhân ngành Công nghệ thông tin, chuyên ngành Kỹ thuật phần mềm"
+      }
+    ]
   },
   "plos": [
     {
@@ -289,7 +491,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "course_code_convention:non_pe",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 0
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "TRS601",
@@ -358,7 +570,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 0
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "CEA201",
@@ -428,7 +650,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "CSI106",
@@ -504,7 +736,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "MAE101",
@@ -574,7 +816,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "PRF192",
@@ -644,7 +896,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "SSL101c",
@@ -704,7 +966,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "TMI101",
@@ -759,7 +1031,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "VOV114",
@@ -816,7 +1098,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 1
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "MAD101",
@@ -882,7 +1174,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "NWC204",
@@ -952,7 +1254,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "OSG202",
@@ -1024,7 +1336,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "PRO192",
@@ -1103,7 +1425,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": [
+        "PRF192"
+      ]
     },
     {
       "code": "SSG104",
@@ -1177,7 +1511,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "VOV124",
@@ -1236,7 +1580,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 2
+        }
+      ],
+      "prerequisites_norm": [
+        "VOV114"
+      ]
     },
     {
       "code": "CSD201",
@@ -1304,7 +1660,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192"
+      ]
     },
     {
       "code": "DBI202",
@@ -1371,7 +1739,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "JPD113",
@@ -1433,7 +1811,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "LAB211",
@@ -1493,7 +1881,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "default:no_evidence",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192"
+      ]
     },
     {
       "code": "VOV134",
@@ -1552,7 +1952,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": [
+        "VOV124"
+      ]
     },
     {
       "code": "WED201c",
@@ -1612,7 +2024,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:pe_keyword",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 3
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "IOT102",
@@ -1688,7 +2110,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 4
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "JPD123",
@@ -1748,7 +2180,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 4
+        }
+      ],
+      "prerequisites_norm": [
+        "JPD113"
+      ]
     },
     {
       "code": "MAS291",
@@ -1819,7 +2263,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 4
+        }
+      ],
+      "prerequisites_norm": [
+        "MAE101",
+        "MAC101"
+      ]
     },
     {
       "code": "PRJ301",
@@ -1892,7 +2349,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 4
+        }
+      ],
+      "prerequisites_norm": [
+        "DBI202",
+        "PRO192"
+      ]
     },
     {
       "code": "SWE201c",
@@ -1957,7 +2427,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:pe_keyword",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 4
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192"
+      ]
     },
     {
       "code": "PRN212",
@@ -2023,7 +2505,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 5
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192",
+        "DBI202"
+      ]
     },
     {
       "code": "SWP391",
@@ -2092,7 +2587,22 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 5
+        }
+      ],
+      "prerequisites_norm": [
+        "PRJ301",
+        "SWE201C",
+        "SWE202C",
+        "LAB211"
+      ]
     },
     {
       "code": "SWR302",
@@ -2164,7 +2674,21 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 5
+        }
+      ],
+      "prerequisites_norm": [
+        "SWE102",
+        "SWE201C",
+        "SWE202C"
+      ]
     },
     {
       "code": "SWT301",
@@ -2238,7 +2762,21 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 5
+        }
+      ],
+      "prerequisites_norm": [
+        "SWE102",
+        "SWE201C",
+        "SWE202C"
+      ]
     },
     {
       "code": "WDU203c",
@@ -2304,7 +2842,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 5
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "ENW493c",
@@ -2364,7 +2912,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:pe_keyword",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 6
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "OJT202",
@@ -2424,7 +2982,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": false,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 6
+        }
+      ],
+      "prerequisites_norm": [
+        "JPD133"
+      ]
     },
     {
       "code": "EXE101",
@@ -2486,7 +3056,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 7
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "PMG201c",
@@ -2546,7 +3126,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:pe_keyword",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 7
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "PRN222",
@@ -2609,7 +3199,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 7
+        }
+      ],
+      "prerequisites_norm": [
+        "PRN212"
+      ]
     },
     {
       "code": "PRU213",
@@ -2674,7 +3276,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 7
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192"
+      ]
     },
     {
       "code": "SWD392",
@@ -2744,7 +3358,21 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 7
+        }
+      ],
+      "prerequisites_norm": [
+        "SWE201C",
+        "SWE202C",
+        "PRO192"
+      ]
     },
     {
       "code": "EXE201",
@@ -2804,7 +3432,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": [
+        "EXE101"
+      ]
     },
     {
       "code": "ITE302c",
@@ -2862,7 +3502,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "MLN111",
@@ -2932,7 +3582,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "MLN122",
@@ -3004,7 +3664,17 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": []
     },
     {
       "code": "PRM393",
@@ -3070,7 +3740,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": [
+        "PRO192"
+      ]
     },
     {
       "code": "PRN232",
@@ -3131,7 +3813,19 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": true,
+      "has_pe_source": "detailed_assessment_table:practical_exam",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 8
+        }
+      ],
+      "prerequisites_norm": [
+        "PRN222"
+      ]
     },
     {
       "code": "HCM202",
@@ -3204,7 +3898,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 9
+        }
+      ],
+      "prerequisites_norm": [
+        "MLN111",
+        "MLN122"
+      ]
     },
     {
       "code": "MLN131",
@@ -3277,7 +3984,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 9
+        }
+      ],
+      "prerequisites_norm": [
+        "MLN111",
+        "MLN122"
+      ]
     },
     {
       "code": "SEP490",
@@ -3345,7 +4065,22 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 9
+        }
+      ],
+      "prerequisites_norm": [
+        "SWP391",
+        "SWD392",
+        "PMG201C",
+        "OJT202"
+      ]
     },
     {
       "code": "VNR202",
@@ -3416,7 +4151,20 @@
       "tools_software": "Visual Studio / Android Studio / VS Code, JDK 17+, Git/GitHub, SQL Server / SQLite, Công cụ AI (Copilot/ChatGPT).",
       "min_pass_mark": "5.0 / 10.0 (Điểm tổng kết >= 5.0 và FE >= 4.0)",
       "time_allocation": "150 giờ (45 giờ học trên lớp + 105 giờ tự học và làm bài tập)",
-      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism"
+      "teaching_methods": "In-class lecture, Lab practice, Project-based learning, Social Constructivism",
+      "has_pe": false,
+      "has_pe_source": "detailed_assessment_table:no_pe_row",
+      "counts_in_gpa": true,
+      "appears_in": [
+        {
+          "curriculum": "BIT_SE_K19B",
+          "semester": 9
+        }
+      ],
+      "prerequisites_norm": [
+        "MLN111",
+        "MLN122"
+      ]
     }
   ],
   "graph": {
@@ -3429,7 +4177,12 @@
         "semester": 0,
         "color": "#6B7280",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OTP101&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "OTP101",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "OTP101"
       },
       {
         "id": "TRS601",
@@ -3439,7 +4192,12 @@
         "semester": 0,
         "color": "#6B7280",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14439",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "TRS601",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "TRS601"
       },
       {
         "id": "CEA201",
@@ -3449,7 +4207,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CEA201&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "CEA201",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "CEA201"
       },
       {
         "id": "CSI106",
@@ -3459,7 +4222,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSI106&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "CSI106",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "CSI106"
       },
       {
         "id": "MAE101",
@@ -3469,7 +4237,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAE101&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MAE101",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MAE101"
       },
       {
         "id": "PRF192",
@@ -3479,7 +4252,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRF192&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "PRF192",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRF192"
       },
       {
         "id": "SSL101c",
@@ -3489,7 +4267,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSL101c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SSL101c",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "SSL101C"
       },
       {
         "id": "TMI101",
@@ -3499,7 +4282,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=11871",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "TMI101",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "TMI101"
       },
       {
         "id": "VOV114",
@@ -3509,7 +4297,12 @@
         "semester": 1,
         "color": "#3B82F6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13540",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "VOV114",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "VOV114"
       },
       {
         "id": "MAD101",
@@ -3519,7 +4312,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAD101&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MAD101",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MAD101"
       },
       {
         "id": "NWC204",
@@ -3529,7 +4327,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=NWC204&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "NWC204",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "NWC204"
       },
       {
         "id": "OSG202",
@@ -3539,7 +4342,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OSG202&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "OSG202",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "OSG202"
       },
       {
         "id": "PRO192",
@@ -3549,7 +4357,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRO192&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "PRO192",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRO192"
       },
       {
         "id": "SSG104",
@@ -3559,7 +4372,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSG104&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SSG104",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "SSG104"
       },
       {
         "id": "VOV124",
@@ -3569,7 +4387,12 @@
         "semester": 2,
         "color": "#10B981",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13539",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "VOV124",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "VOV124"
       },
       {
         "id": "CSD201",
@@ -3579,7 +4402,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSD201&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "CSD201",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "CSD201"
       },
       {
         "id": "DBI202",
@@ -3589,7 +4417,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=DBI202&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "DBI202",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "DBI202"
       },
       {
         "id": "JPD113",
@@ -3599,7 +4432,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD113&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "JPD113",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "JPD113"
       },
       {
         "id": "LAB211",
@@ -3609,7 +4447,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=LAB211&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "LAB211",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "LAB211"
       },
       {
         "id": "VOV134",
@@ -3619,7 +4462,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13537",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "VOV134",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "VOV134"
       },
       {
         "id": "WED201c",
@@ -3629,7 +4477,12 @@
         "semester": 3,
         "color": "#F59E0B",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WED201c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "WED201c",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "WED201C"
       },
       {
         "id": "IOT102",
@@ -3639,7 +4492,12 @@
         "semester": 4,
         "color": "#8B5CF6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=IOT102&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "IOT102",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "IOT102"
       },
       {
         "id": "JPD123",
@@ -3649,7 +4507,12 @@
         "semester": 4,
         "color": "#8B5CF6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD123&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "JPD123",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "JPD123"
       },
       {
         "id": "MAS291",
@@ -3659,7 +4522,12 @@
         "semester": 4,
         "color": "#8B5CF6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAS291&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MAS291",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MAS291"
       },
       {
         "id": "PRJ301",
@@ -3669,7 +4537,12 @@
         "semester": 4,
         "color": "#8B5CF6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRJ301&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "PRJ301",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRJ301"
       },
       {
         "id": "SWE201c",
@@ -3679,7 +4552,12 @@
         "semester": 4,
         "color": "#8B5CF6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWE201c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SWE201c",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "SWE201C"
       },
       {
         "id": "PRN212",
@@ -3689,7 +4567,12 @@
         "semester": 5,
         "color": "#EC4899",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13891",
-        "is_specialization": true
+        "is_specialization": true,
+        "type": "subject",
+        "code": "PRN212",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRN212"
       },
       {
         "id": "SWP391",
@@ -3699,7 +4582,12 @@
         "semester": 5,
         "color": "#EC4899",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWP391&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SWP391",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "SWP391"
       },
       {
         "id": "SWR302",
@@ -3709,7 +4597,12 @@
         "semester": 5,
         "color": "#EC4899",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWR302&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SWR302",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "SWR302"
       },
       {
         "id": "SWT301",
@@ -3719,7 +4612,12 @@
         "semester": 5,
         "color": "#EC4899",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWT301&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SWT301",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "SWT301"
       },
       {
         "id": "WDU203c",
@@ -3729,7 +4627,12 @@
         "semester": 5,
         "color": "#EC4899",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WDU203c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "WDU203c",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "WDU203C"
       },
       {
         "id": "ENW493c",
@@ -3739,7 +4642,12 @@
         "semester": 6,
         "color": "#14B8A6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ENW493c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "ENW493c",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "ENW493C"
       },
       {
         "id": "OJT202",
@@ -3749,7 +4657,12 @@
         "semester": 6,
         "color": "#14B8A6",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OJT202&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "OJT202",
+        "has_pe": false,
+        "counts_in_gpa": false,
+        "label": "OJT202"
       },
       {
         "id": "EXE101",
@@ -3759,7 +4672,12 @@
         "semester": 7,
         "color": "#F97316",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE101&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "EXE101",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "EXE101"
       },
       {
         "id": "PMG201c",
@@ -3769,7 +4687,12 @@
         "semester": 7,
         "color": "#F97316",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PMG201c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "PMG201c",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PMG201C"
       },
       {
         "id": "PRN222",
@@ -3779,7 +4702,12 @@
         "semester": 7,
         "color": "#F97316",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13892",
-        "is_specialization": true
+        "is_specialization": true,
+        "type": "subject",
+        "code": "PRN222",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRN222"
       },
       {
         "id": "PRU213",
@@ -3789,7 +4717,12 @@
         "semester": 7,
         "color": "#F97316",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13156",
-        "is_specialization": true
+        "is_specialization": true,
+        "type": "subject",
+        "code": "PRU213",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "PRU213"
       },
       {
         "id": "SWD392",
@@ -3799,7 +4732,12 @@
         "semester": 7,
         "color": "#F97316",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWD392&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SWD392",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "SWD392"
       },
       {
         "id": "EXE201",
@@ -3809,7 +4747,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE201&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "EXE201",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "EXE201"
       },
       {
         "id": "ITE302c",
@@ -3819,7 +4762,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ITE302c&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "ITE302c",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "ITE302C"
       },
       {
         "id": "MLN111",
@@ -3829,7 +4777,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN111&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MLN111",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MLN111"
       },
       {
         "id": "MLN122",
@@ -3839,7 +4792,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN122&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MLN122",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MLN122"
       },
       {
         "id": "PRM393",
@@ -3849,7 +4807,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRM393&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "PRM393",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRM393"
       },
       {
         "id": "PRN232",
@@ -3859,7 +4822,12 @@
         "semester": 8,
         "color": "#6366F1",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13893",
-        "is_specialization": true
+        "is_specialization": true,
+        "type": "subject",
+        "code": "PRN232",
+        "has_pe": true,
+        "counts_in_gpa": true,
+        "label": "PRN232"
       },
       {
         "id": "HCM202",
@@ -3869,7 +4837,12 @@
         "semester": 9,
         "color": "#EF4444",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=HCM202&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "HCM202",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "HCM202"
       },
       {
         "id": "MLN131",
@@ -3879,7 +4852,12 @@
         "semester": 9,
         "color": "#EF4444",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN131&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "MLN131",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "MLN131"
       },
       {
         "id": "SEP490",
@@ -3889,7 +4867,12 @@
         "semester": 9,
         "color": "#EF4444",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14065",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "SEP490",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "SEP490"
       },
       {
         "id": "VNR202",
@@ -3899,7 +4882,12 @@
         "semester": 9,
         "color": "#EF4444",
         "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=VNR202&curriculumID=3338",
-        "is_specialization": false
+        "is_specialization": false,
+        "type": "subject",
+        "code": "VNR202",
+        "has_pe": false,
+        "counts_in_gpa": true,
+        "label": "VNR202"
       }
     ],
     "edges": [

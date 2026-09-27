@@ -1,0 +1,114 @@
+# =============================================================================
+# grading_rules.yaml
+# Quy chế tính điểm & xếp loại tốt nghiệp - Dự án FLM Obsidian & Chat AI
+# Theo đặc tả: requirement_flm_obsidian_chat_v7.md - Mục 6
+#
+# QUAN TRỌNG: Đây là NGUỒN SỰ THẬT DUY NHẤT (single source of truth) cho mọi
+# quy tắc tính điểm. Đổi quy chế chỉ sửa file này, KHÔNG hard-code ở nơi khác.
+#
+# Phân vai (Mục 7.4):
+#   - File này + code đọc nó  = khối E (Phúc) & khối A (Khánh) dùng chung
+#   - Khối A dùng `excluded_from_gpa` để sinh cờ `counts_in_gpa` cho từng Subject
+#   - Khối E dùng toàn bộ file để tính GPA / xếp loại / tư vấn
+#   - LLM KHÔNG được tự tính toán các con số này
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# 1. Thang điểm GPA
+# -----------------------------------------------------------------------------
+# GPA tính theo thang 10, có trọng số theo số tín chỉ:
+#   GPA = Σ(điểm môn × tín chỉ) / Σ(tín chỉ tính GPA)
+gpa_scale: 10
+
+# -----------------------------------------------------------------------------
+# 2. Các mã môn KHÔNG tính vào GPA (Mục 6.1)
+# -----------------------------------------------------------------------------
+# Quy tắc khớp SAU KHI CHUẨN HÓA mã môn (Mục 2.3: viết hoa, bỏ khoảng trắng,
+# gộp Ð/Đ). Khớp nếu mã đã chuẩn hóa == mục này HOẶC bắt đầu bằng mục này.
+# Một quy tắc tiền tố bao được cả hai trường hợp:
+#   - Tiền tố:  "GDQP" khớp "GDQP1", "GDQP2"; "ENT" khớp "ENT201"
+#   - Mã đầy đủ: "SYB301" khớp chính xác "SYB301"
+# Các môn này KHÔNG vào tử số và mẫu số của GPA nhưng VẪN có tín chỉ và
+# VẪN phải đạt để xét tốt nghiệp (tín chỉ tích lũy).
+excluded_from_gpa:
+  - GDQP      # Giáo dục quốc phòng
+  - ENT       # Tiếng Anh / English preparation (mọi mã bắt đầu bằng ENT)
+  - VOV       # Giáo dục thể chất (Vovinam)
+  - TRS       # Kỹ năng / English (mọi mã TRS...)
+  - DSA       # Đồ án / học phần đặc thù không tính GPA
+  - LAB       # Lab
+  - OJS       # On-the-job / trải nghiệm (mọi mã OJS...)
+  - OJT       # Đào tạo trong môi trường thực tế
+  - SYB301    # Mã đầy đủ được loại trừ
+
+# -----------------------------------------------------------------------------
+# 3. Quy chế học lại (Mục 6.2)
+# -----------------------------------------------------------------------------
+retake:
+  # Môn học lại VẪN được tính vào GPA
+  counts_in_gpa: true
+
+  # Chỉ lấy điểm của lần học CUỐI CÙNG cho mỗi môn (các lần trước bị bỏ)
+  gpa_policy: last_attempt
+
+  # Từ ngưỡng này trở lên (số môn học lại) thì bị xét hạ bậc xếp loại
+  penalty_threshold: 2
+
+  # Số bậc bị hạ khi vượt ngưỡng
+  penalty_levels: 1
+
+  # Chỉ hạ bậc với hai xếp loại này (Khá và Trung bình không bị ảnh hưởng)
+  applies_to: [Excellent, Good]
+
+  # Môn thuộc danh sách không tính GPA VẪN được đếm khi xét hạ bậc
+  # (ví dụ học lại VOV vẫn làm tăng số môn học lại dù không ảnh hưởng GPA)
+  count_excluded_subjects: true
+
+  # Học CẢI THIỆN điểm (lần trước đã đạt) KHÔNG tính là học lại
+  count_grade_improvement: false
+
+# Quy tắc phân biệt học lại vs học cải thiện (khi một mã môn xuất hiện >= 2 lần):
+#   - Hệ thống sắp xếp các lần học theo thứ tự học kỳ.
+#   - Nếu bất kỳ lần nào TRƯỚC lần cuối bị CHƯA ĐẠT (điểm < passing_score)
+#     => đây là HỌC LẠI  => được đếm vào số môn học lại để xét hạ bậc.
+#   - Nếu tất cả các lần trước đều ĐÃ ĐẠT
+#     => đây là HỌC CẢI THIỆN ĐIỂM => KHÔNG đếm, không gây hạ bậc.
+retake_definition:
+  passing_score: 5.0   # điểm đạt tối thiểu trên thang 10
+  order_by: semester   # thứ tự xác định "lần cuối" là theo học kỳ
+
+# -----------------------------------------------------------------------------
+# 4. Xếp loại tốt nghiệp theo GPA thang 10 (chưa trừ bậc học lại) (Mục 6.3)
+# -----------------------------------------------------------------------------
+# Ngưỡng là CẬN DƯỚI (>=), so sánh giảm dần từ trên xuống.
+graduation_grades:
+  Excellent: 9.0   # Xuất sắc
+  Good: 8.0        # Giỏi
+  Fair: 6.5        # Khá
+  Pass: 5.0        # Trung bình
+
+# Ánh xạ sang nhãn tiếng Việt để hiển thị trên UI (Mục 8.4 / Mục 15)
+grade_labels_vi:
+  Excellent: Xuất sắc
+  Good: Giỏi
+  Fair: Khá
+  Pass: Trung bình
+  Fail: Không đạt
+
+# Thứ tự bậc để thực hiện hạ bậc (từ cao xuống thấp)
+grade_order: [Excellent, Good, Fair, Pass]
+
+# -----------------------------------------------------------------------------
+# 5. Mục tiêu GPA (Mục 6.4)
+# -----------------------------------------------------------------------------
+target_gpa:
+  # điểm TB cần đạt ở các môn còn lại =
+  #   (GPA mục tiêu × tổng tín chỉ tính GPA cuối cùng − Σ(điểm × tín chỉ) đã có)
+  #   / tổng tín chỉ tính GPA còn lại
+  formula: weighted_remaining
+  # Nếu điểm cần đạt > max_score => mục tiêu KHÔNG KHẢ THI, phải báo rõ,
+  # không được gợi ý sai.
+  max_score: 10.0
+  warn_when_infeasible: true
+  # Khi đánh giá mục tiêu phải xét cả xếp loại thực nhận sau khi hạ bậc học lại
+  consider_retake_penalty: true

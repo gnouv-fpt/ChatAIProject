@@ -1,16 +1,26 @@
 ---
-code: "ENW493c"
-code_original: "ENW493c"
-name_en: "Research Methods & Academic Writing Skills"
-name_vi: "Phương pháp nghiên cứu & Kỹ năng viết học thuật"
+type: subject
+code: ENW493c
+title: Research Methods & Academic Writing Skills
+title_vi: Phương pháp nghiên cứu & Kỹ năng viết học thuật
 credits: 3
-semester: 6
 prerequisites: []
-unlocks: []
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ENW493c&curriculumID=3338"
+has_pe: true
+has_pe_source: detailed_assessment_table:pe_keyword
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 6
+in_curriculum: true
+tags:
+- HK6
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ENW493c&curriculumID=3338
+code_original: ENW493c
+name_en: Research Methods & Academic Writing Skills
+name_vi: Phương pháp nghiên cứu & Kỹ năng viết học thuật
+semester: 6
+curriculum: BIT_SE_K19B
 ---
-
 # ENW493c - Phương pháp nghiên cứu & Kỹ năng viết học thuật (Research Methods & Academic Writing Skills)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  
