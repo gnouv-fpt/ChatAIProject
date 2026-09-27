@@ -170,9 +170,19 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     return Scaffold(
       backgroundColor: AppTheme.slate50,
       appBar: AppBar(
-        title: Text(
-          '${activeCurriculum.id} - ${activeCurriculum.nameVi.isNotEmpty ? activeCurriculum.nameVi : activeCurriculum.name}',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              '${activeCurriculum.id} • ${activeCurriculum.nameVi.isNotEmpty ? activeCurriculum.nameVi : activeCurriculum.name}',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
+            Text(
+              'Chương trình cử nhân CNTT • ${activeCurriculum.totalSubjects} môn • ${activeCurriculum.totalCredits} tín chỉ',
+              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppTheme.slate600),
+            ),
+          ],
         ),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
@@ -194,15 +204,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
             ),
           ),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => setState(() => _showRightChat = !_showRightChat),
-            child: Text(
-              _showRightChat ? 'Ẩn Chat AI' : 'Mở Chat AI',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [
@@ -255,6 +257,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           scopeId: activeCurriculum.id,
                           title: 'Trợ lý Khung ${activeCurriculum.id}',
                           subtitle: activeCurriculum.nameVi,
+                          onClose: () => setState(() => _showRightChat = false),
                         ),
                       ),
                   ],
@@ -264,28 +267,60 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           ),
         ],
       ),
-      floatingActionButton: MediaQuery.of(context).size.width < 960
-          ? FloatingActionButton.extended(
-              backgroundColor: AppTheme.primaryBlue,
-              foregroundColor: Colors.white,
-              onPressed: () {
-                showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.85,
-                    child: ContextualChatPanel(
-                      scope: 'curriculum',
-                      scopeId: activeCurriculum.id,
-                      title: 'Trợ lý Khung ${activeCurriculum.id}',
-                      subtitle: activeCurriculum.nameVi,
+      floatingActionButton: _showRightChat
+          ? null
+          : Tooltip(
+              message: 'Hỏi Trợ lý AI (FLM Chatbot)',
+              child: InkWell(
+                onTap: () {
+                  if (MediaQuery.of(context).size.width < 960) {
+                    showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.85,
+                        child: ContextualChatPanel(
+                          scope: 'curriculum',
+                          scopeId: activeCurriculum.id,
+                          title: 'Trợ lý Khung ${activeCurriculum.id}',
+                          subtitle: activeCurriculum.nameVi,
+                        ),
+                      ),
+                    );
+                  } else {
+                    setState(() => _showRightChat = true);
+                  }
+                },
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0284C7), Color(0xFF6366F1)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withOpacity(0.42),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.smart_toy_rounded,
+                      color: Colors.white,
+                      size: 30,
                     ),
                   ),
-                );
-              },
-              label: const Text('Chat AI'),
-            )
-          : null,
+                ),
+              ),
+            ),
     );
   }
 
@@ -567,104 +602,110 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   ) {
     final semesters = semesterMap.keys.toList()..sort();
 
-    return SingleChildScrollView(
-      controller: _boardScrollController,
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: semesters.map((sem) {
-          final courses = filterFn(semesterMap[sem] ?? []);
-          final allCoursesInSem = semesterMap[sem] ?? [];
-          final semCredits = allCoursesInSem.fold(0, (sum, c) => sum + c.credits);
-          final semTitle = sem == 0 ? 'Học kỳ Chuẩn bị (Giai đoạn 0)' : 'Học kỳ $sem';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final double maxListHeight = (constraints.maxHeight - 110).clamp(250.0, 900.0);
 
-          return Container(
-            width: 310,
-            margin: const EdgeInsets.only(right: 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF1F5F9),
-              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-              border: Border.all(
-                color: _selectedSemesterFilter == sem ? AppTheme.primaryBlue : AppTheme.slate200,
-                width: _selectedSemesterFilter == sem ? 2 : 1,
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg - 1)),
-                    border: Border(bottom: BorderSide(color: AppTheme.slate200)),
+        return SingleChildScrollView(
+          controller: _boardScrollController,
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: semesters.map((sem) {
+              final courses = filterFn(semesterMap[sem] ?? []);
+              final allCoursesInSem = semesterMap[sem] ?? [];
+              final semCredits = allCoursesInSem.fold(0, (sum, c) => sum + c.credits);
+              final semTitle = sem == 0 ? 'Học kỳ Chuẩn bị (Giai đoạn 0)' : 'Học kỳ $sem';
+
+              return Container(
+                width: 310,
+                margin: const EdgeInsets.only(right: 14),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                  border: Border.all(
+                    color: _selectedSemesterFilter == sem ? AppTheme.primaryBlue : AppTheme.slate200,
+                    width: _selectedSemesterFilter == sem ? 2 : 1,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            semTitle,
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: AppTheme.slate900),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryLight,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${courses.length} môn',
-                              style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
-                            ),
-                          ),
-                        ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg - 1)),
+                        border: Border(bottom: BorderSide(color: AppTheme.slate200)),
                       ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Tổng tín chỉ: $semCredits TC',
-                            style: TextStyle(fontSize: 12, color: AppTheme.slate600, fontWeight: FontWeight.w500),
-                          ),
-                          InkWell(
-                            onTap: () => _showAdvisorDialog(semesterTitle: semTitle),
-                            borderRadius: BorderRadius.circular(4),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                              child: Text(
-                                'Tư vấn kỳ',
-                                style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.accentOrange),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                semTitle,
+                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: AppTheme.slate900),
                               ),
-                            ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryLight,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  '${courses.length} môn',
+                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Tổng tín chỉ: $semCredits TC',
+                                style: TextStyle(fontSize: 12, color: AppTheme.slate600, fontWeight: FontWeight.w500),
+                              ),
+                              InkWell(
+                                onTap: () => _showAdvisorDialog(semesterTitle: semTitle),
+                                borderRadius: BorderRadius.circular(4),
+                                child: const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                  child: Text(
+                                    'Tư vấn kỳ',
+                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.accentOrange),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(maxHeight: maxListHeight),
+                      child: ListView.builder(
+                        shrinkWrap: true,
+                        padding: const EdgeInsets.all(10),
+                        itemCount: courses.length,
+                        itemBuilder: (context, index) {
+                          final course = courses[index];
+                          return _buildCourseCard(course);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxHeight: 650),
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    padding: const EdgeInsets.all(10),
-                    itemCount: courses.length,
-                    itemBuilder: (context, index) {
-                      final course = courses[index];
-                      return _buildCourseCard(course);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          );
-        }).toList(),
-      ),
+              );
+            }).toList(),
+          ),
+        );
+      },
     );
   }
 

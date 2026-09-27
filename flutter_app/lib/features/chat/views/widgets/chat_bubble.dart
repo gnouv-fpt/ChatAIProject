@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../models/chat_message.dart';
+import 'markdown_formatted_text.dart';
 
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
@@ -123,13 +124,9 @@ class ChatBubble extends StatelessWidget {
                       ],
                     )
                   else
-                    SelectableText(
-                      message.text,
-                      style: TextStyle(
-                        fontSize: 14.5,
-                        height: 1.4,
-                        color: isUser ? Colors.white : Colors.black87,
-                      ),
+                    MarkdownFormattedText(
+                      text: message.text,
+                      isUser: isUser,
                     ),
 
                   // Sources Section (If AI message has sources)

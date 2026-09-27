@@ -63,6 +63,36 @@ class TestAPIEndpoints(unittest.TestCase):
             response = client.post("/api/v1/chat", json=payload)
             self.assertEqual(response.status_code, 400)
 
+    def test_curriculum_stats_endpoint(self):
+        with TestClient(app) as client:
+            response = client.get("/api/v1/curricula/BIT_SE_K19B/stats")
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data["curriculum_id"], "BIT_SE_K19B")
+            self.assertEqual(data["total_credits"], 145)
+            self.assertGreaterEqual(len(data["semesters"]), 8)
+
+    def test_course_presence_endpoint(self):
+        with TestClient(app) as client:
+            response = client.get("/api/v1/courses/PRM393/presence")
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertIsInstance(data, list)
+            self.assertGreater(len(data), 0)
+            self.assertEqual(data[0]["curriculum"], "BIT_SE_K19B")
+            self.assertEqual(data[0]["semester"], 8)
+
+    def test_check_prerequisites_endpoint(self):
+        with TestClient(app) as client:
+            payload = {"completed_courses": ["PRO192"]}
+            response = client.post("/api/v1/courses/PRM393/check-prerequisites", json=payload)
+            self.assertEqual(response.status_code, 200)
+            data = response.json()
+            self.assertEqual(data["course_code"], "PRM393")
+            self.assertTrue(data["is_satisfied"])
+            self.assertEqual(data["missing_prerequisites"], [])
+
 
 if __name__ == "__main__":
     unittest.main()
+

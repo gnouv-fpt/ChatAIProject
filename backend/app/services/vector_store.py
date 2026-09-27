@@ -324,6 +324,20 @@ class HybridVectorStore:
         if any(k in q_lower for k in ["công cụ", "phần mềm", "tools", "software", "slot", "nhiệm vụ", "thang điểm", "pass"]):
             intents.append("syllabus")
 
+        # 8. Curriculum Overview / Semester Breakdown / Program Structure
+        if any(k in q_lower for k in [
+            "curriculum", "khung chương trình", "chương trình đào tạo", "chương trình khung",
+            "tổng số môn", "tổng số tín chỉ", "tín chỉ tích lũy", "bao nhiêu học kỳ", "bao nhiêu môn",
+            "xuất hiện trong", "ở kỳ mấy", "thuộc kỳ nào", "học ở kỳ mấy"
+        ]):
+            intents.append("curriculum")
+            intents.append("overview")
+
+        # 9. Semester credits or semester courses query (e.g. "HK5 có bao nhiêu tín chỉ?")
+        if any(k in q_lower for k in ["tín chỉ", "mấy tín", "bao nhiêu tín", "môn nào", "bao nhiêu môn"]) and any(k in q_lower for k in ["hk", "học kỳ", "kỳ "]):
+            intents.append("curriculum")
+            intents.append("overview")
+
         return intents
 
     def search(
@@ -347,13 +361,15 @@ class HybridVectorStore:
         detected_courses = [target_course.upper()] if target_course else self.extract_target_courses(query)
         intents = self.detect_query_intent(query)
 
-        # Candidate filtering: if a specific course was detected, evaluate ONLY that course's chunks
+        # Candidate filtering: if a specific course was detected, evaluate that course's chunks
         target_course_code = detected_courses[0] if detected_courses else None
-        target_indices = (
-            [i for i, c in enumerate(self.chunks) if c.course_code == target_course_code]
-            if target_course_code
-            else []
-        )
+        target_indices = []
+        if target_course_code:
+            if target_course_code in ["CURRICULUM", "BIT_SE_K19B"]:
+                target_indices = [i for i, c in enumerate(self.chunks) if c.course_code in ["CURRICULUM", "BIT_SE_K19B"] or c.category == "curriculum"]
+            else:
+                target_indices = [i for i, c in enumerate(self.chunks) if c.course_code == target_course_code]
+
         candidate_indices = target_indices if target_indices else list(range(len(self.chunks)))
 
         # BM25 Parameters
@@ -378,10 +394,12 @@ class HybridVectorStore:
                     term_score = idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc_len / self.avg_doc_len)))
                     bm25_score += term_score
 
-            # Boost 1: Exact Course Match
+            # Boost 1: Exact Course Match or Curriculum Match
             course_boost = 1.0
             if detected_courses:
-                if chunk.course_code in detected_courses:
+                if chunk.course_code in detected_courses or (target_course and chunk.course_code == target_course.upper()):
+                    course_boost = 3.5
+                elif any(dc in ["CURRICULUM", "BIT_SE_K19B"] for dc in detected_courses) and chunk.category == "curriculum":
                     course_boost = 3.5
                 else:
                     course_boost = 0.1
@@ -405,3 +423,4 @@ class HybridVectorStore:
         # Sort descending by score
         scored_chunks.sort(key=lambda x: x[1], reverse=True)
         return scored_chunks[:top_k]
+

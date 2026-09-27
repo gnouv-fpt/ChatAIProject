@@ -103,15 +103,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
               : widget.code,
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => setState(() => _showRightChat = !_showRightChat),
-            child: Text(
-              _showRightChat ? 'Ẩn Chat AI' : 'Mở Chat AI',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-          ),
-        ],
+        actions: const [],
       ),
       body: Column(
         children: [
@@ -174,6 +166,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                                 scopeId: course.code,
                                 title: 'Trợ lý Môn ${course.code}',
                                 subtitle: course.nameVi.isNotEmpty ? course.nameVi : course.name,
+                                onClose: () => setState(() => _showRightChat = false),
                               ),
                             ),
                         ],
@@ -183,28 +176,60 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
           ),
         ],
       ),
-      floatingActionButton: MediaQuery.of(context).size.width < 960 && course != null
-          ? FloatingActionButton.extended(
-              backgroundColor: AppTheme.primaryBlue,
-              foregroundColor: Colors.white,
-              onPressed: () {
-                showModalBottomSheet<void>(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (_) => SizedBox(
-                    height: MediaQuery.of(context).size.height * 0.85,
-                    child: ContextualChatPanel(
-                      scope: 'subject',
-                      scopeId: course.code,
-                      title: 'Trợ lý Môn ${course.code}',
-                      subtitle: course.nameVi.isNotEmpty ? course.nameVi : course.name,
+      floatingActionButton: _showRightChat
+          ? null
+          : Tooltip(
+              message: 'Hỏi Trợ lý AI (FLM Chatbot)',
+              child: InkWell(
+                onTap: () {
+                  if (MediaQuery.of(context).size.width < 960) {
+                    showModalBottomSheet<void>(
+                      context: context,
+                      isScrollControlled: true,
+                      builder: (_) => SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.85,
+                        child: ContextualChatPanel(
+                          scope: 'subject',
+                          scopeId: course?.code ?? widget.code,
+                          title: 'Trợ lý Môn ${course?.code ?? widget.code}',
+                          subtitle: course?.nameVi.isNotEmpty == true ? course!.nameVi : course?.name,
+                        ),
+                      ),
+                    );
+                  } else {
+                    setState(() => _showRightChat = true);
+                  }
+                },
+                borderRadius: BorderRadius.circular(30),
+                child: Container(
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF0284C7), Color(0xFF6366F1)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF6366F1).withOpacity(0.42),
+                        blurRadius: 14,
+                        spreadRadius: 2,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Center(
+                    child: Icon(
+                      Icons.smart_toy_rounded,
+                      color: Colors.white,
+                      size: 30,
                     ),
                   ),
-                );
-              },
-              label: const Text('Chat AI'),
-            )
-          : null,
+                ),
+              ),
+            ),
     );
   }
 

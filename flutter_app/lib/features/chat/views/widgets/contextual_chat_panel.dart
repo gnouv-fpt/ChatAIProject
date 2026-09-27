@@ -12,6 +12,7 @@ class ContextualChatPanel extends StatefulWidget {
   final String title;
   final String? subtitle;
   final List<String>? suggestedQuestions;
+  final VoidCallback? onClose;
 
   const ContextualChatPanel({
     super.key,
@@ -20,6 +21,7 @@ class ContextualChatPanel extends StatefulWidget {
     required this.title,
     this.subtitle,
     this.suggestedQuestions,
+    this.onClose,
   });
 
   @override
@@ -197,6 +199,12 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   tooltip: 'Xóa hội thoại',
                   onPressed: () => provider.clearHistory(),
                 ),
+                if (widget.onClose != null)
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.slate600),
+                    tooltip: 'Đóng Trợ lý AI',
+                    onPressed: widget.onClose,
+                  ),
               ],
             ),
           ),

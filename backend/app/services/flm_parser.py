@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
 import yaml
 
-from ..schemas.course import CourseDetail, CourseSummary
+from ..schemas.course import CourseDetail, CourseSummary, CurriculumStats, SemesterStat, PrerequisiteCheckResult
 
 
 class FLMDocumentChunk:
@@ -75,8 +75,18 @@ class FLMKnowledgeVaultParser:
             except Exception as e:
                 print(f"[FLMParser] Error parsing {md_file.name}: {e}")
 
+        # Scan curricula subdirectory
+        curricula_dir = self.vault_dir / "curricula"
+        if curricula_dir.exists():
+            for curr_file in curricula_dir.glob("*.md"):
+                try:
+                    self._parse_curriculum_md_file(curr_file)
+                except Exception as e:
+                    print(f"[FLMParser] Error parsing curriculum {curr_file.name}: {e}")
+
         print(f"[FLMParser] Successfully loaded {len(self.courses)} courses and {len(self.chunks)} semantic chunks.")
         return self.courses, self.chunks
+
 
     def _parse_markdown_file(self, file_path: Path):
         with open(file_path, "r", encoding="utf-8") as f:
@@ -104,8 +114,16 @@ class FLMKnowledgeVaultParser:
         unlocks = frontmatter.get("unlocks", []) or []
         curriculum = frontmatter.get("curriculum", "BIT_SE_K19B")
         syllabus_url = frontmatter.get("syllabus_url", "")
+        in_curriculum_val = bool(frontmatter.get("in_curriculum", True))
+        if frontmatter.get("in_curriculum") is False:
+            appears_in = []
+        else:
+            appears_in = frontmatter.get("appears_in", []) or []
+            if not appears_in and curriculum:
+                appears_in = [{"curriculum": curriculum, "semester": semester_val}]
         has_pe_val = bool(frontmatter.get("has_pe", False))
         counts_in_gpa_val = bool(frontmatter.get("counts_in_gpa", True))
+
 
         # Extract structured sections from markdown body
         sections = self._extract_sections(markdown_body)
@@ -145,17 +163,26 @@ class FLMKnowledgeVaultParser:
             software_tools=software_tools,
             time_allocation=time_allocation,
             raw_markdown=raw_content,
+            appears_in=appears_in,
+            has_pe=has_pe_val,
+            counts_in_gpa=counts_in_gpa_val,
+            in_curriculum=in_curriculum_val,
         )
         self.courses[course_code] = course_detail
+
 
         # Create fine-grained semantic chunks for retrieval
         display_name = f"{name_vi} ({name_en})" if name_vi and name_en else name_vi or name_en or course_code
 
-        # Chunk 1: General Info, Credits, Semester & Overview
+        # Chunk 1: General Info, Credits, Semester, Appears_in & Overview
+        appears_str = ", ".join([f"{a.get('curriculum')}, Học kỳ {a.get('semester')}" for a in appears_in]) if appears_in else f"{curriculum}, Học kỳ {semester_val}"
         overview_chunk_content = (
             f"Mã môn: {course_code}\nTên môn học: {display_name}\n"
             f"Số tín chỉ: {credits_val} tín chỉ\nHọc kỳ đề xuất: Học kỳ {semester_val}\n"
             f"Chương trình: {curriculum}\n"
+            f"Xuất hiện trong các khung chương trình (appears_in): {appears_str}\n"
+            f"Hình thức thi thực hành PE: {'Có thi thực hành PE' if has_pe_val else 'Không có thi PE'}\n"
+            f"Tính vào điểm GPA tốt nghiệp: {'Có tính vào GPA' if counts_in_gpa_val else 'Không tính GPA (môn điều kiện)'}\n"
             f"Điều kiện tiên quyết: {', '.join(prerequisites) if prerequisites else 'Không có'}\n"
             f"Môn mở khóa tiếp theo: {', '.join(unlocks) if unlocks else 'Môn giai đoạn cuối / không ràng buộc'}\n"
             f"{overview_text}"
@@ -174,8 +201,10 @@ class FLMKnowledgeVaultParser:
                 "prerequisites": prerequisites,
                 "has_pe": has_pe_val,
                 "counts_in_gpa": counts_in_gpa_val,
+                "appears_in": appears_in,
             }
         ))
+
 
         # Chunk 2: Assessment Scheme (PE, FE, Labs, Quizzes, Grading)
         if assessment_text:
@@ -307,3 +336,129 @@ class FLMKnowledgeVaultParser:
                 sections[title_line[:20]] = body_line
 
         return sections
+
+    def _parse_curriculum_md_file(self, file_path: Path):
+        """Parses curriculum file like BIT_SE_K19B.md and registers curriculum chunks."""
+        with open(file_path, "r", encoding="utf-8") as f:
+            raw_content = f.read()
+
+        frontmatter, markdown_body = self._split_frontmatter(raw_content)
+        curr_id = frontmatter.get("id") or file_path.stem
+        name = frontmatter.get("name", "")
+        name_vi = frontmatter.get("name_vi", "")
+        total_credits = int(frontmatter.get("total_credits", 145))
+        subjects = frontmatter.get("subjects", [])
+
+        if not isinstance(self.curriculum_info, dict):
+            self.curriculum_info = {}
+
+        self.curriculum_info[curr_id] = {
+            "id": curr_id,
+            "code": curr_id,
+            "name": name,
+            "name_vi": name_vi,
+            "total_credits": total_credits,
+            "subjects": subjects,
+        }
+
+        # Build semester mapping
+        semesters_dict: Dict[int, List[str]] = {}
+        for sub in subjects:
+            sem = int(sub.get("semester", 0))
+            code = sub.get("code", "")
+            if code:
+                semesters_dict.setdefault(sem, []).append(code)
+
+        sem_lines = []
+        for sem in sorted(semesters_dict.keys()):
+            subs = semesters_dict[sem]
+            tot_cr = sum(self.courses[c].credits for c in subs if c in self.courses)
+            sem_lines.append(f"- Học kỳ {sem} ({len(subs)} môn, {tot_cr} tín chỉ): {', '.join(subs)}")
+
+        chunk_content = (
+            f"Chương trình đào tạo: {curr_id}\n"
+            f"Tên chương trình: {name_vi} ({name})\n"
+            f"Tổng số tín chỉ tốt nghiệp: {total_credits} tín chỉ\n"
+            f"Tổng số môn học: {len(subjects)} môn\n"
+            f"Số học kỳ chính thức: 9 học kỳ chuyên ngành (từ Học kỳ 1 đến Học kỳ 9)\n\n"
+            f"Phân bổ môn học và số tín chỉ theo từng học kỳ:\n" + "\n".join(sem_lines)
+        )
+
+        self.chunks.append(FLMDocumentChunk(
+            chunk_id=f"curriculum_{curr_id}_overview",
+            course_code="CURRICULUM",
+            course_name=f"Khung Chương Trình {curr_id}",
+            category="curriculum",
+            title=f"Khung Chương Trình Đào Tạo {curr_id} ({name_vi})",
+            content=chunk_content,
+            file_name=file_path.name,
+            metadata={"curriculum_id": curr_id, "type": "curriculum_overview", "total_credits": total_credits}
+        ))
+
+    def get_curriculum_stats(self, curriculum_id: str = "BIT_SE_K19B") -> CurriculumStats:
+        """Returns structured statistics for a curriculum: semesters, course count, credits."""
+        semesters_dict: Dict[int, List[str]] = {}
+        for c in self.courses.values():
+            if not getattr(c, "in_curriculum", True):
+                continue
+            for app in getattr(c, "appears_in", []):
+                if app.get("curriculum") == curriculum_id or curriculum_id in app.get("curriculum", ""):
+                    sem = app.get("semester", c.semester)
+                    semesters_dict.setdefault(sem, []).append(c.code)
+                    break
+            else:
+                if c.curriculum == curriculum_id:
+                    semesters_dict.setdefault(c.semester, []).append(c.code)
+
+
+        semester_stats = []
+        for sem in sorted(semesters_dict.keys()):
+            codes = sorted(list(set(semesters_dict[sem])))
+            tot_cr = sum(self.courses[cd].credits for cd in codes if cd in self.courses)
+            semester_stats.append(SemesterStat(
+                semester=sem,
+                course_count=len(codes),
+                total_credits=tot_cr,
+                courses=codes,
+            ))
+
+        info = self.curriculum_info.get(curriculum_id, {}) if isinstance(self.curriculum_info, dict) else {}
+        total_cr = info.get("total_credits", 145) if isinstance(info, dict) else 145
+
+        return CurriculumStats(
+            curriculum_id=curriculum_id,
+            name=info.get("name", "The Bachelor Program of Information Technology, Software Engineering Major") if isinstance(info, dict) else "",
+            name_vi=info.get("name_vi", "Chương trình cử nhân Công nghệ thông tin, Kỹ thuật phần mềm") if isinstance(info, dict) else "",
+            total_semesters=max(semesters_dict.keys()) if semesters_dict else 9,
+            total_courses=len(self.courses),
+            total_credits=total_cr,
+            semesters=semester_stats,
+        )
+
+    def get_course_presence(self, code: str) -> List[Dict[str, Any]]:
+        """Returns list of curricula and semesters where course appears."""
+        c = self.courses.get(code.upper())
+        if c:
+            return getattr(c, "appears_in", [])
+        return []
+
+    def check_prerequisites(self, code: str, completed_courses: List[str]) -> PrerequisiteCheckResult:
+        """Evaluates whether all prerequisites for a given course are satisfied."""
+        c = self.courses.get(code.upper())
+        if not c:
+            return PrerequisiteCheckResult(
+                course_code=code,
+                is_satisfied=False,
+                required_prerequisites=[],
+                missing_prerequisites=[f"Môn {code} không tìm thấy trong dữ liệu FLM"],
+            )
+        completed_set = set(k.upper() for k in completed_courses)
+        required = c.prerequisites
+        missing = [p for p in required if p.upper() not in completed_set]
+        return PrerequisiteCheckResult(
+            course_code=code,
+            is_satisfied=len(missing) == 0,
+            required_prerequisites=required,
+            missing_prerequisites=missing,
+        )
+

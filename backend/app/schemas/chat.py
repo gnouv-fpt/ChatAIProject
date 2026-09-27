@@ -10,6 +10,20 @@ class SourceChunk(BaseModel):
     content_snippet: str = Field(..., description="Relevant text snippet extracted from source")
 
 
+class StudentContext(BaseModel):
+    current_gpa: Optional[float] = Field(None, description="Current cumulative GPA calculated by code")
+    target_gpa: Optional[float] = Field(None, description="Target GPA for graduation")
+    retake_count: Optional[int] = Field(None, description="Number of retaken courses (failed in previous attempts)")
+    improvement_count: Optional[int] = Field(None, description="Number of grade improvement attempts")
+    target_rank: Optional[str] = Field(None, description="Target graduation rank (Xuất sắc, Giỏi, Khá, Trung bình)")
+    required_avg_mark: Optional[float] = Field(None, description="Required average mark in remaining courses")
+    is_target_feasible: Optional[bool] = Field(None, description="Whether target is feasible (required_avg <= 10)")
+    rank_penalty_applied: Optional[bool] = Field(None, description="Whether rank penalty applies (retake >= 2)")
+    current_semester: Optional[int] = Field(None, description="Current semester of student")
+    failed_courses: Optional[List[str]] = Field(default_factory=list, description="List of failed course codes")
+    completed_courses: Optional[List[str]] = Field(default_factory=list, description="List of passed course codes")
+
+
 class ChatRequest(BaseModel):
     question: Optional[str] = Field(None, description="User question / prompt")
     prompt: Optional[str] = Field(None, description="Alternative alias for question")
@@ -17,6 +31,8 @@ class ChatRequest(BaseModel):
     course_code: Optional[str] = Field(None, description="Optional target course code filter (e.g. PRM393)")
     scope: Optional[str] = Field(None, description="Scope of conversation: 'curriculum' or 'subject'")
     id: Optional[str] = Field(None, description="Identifier for active scope (e.g. 'BIT_SE_K19B' or 'PRM393')")
+    student_context: Optional[Dict[str, Any]] = Field(None, description="Student academic facts pre-calculated by Khối E")
+
 
     @model_validator(mode="before")
     @classmethod

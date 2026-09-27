@@ -101,29 +101,12 @@ class ServerStatusBar extends StatelessWidget {
             constraints: const BoxConstraints(),
             padding: const EdgeInsets.all(4),
           ),
-          const SizedBox(width: 8),
-          InkWell(
-            onTap: () => _showUrlDialog(context, provider),
-            borderRadius: BorderRadius.circular(4),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.settings, size: 14, color: textColor),
-                  const SizedBox(width: 4),
-                  Text(
-                    'API Config',
-                    style: TextStyle(
-                      color: textColor,
-                      fontSize: 11,
-                      decoration: TextDecoration.underline,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          IconButton(
+            icon: Icon(Icons.settings_outlined, size: 16, color: textColor),
+            tooltip: 'Cấu hình URL Backend API',
+            onPressed: () => _showUrlDialog(context, provider),
+            constraints: const BoxConstraints(),
+            padding: const EdgeInsets.all(4),
           ),
         ],
       ),
