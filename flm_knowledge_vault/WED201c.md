@@ -1,16 +1,26 @@
 ---
-code: "WED201c"
-code_original: "WED201c"
-name_en: "Web Design"
-name_vi: "Thiết kế web"
+type: subject
+code: WED201c
+title: Web Design
+title_vi: Thiết kế web
 credits: 3
-semester: 3
 prerequisites: []
-unlocks: []
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WED201c&curriculumID=3338"
+has_pe: true
+has_pe_source: detailed_assessment_table:pe_keyword
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 3
+in_curriculum: true
+tags:
+- HK3
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WED201c&curriculumID=3338
+code_original: WED201c
+name_en: Web Design
+name_vi: Thiết kế web
+semester: 3
+curriculum: BIT_SE_K19B
 ---
-
 # WED201c - Thiết kế web (Web Design)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  

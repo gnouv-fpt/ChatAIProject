@@ -1,13 +1,21 @@
 ---
-code: "SWE202c"
-name_en: "Introduction to Software Engineering (Practice)"
-name_vi: "Nhập môn Kỹ thuật phần mềm (Mã môn cũ/tương đương)"
+type: subject
+code: SWE202c
+title: Introduction to Software Engineering (Practice)
+title_vi: Nhập môn Kỹ thuật phần mềm (Mã môn cũ/tương đương)
 credits: 3
+prerequisites: []
+has_pe: false
+has_pe_source: default:no_evidence
+counts_in_gpa: true
+appears_in: []
+in_curriculum: false
+name_en: Introduction to Software Engineering (Practice)
+name_vi: Nhập môn Kỹ thuật phần mềm (Mã môn cũ/tương đương)
 semester: 4
-equivalent_to: "SWE201c"
-curriculum: "BIT_SE_K19B"
+curriculum: BIT_SE_K19B
+equivalent_to: SWE201c
 ---
-
 # SWE202c - Nhập môn Kỹ thuật phần mềm (SWE202c)
 
 > [!NOTE] Môn học tương đương

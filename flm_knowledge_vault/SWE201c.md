@@ -1,21 +1,32 @@
 ---
-code: "SWE201c"
-code_original: "SWE201c"
-name_en: "Introduction to Software Engineering"
-name_vi: "Nhập môn kĩ thuật phần mềm"
+type: subject
+code: SWE201c
+title: Introduction to Software Engineering
+title_vi: Nhập môn kĩ thuật phần mềm
 credits: 3
-semester: 4
 prerequisites:
-  - "PRO192"
+- PRO192
+has_pe: true
+has_pe_source: detailed_assessment_table:pe_keyword
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 4
+in_curriculum: true
+tags:
+- HK4
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWE201c&curriculumID=3338
+code_original: SWE201c
+name_en: Introduction to Software Engineering
+name_vi: Nhập môn kĩ thuật phần mềm
+semester: 4
 unlocks:
-  - "SWP391"
-  - "SWR302"
-  - "SWT301"
-  - "SWD392"
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWE201c&curriculumID=3338"
+- SWP391
+- SWR302
+- SWT301
+- SWD392
+curriculum: BIT_SE_K19B
 ---
-
 # SWE201c - Nhập môn kĩ thuật phần mềm (Introduction to Software Engineering)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  

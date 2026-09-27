@@ -1,16 +1,26 @@
 ---
-code: "SSL101c"
-code_original: "SSL101c"
-name_en: "Academic Skills for University Success"
-name_vi: "Kỹ năng học tập đại học"
+type: subject
+code: SSL101c
+title: Academic Skills for University Success
+title_vi: Kỹ năng học tập đại học
 credits: 3
-semester: 1
 prerequisites: []
-unlocks: []
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSL101c&curriculumID=3338"
+has_pe: false
+has_pe_source: detailed_assessment_table:no_pe_row
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 1
+in_curriculum: true
+tags:
+- HK1
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSL101c&curriculumID=3338
+code_original: SSL101c
+name_en: Academic Skills for University Success
+name_vi: Kỹ năng học tập đại học
+semester: 1
+curriculum: BIT_SE_K19B
 ---
-
 # SSL101c - Kỹ năng học tập đại học (Academic Skills for University Success)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  

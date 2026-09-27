@@ -1,16 +1,26 @@
 ---
-code: "ITE302c"
-code_original: "ITE302c"
-name_en: "Ethics in IT"
-name_vi: "Đạo đức trong CNTT"
+type: subject
+code: ITE302c
+title: Ethics in IT
+title_vi: Đạo đức trong CNTT
 credits: 3
-semester: 8
 prerequisites: []
-unlocks: []
-curriculum: "BIT_SE_K19B"
-syllabus_url: "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ITE302c&curriculumID=3338"
+has_pe: false
+has_pe_source: detailed_assessment_table:no_pe_row
+counts_in_gpa: true
+appears_in:
+- curriculum: BIT_SE_K19B
+  semester: 8
+in_curriculum: true
+tags:
+- HK8
+syllabus_url: https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ITE302c&curriculumID=3338
+code_original: ITE302c
+name_en: Ethics in IT
+name_vi: Đạo đức trong CNTT
+semester: 8
+curriculum: BIT_SE_K19B
 ---
-
 # ITE302c - Đạo đức trong CNTT (Ethics in IT)
 
 > **Chuyên ngành:** Kỹ thuật Phần mềm (Software Engineering - SE)  

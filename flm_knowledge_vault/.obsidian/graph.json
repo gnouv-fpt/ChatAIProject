@@ -1,45 +1,87 @@
 {
   "collapse-filter": true,
   "search": "",
-  "showTags": false,
+  "showTags": true,
   "showAttachments": false,
   "hideUnresolved": false,
   "showOrphans": true,
   "collapse-color-groups": false,
   "colorGroups": [
     {
-      "query": "file:Curriculum OR file:Program",
+      "query": "tag:#HK0",
+      "color": {
+        "a": 1,
+        "rgb": 6583435
+      }
+    },
+    {
+      "query": "tag:#HK1",
+      "color": {
+        "a": 1,
+        "rgb": 165063
+      }
+    },
+    {
+      "query": "tag:#HK2",
+      "color": {
+        "a": 1,
+        "rgb": 889992
+      }
+    },
+    {
+      "query": "tag:#HK3",
+      "color": {
+        "a": 1,
+        "rgb": 1483594
+      }
+    },
+    {
+      "query": "tag:#HK4",
+      "color": {
+        "a": 1,
+        "rgb": 6660877
+      }
+    },
+    {
+      "query": "tag:#HK5",
+      "color": {
+        "a": 1,
+        "rgb": 13273604
+      }
+    },
+    {
+      "query": "tag:#HK6",
+      "color": {
+        "a": 1,
+        "rgb": 15357964
+      }
+    },
+    {
+      "query": "tag:#HK7",
+      "color": {
+        "a": 1,
+        "rgb": 14427686
+      }
+    },
+    {
+      "query": "tag:#HK8",
+      "color": {
+        "a": 1,
+        "rgb": 5195493
+      }
+    },
+    {
+      "query": "tag:#HK9",
+      "color": {
+        "a": 1,
+        "rgb": 9647082
+      }
+    },
+    {
+      "query": "file:curricula OR file:Curriculum OR file:Program",
       "color": {
         "a": 1,
         "rgb": 16498468
-      }
-    },
-    {
-      "query": "file:PRN212 OR file:PRN222 OR file:PRU213 OR file:PRN232",
-      "color": {
-        "a": 1,
-        "rgb": 16347926
-      }
-    },
-    {
-      "query": "file:PRM393",
-      "color": {
-        "a": 1,
-        "rgb": 11032055
-      }
-    },
-    {
-      "query": "file:SEP490",
-      "color": {
-        "a": 1,
-        "rgb": 15680580
-      }
-    },
-    {
-      "query": "file:PRO192 OR file:PRF192 OR file:CSD201 OR file:PRJ301 OR file:SWP391 OR file:SWD392 OR file:DBI202",
-      "color": {
-        "a": 1,
-        "rgb": 3718648
       }
     }
   ],
