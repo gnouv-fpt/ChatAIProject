@@ -40,6 +40,9 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   bool _isBoardView = true;
   bool _showRightChat = true;
 
+  /// Môn đang chọn, đồng bộ hai chiều giữa tab "Danh sách môn" và tab Map.
+  String? _selectedCourseCode;
+
   @override
   void initState() {
     super.initState();
@@ -243,7 +246,12 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           _buildSubjectListTab(context, catalog, activeCurriculum),
 
                           // Tab 3: Map Graph View
-                          const GraphViewScreen(),
+                          GraphViewScreen(
+                            selectedCode: _selectedCourseCode,
+                            onNodeSelected: (code) => setState(() => _selectedCourseCode = code),
+                            onOpenDetail: _openCourseDetail,
+                            onAdvisorRequested: (code) => _showAdvisorDialog(courseCode: code),
+                          ),
                         ],
                       ),
                     ),
@@ -768,12 +776,16 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   }
 
   Widget _buildCourseCard(Course course) {
+    final isSelected = course.code == _selectedCourseCode;
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: HoverCard(
         padding: const EdgeInsets.all(12),
         borderRadius: AppTheme.radiusMd,
+        borderColor: isSelected ? AppTheme.primaryBlue : null,
+        backgroundColor: isSelected ? AppTheme.primaryLight : null,
         onTap: () {
+          setState(() => _selectedCourseCode = course.code);
           CourseSummaryModal.showFromCourse(
             context,
             course: course,
