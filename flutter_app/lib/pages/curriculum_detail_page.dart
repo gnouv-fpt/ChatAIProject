@@ -6,9 +6,11 @@ import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
 import '../models/curriculum.dart';
 import '../state/course_catalog.dart';
+import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/breadcrumb_nav.dart';
 import '../widgets/course_summary_modal.dart';
+import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
 import 'course_detail_page.dart';
@@ -31,14 +33,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
-  final ScrollController _boardScrollController = ScrollController();
 
   String _searchQuery = '';
-  int? _selectedSemesterFilter;
-  bool _filterOnlyPe = false;
-  bool _filterOnlyGpa = false;
-  bool _isBoardView = true;
+  int? _expandedSemester;
   bool _showRightChat = true;
+  String? _advisorPrompt;
 
   @override
   void initState() {
@@ -54,21 +53,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
-    _boardScrollController.dispose();
     super.dispose();
-  }
-
-  void _scrollToSemester(int semester) {
-    setState(() => _selectedSemesterFilter = semester);
-    if (_isBoardView && _boardScrollController.hasClients) {
-      final index = semester;
-      final offset = (index * 320.0).clamp(0.0, _boardScrollController.position.maxScrollExtent);
-      _boardScrollController.animateTo(
-        offset,
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeOutCubic,
-      );
-    }
   }
 
   void _openCourseDetail(String code) {
@@ -83,62 +68,49 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     );
   }
 
+  /// Mở chat panel và gợi câu hỏi tư vấn chiến lược theo học kỳ hoặc môn.
+  /// Dữ kiện GPA được tính bằng code (GradeCalculator) và gửi kèm trong student_context.
   void _showAdvisorDialog({String? semesterTitle, String? courseCode}) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(
-          courseCode != null
-              ? 'Tư vấn môn học $courseCode'
-              : (semesterTitle != null ? 'Chiến lược $semesterTitle' : 'Tư vấn lộ trình toàn khóa'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              courseCode != null
-                  ? 'Gợi ý phương pháp ôn tập, vượt qua bài thi thực hành PE và tối ưu điểm số môn $courseCode.'
-                  : (semesterTitle != null
-                      ? 'Phân bổ tải học tập và mức độ ưu tiên giữa các môn trong $semesterTitle.'
-                      : 'Đánh giá điều kiện tốt nghiệp, số môn học lại tối đa trước khi bị hạ bậc, và tính toán điểm trung bình cần đạt.'),
-              style: const TextStyle(height: 1.4),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppTheme.slate50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: AppTheme.slate200),
-              ),
-              child: Text(
-                'Bạn có thể gửi câu hỏi trực tiếp cho Trợ lý AI ở khung Chat bên phải để nhận giải pháp học tập chi tiết.',
-                style: TextStyle(fontSize: 12.5, color: AppTheme.slate700),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Đóng'),
+    final tp = context.read<TranscriptProvider>();
+    // Build suggested question để người dùng có thể hỏi chat
+    String suggestedQuestion;
+    if (courseCode != null) {
+      suggestedQuestion = 'Tư vấn cách học và ôn thi môn $courseCode để đạt điểm cao.';
+    } else if (semesterTitle != null) {
+      suggestedQuestion = 'Chiến lược học tập và phân bổ thời gian trong $semesterTitle. Tôi nên ưu tiên môn nào?';
+    } else {
+      final hasData = tp.hasTranscript;
+      final eval = hasData ? tp.evaluation : null;
+      suggestedQuestion = hasData
+          ? 'GPA hiện tại của tôi là ${eval!.currentGpa}. Mục tiêu tốt nghiệp ${tp.targetGpa}. Tôi cần làm gì từ giờ đến cuối?'
+          : 'Tư vấn lộ trình học tập toàn khóa dựa trên chương trình đào tạo. Tôi chưa import bảng điểm.';
+    }
+
+    // Mở chat panel trước
+    setState(() {
+      _showRightChat = true;
+      _advisorPrompt = suggestedQuestion;
+    });
+
+    // Sau đó hiện SnackBar với câu hỏi gợi ý
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Gợi ý câu hỏi cho Chat AI:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const SizedBox(height: 4),
+              Text('"$suggestedQuestion"', style: const TextStyle(fontStyle: FontStyle.italic)),
+            ],
           ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppTheme.accentOrange,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Hỏi AI ngay'),
-            onPressed: () {
-              Navigator.pop(ctx);
-              setState(() => _showRightChat = true);
-            },
-          ),
-        ],
-      ),
-    );
+          duration: const Duration(seconds: 7),
+          action: SnackBarAction(label: 'OK', onPressed: () {}),
+        ),
+      );
+    });
   }
 
   @override
@@ -257,6 +229,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           scopeId: activeCurriculum.id,
                           title: 'Trợ lý Khung ${activeCurriculum.id}',
                           subtitle: activeCurriculum.nameVi,
+                          semesterNumber: _expandedSemester,
+                          suggestedQuestions: _advisorPrompt == null ? null : [_advisorPrompt!],
                           onClose: () => setState(() => _showRightChat = false),
                         ),
                       ),
@@ -284,6 +258,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           scopeId: activeCurriculum.id,
                           title: 'Trợ lý Khung ${activeCurriculum.id}',
                           subtitle: activeCurriculum.nameVi,
+                          semesterNumber: _expandedSemester,
+                          suggestedQuestions: _advisorPrompt == null ? null : [_advisorPrompt!],
                         ),
                       ),
                     );
@@ -374,41 +350,15 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
 
               const SizedBox(height: 20),
 
-              // Grade Strategy & Advisor Area
-              HoverCard(
-                backgroundColor: const Color(0xFFFFFBEB),
-                borderColor: const Color(0xFFFDE68A),
-                hoverBorderColor: AppTheme.accentAmber,
-                padding: const EdgeInsets.all(20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Bảng điểm & Tư vấn Chiến lược Học tập (GPA)',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF92400E)),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Import bảng điểm để tính toán GPA thực tế, cảnh báo nguy cơ hạ bậc tốt nghiệp và nhận tư vấn chiến lược.',
-                            style: TextStyle(fontSize: 13, color: Colors.amber.shade900),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFD97706),
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Tư vấn chiến lược'),
-                      onPressed: () => _showAdvisorDialog(),
-                    ),
-                  ],
-                ),
+              // ── Bảng điểm & Chiến lược (Mục 7) ─────────────────────
+              GradeStrategyPanel(
+                curriculumId: widget.curriculumId,
+                onAdvisorPrompt: (prompt) {
+                  setState(() {
+                    _showRightChat = true;
+                    _advisorPrompt = prompt;
+                  });
+                },
               ),
 
               const SizedBox(height: 24),
@@ -481,33 +431,23 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
 
   Widget _buildSubjectListTab(BuildContext context, CourseCatalog catalog, Curriculum curriculum) {
     final Map<int, List<Course>> semesterMap = {};
-    for (int s = 0; s <= 9; s++) {
+    for (int s = 1; s <= 9; s++) {
       semesterMap[s] = [];
     }
     for (final course in catalog.courses) {
       semesterMap.putIfAbsent(course.semester, () => []).add(course);
     }
 
-    List<Course> filterList(List<Course> list) {
-      return list.where((c) {
-        if (_searchQuery.isNotEmpty) {
-          final q = _searchQuery.toLowerCase();
-          final matchCode = c.code.toLowerCase().contains(q);
-          final matchName = c.name.toLowerCase().contains(q);
-          final matchNameVi = c.nameVi.toLowerCase().contains(q);
-          if (!matchCode && !matchName && !matchNameVi) return false;
-        }
-        if (_filterOnlyPe && !c.hasPe) return false;
-        if (_filterOnlyGpa && !c.countsInGpa) return false;
-        return true;
-      }).toList();
-    }
-
-    final semesters = semesterMap.keys.toList()..sort();
+    final query = _searchQuery.toLowerCase();
+    List<Course> filterList(List<Course> list) => list.where((c) {
+          if (query.isEmpty) return true;
+          return c.code.toLowerCase().contains(query) ||
+              c.name.toLowerCase().contains(query) ||
+              c.nameVi.toLowerCase().contains(query);
+        }).toList();
 
     return Column(
       children: [
-        // Top Toolbar: Search Bar + Filter Chips + View Mode Switcher
         Container(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
           color: Colors.white,
@@ -538,232 +478,60 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  FilterChip(
-                    label: const Text('Có thi PE'),
-                    selected: _filterOnlyPe,
-                    onSelected: (val) => setState(() => _filterOnlyPe = val),
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Tính GPA'),
-                    selected: _filterOnlyGpa,
-                    onSelected: (val) => setState(() => _filterOnlyGpa = val),
-                  ),
-                  const SizedBox(width: 10),
-                  SegmentedButton<bool>(
-                    segments: const [
-                      ButtonSegment(value: true, label: Text('Board')),
-                      ButtonSegment(value: false, label: Text('List')),
-                    ],
-                    selected: {_isBoardView},
-                    onSelectionChanged: (set) => setState(() => _isBoardView = set.first),
-                    style: const ButtonStyle(visualDensity: VisualDensity.compact),
-                  ),
                 ],
-              ),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Tất cả kỳ'),
-                      selected: _selectedSemesterFilter == null,
-                      onSelected: (_) => setState(() => _selectedSemesterFilter = null),
-                    ),
-                    for (final sem in semesters) ...[
-                      const SizedBox(width: 6),
-                      ChoiceChip(
-                        label: Text(sem == 0 ? 'Giai đoạn 0' : 'Học kỳ $sem'),
-                        selected: _selectedSemesterFilter == sem,
-                        onSelected: (_) => _scrollToSemester(sem),
-                      ),
-                    ],
-                  ],
-                ),
               ),
             ],
           ),
         ),
         const Divider(height: 1, color: AppTheme.slate200),
         Expanded(
-          child: _isBoardView
-              ? _buildBoardView(semesterMap, filterList)
-              : _buildListView(semesterMap, filterList),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBoardView(
-    Map<int, List<Course>> semesterMap,
-    List<Course> Function(List<Course>) filterFn,
-  ) {
-    final semesters = semesterMap.keys.toList()..sort();
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final double maxListHeight = (constraints.maxHeight - 110).clamp(250.0, 900.0);
-
-        return SingleChildScrollView(
-          controller: _boardScrollController,
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: semesters.map((sem) {
-              final courses = filterFn(semesterMap[sem] ?? []);
-              final allCoursesInSem = semesterMap[sem] ?? [];
-              final semCredits = allCoursesInSem.fold(0, (sum, c) => sum + c.credits);
-              final semTitle = sem == 0 ? 'Học kỳ Chuẩn bị (Giai đoạn 0)' : 'Học kỳ $sem';
-
-              return Container(
-                width: 310,
-                margin: const EdgeInsets.only(right: 14),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                  border: Border.all(
-                    color: _selectedSemesterFilter == sem ? AppTheme.primaryBlue : AppTheme.slate200,
-                    width: _selectedSemesterFilter == sem ? 2 : 1,
+          child: ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: 9,
+            itemBuilder: (context, index) {
+              final sem = index + 1;
+              final allCourses = semesterMap[sem] ?? const <Course>[];
+              final courses = filterList(allCourses);
+              final credits = allCourses.fold<int>(0, (sum, course) => sum + course.credits);
+              final title = 'Học kỳ $sem';
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ExpansionTile(
+                  initiallyExpanded: _expandedSemester == sem,
+                  onExpansionChanged: (expanded) => setState(() {
+                    _expandedSemester = expanded ? sem : null;
+                  }),
+                  title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
+                  subtitle: Text('${allCourses.length} môn • $credits tín chỉ'),
+                  trailing: IconButton(
+                    tooltip: 'Tư vấn học kỳ',
+                    icon: const Icon(Icons.auto_awesome_outlined, color: AppTheme.accentOrange),
+                    onPressed: () {
+                      setState(() => _expandedSemester = sem);
+                      _showAdvisorDialog(semesterTitle: title);
+                    },
                   ),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(14, 12, 10, 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg - 1)),
-                        border: Border(bottom: BorderSide(color: AppTheme.slate200)),
+                    if (courses.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                        child: Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text('Không có môn phù hợp với nội dung tìm kiếm.'),
+                        ),
+                      )
+                    else
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        child: Column(children: courses.map(_buildCourseCard).toList()),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                semTitle,
-                                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5, color: AppTheme.slate900),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primaryLight,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                  '${courses.length} môn',
-                                  style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.primaryBlue),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                'Tổng tín chỉ: $semCredits TC',
-                                style: TextStyle(fontSize: 12, color: AppTheme.slate600, fontWeight: FontWeight.w500),
-                              ),
-                              InkWell(
-                                onTap: () => _showAdvisorDialog(semesterTitle: semTitle),
-                                borderRadius: BorderRadius.circular(4),
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  child: Text(
-                                    'Tư vấn kỳ',
-                                    style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.bold, color: AppTheme.accentOrange),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: maxListHeight),
-                      child: ListView.builder(
-                        shrinkWrap: true,
-                        padding: const EdgeInsets.all(10),
-                        itemCount: courses.length,
-                        itemBuilder: (context, index) {
-                          final course = courses[index];
-                          return _buildCourseCard(course);
-                        },
-                      ),
-                    ),
                   ],
                 ),
               );
-            }).toList(),
+            },
           ),
-        );
-      },
-    );
-  }
-
-  Widget _buildListView(
-    Map<int, List<Course>> semesterMap,
-    List<Course> Function(List<Course>) filterFn,
-  ) {
-    final semesters = semesterMap.keys.toList()..sort();
-
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: semesters.length,
-      itemBuilder: (context, index) {
-        final sem = semesters[index];
-        final courses = filterFn(semesterMap[sem] ?? []);
-        final semTitle = sem == 0 ? 'Học kỳ Chuẩn bị (Giai đoạn 0)' : 'Học kỳ $sem';
-        final semCredits = (semesterMap[sem] ?? []).fold(0, (sum, c) => sum + c.credits);
-
-        if (courses.isEmpty && _searchQuery.isNotEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        return Card(
-          margin: const EdgeInsets.only(bottom: 16),
-          child: ExpansionTile(
-            initiallyExpanded: _selectedSemesterFilter == null || _selectedSemesterFilter == sem,
-            title: Row(
-              children: [
-                Text(
-                  semTitle,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(width: 12),
-                StatusBadge.credits(semCredits),
-                const SizedBox(width: 8),
-                Text(
-                  '(${courses.length} môn)',
-                  style: TextStyle(fontSize: 13, color: AppTheme.slate600),
-                ),
-              ],
-            ),
-            trailing: TextButton(
-              onPressed: () => _showAdvisorDialog(semesterTitle: semTitle),
-              child: const Text('Tư vấn kỳ này', style: TextStyle(color: AppTheme.accentOrange, fontSize: 12.5)),
-            ),
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: courses.map((c) => SizedBox(width: 320, child: _buildCourseCard(c))).toList(),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ),
+      ],
     );
   }
 

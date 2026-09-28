@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../screens/transcript_confirm_screen.dart';
+import '../../../../services/grade_import_service.dart';
+import '../../../../state/transcript_provider.dart';
 import '../../../../theme/app_theme.dart';
 import '../../providers/chat_provider.dart';
 import 'chat_bubble.dart';
@@ -11,6 +15,7 @@ class ContextualChatPanel extends StatefulWidget {
   final String scopeId; // e.g. 'BIT_SE_K19B' or 'PRM393'
   final String title;
   final String? subtitle;
+  final int? semesterNumber;
   final List<String>? suggestedQuestions;
   final VoidCallback? onClose;
 
@@ -20,6 +25,7 @@ class ContextualChatPanel extends StatefulWidget {
     required this.scopeId,
     required this.title,
     this.subtitle,
+    this.semesterNumber,
     this.suggestedQuestions,
     this.onClose,
   });
@@ -32,6 +38,13 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
+  bool _isImportingTranscript = false;
+
+  static const String _backendBase = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: 'http://127.0.0.1:8000',
+  );
+  late final GradeImportService _gradeImportService = GradeImportService(baseUrl: _backendBase);
 
   @override
   void initState() {
@@ -48,7 +61,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   @override
   void didUpdateWidget(covariant ContextualChatPanel oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.scope != widget.scope || oldWidget.scopeId != widget.scopeId) {
+    if (oldWidget.scope != widget.scope ||
+        oldWidget.scopeId != widget.scopeId ||
+        oldWidget.semesterNumber != widget.semesterNumber) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         context.read<ChatProvider>().updateScope(
@@ -83,12 +98,93 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   void _handleSend(ChatProvider provider, String text) {
     if (text.trim().isEmpty) return;
     _textController.clear();
+
+    // Lấy dữ kiện học tập đã tính bằng code từ TranscriptProvider (Mục 7.4)
+    // Nếu chưa có bảng điểm, studentContext = {} và chat vẫn hoạt động bình thường
+    final tp = context.read<TranscriptProvider>();
+    final facts = tp.buildStudentContextFacts(
+      subjectCode: widget.scope == 'subject' ? widget.scopeId : null,
+      semesterNumber: widget.scope == 'curriculum' ? widget.semesterNumber : null,
+    );
+    final studentContext = facts.isEmpty ? null : facts;
+
     provider.sendPrompt(
       text,
       scope: widget.scope,
       id: widget.scopeId,
+      studentContext: studentContext,
     );
     _scrollToBottom();
+  }
+
+  Future<void> _sendTranscriptForAdvice(ChatProvider provider) async {
+    if (_isImportingTranscript || provider.isLoading) return;
+    setState(() => _isImportingTranscript = true);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        allowMultiple: true,
+        type: FileType.image,
+        withData: true,
+      );
+      if (result == null || result.files.isEmpty) return;
+
+      final images = result.files
+          .where((file) => file.bytes != null && file.bytes!.isNotEmpty)
+          .take(10)
+          .map((file) => ImageFile(
+                filename: file.name,
+                bytes: file.bytes!,
+                mimeType: _mimeTypeFor(file.extension),
+              ))
+          .toList();
+      if (images.isEmpty) throw GradeImportException('Không đọc được ảnh đã chọn.');
+
+      final imported = await _gradeImportService.importFromImages(images);
+      if (!mounted) return;
+      if (imported.entries.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(imported.warning.isEmpty ? 'Không đọc được bảng điểm.' : imported.warning)),
+        );
+        return;
+      }
+
+      final transcriptProvider = context.read<TranscriptProvider>();
+      await Navigator.push<void>(
+        context,
+        MaterialPageRoute(
+          builder: (_) => TranscriptConfirmScreen(
+            rawExtractedEntries: imported.entries,
+            importWarning: imported.warning,
+            onSaved: (confirmed) async {
+              await transcriptProvider.save(confirmed);
+              if (!mounted) return;
+              _handleSend(
+                provider,
+                'Tôi đã gửi ảnh và xác nhận bảng điểm. Hãy phân tích chiến lược học tập cho các học kỳ tiếp theo, '
+                'bắt đầu từ học kỳ hiện tại của tôi. Mục tiêu GPA tốt nghiệp là '
+                '${transcriptProvider.targetGpa.toStringAsFixed(1)}. Chỉ rõ môn ưu tiên, lý do, tín chỉ '
+                'và hành động cụ thể theo từng kỳ; không tự đoán dữ liệu syllabus còn thiếu.',
+              );
+            },
+          ),
+        ),
+      );
+    } on GradeImportException catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+    } catch (error) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gửi ảnh thất bại: $error')));
+    } finally {
+      if (mounted) setState(() => _isImportingTranscript = false);
+    }
+  }
+
+  static String _mimeTypeFor(String? extension) {
+    switch (extension?.toLowerCase()) {
+      case 'png': return 'image/png';
+      case 'webp': return 'image/webp';
+      case 'heic': return 'image/heic';
+      default: return 'image/jpeg';
+    }
   }
 
   List<String> get _defaultSuggestions {
@@ -262,12 +358,27 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             ),
             child: Row(
               children: [
+                IconButton(
+                  tooltip: 'Gửi ảnh bảng điểm để phân tích',
+                  onPressed: provider.isLoading || _isImportingTranscript
+                      ? null
+                      : () => _sendTranscriptForAdvice(provider),
+                  icon: _isImportingTranscript
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.add_photo_alternate_outlined),
+                  color: AppTheme.primaryBlue,
+                ),
                 Expanded(
                   child: TextField(
                     controller: _textController,
                     focusNode: _focusNode,
                     minLines: 1,
-                    maxLines: 4,
+                    maxLines: 1,
+                    textInputAction: TextInputAction.send,
                     decoration: InputDecoration(
                       hintText: widget.scope == 'subject'
                           ? 'Hỏi về môn ${widget.scopeId}...'

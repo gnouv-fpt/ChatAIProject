@@ -107,11 +107,7 @@ class Course {
     }
 
     if (los.isEmpty) {
-      los.addAll([
-        'Nắm vững kiến thức nền tảng và thực hành chuyên sâu môn $name ($code).',
-        'Thành thạo các công cụ, kỹ năng chuyên ngành đề xuất cho Học kỳ $semester.',
-        'Đạt các chuẩn đầu ra kiến thức và kỹ năng theo khung đào tạo FPT University.'
-      ]);
+      los.add('Chưa có dữ liệu chuẩn đầu ra cho môn $code.');
     }
 
     final prereqs = <String>[];
@@ -133,11 +129,11 @@ class Course {
       }
     }
     if (assessments.isEmpty) {
-      assessments.addAll(const [
-        AssessmentItem(item: 'Quiz & Assignments', weight: '20%', minMark: '>0'),
-        AssessmentItem(item: 'Practical Exam (PE) / Progress Test', weight: '30%', minMark: '>0'),
-        AssessmentItem(item: 'Final Exam (FE)', weight: '50%', minMark: '>= 4.0'),
-      ]);
+      assessments.add(const AssessmentItem(
+        item: 'Chưa có dữ liệu đánh giá',
+        weight: '',
+        minMark: '',
+      ));
     }
 
     final appears = <CourseAppearsIn>[];

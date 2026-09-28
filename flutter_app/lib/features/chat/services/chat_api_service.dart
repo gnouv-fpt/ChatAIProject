@@ -40,11 +40,13 @@ class ChatApiService {
 
   /// Gửi câu hỏi đến FastAPI RAG Chatbot Endpoint (`/api/v1/chat`)
   /// Hỗ trợ scope ('curriculum' | 'subject') và target id/courseCode theo Mục 5.1
+  /// studentContext: dữ kiện GPA đã tính bằng code (Mục 7.4), gửi kèm để LLM tư vấn chính xác
   Future<ChatResponseResult> sendMessage(
     String prompt, {
     String? scope,
     String? id,
     String? courseCode,
+    Map<String, dynamic>? studentContext,
   }) async {
     try {
       final payload = <String, dynamic>{
@@ -61,6 +63,11 @@ class ChatApiService {
       if (targetCourse != null && targetCourse.isNotEmpty) {
         payload['course_code'] = targetCourse;
       }
+      // Gửi dữ kiện học tập đã tính bằng code (Mục 7.4 — LLM không tự tính GPA)
+      if (studentContext != null && studentContext.isNotEmpty) {
+        payload['student_context'] = studentContext;
+      }
+
 
       final response = await client
           .post(

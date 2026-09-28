@@ -261,7 +261,20 @@ class MarkdownFormattedText extends StatelessWidget {
       }
 
       final matchedText = match.group(0)!;
-      if (matchedText.startsWith('**') && matchedText.endsWith('**')) {
+      // A single italic pattern can also match the two asterisks in `**`.
+      // Only strip delimiters when there is actually content between them.
+      final isBold = matchedText.length >= 4 &&
+          matchedText.startsWith('**') &&
+          matchedText.endsWith('**');
+      final isItalic = matchedText.length >= 3 &&
+          matchedText.startsWith('*') &&
+          matchedText.endsWith('*') &&
+          !matchedText.startsWith('**');
+      final isCode = matchedText.length >= 2 &&
+          matchedText.startsWith('`') &&
+          matchedText.endsWith('`');
+
+      if (isBold) {
         spans.add(
           TextSpan(
             text: matchedText.substring(2, matchedText.length - 2),
@@ -275,7 +288,7 @@ class MarkdownFormattedText extends StatelessWidget {
             ),
           ),
         );
-      } else if (matchedText.startsWith('*') && matchedText.endsWith('*')) {
+      } else if (isItalic) {
         spans.add(
           TextSpan(
             text: matchedText.substring(1, matchedText.length - 1),
@@ -287,7 +300,7 @@ class MarkdownFormattedText extends StatelessWidget {
             ),
           ),
         );
-      } else if (matchedText.startsWith('`') && matchedText.endsWith('`')) {
+      } else if (isCode) {
         spans.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
@@ -307,6 +320,19 @@ class MarkdownFormattedText extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                 ),
               ),
+            ),
+          ),
+        );
+      } else {
+        // Keep malformed Markdown visible instead of attempting an invalid slice.
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: TextStyle(
+              fontSize: fontSize,
+              height: 1.45,
+              fontWeight: baseBold ? FontWeight.w700 : FontWeight.w400,
+              color: defaultColor,
             ),
           ),
         );

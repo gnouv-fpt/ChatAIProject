@@ -6,6 +6,7 @@ import 'pages/course_detail_page.dart';
 import 'pages/curriculum_detail_page.dart';
 import 'pages/curriculum_list_page.dart';
 import 'state/course_catalog.dart';
+import 'state/transcript_provider.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -22,6 +23,7 @@ class FlmApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
         ChangeNotifierProvider(create: (_) => ChatProvider()),
+        ChangeNotifierProvider(create: (_) => TranscriptProvider()..load()),
       ],
       child: MaterialApp(
         title: 'FLM Knowledge & AI Assistant (Lab 1)',

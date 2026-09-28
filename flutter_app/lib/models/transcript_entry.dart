@@ -28,14 +28,25 @@ class TranscriptEntry {
   };
 
   factory TranscriptEntry.fromJson(Map<String, dynamic> json) {
+    final score = (json['score'] as num?)?.toDouble() ?? 0.0;
+    final status = json['status']?.toString();
     return TranscriptEntry(
-      courseCode: json['courseCode'] ?? '',
-      courseName: json['courseName'] ?? '',
-      score: (json['score'] as num?)?.toDouble() ?? 0.0,
-      credits: (json['credits'] as num?)?.toInt() ?? 3,
-      semester: (json['semester'] as num?)?.toInt() ?? 1,
-      isPassed: json['isPassed'] ?? (json['score'] != null && json['score'] >= 5.0),
+      // FastAPI responses use snake_case; local SharedPreferences uses camelCase.
+      courseCode: _normalizeCode((json['courseCode'] ?? json['course_code'] ?? '').toString()),
+      courseName: (json['courseName'] ?? json['course_name'] ?? '').toString(),
+      score: score,
+      credits: ((json['credits'] ?? 3) as num).toInt(),
+      semester: ((json['semester'] ?? 1) as num).toInt(),
+      isPassed: (json['isPassed'] ?? (status == 'passed' || score >= 5.0)) as bool,
       confidence: (json['confidence'] as num?)?.toDouble() ?? 1.0,
     );
+  }
+
+  static String _normalizeCode(String code) {
+    return code
+        .trim()
+        .replaceAll(RegExp(r'\s+'), '')
+        .replaceAll('Ð', 'Đ')
+        .toUpperCase();
   }
 }

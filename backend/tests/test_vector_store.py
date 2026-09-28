@@ -1,6 +1,6 @@
 import unittest
 from backend.app.services.flm_parser import FLMKnowledgeVaultParser
-from backend.app.services.vector_store import HybridVectorStore
+from backend.app.services.vector_store import SemanticVectorStore
 from backend.app.config import settings
 
 
@@ -10,7 +10,7 @@ class TestVectorStore(unittest.TestCase):
         json_path = settings.get_courses_data_path()
         self.parser = FLMKnowledgeVaultParser(vault_path, json_path)
         _, self.chunks = self.parser.load_all()
-        self.vector_store = HybridVectorStore()
+        self.vector_store = SemanticVectorStore()
         self.vector_store.index_chunks(self.chunks)
 
     def test_extract_target_courses(self):

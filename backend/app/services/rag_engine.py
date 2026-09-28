@@ -4,7 +4,7 @@ from ..config import settings
 from ..schemas.chat import ChatRequest, ChatResponse, SourceChunk
 from ..schemas.course import CourseDetail, CourseSummary
 from .flm_parser import FLMKnowledgeVaultParser, FLMDocumentChunk
-from .vector_store import HybridVectorStore
+from .vector_store import SemanticVectorStore
 from .llm_service import LLMService
 
 
@@ -15,7 +15,10 @@ class RAGEngine:
 
     def __init__(self):
         self.parser: Optional[FLMKnowledgeVaultParser] = None
-        self.vector_store: HybridVectorStore = HybridVectorStore()
+        self.vector_store: SemanticVectorStore = SemanticVectorStore(
+            model_name=settings.RAG_EMBEDDING_MODEL,
+            cache_dir=settings.RAG_EMBEDDING_CACHE,
+        )
         self.llm_service: LLMService = LLMService()
         self.courses: Dict[str, CourseDetail] = {}
         self.is_initialized: bool = False
@@ -50,6 +53,7 @@ class RAGEngine:
 
         # 1. Detect target courses & query intent
         detected_courses = self.vector_store.extract_target_courses(query)
+        detected_intents = self.vector_store.detect_query_intent(query)
         target_course = (
             request.course_code
             or (request.id if request.scope == "subject" else None)
@@ -73,6 +77,7 @@ class RAGEngine:
             question=query,
             retrieved_chunks=retrieved_results,
             detected_courses=detected_courses or ([target_course] if target_course and target_course not in ["BIT_SE_K19B", "CURRICULUM"] else []),
+            detected_intents=detected_intents,
             scope=request.scope,
             scope_id=request.id or target_course,
             student_context=request.student_context,

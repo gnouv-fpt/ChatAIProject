@@ -50,7 +50,7 @@ class Settings(BaseModel):
     LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "auto").lower()
     
     GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
-    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-1.5-flash")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
     
     OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
     OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
@@ -64,8 +64,9 @@ class Settings(BaseModel):
     
     # RAG Settings
     TOP_K_CHUNKS: int = int(os.getenv("TOP_K_CHUNKS", "4"))
-    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.10"))
-    ENABLE_EXACT_CODE_BOOST: bool = os.getenv("ENABLE_EXACT_CODE_BOOST", "true").lower() in ("1", "true", "yes")
+    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.32"))
+    RAG_EMBEDDING_MODEL: str = os.getenv("RAG_EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    RAG_EMBEDDING_CACHE: str = os.getenv("RAG_EMBEDDING_CACHE", ".rag_cache")
 
     def get_vault_path(self) -> Path:
         """Resolve knowledge vault directory path."""

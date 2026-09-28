@@ -4,11 +4,13 @@ import '../services/grade_calculator.dart';
 
 class TranscriptConfirmScreen extends StatefulWidget {
   final List<TranscriptEntry> rawExtractedEntries;
+  final String importWarning;
   final Function(List<TranscriptEntry>) onSaved;
 
   const TranscriptConfirmScreen({
     super.key,
     required this.rawExtractedEntries,
+    this.importWarning = '',
     required this.onSaved,
   });
 
@@ -23,70 +25,6 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
   void initState() {
     super.initState();
     _entries = List.from(widget.rawExtractedEntries);
-  }
-
-  void _editEntry(int index) {
-    final item = _entries[index];
-    final codeCtrl = TextEditingController(text: item.courseCode);
-    final scoreCtrl = TextEditingController(text: item.score.toString());
-    final creditCtrl = TextEditingController(text: item.credits.toString());
-    final semCtrl = TextEditingController(text: item.semester.toString());
-
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('Sửa thông tin: ${item.courseCode}'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: codeCtrl,
-                decoration: const InputDecoration(labelText: 'Mã môn học'),
-              ),
-              TextField(
-                controller: scoreCtrl,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(labelText: 'Điểm tổng kết (thang 10)'),
-              ),
-              TextField(
-                controller: creditCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Số tín chỉ'),
-              ),
-              TextField(
-                controller: semCtrl,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Học kỳ'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Hủy'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              setState(() {
-                final double newScore = double.tryParse(scoreCtrl.text) ?? item.score;
-                _entries[index] = TranscriptEntry(
-                  courseCode: GradeCalculator.normalizeCode(codeCtrl.text),
-                  score: newScore,
-                  credits: int.tryParse(creditCtrl.text) ?? item.credits,
-                  semester: int.tryParse(semCtrl.text) ?? item.semester,
-                  isPassed: newScore >= 5.0,
-                  confidence: 1.0,
-                );
-              });
-              Navigator.pop(ctx);
-            },
-            child: const Text('Lưu thay đổi'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -114,6 +52,25 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
       ),
       body: Column(
         children: [
+          if (widget.importWarning.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              color: Colors.amber.shade100,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.amber.shade900),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.importWarning,
+                      style: TextStyle(color: Colors.amber.shade900, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Container(
             padding: const EdgeInsets.all(16),
             color: Colors.indigo.shade50,
@@ -217,10 +174,6 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.edit, color: Colors.blue),
-                          onPressed: () => _editEntry(index),
-                        ),
-                        IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red),
                           onPressed: () {
                             setState(() {
@@ -236,51 +189,6 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
             ),
           ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: Colors.indigo,
-        foregroundColor: Colors.white,
-        icon: const Icon(Icons.add),
-        label: const Text('Thêm môn thủ công'),
-        onPressed: () {
-          final codeCtrl = TextEditingController();
-          final scoreCtrl = TextEditingController();
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              title: const Text('Thêm môn thủ công'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(controller: codeCtrl, decoration: const InputDecoration(labelText: 'Mã môn')),
-                  TextField(controller: scoreCtrl, decoration: const InputDecoration(labelText: 'Điểm')),
-                ],
-              ),
-              actions: [
-                TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Hủy')),
-                ElevatedButton(
-                  onPressed: () {
-                    if (codeCtrl.text.isNotEmpty) {
-                      setState(() {
-                        final s = double.tryParse(scoreCtrl.text) ?? 5.0;
-                        _entries.add(TranscriptEntry(
-                          courseCode: GradeCalculator.normalizeCode(codeCtrl.text),
-                          score: s,
-                          credits: 3,
-                          semester: 1,
-                          isPassed: s >= 5.0,
-                          confidence: 1.0,
-                        ));
-                      });
-                      Navigator.pop(ctx);
-                    }
-                  },
-                  child: const Text('Thêm'),
-                )
-              ],
-            ),
-          );
-        },
       ),
     );
   }

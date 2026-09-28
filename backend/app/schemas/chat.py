@@ -20,6 +20,7 @@ class StudentContext(BaseModel):
     is_target_feasible: Optional[bool] = Field(None, description="Whether target is feasible (required_avg <= 10)")
     rank_penalty_applied: Optional[bool] = Field(None, description="Whether rank penalty applies (retake >= 2)")
     current_semester: Optional[int] = Field(None, description="Current semester of student")
+    target_semester: Optional[int] = Field(None, description="Semester currently being advised")
     failed_courses: Optional[List[str]] = Field(default_factory=list, description="List of failed course codes")
     completed_courses: Optional[List[str]] = Field(default_factory=list, description="List of passed course codes")
 

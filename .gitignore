@@ -375,6 +375,7 @@ flm_raw_syllabi/
 # Environment files & caches
 .env
 .venv/
+.rag_cache/
 __pycache__/
 *.py[cod]
-*$py.class
+*$py.class

@@ -1,17 +1,18 @@
-import math
 import re
-from collections import Counter
 from typing import Dict, List, Optional, Set, Tuple
+
+import numpy as np
+from fastembed import TextEmbedding
 from .flm_parser import FLMDocumentChunk
 
 
-class HybridVectorStore:
+class SemanticVectorStore:
     """
-    Enhanced Hybrid Retrieval Engine for FLM Knowledge & AI Assistant:
-    1. Exact Entity & Course Code Extraction (with alias normalization).
-    2. Multi-intent Classification: Advising/Strategy, Assessment/PE/FE, LOs, Credits, Semester/Prereq, GPA Rules.
-    3. Multi-token n-gram lexical BM25 matching.
-    4. Intent-guided contextual ranking boost.
+    Embedding retrieval engine for FLM Knowledge & AI Assistant.
+
+    Retrieval is based on multilingual sentence embeddings and cosine
+    similarity. Exact course/entity detection remains only a scope guard; it
+    is never used as a substitute for semantic retrieval.
     """
 
     ALIASES = {
@@ -144,7 +145,7 @@ class HybridVectorStore:
         "pmg": "PMG201c",
         "pháp luật đại cương": "VNR202",
         "vnr": "VNR202",
-        "thiết kế web": "WDU203c",
+        "thiết kế web": "WED201c",
         "wdu": "WDU203c",
         "quản lý yêu cầu": "SWR302",
         "swr": "SWR302",
@@ -155,25 +156,45 @@ class HybridVectorStore:
         "prn": "PRN212",
     }
 
-    def __init__(self):
+    SEMANTIC_INTENT_EXAMPLES = {
+        "strategy_advisor": [
+            "Em nên bắt đầu từ đâu để học môn này cho đỡ ngợp?",
+            "Tôi cần một lộ trình thực tế để cải thiện kết quả học tập.",
+            "Nên ưu tiên phần nào và luyện như thế nào để làm bài tốt?",
+        ],
+        "assessment": [
+            "Môn này được đánh giá và kiểm tra theo những phần nào?",
+            "Tôi cần chuẩn bị cho các bài thi và bài thực hành ra sao?",
+        ],
+        "outcomes": [
+            "Học xong môn này tôi phải làm được gì?",
+            "Môn học muốn sinh viên đạt được năng lực nào?",
+        ],
+        "prerequisites": [
+            "Trước khi học môn này cần biết những gì và học sau môn nào?",
+            "Môn này nằm ở đâu trong lộ trình chương trình?",
+        ],
+        "grade_goal": [
+            "Tôi muốn đạt điểm chín trong môn này, cần phân bổ nỗ lực thế nào?",
+            "Tôi muốn ra trường với GPA cao hơn, hãy tính mục tiêu điểm cần đạt.",
+            "Mục tiêu điểm số của tôi là bao nhiêu và có khả thi không?",
+        ],
+    }
+
+    def __init__(self, model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", cache_dir: str = ".rag_cache", embedder=None):
         self.chunks: List[FLMDocumentChunk] = []
-        self.chunk_tokens: List[List[str]] = []
-        self.doc_freqs: Dict[str, int] = {}
-        self.total_docs: int = 0
-        self.avg_doc_len: float = 0.0
+        self.embeddings: Optional[np.ndarray] = None
         self.course_codes: Set[str] = set()
         self.course_name_map: Dict[str, str] = {}
+        self.model_name = model_name
+        self.cache_dir = cache_dir
+        self.embedder = embedder
 
     def index_chunks(self, chunks: List[FLMDocumentChunk]):
-        """Builds inverted indices and statistics from list of document chunks."""
+        """Encode every knowledge chunk once and keep a normalized matrix."""
         self.chunks = chunks
-        self.total_docs = len(chunks)
-        self.chunk_tokens = []
-        self.doc_freqs = {}
         self.course_codes = set()
         self.course_name_map = {}
-
-        total_tokens = 0
         for chunk in chunks:
             if chunk.course_code:
                 c_upper = chunk.course_code.upper()
@@ -181,35 +202,34 @@ class HybridVectorStore:
                 if chunk.course_name and c_upper not in self.course_name_map:
                     self.course_name_map[c_upper] = chunk.course_name.lower()
 
-            text = chunk.to_text_for_embedding()
-            tokens = self._tokenize(text)
-            self.chunk_tokens.append(tokens)
-            total_tokens += len(tokens)
+        texts = [f"passage: {chunk.to_text_for_embedding()}" for chunk in chunks]
+        self.embeddings = self._encode(texts)
+        print(f"[SemanticStore] Indexed {len(self.chunks)} chunks across {len(self.course_codes)} courses using {self.model_name}.")
 
-            unique_tokens = set(tokens)
-            for t in unique_tokens:
-                self.doc_freqs[t] = self.doc_freqs.get(t, 0) + 1
+    def canonical_course_code(self, code: Optional[str]) -> Optional[str]:
+        if not code:
+            return None
+        normalized = re.sub(r"\s+", "", code).upper()
+        alias = self.ALIASES.get(normalized, normalized)
+        return alias.upper()
 
-        self.avg_doc_len = total_tokens / max(1, self.total_docs)
-        print(f"[VectorStore] Indexed {self.total_docs} chunks across {len(self.course_codes)} courses.")
+    def _get_embedder(self):
+        if self.embedder is None:
+            self.embedder = TextEmbedding(model_name=self.model_name, cache_dir=self.cache_dir)
+        return self.embedder
 
-    def _tokenize(self, text: str) -> List[str]:
-        """Tokenize text into lower-case words and meaningful phrase bigrams."""
-        cleaned = re.sub(r"[^\w\s\d]", " ", (text or "").lower())
-        words = [w for w in cleaned.split() if len(w) > 1]
-        
-        expanded = []
-        for w in words:
-            expanded.append(w)
-            m = re.match(r"^([a-z]{2,5})(\d{1,4}[a-z]?)$", w)
-            if m:
-                expanded.append(m.group(1))
-                expanded.append(m.group(2))
-
-        bigrams = []
-        for i in range(len(words) - 1):
-            bigrams.append(f"{words[i]}_{words[i+1]}")
-        return expanded + bigrams
+    def _encode(self, texts: List[str]) -> np.ndarray:
+        if not texts:
+            return np.empty((0, 0), dtype=np.float32)
+        try:
+            vectors = np.asarray(list(self._get_embedder().embed(texts)), dtype=np.float32)
+        except Exception as exc:
+            raise RuntimeError(
+                f"Không thể tạo embedding semantic bằng model '{self.model_name}'. "
+                "Kiểm tra fastembed/model cache hoặc kết nối mạng để tải model."
+            ) from exc
+        norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+        return vectors / np.maximum(norms, 1e-12)
 
     def extract_target_courses(self, query: str) -> List[str]:
         """
@@ -228,14 +248,14 @@ class HybridVectorStore:
         matches = re.findall(r"\b([A-Za-z]{3})\s*(\d{3}[A-Za-z]?)\b", q_norm)
         for prefix, number in matches:
             code = f"{prefix}{number}".upper()
-            canonical = self.ALIASES.get(code, code)
+            canonical = self.canonical_course_code(code) or code
             detected.append(canonical)
 
         # 2. Direct course codes in uppercase/lowercase (e.g. VOV114, GDQP1)
         direct_matches = re.findall(r"\b([A-Za-z]{2,5}\d{1,4}[A-Za-z]?)\b", q_norm)
         for dm in direct_matches:
             code = dm.upper()
-            canonical = self.ALIASES.get(code, code)
+            canonical = self.canonical_course_code(code) or code
             detected.append(canonical)
 
         # 3. Natural keyword and subject alias lookup
@@ -255,7 +275,7 @@ class HybridVectorStore:
             if t_upper not in STOPWORDS:
                 matching = sorted([c for c in self.course_codes if c.startswith(t_upper)])
                 if matching:
-                    canonical = self.ALIASES.get(matching[0], matching[0])
+                    canonical = self.canonical_course_code(matching[0]) or matching[0]
                     detected.append(canonical)
 
         # 5. Search in indexed course names
@@ -266,7 +286,7 @@ class HybridVectorStore:
         # Validate against known codes or retain detected
         final_list = []
         for c in detected:
-            canonical = self.ALIASES.get(c, c)
+            canonical = self.canonical_course_code(c) or c
             if canonical in self.course_codes or not self.course_codes:
                 final_list.append(canonical)
             else:
@@ -338,6 +358,29 @@ class HybridVectorStore:
             intents.append("curriculum")
             intents.append("overview")
 
+        # Keyword rules handle explicit requests. Embedding prototypes handle
+        # natural advisory language such as "em nên bắt đầu từ đâu" where no
+        # fixed advice keyword is present.
+        if self.embeddings is not None:
+            try:
+                query_vector = self._encode([f"query: {query}"])[0]
+                intent_thresholds = {
+                    "strategy_advisor": 0.58,
+                    "assessment": 0.70,
+                    "outcomes": 0.72,
+                    "prerequisites": 0.72,
+                    "grade_goal": 0.70,
+                }
+                for intent, examples in self.SEMANTIC_INTENT_EXAMPLES.items():
+                    example_vectors = self._encode([f"query: {example}" for example in examples])
+                    semantic_score = float(np.max(example_vectors @ query_vector))
+                    if semantic_score >= intent_thresholds[intent] and intent not in intents:
+                        intents.append(intent)
+            except Exception:
+                # Retrieval still has a clear error path; intent enrichment is
+                # optional and must not hide a valid semantic search result.
+                pass
+
         return intents
 
     def search(
@@ -347,80 +390,49 @@ class HybridVectorStore:
         target_course: Optional[str] = None,
         similarity_threshold: float = 0.03,
     ) -> List[Tuple[FLMDocumentChunk, float]]:
-        """
-        Hybrid search combining BM25 scoring with course targeting and intent boosting.
-        """
-        if not self.chunks:
+        """Search by multilingual embedding similarity inside a safe scope."""
+        if not self.chunks or self.embeddings is None:
+            return []
+        if not query.strip():
             return []
 
-        query_tokens = self._tokenize(query)
-        if not query_tokens:
-            return []
-
-        # Identify course codes in query
-        detected_courses = [target_course.upper()] if target_course else self.extract_target_courses(query)
+        detected_courses = [self.canonical_course_code(target_course)] if target_course else self.extract_target_courses(query)
         intents = self.detect_query_intent(query)
 
-        # Candidate filtering: if a specific course was detected, evaluate that course's chunks
         target_course_code = detected_courses[0] if detected_courses else None
-        target_indices = []
+        target_indices: List[int] = []
         if target_course_code:
             if target_course_code in ["CURRICULUM", "BIT_SE_K19B"]:
                 target_indices = [i for i, c in enumerate(self.chunks) if c.course_code in ["CURRICULUM", "BIT_SE_K19B"] or c.category == "curriculum"]
             else:
-                target_indices = [i for i, c in enumerate(self.chunks) if c.course_code == target_course_code]
+                target_indices = [
+                    i for i, c in enumerate(self.chunks)
+                    if (c.course_code or "").upper() == target_course_code.upper()
+                ]
+
+                if not target_indices:
+                    return []
 
         candidate_indices = target_indices if target_indices else list(range(len(self.chunks)))
+        query_vector = self._encode([f"query: {query}"])[0]
+        scores = self.embeddings[candidate_indices] @ query_vector
+        ranked = sorted(zip(candidate_indices, scores.tolist()), key=lambda x: x[1], reverse=True)
 
-        # BM25 Parameters
-        k1 = 1.2
-        b = 0.75
-        scored_chunks: List[Tuple[FLMDocumentChunk, float]] = []
-
-        q_tf = Counter(query_tokens)
-
-        for i in candidate_indices:
-            chunk = self.chunks[i]
-            doc_tokens = self.chunk_tokens[i]
-            doc_len = len(doc_tokens)
-            doc_tf = Counter(doc_tokens)
-            bm25_score = 0.0
-
-            for term, count in q_tf.items():
-                if term in doc_tf:
-                    tf = doc_tf[term]
-                    df = self.doc_freqs.get(term, 1)
-                    idf = math.log(1 + (self.total_docs - df + 0.5) / (df + 0.5))
-                    term_score = idf * (tf * (k1 + 1)) / (tf + k1 * (1 - b + b * (doc_len / self.avg_doc_len)))
-                    bm25_score += term_score
-
-            # Boost 1: Exact Course Match or Curriculum Match
-            course_boost = 1.0
-            if detected_courses:
-                if chunk.course_code in detected_courses or (target_course and chunk.course_code == target_course.upper()):
-                    course_boost = 3.5
-                elif any(dc in ["CURRICULUM", "BIT_SE_K19B"] for dc in detected_courses) and chunk.category == "curriculum":
-                    course_boost = 3.5
-                else:
-                    course_boost = 0.1
-
-            # Boost 2: Intent Category Alignment
-            intent_boost = 1.0
-            if intents:
-                if "strategy_advisor" in intents:
-                    # Strategy advisor needs assessment + syllabus + outcomes
-                    if chunk.category in ["assessment", "syllabus", "outcomes"]:
-                        intent_boost = 2.2
-                elif chunk.category in intents:
-                    intent_boost = 2.0
-
-            base_bm25 = bm25_score if bm25_score > 0 else 0.5
-            final_score = base_bm25 * course_boost * intent_boost
-
-            if final_score > similarity_threshold:
-                scored_chunks.append((chunk, final_score))
-
-        # Sort descending by score
-        scored_chunks.sort(key=lambda x: x[1], reverse=True)
-        return scored_chunks[:top_k]
+        # Semantic similarity chooses relevance. Intent only diversifies the
+        # evidence needed for an answer; it never turns an unrelated chunk
+        # into a match.
+        selected: List[Tuple[FLMDocumentChunk, float]] = []
+        category_counts: Dict[str, int] = {}
+        for index, score in ranked:
+            if score < similarity_threshold:
+                continue
+            chunk = self.chunks[index]
+            category = chunk.category or "unknown"
+            if category_counts.get(category, 0) >= 2:
+                continue
+            selected.append((chunk, float(score)))
+            category_counts[category] = category_counts.get(category, 0) + 1
+            if len(selected) >= top_k:
+                break
+        return selected
 

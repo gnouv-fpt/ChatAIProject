@@ -136,6 +136,20 @@ class FLMKnowledgeVaultParser:
         syllabus_text = sections.get("syllabus", "")
         schedule_text = sections.get("schedule", "")
 
+        # Many FLM exports put the detailed CLO, assessment, and schedule
+        # tables under one level-3 heading inside the syllabus section.
+        # Extract those subsections instead of treating the whole syllabus as
+        # an unstructured blob.
+        clo_detail = self._extract_subsection(syllabus_text, r"chuẩn đầu ra môn học|course learning outcomes|clos?")
+        assessment_detail = self._extract_subsection(syllabus_text, r"cấu trúc điểm thi|assessment scheme|đánh giá chi tiết")
+        schedule_detail = self._extract_subsection(syllabus_text, r"lịch trình buổi học|schedule")
+        if clo_detail:
+            outcomes_text = clo_detail
+        if assessment_detail:
+            assessment_text = assessment_detail
+        if schedule_detail:
+            schedule_text = "\n".join(part for part in [schedule_text, schedule_detail] if part)
+
         # Extract specific syllabus fields
         pass_mark_match = re.search(r"MinAvgMarkToPass.*?`([^`]+)`", syllabus_text)
         min_pass_mark = pass_mark_match.group(1) if pass_mark_match else "5.0"
@@ -143,7 +157,11 @@ class FLMKnowledgeVaultParser:
         tools_match = re.search(r"Công cụ & phần mềm yêu cầu.*?\n> (.*?)(?=\n- \*\*|\n##|\Z)", syllabus_text, re.DOTALL)
         software_tools = tools_match.group(1).strip() if tools_match else None
 
-        time_match = re.search(r"Phân bổ thời gian học.*?: (.*?)(?=\n- \*\*|\n##|\Z)", syllabus_text)
+        time_match = re.search(
+            r"\*\*Phân bổ thời gian học.*?:\s*(.*?)(?=\n-\s+\*\*|\n##|\Z)",
+            syllabus_text,
+            re.DOTALL,
+        )
         time_allocation = time_match.group(1).strip() if time_match else None
 
         course_detail = CourseDetail(
@@ -336,6 +354,17 @@ class FLMKnowledgeVaultParser:
                 sections[title_line[:20]] = body_line
 
         return sections
+
+    @staticmethod
+    def _extract_subsection(text: str, title_pattern: str) -> str:
+        """Return the body of a level-3 Markdown heading inside a section."""
+        if not text:
+            return ""
+        match = re.search(
+            rf"(?ims)^###\s+.*?(?:{title_pattern}).*?$\n(.*?)(?=^###\s+|\Z)",
+            text,
+        )
+        return match.group(1).strip() if match else ""
 
     def _parse_curriculum_md_file(self, file_path: Path):
         """Parses curriculum file like BIT_SE_K19B.md and registers curriculum chunks."""

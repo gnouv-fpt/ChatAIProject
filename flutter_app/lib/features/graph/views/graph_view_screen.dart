@@ -3,7 +3,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../models/course.dart';
 import '../../../pages/course_detail_page.dart';
 import '../../../state/course_catalog.dart';
 import '../data/vault_graph_data.dart';
@@ -194,8 +193,8 @@ class _GraphViewScreenState extends State<GraphViewScreen> with SingleTickerProv
     // 1. Ba Hub trung tâm chuẩn Obsidian Vault
     final hub1 = GraphNodeData(
       id: 'Curriculum_Overview',
-      label: 'Curriculum_Overview',
-      title: 'Tổng quan chương trình đào tạo BIT_SE_K19B',
+      label: 'Tổng quan chương trình',
+      title: 'Tổng quan chương trình đào tạo BIT SE K19B',
       semester: 0,
       credits: 145,
       color: const Color(0xFFF59E0B), // Vàng cam Obsidian Hub lớn
@@ -205,7 +204,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> with SingleTickerProv
     );
     final hub2 = GraphNodeData(
       id: 'Program_Learning_Outcomes',
-      label: 'Program_Learning_Outcomes',
+      label: 'Chuẩn đầu ra chương trình',
       title: '13 Chuẩn đầu ra ngành',
       semester: 0,
       credits: 13,
@@ -216,7 +215,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> with SingleTickerProv
     );
     final hub3 = GraphNodeData(
       id: 'BIT_SE_K19B',
-      label: 'BIT_SE_K19B',
+      label: 'BIT SE K19B',
       title: 'Chuyên ngành Kỹ thuật Phần mềm',
       semester: 0,
       credits: 145,
@@ -237,7 +236,7 @@ class _GraphViewScreenState extends State<GraphViewScreen> with SingleTickerProv
       final pos = kObsidianGraphCoords[tagId] ?? Offset(0.8 * cos(sem * 0.6), 0.8 * sin(sem * 0.6));
       final tagNode = GraphNodeData(
         id: tagId,
-        label: tagId,
+        label: 'Học kỳ $sem',
         title: 'Học kỳ $sem',
         semester: sem,
         credits: 0,

@@ -18,7 +18,7 @@ flowchart TD
     Router -->|POST /api/v1/chat| ChatEP["Chat & RAG Endpoint"]
 
     ChatEP --> RAG["RAG Engine"]
-    RAG --> VS["Hybrid Vector Store (BM25 + Semantic + Exact Match)"]
+    RAG --> VS["Semantic Vector Store (multilingual embeddings + scope guard)"]
     RAG --> LLM["Multi-Provider LLM Service"]
 
     VS --> Vault[("📁 flm_knowledge_vault (54 .md files)")]
@@ -37,7 +37,7 @@ flowchart TD
 
 1. **RAG Pipeline Thông Minh & Tốc Độ Cao:**
    - Đọc và phân tách tự động 54 tập tin Markdown trong `flm_knowledge_vault/` thành 240+ semantic chunks có gán metadata chi tiết.
-   - Hybrid Search kết hợp: BM25 lexical token matching + Intent classification (PE/FE, LOs, Credits, Semester, Syllabus) + Exact course boosting.
+   - Semantic Search bằng multilingual embeddings; intent và mã môn chỉ dùng để giới hạn phạm vi và chọn đủ bằng chứng, không dùng BM25 hay fallback keyword.
 2. **Hỗ Trợ Đa Nhà Cung Cấp LLM (Multi-Provider Support):**
    - **Google Gemini** (`gemini-1.5-flash`), **OpenAI** (`gpt-4o-mini`), **Groq** (`llama-3.3-70b-versatile`), **Ollama** (Local).
    - Tích hợp **Smart FLM Local Synthesizer** chạy offline 100% không phụ thuộc internet/API key, đảm bảo trả lời chính xác tất cả các kịch bản mẫu.

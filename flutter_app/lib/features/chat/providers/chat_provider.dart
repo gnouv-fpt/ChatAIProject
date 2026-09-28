@@ -69,7 +69,12 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> sendPrompt(String text, {String? scope, String? id}) async {
+  Future<void> sendPrompt(
+    String text, {
+    String? scope,
+    String? id,
+    Map<String, dynamic>? studentContext,
+  }) async {
     final prompt = text.trim();
     if (prompt.isEmpty || _isLoading) return;
 
@@ -104,11 +109,12 @@ class ChatProvider extends ChangeNotifier {
     _lastError = null;
     notifyListeners();
 
-    // Call API Service with scope & id
+    // Call API Service with scope, id, and student_context facts (Mục 7.4)
     final result = await _apiService.sendMessage(
       prompt,
       scope: activeScope,
       id: activeId,
+      studentContext: studentContext,
     );
 
     // Update AI Message
