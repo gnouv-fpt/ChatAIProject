@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Presentation.BackgroundJobs;
 using Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -86,12 +87,20 @@ builder.Services.AddDbContext<ChatAIWebDbContext>(options =>
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("ChatAIWeb legal document crawler");
+});
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 // ==================== Services injection ====================
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddHostedService<MidnightCleanupJob>();
 
 var app = builder.Build();
 
