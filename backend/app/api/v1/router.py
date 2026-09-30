@@ -3,6 +3,7 @@ from .endpoints.chat import router as chat_router
 from .endpoints.health import router as health_router
 from .endpoints.courses import router as courses_router
 from .endpoints.grade_import import router as grade_import_router
+from .endpoints.vision_chat import router as vision_chat_router
 
 api_v1_router = APIRouter()
 
@@ -10,3 +11,4 @@ api_v1_router.include_router(health_router, tags=["Health & Diagnostics"])
 api_v1_router.include_router(chat_router, tags=["Chat & RAG Assistant"])
 api_v1_router.include_router(courses_router, tags=["Courses & Knowledge Base"])
 api_v1_router.include_router(grade_import_router, tags=["Grade Import (Vision OCR)"])
+api_v1_router.include_router(vision_chat_router, tags=["Vision Chat"])

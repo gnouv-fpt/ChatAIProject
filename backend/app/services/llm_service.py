@@ -17,7 +17,7 @@ class LLMService:
     - OpenAI (GPT models)
     - Groq (Ultra-fast Llama inference)
     - Ollama (Local LLM server)
-    - Advanced FLM Synthesis Engine with actionable academic advising & dynamic grounded generation.
+    - Grounded generation through the configured provider. No legacy answer fallback is used.
     """
 
     def __init__(self):
@@ -37,7 +37,7 @@ class LLMService:
             or self._http_client.is_closed
             or getattr(self, "_loop", None) != current_loop
         ):
-            self._http_client = httpx.AsyncClient(timeout=15.0)
+            self._http_client = httpx.AsyncClient(timeout=30.0)
             self._loop = current_loop
         return self._http_client
 
@@ -115,70 +115,50 @@ class LLMService:
         context_str = self._format_context(retrieved_chunks)
         student_facts_str = self._format_student_facts(student_context)
 
-        # For FLM-scoped questions, the deterministic synthesizer is the
-        # source of truth. A cloud model may paraphrase, but it must not be
-        # allowed to replace scoped retrieval with an unrelated answer.
-        use_structured_synthesis = bool(scope in {"subject", "curriculum"} or detected_courses)
+        # Only the configured provider may generate the answer. Retry transient
+        # failures, but never route back to the removed template synthesizer.
+        provider_calls = {
+            "Gemini": self._call_gemini,
+            "OpenAI": self._call_openai,
+            "Groq": self._call_groq,
+            "Ollama": self._call_ollama,
+        }
+        provider_call = provider_calls.get(provider)
+        last_error = "provider_not_configured"
+        if provider_call:
+            for attempt in range(1, 4):
+                try:
+                    answer = await provider_call(question, context_str, student_facts_str)
+                    if answer:
+                        return self._sanitize_output(answer), provider
+                    last_error = "empty_provider_response"
+                except Exception as exc:
+                    last_error = self._safe_provider_error(exc)
+                    print(f"[LLMService] {provider} attempt {attempt}/3 failed: {last_error}")
+                    # A 429 is quota/rate limiting, not a transient network
+                    # failure. Repeating immediately only wastes requests.
+                    if last_error == "provider_rate_limited":
+                        break
+                if attempt < 3:
+                    await asyncio.sleep(attempt)
 
-        if use_structured_synthesis:
-            answer = self._synthesize_advanced_response(
-                question=question,
-                retrieved_chunks=retrieved_chunks,
-                detected_courses=detected_courses,
-                scope=scope,
-                scope_id=scope_id,
-                student_context=student_context,
-                all_courses=all_courses or {},
-                curriculum_info=curriculum_info or {},
-                detected_intents=detected_intents or [],
-            )
-            return self._sanitize_output(answer), "FLM-Structured-RAG"
-
-        # 1. Try Primary Cloud Provider if available
-        if provider == "Gemini":
-            try:
-                answer = await self._call_gemini(question, context_str, student_facts_str)
-                if answer:
-                    return self._sanitize_output(answer), "Gemini"
-            except Exception as e:
-                print(f"[LLMService] Gemini error: {e}. Falling back to Advanced Synthesizer.")
-
-        elif provider == "OpenAI":
-            try:
-                answer = await self._call_openai(question, context_str, student_facts_str)
-                if answer:
-                    return self._sanitize_output(answer), "OpenAI"
-            except Exception as e:
-                print(f"[LLMService] OpenAI error: {e}. Falling back to Advanced Synthesizer.")
-
-        elif provider == "Groq":
-            try:
-                answer = await self._call_groq(question, context_str, student_facts_str)
-                if answer:
-                    return self._sanitize_output(answer), "Groq"
-            except Exception as e:
-                print(f"[LLMService] Groq error: {e}. Falling back to Advanced Synthesizer.")
-
-        elif provider == "Ollama":
-            try:
-                answer = await self._call_ollama(question, context_str, student_facts_str)
-                if answer:
-                    return self._sanitize_output(answer), "Ollama"
-            except Exception as e:
-                print(f"[LLMService] Ollama error: {e}. Falling back to Advanced Synthesizer.")
-
-        # 2. Advanced Contextual Synthesis Engine
-        answer = self._synthesize_advanced_response(
-            question=question,
-            retrieved_chunks=retrieved_chunks,
-            detected_courses=detected_courses,
-            scope=scope,
-            scope_id=scope_id,
-            student_context=student_context,
-            all_courses=all_courses or {},
-            curriculum_info=curriculum_info or {},
+        return (
+            f"Mô hình {provider} hiện chưa trả lời được câu hỏi ({last_error}). Vui lòng thử lại sau.",
+            "RAG-Generation-Unavailable",
         )
-        return self._sanitize_output(answer), "FLM-Advanced-Synthesizer"
+
+    @staticmethod
+    def _safe_provider_error(exception: Exception) -> str:
+        """Return diagnostics without exposing keys, prompts, or response bodies."""
+        if isinstance(exception, httpx.TimeoutException):
+            return "provider_timeout"
+        if isinstance(exception, httpx.HTTPStatusError):
+            if exception.response.status_code == 429:
+                return "provider_rate_limited"
+            return f"provider_http_{exception.response.status_code}"
+        if isinstance(exception, httpx.HTTPError):
+            return "provider_network_error"
+        return exception.__class__.__name__
 
     def _format_context(self, chunks: List[Tuple[FLMDocumentChunk, float]]) -> str:
         parts = []
@@ -217,6 +197,8 @@ class LLMService:
             "Nhiệm vụ của bạn là giải đáp thông tin và tư vấn chiến lược học tập cho sinh viên.\n\n"
             "Quy tắc phản hồi:\n"
             "1. Dùng tiếng Việt tự nhiên, gãy gọn, chuyên nghiệp. Không lạm dụng dấu in đậm (**) tràn lan ở mọi từ ngữ.\n"
+            "1a. Không dùng một mẫu cố định cho mọi câu hỏi; mở đầu trực tiếp theo đúng điều người học đang hỏi.\n"
+            "1b. Chỉ đưa các mục, con số hoặc khuyến nghị thật sự liên quan; không cố điền đủ một checklist chung.\n"
             "2. Khi được hỏi tư vấn học tập hoặc chiến lược ôn thi (PE/FE), hãy đưa ra lời khuyên cụ thể, có tính hành động cao (actionable): "
             "phân bổ thời gian, kỹ năng cần rèn luyện, cách tận dụng môn tiên quyết, lưu ý về điểm tối thiểu.\n"
             "3. Tuyệt đối trung thực với dữ liệu FLM. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
@@ -252,7 +234,11 @@ class LLMService:
                 parts = candidates[0].get("content", {}).get("parts", [])
                 if parts:
                     return parts[0].get("text", "").strip()
-        return None
+        raise httpx.HTTPStatusError(
+            "Gemini generation failed",
+            request=resp.request,
+            response=resp,
+        )
 
     async def _call_openai(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
         api_key = settings.OPENAI_API_KEY
@@ -276,7 +262,11 @@ class LLMService:
         if resp.status_code == 200:
             data = resp.json()
             return data["choices"][0]["message"]["content"].strip()
-        return None
+        raise httpx.HTTPStatusError(
+            "OpenAI generation failed",
+            request=resp.request,
+            response=resp,
+        )
 
     async def _call_groq(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
         api_key = settings.GROQ_API_KEY
@@ -300,17 +290,59 @@ class LLMService:
         if resp.status_code == 200:
             data = resp.json()
             return data["choices"][0]["message"]["content"].strip()
-        return None
+        raise httpx.HTTPStatusError(
+            "Groq generation failed",
+            request=resp.request,
+            response=resp,
+        )
 
     async def _call_ollama(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
         base_url = settings.OLLAMA_BASE_URL.rstrip("/")
         model = settings.OLLAMA_MODEL
         prompt = f"{self._build_system_prompt()}\n\n{student_facts}=== DỮ LIỆU FLM ===\n{context}\n\n=== CÂU HỎI ===\n{question}\n\n=== TRẢ LỜI ==="
-        payload = {"model": model, "prompt": prompt, "stream": False}
-        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=20.0)
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "keep_alive": "10m",
+            "options": {
+                "temperature": 0.25,
+                "num_predict": 900,
+            },
+        }
+        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=90.0)
         if resp.status_code == 200:
             return resp.json().get("response", "").strip()
-        return None
+        raise httpx.HTTPStatusError(
+            "Ollama generation failed",
+            request=resp.request,
+            response=resp,
+        )
+
+    async def call_text_extraction(self, prompt: str) -> str:
+        """Normalize OCR text with the configured text model, never a vision model."""
+        if settings.LLM_PROVIDER != "ollama":
+            raise RuntimeError("OCR extraction hiện yêu cầu LLM_PROVIDER=ollama.")
+        payload = {
+            "model": settings.OLLAMA_MODEL,
+            "prompt": prompt,
+            "stream": False,
+            "keep_alive": "0",
+            "options": {"temperature": 0.0, "num_predict": 1400},
+        }
+        response = await self.http_client.post(
+            f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate",
+            json=payload,
+            timeout=180.0,
+        )
+        if response.status_code != 200:
+            raise RuntimeError(
+                f"Ollama text extraction HTTP {response.status_code}: {response.text[:500]}"
+            )
+        answer = response.json().get("response", "").strip()
+        if not answer:
+            raise RuntimeError("Ollama text extraction trả về rỗng.")
+        return answer
 
     @staticmethod
     def _target_semester(question: str, student_context: Optional[Dict[str, Any]]) -> Optional[int]:
@@ -1300,6 +1332,39 @@ class LLMService:
         Dùng cho import-grade endpoint để OCR bảng điểm.
         Fallback: trả về chuỗi JSON rỗng nếu không có API key.
         """
+        if settings.VISION_PROVIDER == "ollama":
+            payload = {
+                "model": settings.OLLAMA_VISION_MODEL,
+                "prompt": system_prompt,
+                "images": [image_b64],
+                "stream": False,
+                # The machine cannot keep multiple models resident.  Release the
+                # vision model after each request so text and vision do not fight
+                # for RAM when they are used sequentially.
+                "keep_alive": "0",
+                "options": {"temperature": 0.1, "num_predict": 4096},
+            }
+            response = await self.http_client.post(
+                f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate",
+                json=payload,
+                # qwen2.5vl:3b runs on CPU on this machine; loading and
+                # evaluating a screenshot can legitimately take several minutes.
+                timeout=300.0,
+            )
+            if response.status_code == 404:
+                raise RuntimeError(
+                    f"Ollama vision model '{settings.OLLAMA_VISION_MODEL}' chưa được cài. "
+                    f"Chạy: ollama pull {settings.OLLAMA_VISION_MODEL}"
+                )
+            if response.status_code != 200:
+                raise RuntimeError(
+                    f"Ollama Vision HTTP {response.status_code}: {response.text[:500]}"
+                )
+            answer = response.json().get("response", "").strip()
+            if not answer:
+                raise RuntimeError("Ollama Vision trả về câu trả lời rỗng.")
+            return answer
+
         if not settings.GEMINI_API_KEY and not settings.OPENAI_API_KEY:
             raise RuntimeError("Chưa cấu hình GEMINI_API_KEY hoặc OPENAI_API_KEY để đọc ảnh bảng điểm.")
 

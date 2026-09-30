@@ -186,6 +186,10 @@ class SemanticVectorStore:
         self.embeddings: Optional[np.ndarray] = None
         self.course_codes: Set[str] = set()
         self.course_name_map: Dict[str, str] = {}
+        self.course_profile_codes: List[str] = []
+        self.course_profile_embeddings: Optional[np.ndarray] = None
+        self.chunk_tokens: List[Set[str]] = []
+        self.token_idf: Dict[str, float] = {}
         self.model_name = model_name
         self.cache_dir = cache_dir
         self.embedder = embedder
@@ -204,7 +208,50 @@ class SemanticVectorStore:
 
         texts = [f"passage: {chunk.to_text_for_embedding()}" for chunk in chunks]
         self.embeddings = self._encode(texts)
+        self.chunk_tokens = [self._tokenize(chunk.to_text_for_embedding()) for chunk in chunks]
+        document_frequency: Dict[str, int] = {}
+        for tokens in self.chunk_tokens:
+            for token in tokens:
+                document_frequency[token] = document_frequency.get(token, 0) + 1
+        total_chunks = max(1, len(self.chunk_tokens))
+        self.token_idf = {
+            token: float(np.log((1 + total_chunks) / (1 + frequency)) + 1.0)
+            for token, frequency in document_frequency.items()
+        }
+
+        # A separate course-profile index lets semantic entity resolution work
+        # even when the user describes a subject without using its exact alias.
+        self.course_profile_codes = sorted(self.course_name_map)
+        profile_texts = [
+            f"Mã môn {code}. Tên môn: {self.course_name_map[code]}"
+            for code in self.course_profile_codes
+        ]
+        self.course_profile_embeddings = self._encode(
+            [f"passage: {text}" for text in profile_texts]
+        ) if profile_texts else None
         print(f"[SemanticStore] Indexed {len(self.chunks)} chunks across {len(self.course_codes)} courses using {self.model_name}.")
+
+    @staticmethod
+    def _tokenize(text: str) -> Set[str]:
+        """Tokenize Vietnamese text for a small BM25-like lexical signal."""
+        tokens = re.findall(r"[a-z0-9À-ỹ]+", text.lower())
+        stopwords = {
+            "môn", "mon", "học", "hoc", "của", "cua", "và", "va", "là", "la",
+            "cho", "có", "co", "tôi", "toi", "em", "mình", "minh", "này", "nay",
+            "những", "nhung", "các", "cac", "trong", "với", "voi", "thì", "thi",
+            "được", "duoc", "bao", "nhiêu", "nhieu", "gì", "gi", "nào", "nao",
+        }
+        return {token for token in tokens if len(token) > 1 and token not in stopwords}
+
+    def _lexical_score(self, query_tokens: Set[str], chunk_index: int) -> float:
+        if not query_tokens or not self.chunk_tokens:
+            return 0.0
+        chunk_tokens = self.chunk_tokens[chunk_index]
+        if not chunk_tokens:
+            return 0.0
+        matched_weight = sum(self.token_idf.get(token, 1.0) for token in query_tokens & chunk_tokens)
+        query_weight = sum(self.token_idf.get(token, 1.0) for token in query_tokens)
+        return matched_weight / max(query_weight, 1e-9)
 
     def canonical_course_code(self, code: Optional[str]) -> Optional[str]:
         if not code:
@@ -282,6 +329,25 @@ class SemanticVectorStore:
         for code, name in self.course_name_map.items():
             if len(name) > 3 and name in q_lower:
                 detected.append(code)
+
+        # Semantic entity resolution is deliberately applied after exact
+        # detection. Exact codes/aliases remain authoritative, while a
+        # paraphrase such as "lập trình trên điện thoại" can still resolve to
+        # the mobile-programming course.
+        if self.course_profile_embeddings is not None and not detected:
+            try:
+                query_vector = self._encode([f"query: {query}"])[0]
+                profile_scores = self.course_profile_embeddings @ query_vector
+                ranked_profiles = np.argsort(profile_scores)[::-1]
+                if len(ranked_profiles):
+                    best_index = int(ranked_profiles[0])
+                    best_score = float(profile_scores[best_index])
+                    second_score = float(profile_scores[ranked_profiles[1]]) if len(ranked_profiles) > 1 else -1.0
+                    if best_score >= 0.55 and best_score - second_score >= 0.025:
+                        detected.append(self.course_profile_codes[best_index])
+            except Exception:
+                # Entity enrichment must never break normal retrieval.
+                pass
 
         # Validate against known codes or retain detected
         final_list = []
@@ -376,6 +442,17 @@ class SemanticVectorStore:
                     semantic_score = float(np.max(example_vectors @ query_vector))
                     if semantic_score >= intent_thresholds[intent] and intent not in intents:
                         intents.append(intent)
+
+                # "Học xong ... làm được gì?" is an outcome question, not a
+                # study-plan request. Prevent prototype overlap from routing
+                # it into the generic strategy answer.
+                explicit_strategy_terms = (
+                    "tư vấn", "cách học", "ôn thi", "ôn tập", "chiến lược",
+                    "lộ trình học", "phân bổ thời gian", "đạt điểm cao", "học tốt",
+                )
+                if "outcomes" in intents and "strategy_advisor" in intents \
+                        and not any(term in q_lower for term in explicit_strategy_terms):
+                    intents.remove("strategy_advisor")
             except Exception:
                 # Retrieval still has a clear error path; intent enrichment is
                 # optional and must not hide a valid semantic search result.
@@ -414,9 +491,43 @@ class SemanticVectorStore:
                     return []
 
         candidate_indices = target_indices if target_indices else list(range(len(self.chunks)))
-        query_vector = self._encode([f"query: {query}"])[0]
-        scores = self.embeddings[candidate_indices] @ query_vector
-        ranked = sorted(zip(candidate_indices, scores.tolist()), key=lambda x: x[1], reverse=True)
+        query_tokens = self._tokenize(query)
+        query_variants = [f"query: {query}"]
+        intent_expansions = {
+            "outcomes": "chuẩn đầu ra CLO năng lực sau khi hoàn thành mục tiêu môn học",
+            "assessment": "hình thức kiểm tra thi PE FE trọng số đánh giá",
+            "prerequisites": "môn tiên quyết lộ trình học học kỳ điều kiện",
+            "overview": "tín chỉ học kỳ thông tin tổng quan môn học",
+            "strategy_advisor": "cách học ôn tập kế hoạch luyện tập đạt kết quả",
+        }
+        query_variants.extend(
+            f"query: {query}. {intent_expansions[intent]}"
+            for intent in intents
+            if intent in intent_expansions
+        )
+        query_vectors = self._encode(query_variants)
+        semantic_scores = np.max(self.embeddings[candidate_indices] @ query_vectors.T, axis=1)
+
+        category_bonus = {
+            "outcomes": {"outcomes": 0.12},
+            "assessment": {"assessment": 0.12},
+            "prerequisites": {"prerequisites": 0.12, "schedule": 0.08},
+            "overview": {"overview": 0.10},
+            "strategy_advisor": {"syllabus": 0.08, "assessment": 0.06},
+        }
+        ranked_scores = []
+        for candidate_position, index in enumerate(candidate_indices):
+            lexical = self._lexical_score(query_tokens, index)
+            category = self.chunks[index].category or "unknown"
+            bonus = max(
+                (category_bonus.get(intent, {}).get(category, 0.0) for intent in intents),
+                default=0.0,
+            )
+            # Dense retrieval remains dominant; lexical overlap and intent
+            # are precision signals, not hard keyword gates.
+            combined = 0.68 * float(semantic_scores[candidate_position]) + 0.22 * lexical + bonus
+            ranked_scores.append((index, combined))
+        ranked = sorted(ranked_scores, key=lambda x: x[1], reverse=True)
 
         # Semantic similarity chooses relevance. Intent only diversifies the
         # evidence needed for an answer; it never turns an unrelated chunk

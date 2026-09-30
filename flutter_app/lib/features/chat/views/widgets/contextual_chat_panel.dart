@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../screens/transcript_confirm_screen.dart';
 import '../../../../services/grade_import_service.dart';
 import '../../../../state/transcript_provider.dart';
 import '../../../../theme/app_theme.dart';
@@ -38,13 +37,8 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
-  bool _isImportingTranscript = false;
-
-  static const String _backendBase = String.fromEnvironment(
-    'BACKEND_URL',
-    defaultValue: 'http://127.0.0.1:8000',
-  );
-  late final GradeImportService _gradeImportService = GradeImportService(baseUrl: _backendBase);
+  bool _isPickingImages = false;
+  final List<ImageFile> _pendingImages = [];
 
   @override
   void initState() {
@@ -52,9 +46,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<ChatProvider>().updateScope(
-            scope: widget.scope,
-            id: widget.scopeId,
-          );
+        scope: widget.scope,
+        id: widget.scopeId,
+      );
     });
   }
 
@@ -67,9 +61,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
         context.read<ChatProvider>().updateScope(
-              scope: widget.scope,
-              id: widget.scopeId,
-            );
+          scope: widget.scope,
+          id: widget.scopeId,
+        );
       });
     }
   }
@@ -99,12 +93,27 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     if (text.trim().isEmpty) return;
     _textController.clear();
 
+    if (_pendingImages.isNotEmpty) {
+      final images = List<ImageFile>.from(_pendingImages);
+      setState(() => _pendingImages.clear());
+      provider.sendPromptWithImages(
+        text,
+        images,
+        scope: widget.scope,
+        id: widget.scopeId,
+      );
+      _scrollToBottom();
+      return;
+    }
+
     // Lấy dữ kiện học tập đã tính bằng code từ TranscriptProvider (Mục 7.4)
     // Nếu chưa có bảng điểm, studentContext = {} và chat vẫn hoạt động bình thường
     final tp = context.read<TranscriptProvider>();
     final facts = tp.buildStudentContextFacts(
       subjectCode: widget.scope == 'subject' ? widget.scopeId : null,
-      semesterNumber: widget.scope == 'curriculum' ? widget.semesterNumber : null,
+      semesterNumber: widget.scope == 'curriculum'
+          ? widget.semesterNumber
+          : null,
     );
     final studentContext = facts.isEmpty ? null : facts;
 
@@ -117,9 +126,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     _scrollToBottom();
   }
 
-  Future<void> _sendTranscriptForAdvice(ChatProvider provider) async {
-    if (_isImportingTranscript || provider.isLoading) return;
-    setState(() => _isImportingTranscript = true);
+  Future<void> _pickImages() async {
+    if (_isPickingImages) return;
+    setState(() => _isPickingImages = true);
     try {
       final result = await FilePicker.platform.pickFiles(
         allowMultiple: true,
@@ -131,64 +140,43 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       final images = result.files
           .where((file) => file.bytes != null && file.bytes!.isNotEmpty)
           .take(10)
-          .map((file) => ImageFile(
-                filename: file.name,
-                bytes: file.bytes!,
-                mimeType: _mimeTypeFor(file.extension),
-              ))
+          .map(
+            (file) => ImageFile(
+              filename: file.name,
+              bytes: file.bytes!,
+              mimeType: _mimeTypeFor(file.extension),
+            ),
+          )
           .toList();
-      if (images.isEmpty) throw GradeImportException('Không đọc được ảnh đã chọn.');
-
-      final imported = await _gradeImportService.importFromImages(images);
+      if (images.isEmpty) throw Exception('Không đọc được ảnh đã chọn.');
       if (!mounted) return;
-      if (imported.entries.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(imported.warning.isEmpty ? 'Không đọc được bảng điểm.' : imported.warning)),
-        );
-        return;
-      }
-
-      final transcriptProvider = context.read<TranscriptProvider>();
-      await Navigator.push<void>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TranscriptConfirmScreen(
-            rawExtractedEntries: imported.entries,
-            importWarning: imported.warning,
-            onSaved: (confirmed) async {
-              await transcriptProvider.save(confirmed);
-              if (!mounted) return;
-              _handleSend(
-                provider,
-                'Tôi đã gửi ảnh và xác nhận bảng điểm. Hãy phân tích chiến lược học tập cho các học kỳ tiếp theo, '
-                'bắt đầu từ học kỳ hiện tại của tôi. Mục tiêu GPA tốt nghiệp là '
-                '${transcriptProvider.targetGpa.toStringAsFixed(1)}. Chỉ rõ môn ưu tiên, lý do, tín chỉ '
-                'và hành động cụ thể theo từng kỳ; không tự đoán dữ liệu syllabus còn thiếu.',
-              );
-            },
-          ),
-        ),
-      );
-    } on GradeImportException catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error.message)));
+      setState(() => _pendingImages.addAll(images));
     } catch (error) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gửi ảnh thất bại: $error')));
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Chọn ảnh thất bại: $error')));
+      }
     } finally {
-      if (mounted) setState(() => _isImportingTranscript = false);
+      if (mounted) setState(() => _isPickingImages = false);
     }
   }
 
   static String _mimeTypeFor(String? extension) {
     switch (extension?.toLowerCase()) {
-      case 'png': return 'image/png';
-      case 'webp': return 'image/webp';
-      case 'heic': return 'image/heic';
-      default: return 'image/jpeg';
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'heic':
+        return 'image/heic';
+      default:
+        return 'image/jpeg';
     }
   }
 
   List<String> get _defaultSuggestions {
-    if (widget.suggestedQuestions != null && widget.suggestedQuestions!.isNotEmpty) {
+    if (widget.suggestedQuestions != null &&
+        widget.suggestedQuestions!.isNotEmpty) {
       return widget.suggestedQuestions!;
     }
     if (widget.scope == 'subject') {
@@ -223,7 +211,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(bottom: BorderSide(color: AppTheme.slate200, width: 1)),
+              border: Border(
+                bottom: BorderSide(color: AppTheme.slate200, width: 1),
+              ),
             ),
             child: Row(
               children: [
@@ -259,7 +249,10 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                           ),
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: widget.scope == 'subject'
                                   ? AppTheme.accentOrange.withOpacity(0.12)
@@ -267,7 +260,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              widget.scope == 'subject' ? 'Scope: Môn' : 'Scope: Khung',
+                              widget.scope == 'subject'
+                                  ? 'Scope: Môn'
+                                  : 'Scope: Khung',
                               style: TextStyle(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w700,
@@ -283,7 +278,10 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         const SizedBox(height: 2),
                         Text(
                           widget.subtitle!,
-                          style: const TextStyle(fontSize: 12, color: AppTheme.slate600),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.slate600,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -297,7 +295,11 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                 ),
                 if (widget.onClose != null)
                   IconButton(
-                    icon: const Icon(Icons.close_rounded, size: 20, color: AppTheme.slate600),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      size: 20,
+                      color: AppTheme.slate600,
+                    ),
                     tooltip: 'Đóng Trợ lý AI',
                     onPressed: widget.onClose,
                   ),
@@ -316,14 +318,58 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
               itemCount: provider.messages.length,
               itemBuilder: (context, index) {
                 final message = provider.messages[index];
-                return ChatBubble(
-                  message: message,
-                );
+                return ChatBubble(message: message);
               },
             ),
           ),
 
           // Suggested prompts chips
+          if (_pendingImages.isNotEmpty)
+            Container(
+              height: 76,
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+              color: AppTheme.slate50,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: _pendingImages.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                itemBuilder: (context, index) {
+                  final image = _pendingImages[index];
+                  return Stack(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.memory(
+                          image.bytes,
+                          width: 62,
+                          height: 62,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      Positioned(
+                        right: 0,
+                        top: 0,
+                        child: GestureDetector(
+                          onTap: () =>
+                              setState(() => _pendingImages.removeAt(index)),
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
           Container(
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
             color: AppTheme.slate50,
@@ -337,11 +383,19 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                       label: Text(promptText),
-                      labelStyle: const TextStyle(fontSize: 11.5, color: AppTheme.primaryBlue),
+                      labelStyle: const TextStyle(
+                        fontSize: 11.5,
+                        color: AppTheme.primaryBlue,
+                      ),
                       backgroundColor: Colors.white,
                       side: const BorderSide(color: AppTheme.slate200),
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      onPressed: provider.isLoading ? null : () => _handleSend(provider, promptText),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      onPressed: provider.isLoading
+                          ? null
+                          : () => _handleSend(provider, promptText),
                     ),
                   );
                 }).toList(),
@@ -354,16 +408,18 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
             decoration: const BoxDecoration(
               color: Colors.white,
-              border: Border(top: BorderSide(color: AppTheme.slate200, width: 1)),
+              border: Border(
+                top: BorderSide(color: AppTheme.slate200, width: 1),
+              ),
             ),
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Gửi ảnh bảng điểm để phân tích',
-                  onPressed: provider.isLoading || _isImportingTranscript
+                  tooltip: 'Đính kèm ảnh vào prompt',
+                  onPressed: provider.isLoading || _isPickingImages
                       ? null
-                      : () => _sendTranscriptForAdvice(provider),
-                  icon: _isImportingTranscript
+                      : _pickImages,
+                  icon: _isPickingImages
                       ? const SizedBox(
                           width: 18,
                           height: 18,
@@ -383,8 +439,14 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       hintText: widget.scope == 'subject'
                           ? 'Hỏi về môn ${widget.scopeId}...'
                           : 'Hỏi về chương trình ${widget.scopeId}...',
-                      hintStyle: TextStyle(fontSize: 13, color: AppTheme.slate600.withOpacity(0.7)),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      hintStyle: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.slate600.withOpacity(0.7),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                       isDense: true,
                     ),
                     onSubmitted: (text) => _handleSend(provider, text),
@@ -395,13 +457,18 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   style: IconButton.styleFrom(
                     backgroundColor: AppTheme.primaryBlue,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                   icon: provider.isLoading
                       ? const SizedBox(
                           width: 18,
                           height: 18,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
                         )
                       : const Icon(Icons.send, size: 18),
                   onPressed: provider.isLoading

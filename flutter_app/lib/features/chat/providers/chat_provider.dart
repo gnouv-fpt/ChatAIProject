@@ -1,10 +1,12 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/chat_message.dart';
 import '../services/chat_api_service.dart';
+import '../../../services/grade_import_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   late ChatApiService _apiService;
-  
+
   final List<ChatMessage> _messages = [];
   bool _isLoading = false;
   bool? _isServerOnline;
@@ -46,7 +48,8 @@ class ChatProvider extends ChangeNotifier {
     _messages.add(
       ChatMessage(
         id: 'welcome_msg',
-        text: 'Xin chào, tôi là Trợ lý AI môn học FLM.\n\n'
+        text:
+            'Xin chào, tôi là Trợ lý AI môn học FLM.\n\n'
             'Tôi có thể giải đáp thông tin và tư vấn chiến lược học tập theo đúng ngữ cảnh bạn đang xem:\n'
             '• Hình thức thi và cấu trúc đánh giá môn học (PE/FE)\n'
             '• Mục tiêu và chuẩn đầu ra môn học (LOs)\n'
@@ -138,6 +141,65 @@ class ChatProvider extends ChangeNotifier {
     if (result.isOfflineFallback) {
       _lastError = result.errorMessage;
     }
+    notifyListeners();
+  }
+
+  Future<void> sendPromptWithImages(
+    String text,
+    List<ImageFile> images, {
+    String? scope,
+    String? id,
+  }) async {
+    final prompt = text.trim();
+    if (prompt.isEmpty || images.isEmpty || _isLoading) return;
+
+    final timestamp = DateTime.now();
+    final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
+    final aiMsgId = 'ai_${timestamp.millisecondsSinceEpoch}';
+    _messages.add(
+      ChatMessage(
+        id: userMsgId,
+        text: '📎 ${images.length} ảnh\n$prompt',
+        sender: ChatSender.user,
+        timestamp: timestamp,
+      ),
+    );
+    _messages.add(
+      ChatMessage(
+        id: aiMsgId,
+        text: 'Đang đọc ảnh và xử lý prompt...',
+        sender: ChatSender.ai,
+        timestamp: DateTime.now(),
+        status: MessageStatus.sending,
+      ),
+    );
+    _isLoading = true;
+    _lastError = null;
+    notifyListeners();
+
+    final result = await _apiService.sendMessageWithImages(
+      prompt,
+      images,
+      scope: scope ?? _currentScope,
+      id: id ?? _currentScopeId,
+      courseCode: scope == 'subject' ? (id ?? _currentScopeId) : null,
+    );
+
+    final index = _messages.indexWhere((message) => message.id == aiMsgId);
+    if (index != -1) {
+      _messages[index] = ChatMessage(
+        id: aiMsgId,
+        text: result.answer,
+        sender: ChatSender.ai,
+        timestamp: DateTime.now(),
+        status: result.errorMessage == null
+            ? MessageStatus.success
+            : MessageStatus.error,
+        sources: result.sources,
+        errorMessage: result.errorMessage,
+      );
+    }
+    _isLoading = false;
     notifyListeners();
   }
 

@@ -4,7 +4,6 @@ Nhận 1 hoặc nhiều ảnh bảng điểm, dùng vision LLM trích xuất JSO
 theo schema { course_code, score, semester, status, confidence }.
 Ảnh chỉ gửi lên để xử lý, không lưu trên server (Mục 8.2).
 """
-import base64
 import logging
 import re
 from typing import List
@@ -13,6 +12,7 @@ from fastapi import APIRouter, File, UploadFile, HTTPException, status
 from pydantic import BaseModel, Field
 
 from ....services.rag_engine import rag_engine
+from ....services.local_ocr import extract_text
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -75,6 +75,15 @@ _VISION_RETRY_PROMPT = _VISION_SYSTEM_PROMPT + """
 The first pass may miss wide screenshots. Perform a second careful pass:
 read every visible row even when the table is horizontally wide, and return
 the JSON array with no commentary. The column KỲ is the numeric semester.
+"""
+
+_OCR_NORMALIZE_PROMPT = _VISION_SYSTEM_PROMPT + """
+
+The following text was extracted by a local OCR engine from one or more
+transcript images. Reconstruct rows from the OCR text and return ONLY the JSON
+array. Do not invent rows or values that are not present in the OCR text.
+
+=== OCR TEXT ===
 """
 
 
@@ -176,34 +185,33 @@ async def import_grade_images(
 
     for img_file in images:
         try:
-            content_type = img_file.content_type or "image/jpeg"
             raw_bytes = await img_file.read()
-            # Ảnh không lưu — chỉ đọc bytes để gửi LLM rồi bỏ
-            b64 = base64.b64encode(raw_bytes).decode("utf-8")
-
-            # Gọi vision LLM qua llm_service
-            vision_response = await rag_engine.llm_service.call_vision(
-                system_prompt=_VISION_SYSTEM_PROMPT,
-                image_b64=b64,
-                mime_type=content_type,
-            )
-            rows = _parse_vision_response(vision_response)
-            if not rows:
-                logger.warning("Vision returned no rows for '%s'; retrying wide-table OCR", img_file.filename)
-                retry_response = await rag_engine.llm_service.call_vision(
-                    system_prompt=_VISION_RETRY_PROMPT,
-                    image_b64=b64,
-                    mime_type=content_type,
-                )
-                rows = _parse_vision_response(retry_response)
-            all_rows.extend(rows)
-            logger.info("Parsed %d rows from image '%s'", len(rows), img_file.filename)
+            if not raw_bytes:
+                raise ValueError("Ảnh rỗng.")
+            ocr_text = extract_text(raw_bytes)
+            if ocr_text:
+                all_rows.append({"__ocr_text__": f"[{img_file.filename}]\n{ocr_text}"})
+                logger.info("OCR extracted %d characters from '%s'", len(ocr_text), img_file.filename)
+            else:
+                logger.warning("Local OCR returned no text for '%s'", img_file.filename)
         except Exception as exc:
             logger.error("Error processing image '%s': %s", img_file.filename, exc, exc_info=True)
             errors.append(f"{img_file.filename}: {exc}")
             # Tiếp tục xử lý ảnh khác, không dừng toàn bộ request
 
-    entries = _merge_and_normalize(all_rows)
+    ocr_blocks = [row["__ocr_text__"] for row in all_rows if "__ocr_text__" in row]
+    normalized_rows: List[dict] = []
+    if ocr_blocks:
+        try:
+            response = await rag_engine.llm_service.call_text_extraction(
+                _OCR_NORMALIZE_PROMPT + "\n\n".join(ocr_blocks)
+            )
+            normalized_rows = _parse_vision_response(response)
+        except Exception as exc:
+            logger.error("OCR text normalization failed: %s", exc, exc_info=True)
+            errors.append(f"Text normalization: {exc}")
+
+    entries = _merge_and_normalize(normalized_rows)
     low_conf = sum(1 for e in entries if e.confidence < 0.8)
     warning = ""
     if not entries:
