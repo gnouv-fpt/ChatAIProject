@@ -18,7 +18,7 @@ router = APIRouter()
     response_model=ChatResponse,
     status_code=status.HTTP_200_OK,
     summary="Chat với ảnh tạm thời",
-    description="Nhận prompt tự viết và ảnh trong bộ nhớ tạm; không lưu ảnh trên server.",
+    description="Nhận prompt tự viết và ảnh trong bộ nhớ tạm; kết hợp OCR và RAG FLM.",
 )
 async def chat_with_images(
     question: str = Form(...),
@@ -51,29 +51,89 @@ async def chat_with_images(
             logger.exception("Image preprocessing failed for %s", image.filename)
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    # Screenshots/documents use the faster OCR -> text-model path.
+    # Retrieve FLM RAG knowledge context
+    flm_context_sections = []
+
+    # 1. Check if the question asks about a specific semester (e.g., HK3)
+    target_sem = rag_engine.llm_service._target_semester(question, None)
+    if target_sem:
+        sem_courses = [
+            c for c in rag_engine.courses.values()
+            if getattr(c, "semester", 0) == target_sem and getattr(c, "in_curriculum", True)
+        ]
+        if sem_courses:
+            courses_info = []
+            for c in sem_courses:
+                code = getattr(c, "code", "")
+                name = getattr(c, "name_vi", "") or getattr(c, "name_en", "") or code
+                credits = getattr(c, "credits", 3)
+                prereqs = ", ".join(getattr(c, "prerequisites", [])) or "Không có"
+                has_pe = "Có thi thực hành PE" if getattr(c, "has_pe", False) else "Không thi PE"
+                courses_info.append(f"- Môn {code} ({name}): {credits} tín chỉ | Tiên quyết: {prereqs} | Đánh giá: {has_pe}")
+            flm_context_sections.append(
+                f"=== DANH SÁCH CÁC MÔN HỌC FLM TRONG HỌC KỲ {target_sem} (CẦN LẬP KẾ HOẠCH HỌC TẬP) ===\n"
+                + "\n".join(courses_info)
+            )
+
+    # 2. Search relevant curriculum / syllabus chunks from Vector Store
+    try:
+        retrieved = rag_engine.vector_store.search(
+            query=question,
+            top_k=6,
+            similarity_threshold=0.3,
+        )
+        if retrieved:
+            chunk_texts = [
+                f"--- [TÀI LIỆU FLM: {chunk.course_code}] {chunk.title} ---\n{chunk.content}"
+                for chunk, _ in retrieved
+            ]
+            flm_context_sections.append("=== DỮ LIỆU ĐỀ CƯƠNG / SYLLABUS FLM TRÍCH XUẤT ===\n" + "\n\n".join(chunk_texts))
+    except Exception as e:
+        logger.warning("Vector store search in vision chat failed: %s", e)
+
+    flm_context_str = "\n\n".join(flm_context_sections)
+
+    # Fast path: Screenshots/documents with OCR text
     if ocr_blocks:
         try:
             ocr_content = "\n\n".join(ocr_blocks)
-            answer = await rag_engine.llm_service.call_text_extraction(
-                "Trả lời prompt bằng tiếng Việt dựa CHỈ trên OCR dưới đây. "
-                "Không bịa dữ liệu; nếu thiếu thông tin thì nói rõ.\n\n"
-                f"PROMPT NGƯỜI DÙNG:\n{question.strip()}\n\n"
-                f"NỘI DUNG OCR:\n{ocr_content}"
+            prompt = (
+                f"{rag_engine.llm_service._build_system_prompt()}\n\n"
+                f"=== DỮ LIỆU ĐIỂM TỪ ẢNH (OCR BẢNG ĐIỂM CÁC KỲ ĐÃ HỌC) ===\n"
+                f"{ocr_content}\n\n"
             )
+            if flm_context_str:
+                prompt += f"{flm_context_str}\n\n"
+
+            prompt += (
+                f"=== CÂU HỎI CỦA SINH VIÊN ===\n{question.strip()}\n\n"
+                "=== NGUYÊN TẮC TƯ VẤN (BẮT BUỘC TUÂN THỦ): ===\n"
+                "1. TUYỆT ĐỐI KHÔNG dùng ký hiệu giữ chỗ như [X], [Y], [Z], [A], [Điểm]... Chỉ dùng điểm số thật đọc được từ OCR, nếu không thấy điểm chính xác thì gọi tên môn học.\n"
+                "2. TUYỆT ĐỐI KHÔNG lặp lại cùng một checklist 7 bước (như 'Học nhóm', 'Dùng VS Code', 'Phân bổ thời gian'...) cho mọi môn học.\n"
+                "3. Phân biệt rõ ràng:\n"
+                "   - Môn trong OCR: Là các môn ĐÃ HỌC ở các kỳ trước.\n"
+                "   - Môn trong FLM: Là các môn SẮP HỌC ở kỳ được hỏi (ví dụ Học kỳ 3).\n"
+                "4. Đi thẳng vào trọng tâm: Với mỗi môn sắp học trong kỳ mới, chỉ nêu 1-2 lời khuyên kỹ thuật trọng tâm: kiến thức cốt lõi cần chuẩn bị, độ khó, lưu ý thi PE thực hành và liên hệ từ môn nền tảng kỳ trước.\n\n"
+                "=== CÂU TRẢ LỜI CỦA CỐ VẤN HỌC TẬP AI (BẰNG TIẾNG VIỆT) ==="
+            )
+            answer = await rag_engine.llm_service.call_direct(prompt)
             if answer:
                 answers.append(answer.strip())
         except Exception as exc:
             logger.exception("OCR text chat failed")
             raise HTTPException(status_code=503, detail=str(exc)) from exc
 
-    # Only images with no readable text use the slower multimodal model.
+    # Multimodal Vision path for images without clear OCR text
     for index, filename, raw, content_type in vision_images:
         try:
             vision_prompt = (
-                "Trả lời trực tiếp prompt của người dùng dựa trên ảnh đính kèm. "
-                "Không bịa dữ liệu không nhìn thấy. Nếu ảnh không đủ rõ, nói rõ phần nào không đọc được.\n\n"
-                f"Prompt người dùng: {question.strip()}"
+                f"{rag_engine.llm_service._build_system_prompt()}\n\n"
+            )
+            if flm_context_str:
+                vision_prompt += f"{flm_context_str}\n\n"
+            vision_prompt += (
+                f"=== CÂU HỎI CỦA SINH VIÊN ===\n{question.strip()}\n\n"
+                "Đọc thông tin từ ảnh đính kèm, kết hợp với dữ liệu môn học FLM ở trên để trả lời chi tiết và tư vấn cụ thể bằng Tiếng Việt. Tuyệt đối không dùng ký hiệu giữ chỗ [X], [Y]..."
             )
             answer = await rag_engine.llm_service.call_vision(
                 system_prompt=vision_prompt,
@@ -92,10 +152,10 @@ async def chat_with_images(
 
     return ChatResponse(
         answer="\n\n".join(answers),
-        sources=["Ảnh người dùng gửi (xử lý tạm thời)"],
+        sources=["Ảnh bảng điểm (OCR)", "Dữ liệu chương trình đào tạo FLM FPTU"],
         question=question,
         matched_courses=[course_code] if course_code else [],
-        provider="Ollama-OCR+Text" if ocr_blocks else "Vision-LLM",
+        provider=rag_engine.llm_service.get_active_provider(),
         latency_ms=0.0,
         detailed_sources=[],
     )

@@ -103,6 +103,22 @@ def test_subject_learning_question_is_not_routed_to_gpa_strategy():
     assert "Kế hoạch chiến lược học tập nâng điểm GPA" not in answer
 
 
+def test_subject_high_score_advice_stays_focused_and_does_not_invent_hours():
+    answer = LLMService()._build_subject_strategy(
+        "Cách học ALPHA101 để đạt điểm cao?",
+        "Lập trình cơ sở",
+        _courses()["ALPHA101"],
+        [],
+        {},
+        goal_focused=True,
+    )
+
+    assert "Cách học để đạt điểm cao" in answer
+    assert "Bài tập 40%" in answer
+    assert "Lịch thực hiện gợi ý" not in answer
+    assert "3-4 giờ" not in answer
+
+
 def test_subject_mark_goal_uses_assessment_weights():
     answer = LLMService()._synthesize_advanced_response(
         "Tao muốn môn này được 9",

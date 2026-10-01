@@ -195,14 +195,18 @@ class LLMService:
         return (
             "Bạn là Cố vấn Học tập AI chuyên trách hệ thống FLM (Curriculum & Syllabus) của FPT University. "
             "Nhiệm vụ của bạn là giải đáp thông tin và tư vấn chiến lược học tập cho sinh viên.\n\n"
-            "Quy tắc phản hồi:\n"
-            "1. Dùng tiếng Việt tự nhiên, gãy gọn, chuyên nghiệp. Không lạm dụng dấu in đậm (**) tràn lan ở mọi từ ngữ.\n"
-            "1a. Không dùng một mẫu cố định cho mọi câu hỏi; mở đầu trực tiếp theo đúng điều người học đang hỏi.\n"
-            "1b. Chỉ đưa các mục, con số hoặc khuyến nghị thật sự liên quan; không cố điền đủ một checklist chung.\n"
-            "2. Khi được hỏi tư vấn học tập hoặc chiến lược ôn thi (PE/FE), hãy đưa ra lời khuyên cụ thể, có tính hành động cao (actionable): "
+            "Quy tắc phản hồi và ngôn ngữ:\n"
+            "1. NGÔN NGỮ PHẢN HỒI DUY NHẤT: BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, chuẩn mực. "
+            "Dù tài liệu FLM (Curriculum, Syllabus, CLO, đề cương, assessment scheme...) trong ngữ cảnh đầu vào là tiếng Anh, "
+            "bạn phải tự động đọc hiểu, tổng hợp và diễn giải hoàn toàn bằng Tiếng Việt. Tuyệt đối không xuất câu trả lời bằng tiếng Anh.\n"
+            "2. Thuật ngữ & mã định danh: Chỉ giữ nguyên mã môn học (ví dụ: PRM392, SWE201c), tên viết tắt chuẩn (PE, FE, CLO, PLO, GPA), "
+            "hoặc tên công nghệ/ngôn ngữ lập trình (Flutter, Dart, Java, SQLite...).\n"
+            "3. Mở đầu trực tiếp theo đúng điều người học đang hỏi; không dùng mẫu cố định cho mọi câu hỏi; không lạm dụng dấu in đậm (**) tràn lan.\n"
+            "4. Chỉ đưa các mục, con số hoặc khuyến nghị thật sự liên quan; không cố điền đủ một checklist chung.\n"
+            "5. Khi được hỏi tư vấn học tập hoặc chiến lược ôn thi (PE/FE), hãy đưa ra lời khuyên cụ thể, có tính hành động cao (actionable): "
             "phân bổ thời gian, kỹ năng cần rèn luyện, cách tận dụng môn tiên quyết, lưu ý về điểm tối thiểu.\n"
-            "3. Tuyệt đối trung thực với dữ liệu FLM. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
-            "4. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng."
+            "6. Tuyệt đối trung thực với dữ liệu FLM. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
+            "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng."
         )
 
     async def _call_gemini(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
@@ -299,7 +303,13 @@ class LLMService:
     async def _call_ollama(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
         base_url = settings.OLLAMA_BASE_URL.rstrip("/")
         model = settings.OLLAMA_MODEL
-        prompt = f"{self._build_system_prompt()}\n\n{student_facts}=== DỮ LIỆU FLM ===\n{context}\n\n=== CÂU HỎI ===\n{question}\n\n=== TRẢ LỜI ==="
+        prompt = (
+            f"{self._build_system_prompt()}\n\n"
+            f"{student_facts}"
+            f"=== DỮ LIỆU FLM THỰC TẾ ===\n{context}\n\n"
+            f"=== CÂU HỎI CỦA SINH VIÊN ===\n{question}\n\n"
+            f"=== CÂU TRẢ LỜI CỦA CỐ VẤN AI (BẰNG TIẾNG VIỆT) ==="
+        )
         payload = {
             "model": model,
             "prompt": prompt,
@@ -318,6 +328,69 @@ class LLMService:
             request=resp.request,
             response=resp,
         )
+
+    async def call_direct(self, prompt: str) -> str:
+        """Execute a direct prompt using the active LLM provider."""
+        provider = self.get_active_provider()
+        if provider == "Gemini" and settings.GEMINI_API_KEY:
+            api_key = settings.GEMINI_API_KEY
+            model = settings.GEMINI_MODEL
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.25, "maxOutputTokens": 1500},
+            }
+            resp = await self.http_client.post(url, json=payload, timeout=20.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return self._sanitize_output(parts[0].get("text", "").strip())
+        elif provider == "OpenAI" and settings.OPENAI_API_KEY:
+            api_key = settings.OPENAI_API_KEY
+            base_url = settings.OPENAI_BASE_URL.rstrip("/")
+            model = settings.OPENAI_MODEL
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.25,
+            }
+            resp = await self.http_client.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=20.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return self._sanitize_output(data["choices"][0]["message"]["content"].strip())
+        elif provider == "Groq" and settings.GROQ_API_KEY:
+            api_key = settings.GROQ_API_KEY
+            model = settings.GROQ_MODEL
+            url = "https://api.groq.com/openai/v1/chat/completions"
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": model,
+                "messages": [{"role": "user", "content": prompt}],
+                "temperature": 0.25,
+            }
+            resp = await self.http_client.post(url, headers=headers, json=payload, timeout=20.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                return self._sanitize_output(data["choices"][0]["message"]["content"].strip())
+
+        # Fallback / Ollama
+        base_url = settings.OLLAMA_BASE_URL.rstrip("/")
+        model = settings.OLLAMA_MODEL
+        payload = {
+            "model": model,
+            "prompt": prompt,
+            "stream": False,
+            "keep_alive": "10m",
+            "options": {"temperature": 0.25, "num_predict": 1200},
+        }
+        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=90.0)
+        if resp.status_code == 200:
+            return self._sanitize_output(resp.json().get("response", "").strip())
+        return ""
 
     async def call_text_extraction(self, prompt: str) -> str:
         """Normalize OCR text with the configured text model, never a vision model."""
@@ -346,13 +419,26 @@ class LLMService:
 
     @staticmethod
     def _target_semester(question: str, student_context: Optional[Dict[str, Any]]) -> Optional[int]:
-        """Resolve an explicit semester without silently guessing a random one."""
-        q_lower = question.lower()
-        match = re.search(r"(?:học\s*kỳ|kỳ|hk|semester)\s*(?:số\s*)?(\d+)", q_lower)
-        if match:
-            return int(match.group(1))
+        """Resolve an explicit target semester accurately without blindly taking the first match."""
+        q_lower = (question or "").lower()
 
-        if any(phrase in q_lower for phrase in ["kỳ này", "học kỳ này", "semester này"]):
+        # 1. Prioritize phrases indicating target semester for strategy/advice
+        target_patterns = [
+            r"(?:chiến\s*lược|kế\s*hoạch|tư\s*vấn|chuẩn\s*bị|cho|vào|ở|trong|mục\s*tiêu|kỳ\s*tới|kỳ\s*sau|sang)\s+(?:học\s*kỳ|học\s*kì|kỳ|kì|hk|semester)\s*(?:số\s*)?(\d+)",
+            r"(?:học\s*kỳ|học\s*kì|kỳ|kì|hk|semester)\s*(?:số\s*)?(\d+)\s*(?:cần|nên|để|phải|ra\s*sao|như\s*thế\s*nào)",
+        ]
+        for pat in target_patterns:
+            m = re.search(pat, q_lower)
+            if m:
+                return int(m.group(1))
+
+        # 2. If multiple semesters mentioned (e.g. 'điểm kỳ 1, kỳ 2... chiến lược kỳ 3'), take the last mentioned
+        matches = re.findall(r"(?:học\s*kỳ|học\s*kì|kỳ|kì|hk|semester)\s*(?:số\s*)?(\d+)", q_lower)
+        if matches:
+            return int(matches[-1])
+
+        # 3. Fallback to student_context if asking about 'kỳ này' or 'kỳ tới'
+        if any(phrase in q_lower for phrase in ["kỳ này", "học kỳ này", "semester này", "kỳ tới", "kỳ sau"]):
             context = student_context or {}
             value = context.get("target_semester") or context.get("current_semester")
             try:
@@ -360,7 +446,6 @@ class LLMService:
             except (TypeError, ValueError):
                 return None
         return None
-
     @classmethod
     def _build_semester_strategy(
         cls,

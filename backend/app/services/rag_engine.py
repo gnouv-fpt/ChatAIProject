@@ -31,6 +31,24 @@ class RAGEngine:
         print(f"[RAGEngine] Initializing knowledge base from {vault_path}...")
         self.parser = FLMKnowledgeVaultParser(vault_path, courses_json_path)
         self.courses, chunks = self.parser.load_all()
+        # Legacy/equivalent syllabi may exist in the vault, but they are not
+        # subjects in the active curriculum and must not enter default RAG.
+        active_codes = {
+            str(code).upper()
+            for code, course in self.courses.items()
+            if getattr(course, "in_curriculum", True)
+        }
+        self.courses = {
+            code: course
+            for code, course in self.courses.items()
+            if getattr(course, "in_curriculum", True)
+        }
+        chunks = [
+            chunk
+            for chunk in chunks
+            if (chunk.course_code or "").upper() in active_codes
+            or (chunk.course_code or "").upper() in {"CURRICULUM", "PLO"}
+        ]
         self.vector_store.index_chunks(chunks)
         self.is_initialized = True
         print(f"[RAGEngine] Knowledge base initialized with {len(self.courses)} courses and {len(chunks)} chunks.")

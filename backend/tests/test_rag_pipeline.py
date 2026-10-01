@@ -58,6 +58,28 @@ class TestRAGPipeline(unittest.TestCase):
         )
         self.assertIn("SWD392", resp.matched_courses)
 
+    def test_semester_question_uses_only_curriculum_courses(self):
+        """A vague semester question must not be delegated to free-form LLM text."""
+        resp = self.run_async(
+            rag_engine.answer_query(ChatRequest(question="Kỳ 7 nên tập trung vào những môn nào?"))
+        )
+
+        self.assertEqual(resp.provider, "FLM-Structured-Synthesizer")
+        self.assertIn("PMG201c", resp.answer)
+        self.assertNotIn("Kinh tế lượng", resp.answer)
+        self.assertNotIn("Quản trị doanh nghiệp", resp.answer)
+        self.assertNotIn("Tài chính công ty", resp.answer)
+
+    def test_unknown_subject_is_rejected_without_hallucination(self):
+        """A subject absent from BIT_SE_K19B must not receive invented advice."""
+        resp = self.run_async(
+            rag_engine.answer_query(ChatRequest(question="Môn Kinh tế lượng có khó không?"))
+        )
+
+        self.assertEqual(resp.provider, "FLM-Structured-Synthesizer")
+        self.assertIn("không xác định được môn học", resp.answer.lower())
+        self.assertNotIn("Toán đại cương", resp.answer)
+
 
 if __name__ == "__main__":
     unittest.main()

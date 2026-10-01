@@ -9,7 +9,6 @@ import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/breadcrumb_nav.dart';
-import '../widgets/course_summary_modal.dart';
 import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
@@ -554,12 +553,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         backgroundColor: isSelected ? AppTheme.primaryLight : null,
         onTap: () {
           setState(() => _selectedCourseCode = course.code);
-          CourseSummaryModal.showFromCourse(
-            context,
-            course: course,
-            onDetailsPressed: () => _openCourseDetail(course.code),
-            onAdvisorPressed: () => _showAdvisorDialog(courseCode: course.code),
-          );
+          _openCourseDetail(course.code);
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
