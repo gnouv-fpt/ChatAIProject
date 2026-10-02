@@ -63,10 +63,17 @@ class Settings(BaseModel):
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2")
     VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini").lower()
     OLLAMA_VISION_MODEL: str = os.getenv("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
-    
+    # Ollama silently drops the start of prompts longer than its context window
+    # (4096 by default), which removes the system rules and top-ranked chunks.
+    OLLAMA_NUM_CTX: int = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
+
     # RAG Settings
     TOP_K_CHUNKS: int = int(os.getenv("TOP_K_CHUNKS", "4"))
     SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.32"))
+    # Character budget for retrieved context sent to the LLM, so one very long
+    # chunk (e.g. a full syllabus) cannot crowd out the other chunks.
+    MAX_CHUNK_CHARS: int = int(os.getenv("MAX_CHUNK_CHARS", "6000"))
+    MAX_CONTEXT_CHARS: int = int(os.getenv("MAX_CONTEXT_CHARS", "12000"))
     RAG_EMBEDDING_MODEL: str = os.getenv("RAG_EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
     RAG_EMBEDDING_CACHE: str = os.getenv("RAG_EMBEDDING_CACHE", ".rag_cache")
 

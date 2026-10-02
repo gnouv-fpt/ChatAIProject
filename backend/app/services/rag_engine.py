@@ -6,6 +6,16 @@ from ..schemas.course import CourseDetail, CourseSummary
 from .flm_parser import FLMKnowledgeVaultParser, FLMDocumentChunk
 from .vector_store import SemanticVectorStore
 from .llm_service import LLMService
+from .language import detect_language
+from .curriculum_facts import (
+    build_curriculum_facts,
+    detect_semester,
+    find_unknown_subject,
+    semester_courses,
+    unknown_subject_answer,
+)
+
+DEFAULT_CURRICULUM_ID = "BIT_SE_K19B"
 
 
 class RAGEngine:
@@ -78,7 +88,25 @@ class RAGEngine:
             or (detected_courses[0] if detected_courses else None)
         )
         if request.scope == "curriculum" and not target_course:
-            target_course = request.id or "BIT_SE_K19B"
+            target_course = request.id or DEFAULT_CURRICULUM_ID
+
+        language = detect_language(query)
+        curriculum_id = (request.id if request.scope == "curriculum" else None) or DEFAULT_CURRICULUM_ID
+
+        # A named subject that is not in the curriculum gets a fixed answer
+        # instead of letting the LLM improvise from unrelated chunks.
+        if not detected_courses and not request.course_code and request.scope != "subject":
+            unknown_subject = find_unknown_subject(query, self.courses)
+            if unknown_subject:
+                return ChatResponse(
+                    answer=unknown_subject_answer(unknown_subject, curriculum_id, language),
+                    sources=[],
+                    question=query,
+                    matched_courses=[],
+                    provider="FLM-Structured-Synthesizer",
+                    latency_ms=round((time.time() - start_time) * 1000, 2),
+                    detailed_sources=[],
+                )
 
         top_k = request.top_k or settings.TOP_K_CHUNKS
 
@@ -90,17 +118,38 @@ class RAGEngine:
             similarity_threshold=settings.SIMILARITY_THRESHOLD,
         )
 
+        # A semester question without a specific subject must only see that
+        # semester's courses; chunks of other semesters mislead the model.
+        semester = detect_semester(query, request.student_context)
+        if semester is not None and not detected_courses:
+            allowed = {c.code.upper() for c in semester_courses(self.courses, semester)} | {"CURRICULUM", DEFAULT_CURRICULUM_ID}
+            retrieved_results = [
+                (chunk, score) for chunk, score in retrieved_results
+                if (chunk.course_code or "").upper() in allowed
+            ]
+
+        curriculum_facts = build_curriculum_facts(
+            question=query,
+            courses=self.courses,
+            language=language,
+            curriculum_id=curriculum_id,
+            intents=detected_intents,
+            student_context=request.student_context,
+            detected_courses=detected_courses,
+        )
+
         # 3. Generate Answer via LLM / Advanced Synthesizer
         answer_text, provider_name = await self.llm_service.generate_response(
             question=query,
             retrieved_chunks=retrieved_results,
-            detected_courses=detected_courses or ([target_course] if target_course and target_course not in ["BIT_SE_K19B", "CURRICULUM"] else []),
+            detected_courses=detected_courses or ([target_course] if target_course and target_course not in [DEFAULT_CURRICULUM_ID, "CURRICULUM"] else []),
             detected_intents=detected_intents,
             scope=request.scope,
             scope_id=request.id or target_course,
             student_context=request.student_context,
             all_courses=self.courses,
             curriculum_info=self.parser.curriculum_info if self.parser else {},
+            curriculum_facts=curriculum_facts,
         )
 
 

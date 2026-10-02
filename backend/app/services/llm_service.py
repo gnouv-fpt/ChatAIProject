@@ -8,6 +8,41 @@ import httpx
 
 from ..config import settings
 from .flm_parser import FLMDocumentChunk
+from .language import ENGLISH, VIETNAMESE, Language, detect_language
+
+# Chinese/Japanese/Korean characters never belong in a Vietnamese or English answer.
+_CJK_CHARS = re.compile(r"[぀-ヿ㐀-鿿가-힯＀-￯]")
+
+# Prompt section labels per answer language. Writing the whole prompt in the
+# target language keeps small local models from drifting into the other one.
+_PROMPT_LABELS: Dict[str, Dict[str, str]] = {
+    VIETNAMESE: {
+        "document": "TÀI LIỆU",
+        "code": "Mã",
+        "file": "File",
+        "context": "=== DỮ LIỆU FLM THỰC TẾ (CONTEXT) ===",
+        "question": "=== CÂU HỎI CỦA SINH VIÊN ===",
+        "reminder": (
+            "Nhắc lại: chỉ trả lời bằng tiếng Việt. Dịch mọi nội dung tiếng Anh trong dữ liệu sang tiếng Việt; "
+            "chỉ giữ nguyên mã môn, tên viết tắt chuẩn và tên công nghệ."
+        ),
+        "answer": "=== CÂU TRẢ LỜI CỦA CỐ VẤN AI (BẰNG TIẾNG VIỆT) ===",
+        "provider_error": "Mô hình {provider} hiện chưa trả lời được câu hỏi ({error}). Vui lòng thử lại sau.",
+    },
+    ENGLISH: {
+        "document": "DOCUMENT",
+        "code": "Code",
+        "file": "File",
+        "context": "=== FLM DATA (CONTEXT) ===",
+        "question": "=== STUDENT QUESTION ===",
+        "reminder": (
+            "Reminder: answer only in English. Translate any Vietnamese content from the data into English; "
+            "keep course codes, standard abbreviations and technology names unchanged."
+        ),
+        "answer": "=== AI ADVISOR ANSWER (IN ENGLISH) ===",
+        "provider_error": "The {provider} model could not answer the question right now ({error}). Please try again later.",
+    },
+}
 
 
 class LLMService:
@@ -107,13 +142,15 @@ class LLMService:
         all_courses: Optional[Dict[str, Any]] = None,
         curriculum_info: Optional[Dict[str, Any]] = None,
         detected_intents: Optional[List[str]] = None,
+        curriculum_facts: str = "",
     ) -> Tuple[str, str]:
         """
         Generates grounded, natural, and actionable response using retrieved context.
         """
         provider = self.get_active_provider()
-        context_str = self._format_context(retrieved_chunks)
-        student_facts_str = self._format_student_facts(student_context)
+        language = detect_language(question)
+        context_str = self._format_context(retrieved_chunks, language)
+        student_facts_str = curriculum_facts + self._format_student_facts(student_context, language)
 
         # Only the configured provider may generate the answer. Retry transient
         # failures, but never route back to the removed template synthesizer.
@@ -128,10 +165,14 @@ class LLMService:
         if provider_call:
             for attempt in range(1, 4):
                 try:
-                    answer = await provider_call(question, context_str, student_facts_str)
-                    if answer:
+                    answer = await provider_call(question, context_str, student_facts_str, language)
+                    if answer and _CJK_CHARS.search(answer):
+                        # Qwen models occasionally drift into Chinese mid-answer.
+                        last_error = "language_drift"
+                    elif answer:
                         return self._sanitize_output(answer), provider
-                    last_error = "empty_provider_response"
+                    else:
+                        last_error = "empty_provider_response"
                 except Exception as exc:
                     last_error = self._safe_provider_error(exc)
                     print(f"[LLMService] {provider} attempt {attempt}/3 failed: {last_error}")
@@ -143,7 +184,7 @@ class LLMService:
                     await asyncio.sleep(attempt)
 
         return (
-            f"Mô hình {provider} hiện chưa trả lời được câu hỏi ({last_error}). Vui lòng thử lại sau.",
+            _PROMPT_LABELS[language]["provider_error"].format(provider=provider, error=last_error),
             "RAG-Generation-Unavailable",
         )
 
@@ -160,18 +201,45 @@ class LLMService:
             return "provider_network_error"
         return exception.__class__.__name__
 
-    def _format_context(self, chunks: List[Tuple[FLMDocumentChunk, float]]) -> str:
+    def _format_context(
+        self,
+        chunks: List[Tuple[FLMDocumentChunk, float]],
+        language: Language = VIETNAMESE,
+    ) -> str:
+        labels = _PROMPT_LABELS[language]
         parts = []
-        for i, (chunk, score) in enumerate(chunks, 1):
+        contents = self.clip_chunk_contents([chunk.content for chunk, _ in chunks])
+        for i, ((chunk, score), content) in enumerate(zip(chunks, contents), 1):
             parts.append(
-                f"--- [TÀI LIỆU {i}] {chunk.title} (Mã: {chunk.course_code}, File: {chunk.file_name}) ---\n"
-                f"{chunk.content}\n"
+                f"--- [{labels['document']} {i}] {chunk.title} "
+                f"({labels['code']}: {chunk.course_code}, {labels['file']}: {chunk.file_name}) ---\n"
+                f"{content}\n"
             )
         return "\n".join(parts)
 
-    def _format_student_facts(self, ctx: Optional[Dict[str, Any]]) -> str:
+    @staticmethod
+    def clip_chunk_contents(contents: List[str]) -> List[str]:
+        """Fit ranked chunk texts into the context budget, keeping higher-ranked chunks first."""
+        remaining = settings.MAX_CONTEXT_CHARS
+        clipped = []
+        for content in contents:
+            limit = min(settings.MAX_CHUNK_CHARS, remaining)
+            if limit <= 0:
+                break
+            text = content if len(content) <= limit else content[:limit].rstrip() + " …"
+            clipped.append(text)
+            remaining -= len(text)
+        return clipped
+
+    def _format_student_facts(
+        self,
+        ctx: Optional[Dict[str, Any]],
+        language: Language = VIETNAMESE,
+    ) -> str:
         if not ctx:
             return ""
+        if language == ENGLISH:
+            return self._format_student_facts_en(ctx)
         lines = ["=== DỮ KIỆN HỌC TẬP CỦA SINH VIÊN (TÍNH TOÁN BẰNG CODE) ==="]
         if ctx.get("current_gpa") is not None:
             lines.append(f"- Điểm GPA hiện tại: {ctx.get('current_gpa')}")
@@ -191,35 +259,92 @@ class LLMService:
             lines.append(f"- Môn học chưa đạt cần học lại: {', '.join(ctx.get('failed_courses', []))}")
         return "\n".join(lines) + "\n\n"
 
-    def _build_system_prompt(self) -> str:
+    @staticmethod
+    def _format_student_facts_en(ctx: Dict[str, Any]) -> str:
+        lines = ["=== STUDENT ACADEMIC FACTS (COMPUTED BY CODE) ==="]
+        if ctx.get("current_gpa") is not None:
+            lines.append(f"- Current GPA: {ctx.get('current_gpa')}")
+        if ctx.get("target_gpa") is not None:
+            lines.append(f"- Target GPA: {ctx.get('target_gpa')}")
+        if ctx.get("required_avg_mark") is not None:
+            lines.append(f"- Average mark required in the remaining courses: {ctx.get('required_avg_mark')}")
+        if ctx.get("is_target_feasible") is not None:
+            lines.append(f"- Target feasibility: {'Feasible' if ctx.get('is_target_feasible') else 'Not feasible (requires > 10 points)'}")
+        if ctx.get("retake_count") is not None:
+            lines.append(f"- Number of retaken (previously failed) courses: {ctx.get('retake_count')}")
+            if ctx.get("retake_count", 0) >= 2:
+                lines.append("- Downgrade warning: 2 or more retakes, a Very Good/Excellent classification is lowered by one level.")
+            elif ctx.get("retake_count", 0) == 1:
+                lines.append("- Downgrade warning: 1 retake so far. One more retake will lower the classification.")
+        if ctx.get("failed_courses"):
+            lines.append(f"- Failed courses to retake: {', '.join(ctx.get('failed_courses', []))}")
+        return "\n".join(lines) + "\n\n"
+
+    def _build_user_prompt(self, question: str, context: str, student_facts: str, language: Language) -> str:
+        """Context + question, closed by a language reminder right before the answer slot."""
+        labels = _PROMPT_LABELS[language]
+        return (
+            f"{student_facts}"
+            f"{labels['context']}\n{context}\n\n"
+            f"{labels['question']}\n{question}\n\n"
+            f"{labels['reminder']}\n\n"
+            f"{labels['answer']}"
+        )
+
+    def _build_system_prompt(self, language: Language = VIETNAMESE) -> str:
+        if language == ENGLISH:
+            return (
+                "You are an AI Academic Advisor for the FLM system (Curriculum & Syllabus) of FPT University. "
+                "Your job is to answer questions and give study strategy advice to students.\n\n"
+                "Response and language rules:\n"
+                "1. RESPONSE LANGUAGE: answer 100% in natural, correct English because the student asked in English. "
+                "Even if the FLM data in the context is in Vietnamese, read it, then summarise and explain it entirely in English. "
+                "Never write Vietnamese sentences or phrases in the answer.\n"
+                "2. Terms & identifiers: keep course codes (e.g. PRM392, SWE201c), standard abbreviations (PE, FE, CLO, PLO, GPA) "
+                "and technology/programming language names (Flutter, Dart, Java, SQLite...) unchanged.\n"
+                "3. Open directly with what the student is asking; do not use one fixed template for every question; do not overuse bold (**).\n"
+                "4. Only include items, numbers or recommendations that are actually relevant; do not fill a generic checklist.\n"
+                "5. When asked for study advice or exam strategy (PE/FE), give concrete, actionable advice: "
+                "time allocation, skills to practise, how to use prerequisite courses, minimum mark requirements.\n"
+                "6. Stay strictly faithful to the FLM data. When the data states a concrete fact (prerequisite course codes, credits, "
+                "assessment weights, minimum marks, semester), repeat exactly that fact; never say it is missing and never add "
+                "requirements or prerequisites that are not in the data. Facts marked as COMPUTED BY CODE are authoritative: "
+                "use those exact course lists and numbers instead of recalculating them. "
+                "For information outside FLM, say so clearly instead of making things up.\n"
+                "7. Use clean, readable Markdown with clear bullet points."
+            )
         return (
             "Bạn là Cố vấn Học tập AI chuyên trách hệ thống FLM (Curriculum & Syllabus) của FPT University. "
             "Nhiệm vụ của bạn là giải đáp thông tin và tư vấn chiến lược học tập cho sinh viên.\n\n"
             "Quy tắc phản hồi và ngôn ngữ:\n"
-            "1. NGÔN NGỮ PHẢN HỒI DUY NHẤT: BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, chuẩn mực. "
+            "1. NGÔN NGỮ PHẢN HỒI DUY NHẤT: BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, chuẩn mực vì sinh viên hỏi bằng tiếng Việt. "
             "Dù tài liệu FLM (Curriculum, Syllabus, CLO, đề cương, assessment scheme...) trong ngữ cảnh đầu vào là tiếng Anh, "
-            "bạn phải tự động đọc hiểu, tổng hợp và diễn giải hoàn toàn bằng Tiếng Việt. Tuyệt đối không xuất câu trả lời bằng tiếng Anh.\n"
+            "bạn phải tự động đọc hiểu, tổng hợp và diễn giải hoàn toàn bằng Tiếng Việt. "
+            "Tuyệt đối không chèn câu hoặc cụm từ tiếng Anh vào câu trả lời (kể cả khi trích CLO, mô tả môn học).\n"
             "2. Thuật ngữ & mã định danh: Chỉ giữ nguyên mã môn học (ví dụ: PRM392, SWE201c), tên viết tắt chuẩn (PE, FE, CLO, PLO, GPA), "
             "hoặc tên công nghệ/ngôn ngữ lập trình (Flutter, Dart, Java, SQLite...).\n"
             "3. Mở đầu trực tiếp theo đúng điều người học đang hỏi; không dùng mẫu cố định cho mọi câu hỏi; không lạm dụng dấu in đậm (**) tràn lan.\n"
             "4. Chỉ đưa các mục, con số hoặc khuyến nghị thật sự liên quan; không cố điền đủ một checklist chung.\n"
             "5. Khi được hỏi tư vấn học tập hoặc chiến lược ôn thi (PE/FE), hãy đưa ra lời khuyên cụ thể, có tính hành động cao (actionable): "
             "phân bổ thời gian, kỹ năng cần rèn luyện, cách tận dụng môn tiên quyết, lưu ý về điểm tối thiểu.\n"
-            "6. Tuyệt đối trung thực với dữ liệu FLM. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
+            "6. Tuyệt đối trung thực với dữ liệu FLM. Khi dữ liệu ghi rõ một thông tin cụ thể (mã môn tiên quyết, số tín chỉ, "
+            "tỷ trọng đánh giá, điểm tối thiểu, học kỳ), phải nêu đúng thông tin đó; không được nói là không có, "
+            "và không tự thêm yêu cầu hay môn tiên quyết không có trong dữ liệu. Dữ kiện ghi TÍNH BẰNG CODE là chính xác: "
+            "dùng đúng danh sách môn và con số đó, không tự tính lại. "
+            "Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
             "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng."
         )
 
-    async def _call_gemini(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
+    async def _call_gemini(
+        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
+    ) -> Optional[str]:
         api_key = settings.GEMINI_API_KEY
         model = settings.GEMINI_MODEL
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={api_key}"
 
         prompt = (
-            f"{self._build_system_prompt()}\n\n"
-            f"{student_facts}"
-            f"=== DỮ LIỆU FLM THỰC TẾ (CONTEXT) ===\n{context}\n\n"
-            f"=== CÂU HỎI CỦA SINH VIÊN ===\n{question}\n\n"
-            f"=== CÂU TRẢ LỜI CỦA TRỢ LÝ AI ==="
+            f"{self._build_system_prompt(language)}\n\n"
+            f"{self._build_user_prompt(question, context, student_facts, language)}"
         )
 
         payload = {
@@ -244,7 +369,9 @@ class LLMService:
             response=resp,
         )
 
-    async def _call_openai(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
+    async def _call_openai(
+        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
+    ) -> Optional[str]:
         api_key = settings.OPENAI_API_KEY
         base_url = settings.OPENAI_BASE_URL.rstrip("/")
         model = settings.OPENAI_MODEL
@@ -253,11 +380,11 @@ class LLMService:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        user_content = f"{student_facts}=== DỮ LIỆU FLM THỰC TẾ ===\n{context}\n\n=== CÂU HỎI CỦA SINH VIÊN ===\n{question}"
+        user_content = self._build_user_prompt(question, context, student_facts, language)
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": self._build_system_prompt()},
+                {"role": "system", "content": self._build_system_prompt(language)},
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.25,
@@ -272,7 +399,9 @@ class LLMService:
             response=resp,
         )
 
-    async def _call_groq(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
+    async def _call_groq(
+        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
+    ) -> Optional[str]:
         api_key = settings.GROQ_API_KEY
         model = settings.GROQ_MODEL
         url = "https://api.groq.com/openai/v1/chat/completions"
@@ -281,11 +410,11 @@ class LLMService:
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
         }
-        user_content = f"{student_facts}=== DỮ LIỆU FLM THỰC TẾ ===\n{context}\n\n=== CÂU HỎI ===\n{question}"
+        user_content = self._build_user_prompt(question, context, student_facts, language)
         payload = {
             "model": model,
             "messages": [
-                {"role": "system", "content": self._build_system_prompt()},
+                {"role": "system", "content": self._build_system_prompt(language)},
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.25,
@@ -300,24 +429,22 @@ class LLMService:
             response=resp,
         )
 
-    async def _call_ollama(self, question: str, context: str, student_facts: str = "") -> Optional[str]:
+    async def _call_ollama(
+        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
+    ) -> Optional[str]:
         base_url = settings.OLLAMA_BASE_URL.rstrip("/")
         model = settings.OLLAMA_MODEL
-        prompt = (
-            f"{self._build_system_prompt()}\n\n"
-            f"{student_facts}"
-            f"=== DỮ LIỆU FLM THỰC TẾ ===\n{context}\n\n"
-            f"=== CÂU HỎI CỦA SINH VIÊN ===\n{question}\n\n"
-            f"=== CÂU TRẢ LỜI CỦA CỐ VẤN AI (BẰNG TIẾNG VIỆT) ==="
-        )
         payload = {
             "model": model,
-            "prompt": prompt,
+            # A real system message is followed more reliably than rules inlined in the prompt.
+            "system": self._build_system_prompt(language),
+            "prompt": self._build_user_prompt(question, context, student_facts, language),
             "stream": False,
             "keep_alive": "10m",
             "options": {
                 "temperature": 0.25,
                 "num_predict": 900,
+                "num_ctx": settings.OLLAMA_NUM_CTX,
             },
         }
         resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=90.0)
@@ -385,7 +512,7 @@ class LLMService:
             "prompt": prompt,
             "stream": False,
             "keep_alive": "10m",
-            "options": {"temperature": 0.25, "num_predict": 1200},
+            "options": {"temperature": 0.25, "num_predict": 1200, "num_ctx": settings.OLLAMA_NUM_CTX},
         }
         resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=90.0)
         if resp.status_code == 200:
@@ -401,7 +528,7 @@ class LLMService:
             "prompt": prompt,
             "stream": False,
             "keep_alive": "0",
-            "options": {"temperature": 0.0, "num_predict": 1400},
+            "options": {"temperature": 0.0, "num_predict": 1400, "num_ctx": settings.OLLAMA_NUM_CTX},
         }
         response = await self.http_client.post(
             f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate",
@@ -639,8 +766,13 @@ class LLMService:
         course: Optional[Any],
         retrieved_chunks: List[Tuple[FLMDocumentChunk, float]],
         student_context: Optional[Dict[str, Any]],
+        goal_focused: bool = False,
     ) -> str:
-        """Explain what to focus on from the subject's actual syllabus fields."""
+        """Explain what to focus on from the subject's actual syllabus fields.
+
+        goal_focused: the student asks how to score high, so the answer leads
+        with that goal and leaves out the generic session schedule.
+        """
         course = course
         assessment = getattr(course, "assessment_scheme", None) if course else None
         outcomes = getattr(course, "learning_outcomes", None) if course else None
@@ -751,8 +883,9 @@ class LLMService:
         ]
         latest_score = valid_history[-1].get("score") if valid_history else None
 
+        title = "Cách học để đạt điểm cao môn" if goal_focused else "Kế hoạch học môn"
         lines = [
-            f"### Kế hoạch học môn {course_code} ({course_name})",
+            f"### {title} {course_code} ({course_name})",
             "",
             "**Mục tiêu:** biến đề cương của chính môn này thành các việc có thể làm và kiểm tra được; "
             "không dùng một mẫu PE/FE chung cho mọi môn.",
@@ -858,13 +991,16 @@ class LLMService:
                 "**Cách học theo thứ tự ưu tiên:**",
                 "- Bắt đầu từ thành phần assessment có tỷ trọng cao nhất và đối chiếu trực tiếp với CLO/topic của môn; mỗi phần phải tạo ra một bài làm hoặc sản phẩm kiểm tra được.",
                 "- Sau mỗi lần luyện, lưu lỗi sai và chấm lại theo đúng tiêu chí đang có trong syllabus; không coi việc đọc lại lý thuyết là đã hoàn thành.",
-                "",
-                "**Lịch thực hiện gợi ý:**",
-                "- Buổi 1: chốt CLO, topic và tỷ trọng assessment của chính môn này.",
-                "- Buổi 2: làm bài thực hành/sản phẩm cho topic ưu tiên cao nhất.",
-                "- Buổi 3: làm bài tổng hợp có giới hạn thời gian theo PE/FE hoặc assessment đã xác định.",
-                "- Buổi 4: sửa lỗi, tự chấm và chuyển phần chưa đạt thành việc tuần kế tiếp.",
             ])
+            if not goal_focused:
+                lines.extend([
+                    "",
+                    "**Lịch thực hiện gợi ý:**",
+                    "- Buổi 1: chốt CLO, topic và tỷ trọng assessment của chính môn này.",
+                    "- Buổi 2: làm bài thực hành/sản phẩm cho topic ưu tiên cao nhất.",
+                    "- Buổi 3: làm bài tổng hợp có giới hạn thời gian theo PE/FE hoặc assessment đã xác định.",
+                    "- Buổi 4: sửa lỗi, tự chấm và chuyển phần chưa đạt thành việc tuần kế tiếp.",
+                ])
 
         if prerequisites:
             lines.extend(["", f"**Môn tiên quyết cần rà lại trước:** {', '.join(prerequisites)}."])
@@ -1427,7 +1563,7 @@ class LLMService:
                 # vision model after each request so text and vision do not fight
                 # for RAM when they are used sequentially.
                 "keep_alive": "0",
-                "options": {"temperature": 0.1, "num_predict": 4096},
+                "options": {"temperature": 0.1, "num_predict": 4096, "num_ctx": settings.OLLAMA_NUM_CTX},
             }
             response = await self.http_client.post(
                 f"{settings.OLLAMA_BASE_URL.rstrip('/')}/api/generate",

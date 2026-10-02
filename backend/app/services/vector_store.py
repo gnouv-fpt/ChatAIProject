@@ -349,13 +349,12 @@ class SemanticVectorStore:
                 # Entity enrichment must never break normal retrieval.
                 pass
 
-        # Validate against known codes or retain detected
+        # Keep only codes that exist in the indexed curriculum. Code-shaped
+        # tokens such as "HK5" (học kỳ 5) must not be treated as subjects.
         final_list = []
         for c in detected:
             canonical = self.canonical_course_code(c) or c
             if canonical in self.course_codes or not self.course_codes:
-                final_list.append(canonical)
-            else:
                 final_list.append(canonical)
 
         return list(dict.fromkeys(final_list))

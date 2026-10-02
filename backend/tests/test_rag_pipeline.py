@@ -59,12 +59,11 @@ class TestRAGPipeline(unittest.TestCase):
         self.assertIn("SWD392", resp.matched_courses)
 
     def test_semester_question_uses_only_curriculum_courses(self):
-        """A vague semester question must not be delegated to free-form LLM text."""
+        """A semester question must be answered from the code-computed course list of that semester."""
         resp = self.run_async(
             rag_engine.answer_query(ChatRequest(question="Kỳ 7 nên tập trung vào những môn nào?"))
         )
 
-        self.assertEqual(resp.provider, "FLM-Structured-Synthesizer")
         self.assertIn("PMG201c", resp.answer)
         self.assertNotIn("Kinh tế lượng", resp.answer)
         self.assertNotIn("Quản trị doanh nghiệp", resp.answer)
