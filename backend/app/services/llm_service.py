@@ -24,7 +24,8 @@ _PROMPT_LABELS: Dict[str, Dict[str, str]] = {
         "question": "=== CÂU HỎI CỦA SINH VIÊN ===",
         "reminder": (
             "Nhắc lại: chỉ trả lời bằng tiếng Việt. Dịch mọi nội dung tiếng Anh trong dữ liệu sang tiếng Việt; "
-            "chỉ giữ nguyên mã môn, tên viết tắt chuẩn và tên công nghệ."
+            "chỉ giữ nguyên mã môn, tên viết tắt chuẩn và tên công nghệ. "
+            "Trả lời đầy đủ, giải thích rõ ràng, không trả lời cụt."
         ),
         "answer": "=== CÂU TRẢ LỜI CỦA CỐ VẤN AI (BẰNG TIẾNG VIỆT) ===",
         "provider_error": "Mô hình {provider} hiện chưa trả lời được câu hỏi ({error}). Vui lòng thử lại sau.",
@@ -37,7 +38,8 @@ _PROMPT_LABELS: Dict[str, Dict[str, str]] = {
         "question": "=== STUDENT QUESTION ===",
         "reminder": (
             "Reminder: answer only in English. Translate any Vietnamese content from the data into English; "
-            "keep course codes, standard abbreviations and technology names unchanged."
+            "keep course codes, standard abbreviations and technology names unchanged. "
+            "Give a complete, well-explained answer, not a terse one."
         ),
         "answer": "=== AI ADVISOR ANSWER (IN ENGLISH) ===",
         "provider_error": "The {provider} model could not answer the question right now ({error}). Please try again later.",
@@ -311,7 +313,12 @@ class LLMService:
                 "requirements or prerequisites that are not in the data. Facts marked as COMPUTED BY CODE are authoritative: "
                 "use those exact course lists and numbers instead of recalculating them. "
                 "For information outside FLM, say so clearly instead of making things up.\n"
-                "7. Use clean, readable Markdown with clear bullet points."
+                "7. Use clean, readable Markdown with clear bullet points.\n"
+                "8. Completeness: give a full, well-developed answer, never a one-line reply. Start with the direct answer, "
+                "then explain the relevant details and context from the data (e.g. what a prerequisite is for, how the "
+                "assessment weights affect passing, related CLOs, credits, semester), and finish with practical notes or "
+                "next steps for the student. Use every relevant detail available in the data. Aim for roughly 150-400 words; "
+                "go shorter only when the data truly holds nothing more that is relevant. Never pad with invented or repeated content."
             )
         return (
             "Bạn là Cố vấn Học tập AI chuyên trách hệ thống FLM (Curriculum & Syllabus) của FPT University. "
@@ -332,7 +339,12 @@ class LLMService:
             "và không tự thêm yêu cầu hay môn tiên quyết không có trong dữ liệu. Dữ kiện ghi TÍNH BẰNG CODE là chính xác: "
             "dùng đúng danh sách môn và con số đó, không tự tính lại. "
             "Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
-            "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng."
+            "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng.\n"
+            "8. Độ đầy đủ: trả lời đầy đủ, có chiều sâu, không trả lời cụt một hai câu. Nêu câu trả lời trực tiếp trước, "
+            "sau đó giải thích chi tiết và bối cảnh liên quan từ dữ liệu (ví dụ: môn tiên quyết dùng để làm gì, tỷ trọng "
+            "đánh giá ảnh hưởng thế nào đến việc qua môn, CLO liên quan, số tín chỉ, học kỳ), rồi kết thúc bằng lưu ý "
+            "hoặc gợi ý thực tế cho sinh viên. Tận dụng mọi chi tiết liên quan có trong dữ liệu. Độ dài thường khoảng "
+            "150-400 từ; chỉ ngắn hơn khi dữ liệu thật sự không còn gì liên quan. Không độn chữ bằng nội dung bịa hoặc lặp lại."
         )
 
     async def _call_gemini(
@@ -351,11 +363,11 @@ class LLMService:
             "contents": [{"parts": [{"text": prompt}]}],
             "generationConfig": {
                 "temperature": 0.25,
-                "maxOutputTokens": 1200,
+                "maxOutputTokens": 4096,
             }
         }
 
-        resp = await self.http_client.post(url, json=payload, timeout=12.0)
+        resp = await self.http_client.post(url, json=payload, timeout=30.0)
         if resp.status_code == 200:
             data = resp.json()
             candidates = data.get("candidates", [])
@@ -388,8 +400,9 @@ class LLMService:
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.25,
+            "max_tokens": 2048,
         }
-        resp = await self.http_client.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=12.0)
+        resp = await self.http_client.post(f"{base_url}/chat/completions", headers=headers, json=payload, timeout=30.0)
         if resp.status_code == 200:
             data = resp.json()
             return data["choices"][0]["message"]["content"].strip()
@@ -418,8 +431,9 @@ class LLMService:
                 {"role": "user", "content": user_content},
             ],
             "temperature": 0.25,
+            "max_tokens": 2048,
         }
-        resp = await self.http_client.post(url, headers=headers, json=payload, timeout=12.0)
+        resp = await self.http_client.post(url, headers=headers, json=payload, timeout=30.0)
         if resp.status_code == 200:
             data = resp.json()
             return data["choices"][0]["message"]["content"].strip()
@@ -443,11 +457,11 @@ class LLMService:
             "keep_alive": "10m",
             "options": {
                 "temperature": 0.25,
-                "num_predict": 900,
+                "num_predict": 1800,
                 "num_ctx": settings.OLLAMA_NUM_CTX,
             },
         }
-        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=90.0)
+        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=150.0)
         if resp.status_code == 200:
             return resp.json().get("response", "").strip()
         raise httpx.HTTPStatusError(

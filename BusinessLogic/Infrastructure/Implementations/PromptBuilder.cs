@@ -61,7 +61,8 @@ public sealed class PromptBuilder
         }
 
         builder.AppendLine("Quy tắc trả lời:");
-        builder.AppendLine("- Sinh viên hỏi bằng tiếng Việt nên chỉ trả lời bằng tiếng Việt, rõ ràng, ngắn gọn và phù hợp bối cảnh học thuật.");
+        builder.AppendLine("- Sinh viên hỏi bằng tiếng Việt nên chỉ trả lời bằng tiếng Việt, rõ ràng và phù hợp bối cảnh học thuật.");
+        builder.AppendLine("- Trả lời đầy đủ, không cụt: nêu câu trả lời trực tiếp trước, sau đó giải thích chi tiết, ví dụ hoặc bối cảnh liên quan có trong tài liệu, và kết thúc bằng lưu ý hoặc tóm tắt ngắn. Dùng gạch đầu dòng khi có nhiều ý. Độ dài thường khoảng 150-400 từ; chỉ ngắn hơn khi tài liệu không còn gì liên quan.");
         builder.AppendLine("- Nếu tài liệu viết bằng tiếng Anh, hãy dịch và diễn giải sang tiếng Việt; không chèn câu hoặc cụm từ tiếng Anh, chỉ giữ nguyên mã môn, tên viết tắt chuẩn và tên công nghệ.");
         builder.AppendLine("- Chỉ dùng thông tin trong ngữ cảnh tài liệu ở trên.");
         builder.AppendLine("- Nếu ngữ cảnh không đủ để trả lời, hãy nói: Không tìm thấy thông tin này trong tài liệu đã tải lên.");
@@ -111,7 +112,8 @@ public sealed class PromptBuilder
         }
 
         builder.AppendLine("Answer rules:");
-        builder.AppendLine("- The student asked in English, so answer only in English, clearly, concisely and in an academic tone.");
+        builder.AppendLine("- The student asked in English, so answer only in English, clearly and in an academic tone.");
+        builder.AppendLine("- Give a complete answer, not a terse one: state the direct answer first, then explain the details, examples or related context found in the documents, and end with a short note or summary. Use bullet points when there are several points. Aim for roughly 150-400 words; go shorter only when the documents hold nothing more that is relevant.");
         builder.AppendLine("- If the documents are written in Vietnamese, translate and explain them in English; do not include Vietnamese sentences or phrases.");
         builder.AppendLine("- Only use information from the document context above.");
         builder.AppendLine("- If the context is not enough to answer, say: This information was not found in the uploaded documents.");
