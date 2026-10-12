@@ -441,7 +441,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                           : 'Hỏi về chương trình ${widget.scopeId}...',
                       hintStyle: TextStyle(
                         fontSize: 13,
-                        color: AppTheme.slate600.withOpacity(0.7),
+                        color: AppTheme.slate600.withValues(alpha: 0.7),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,

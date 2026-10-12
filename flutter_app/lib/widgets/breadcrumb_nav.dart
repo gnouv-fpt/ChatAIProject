@@ -35,7 +35,7 @@ class BreadcrumbNav extends StatelessWidget {
             if (i > 0)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.chevron_right, size: 18, color: AppTheme.slate600.withOpacity(0.6)),
+                child: Icon(Icons.chevron_right, size: 18, color: AppTheme.slate600.withValues(alpha: 0.6)),
               ),
             _buildItem(items[i], isLast: i == items.length - 1),
           ],

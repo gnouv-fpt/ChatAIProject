@@ -10,15 +10,60 @@ import '../services/grade_calculator.dart';
 /// Tuân thủ Mục 8.2: bảng điểm lưu local, không lưu ảnh, không đưa vào RAG chung.
 class TranscriptProvider extends ChangeNotifier {
   static const _storageKey = 'flm_transcript_v1';
+  static const _customStatusKey = 'flm_course_custom_status_v1';
 
   List<TranscriptEntry> _entries = [];
+  Map<String, String> _customStatusMap = <String, String>{}; // courseCode -> 'passed' | 'retake' | 'in_progress' | 'not_started'
   double _targetGpa = 8.0;
   bool _isLoaded = false;
 
   List<TranscriptEntry> get entries => List.unmodifiable(_entries);
+  Map<String, String> get customStatusMap => Map.unmodifiable(_customStatusMap);
   double get targetGpa => _targetGpa;
   bool get hasTranscript => _entries.isNotEmpty;
   bool get isLoaded => _isLoaded;
+
+  /// Lấy trạng thái học tập của môn học (kết hợp bảng điểm và tuỳ chỉnh thủ công của sinh viên)
+  /// Trả về: 'passed' | 'retake' | 'in_progress' | 'not_started'
+  String getCourseStatus(String courseCode) {
+    if (courseCode.isEmpty) return 'not_started';
+    final normCode = GradeCalculator.normalizeCode(courseCode);
+    final map = _customStatusMap;
+    if (map.isNotEmpty && map.containsKey(normCode)) {
+      return map[normCode] ?? 'not_started';
+    }
+    // Tìm trong bảng điểm OCR nếu có
+    if (_entries.isNotEmpty) {
+      for (final e in _entries) {
+        if (GradeCalculator.normalizeCode(e.courseCode) == normCode) {
+          return e.isPassed ? 'passed' : 'retake';
+        }
+      }
+    }
+    return 'not_started';
+  }
+
+  /// Đặt trạng thái học tập của môn học
+  Future<void> setCourseStatus(String courseCode, String status) async {
+    final normCode = GradeCalculator.normalizeCode(courseCode);
+    if (status == 'not_started') {
+      _customStatusMap.remove(normCode);
+    } else {
+      _customStatusMap[normCode] = status;
+    }
+    notifyListeners();
+    await _persistCustomStatus();
+  }
+
+  /// Chuyển đổi nhanh giữa 'passed' (đã hoàn thành) và 'not_started' (chưa học)
+  Future<void> toggleCoursePassed(String courseCode) async {
+    final current = getCourseStatus(courseCode);
+    if (current == 'passed') {
+      await setCourseStatus(courseCode, 'not_started');
+    } else {
+      await setCourseStatus(courseCode, 'passed');
+    }
+  }
 
   /// Kết quả tính GPA (lazy, tái tính khi entries thay đổi)
   GradeEvaluationResult? _cachedResult;
@@ -106,8 +151,21 @@ class TranscriptProvider extends ChangeNotifier {
             .map((e) => TranscriptEntry.fromJson(e as Map<String, dynamic>))
             .toList();
       }
+      final rawStatus = prefs.getString(_customStatusKey);
+      if (rawStatus != null && rawStatus.isNotEmpty) {
+        final decoded = jsonDecode(rawStatus);
+        if (decoded is Map) {
+          _customStatusMap = <String, String>{};
+          decoded.forEach((k, v) {
+            if (k != null && v != null) {
+              _customStatusMap[k.toString()] = v.toString();
+            }
+          });
+        }
+      }
     } catch (e) {
       debugPrint('[TranscriptProvider] Failed to load: $e');
+      _customStatusMap = <String, String>{};
     }
     _isLoaded = true;
     notifyListeners();
@@ -127,15 +185,23 @@ class TranscriptProvider extends ChangeNotifier {
 
   Future<void> clearTranscript() async {
     _entries = [];
+    _customStatusMap.clear();
     _cachedResult = null;
     notifyListeners();
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
+    await prefs.remove(_customStatusKey);
   }
 
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     final json = jsonEncode(_entries.map((e) => e.toJson()).toList());
     await prefs.setString(_storageKey, json);
+  }
+
+  Future<void> _persistCustomStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(_customStatusMap);
+    await prefs.setString(_customStatusKey, json);
   }
 }
