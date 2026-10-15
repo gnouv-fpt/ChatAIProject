@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:http/http.dart' as http;
@@ -14,9 +15,7 @@ class GradeImportService {
   GradeImportService({required this.baseUrl});
 
   /// Upload 1..10 ảnh bảng điểm, trả về danh sách TranscriptEntry + warning.
-  Future<GradeImportResult> importFromImages(
-    List<ImageFile> images,
-  ) async {
+  Future<GradeImportResult> importFromImages(List<ImageFile> images) async {
     final uri = Uri.parse('$baseUrl/api/v1/import-grade');
     final request = http.MultipartRequest('POST', uri);
 
@@ -33,12 +32,17 @@ class GradeImportService {
     }
 
     try {
-      final streamed = await request.send().timeout(const Duration(seconds: 90));
+      // Vision runs once per image on a local model; larger batches take longer.
+      final streamed = await request.send().timeout(
+        Duration(seconds: 180 + 330 * images.length),
+      );
       final body = await streamed.stream.bytesToString();
 
       if (streamed.statusCode != 200) {
-        final err = _extractErrorDetail(body);
-        throw GradeImportException('Server lỗi ${streamed.statusCode}: $err');
+        throw GradeImportException(
+          'Không thể đọc bảng điểm (HTTP ${streamed.statusCode}). '
+          'Vui lòng thử lại hoặc nhập tay.',
+        );
       }
 
       final json = jsonDecode(body) as Map<String, dynamic>;
@@ -51,8 +55,15 @@ class GradeImportService {
       return GradeImportResult(entries: entries, warning: warning);
     } on GradeImportException {
       rethrow;
-    } catch (e) {
-      throw GradeImportException('Không thể kết nối server: $e');
+    } on TimeoutException {
+      throw GradeImportException(
+        'Đọc ảnh quá thời gian chờ. Vui lòng thử lại hoặc nhập tay.',
+      );
+    } catch (_) {
+      throw GradeImportException(
+        'Không thể kết nối hoặc đọc phản hồi từ máy chủ. '
+        'Vui lòng kiểm tra kết nối rồi thử lại, hoặc nhập tay.',
+      );
     }
   }
 
@@ -62,15 +73,6 @@ class GradeImportService {
       return MediaType(parts[0], parts[1]);
     }
     return MediaType('image', 'jpeg');
-  }
-
-  static String _extractErrorDetail(String body) {
-    try {
-      final j = jsonDecode(body);
-      return j['detail']?.toString() ?? body;
-    } catch (_) {
-      return body.length > 200 ? '${body.substring(0, 200)}...' : body;
-    }
   }
 }
 

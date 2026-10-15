@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,6 +11,7 @@ import '../services/grade_calculator.dart';
 /// Tuân thủ Mục 8.2: bảng điểm lưu local, không lưu ảnh, không đưa vào RAG chung.
 class TranscriptProvider extends ChangeNotifier {
   static const _storageKey = 'flm_transcript_v1';
+  static const _targetGpaKey = 'flm_target_gpa_v1';
 
   List<TranscriptEntry> _entries = [];
   double _targetGpa = 8.0;
@@ -66,26 +68,35 @@ class TranscriptProvider extends ChangeNotifier {
       'required_avg_mark': target['requiredAverage'],
       'rank_penalty_applied': eval.hasRankPenalty,
       'failed_courses': _entries
-          .where((e) => !e.isPassed)
+          .where((e) => !e.inProgress && !e.isPassed)
           .map((e) => e.courseCode)
           .toSet()
           .toList(),
       'completed_courses': _entries
-          .where((e) => e.isPassed)
+          .where((e) => !e.inProgress && e.isPassed)
+          .map((e) => e.courseCode)
+          .toSet()
+          .toList(),
+      'in_progress_courses': _entries
+          .where((e) => e.inProgress)
           .map((e) => e.courseCode)
           .toSet()
           .toList(),
     };
     if (subjectCode != null) {
       final history = _entries
-          .where((e) =>
-              GradeCalculator.normalizeCode(e.courseCode) ==
-              GradeCalculator.normalizeCode(subjectCode))
-          .map((e) => {
-                'semester': e.semester,
-                'score': e.score,
-                'isPassed': e.isPassed,
-              })
+          .where(
+            (e) =>
+                GradeCalculator.normalizeCode(e.courseCode) ==
+                GradeCalculator.normalizeCode(subjectCode),
+          )
+          .map(
+            (e) => {
+              'semester': e.semester,
+              'score': e.score,
+              'isPassed': e.isPassed,
+            },
+          )
           .toList();
       facts['target_subject'] = GradeCalculator.normalizeCode(subjectCode);
       facts['subject_history'] = history;
@@ -99,6 +110,7 @@ class TranscriptProvider extends ChangeNotifier {
   Future<void> load() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+      _targetGpa = (prefs.getDouble(_targetGpaKey) ?? 8.0).clamp(0.0, 10.0);
       final raw = prefs.getString(_storageKey);
       if (raw != null) {
         final list = jsonDecode(raw) as List;
@@ -114,28 +126,34 @@ class TranscriptProvider extends ChangeNotifier {
   }
 
   Future<void> save(List<TranscriptEntry> confirmed) async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = jsonEncode(confirmed.map((e) => e.toJson()).toList());
+    if (!await prefs.setString(_storageKey, json)) {
+      throw StateError('Không thể lưu bảng điểm trên thiết bị.');
+    }
     _entries = List.from(confirmed);
     _cachedResult = null; // invalidate cache
     notifyListeners();
-    await _persist();
   }
 
   void setTargetGpa(double gpa) {
     _targetGpa = gpa.clamp(0.0, 10.0);
     notifyListeners();
+    unawaited(_persistTargetGpa());
+  }
+
+  Future<void> _persistTargetGpa() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_targetGpaKey, _targetGpa);
   }
 
   Future<void> clearTranscript() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!await prefs.remove(_storageKey)) {
+      throw StateError('Không thể xóa bảng điểm trên thiết bị.');
+    }
     _entries = [];
     _cachedResult = null;
     notifyListeners();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_storageKey);
-  }
-
-  Future<void> _persist() async {
-    final prefs = await SharedPreferences.getInstance();
-    final json = jsonEncode(_entries.map((e) => e.toJson()).toList());
-    await prefs.setString(_storageKey, json);
   }
 }

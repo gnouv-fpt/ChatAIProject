@@ -145,14 +145,38 @@ class LLMService:
         curriculum_info: Optional[Dict[str, Any]] = None,
         detected_intents: Optional[List[str]] = None,
         curriculum_facts: str = "",
+        conversation_history: Optional[List[Dict[str, str]]] = None,
     ) -> Tuple[str, str]:
         """
         Generates grounded, natural, and actionable response using retrieved context.
         """
-        provider = self.get_active_provider()
         language = detect_language(question)
+        target = (scope_id or (detected_courses[0] if detected_courses else "")).upper()
+        advice_terms = (
+            "tư vấn", "cách học", "chiến lược", "ôn thi", "ôn tập",
+            "qua môn", "đạt điểm cao", "study strategy", "how to study",
+        )
+        if (language == VIETNAMESE and scope == "subject" and target in (all_courses or {}) and
+                any(term in question.casefold() for term in advice_terms)):
+            course = all_courses[target]
+            explicit_pass = any(term in question.casefold() for term in ("qua môn", "pass"))
+            explicit_high = any(term in question.casefold() for term in ("điểm cao", "high score"))
+            high_score = explicit_high or (
+                not explicit_pass and (student_context or {}).get("course_goal") == "high_score"
+            )
+            answer = self._build_subject_strategy(
+                course_code=target,
+                course_name=getattr(course, "name_vi", "") or getattr(course, "name_en", "") or target,
+                course=course,
+                retrieved_chunks=retrieved_chunks,
+                student_context=student_context,
+                goal_focused=high_score,
+            )
+            return answer, "FLM-Structured-Advisor"
+        provider = self.get_active_provider()
         context_str = self._format_context(retrieved_chunks, language)
         student_facts_str = curriculum_facts + self._format_student_facts(student_context, language)
+        prompt_question = self._with_conversation_context(question, conversation_history or [], language)
 
         # Only the configured provider may generate the answer. Retry transient
         # failures, but never route back to the removed template synthesizer.
@@ -167,7 +191,7 @@ class LLMService:
         if provider_call:
             for attempt in range(1, 4):
                 try:
-                    answer = await provider_call(question, context_str, student_facts_str, language)
+                    answer = await provider_call(prompt_question, context_str, student_facts_str, language)
                     if answer and _CJK_CHARS.search(answer):
                         # Qwen models occasionally drift into Chinese mid-answer.
                         last_error = "language_drift"
@@ -189,6 +213,22 @@ class LLMService:
             _PROMPT_LABELS[language]["provider_error"].format(provider=provider, error=last_error),
             "RAG-Generation-Unavailable",
         )
+
+    @staticmethod
+    def _with_conversation_context(question: str, history: List[Dict[str, str]], language: Language) -> str:
+        """Keep retrieval on the current question while giving generation recent context."""
+        recent = [item for item in history[-8:] if item.get("content")]
+        if not recent:
+            return question
+        title = "=== LỊCH SỬ HỘI THOẠI GẦN ĐÂY ===" if language != ENGLISH else "=== RECENT CONVERSATION ==="
+        note = "chỉ dùng để hiểu ngữ cảnh, không coi là nguồn dữ liệu" if language != ENGLISH else "context only; not a source of truth"
+        lines = [f"{title} ({note}):"]
+        for item in recent:
+            role = "Sinh viên" if language != ENGLISH and item.get("role") == "user" else "Trợ lý" if language != ENGLISH else item.get("role", "user")
+            lines.append(f"{role}: {item['content']}")
+        lines.append("=== CÂU HỎI HIỆN TẠI ===" if language != ENGLISH else "=== CURRENT QUESTION ===")
+        lines.append(question)
+        return "\n".join(lines)
 
     @staticmethod
     def _safe_provider_error(exception: Exception) -> str:
@@ -259,6 +299,32 @@ class LLMService:
                 lines.append("- Cảnh báo hạ bậc: Đã học lại 1 môn. Nếu học lại thêm 1 môn nữa sẽ bị hạ bậc.")
         if ctx.get("failed_courses"):
             lines.append(f"- Môn học chưa đạt cần học lại: {', '.join(ctx.get('failed_courses', []))}")
+        goal = ctx.get("course_goal")
+        if goal in {"pass", "high_score"}:
+            lines.append(f"- Mục tiêu môn học tự khai: {'Qua môn' if goal == 'pass' else 'Đạt điểm cao'}")
+            lines.append(
+                "- Chỉ dẫn cá nhân hóa: ưu tiên xác minh điều kiện đạt và hoàn thành các thành phần bắt buộc; không tự đặt ngưỡng đạt nếu dữ liệu thiếu."
+                if goal == "pass" else
+                "- Chỉ dẫn cá nhân hóa: luyện đầy đủ CLO và đối chiếu từng thành phần đánh giá theo tỷ trọng có trong syllabus; không tự đặt điểm mục tiêu."
+            )
+        style = ctx.get("learning_style")
+        if style in {"practice", "reading"}:
+            lines.append(f"- Cách học ưu tiên tự khai: {'Làm bài thực hành' if style == 'practice' else 'Đọc và tóm tắt'}")
+        priority = ctx.get("study_priority")
+        if priority in {"time", "depth"}:
+            lines.append("- Ưu tiên tự khai: tập trung trước vào thành phần đánh giá và CLO quan trọng trong dữ liệu môn; không tự bịa thời lượng."
+                         if priority == "time" else
+                         "- Ưu tiên tự khai: hiểu sâu CLO và làm sản phẩm gắn với topic môn học có thật.")
+        long_term = ctx.get("long_term_goal")
+        if long_term in {"graduate", "career", "study_abroad"}:
+            lines.append({
+                "graduate": "- Mục tiêu dài hạn tự khai: hoàn thành chương trình; đối chiếu môn còn thiếu với khung học tập.",
+                "career": "- Mục tiêu dài hạn tự khai: chuẩn bị nghề nghiệp; chỉ liên hệ kỹ năng có trong CLO/topic.",
+                "study_abroad": "- Mục tiêu dài hạn tự khai: chuẩn bị du học; chỉ ra điểm/GPA và CLO đã có, yêu cầu bổ sung tiêu chí của trường đích trước khi kết luận đủ điều kiện.",
+            }[long_term])
+        career = ctx.get("career_goal")
+        if isinstance(career, str) and career.strip():
+            lines.append(f"- Mục tiêu nghề nghiệp tự khai: {career.strip()[:80]}")
         return "\n".join(lines) + "\n\n"
 
     @staticmethod
@@ -280,6 +346,21 @@ class LLMService:
                 lines.append("- Downgrade warning: 1 retake so far. One more retake will lower the classification.")
         if ctx.get("failed_courses"):
             lines.append(f"- Failed courses to retake: {', '.join(ctx.get('failed_courses', []))}")
+        if ctx.get("course_goal") in {"pass", "high_score"}:
+            lines.append(f"- Self-reported course goal: {ctx['course_goal']}")
+            lines.append(
+                "- Personalization: verify pass requirements and complete required assessments; never invent a pass threshold."
+                if ctx["course_goal"] == "pass" else
+                "- Personalization: practice all CLOs and use only documented assessment weights; never invent a target score."
+            )
+        if ctx.get("learning_style") in {"practice", "reading"}:
+            lines.append(f"- Self-reported learning style: {ctx['learning_style']}")
+        if ctx.get("study_priority") in {"time", "depth"}:
+            lines.append(f"- Self-reported study priority: {ctx['study_priority']}; use documented CLOs and assessments only, and do not invent hours.")
+        if ctx.get("long_term_goal") in {"graduate", "career", "study_abroad"}:
+            lines.append(f"- Self-reported long-term goal: {ctx['long_term_goal']}; do not infer admission or career eligibility without external criteria.")
+        if isinstance(ctx.get("career_goal"), str) and ctx["career_goal"].strip():
+            lines.append(f"- Self-reported career goal: {ctx['career_goal'].strip()[:80]}")
         return "\n".join(lines) + "\n\n"
 
     def _build_user_prompt(self, question: str, context: str, student_facts: str, language: Language) -> str:
@@ -314,7 +395,9 @@ class LLMService:
                 "use those exact course lists and numbers instead of recalculating them. "
                 "For information outside FLM, say so clearly instead of making things up.\n"
                 "7. Use clean, readable Markdown with clear bullet points.\n"
-                "8. Completeness: give a full, well-developed answer, never a one-line reply. Start with the direct answer, "
+                "7a. For course strategy, adapt actions to the self-reported course goal and learning style in student facts. Treat preferences as user input, not verified academic facts; cite the FLM syllabus for credits, prerequisites, assessment and CLOs.\n"
+                "8. When planner facts are provided, explain the plan in a linear order: goal, verified prerequisites, recommended next actions, and one relevant follow-up question. Do not invent a timetable, homework, deadline, room, or personal progress that is absent from the data.\n"
+                "9. Completeness: give a full, well-developed answer, never a one-line reply. Start with the direct answer, "
                 "then explain the relevant details and context from the data (e.g. what a prerequisite is for, how the "
                 "assessment weights affect passing, related CLOs, credits, semester), and finish with practical notes or "
                 "next steps for the student. Use every relevant detail available in the data. Aim for roughly 150-400 words; "
@@ -340,7 +423,9 @@ class LLMService:
             "dùng đúng danh sách môn và con số đó, không tự tính lại. "
             "Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
             "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng.\n"
-            "8. Độ đầy đủ: trả lời đầy đủ, có chiều sâu, không trả lời cụt một hai câu. Nêu câu trả lời trực tiếp trước, "
+            "7a. Khi tư vấn chiến lược môn, điều chỉnh hành động theo mục tiêu và cách học tự khai trong dữ kiện sinh viên. Phân biệt sở thích tự khai với sự thật học vụ; dẫn nguồn đề cương FLM cho tín chỉ, tiên quyết, assessment và CLO.\n"
+            "8. Khi có DỮ KIỆN LỘ TRÌNH do code tính, hãy giải thích theo tuyến tính: mục tiêu, prerequisite đã xác minh, hành động tiếp theo và tối đa một câu hỏi bổ sung liên quan. Không được bịa lịch học, homework, deadline, phòng học hoặc tiến độ cá nhân khi dữ liệu không có.\n"
+            "9. Độ đầy đủ: trả lời đầy đủ, có chiều sâu, không trả lời cụt một hai câu. Nêu câu trả lời trực tiếp trước, "
             "sau đó giải thích chi tiết và bối cảnh liên quan từ dữ liệu (ví dụ: môn tiên quyết dùng để làm gì, tỷ trọng "
             "đánh giá ảnh hưởng thế nào đến việc qua môn, CLO liên quan, số tín chỉ, học kỳ), rồi kết thúc bằng lưu ý "
             "hoặc gợi ý thực tế cho sinh viên. Tận dụng mọi chi tiết liên quan có trong dữ liệu. Độ dài thường khoảng "
@@ -847,22 +932,22 @@ class LLMService:
                     break
             return result
 
-        assessment_lines = table_lines(str(assessment or ""), 8, assessment=True)
+        assessment_lines = table_lines(str(assessment or ""), 4, assessment=True)
         if not assessment_lines:
-            assessment_lines = plain_lines(str(assessment or ""), 8)
-        outcome_lines = table_lines(str(outcomes or ""), 12)
+            assessment_lines = plain_lines(str(assessment or ""), 4)
+        outcome_lines = table_lines(str(outcomes or ""), 5)
         if not outcome_lines:
-            outcome_lines = plain_lines(str(outcomes or ""), 12)
+            outcome_lines = plain_lines(str(outcomes or ""), 5)
 
         # Use retrieved chunks when the parsed CourseDetail has no field for the section.
         if not assessment_lines:
             chunk = next((item for item, _ in retrieved_chunks if item.category == "assessment"), None)
             if chunk:
-                assessment_lines = plain_lines(chunk.content, 8)
+                assessment_lines = plain_lines(chunk.content, 4)
         if not outcome_lines:
             chunk = next((item for item, _ in retrieved_chunks if item.category == "outcomes"), None)
             if chunk:
-                outcome_lines = plain_lines(chunk.content, 8)
+                outcome_lines = plain_lines(chunk.content, 5)
 
         # The schedule is the most useful bridge from a CLO to an actual
         # study task. Group its slot topics by CLO when the source contains it.
@@ -897,7 +982,12 @@ class LLMService:
         ]
         latest_score = valid_history[-1].get("score") if valid_history else None
 
-        title = "Cách học để đạt điểm cao môn" if goal_focused else "Kế hoạch học môn"
+        profile = student_context or {}
+        pass_focused = profile.get("course_goal") == "pass" and not goal_focused
+
+        title = "Cách học để đạt điểm cao môn" if goal_focused else (
+            "Cách học để qua môn" if pass_focused else "Kế hoạch học môn"
+        )
         lines = [
             f"### {title} {course_code} ({course_name})",
             "",
@@ -910,8 +1000,35 @@ class LLMService:
             lines.append(f"- Phân bổ thời gian theo dữ liệu môn: **{time_allocation}**.")
         if has_pe is not None:
             lines.append(f"- Trạng thái PE theo dữ liệu FLM: **{'Có' if has_pe else 'Không'}**.")
+        min_pass_mark = str(getattr(course, "min_pass_mark", "") or "").strip() if course else ""
+        if min_pass_mark:
+            lines.append(f"- Điều kiện đạt ghi trong đề cương: **{min_pass_mark}**.")
         if latest_score is not None:
             lines.append(f"- Điểm gần nhất trong bảng điểm đã xác nhận: **{latest_score}**.")
+        if pass_focused:
+            lines.append("- **Ưu tiên qua môn:** xác nhận điều kiện đạt trong syllabus/rubric, hoàn thành đủ từng thành phần bắt buộc và luyện lại phần chưa đạt. Chưa có ngưỡng đạt thì không tự suy ra điểm cần thiết.")
+        elif goal_focused:
+            lines.append("- **Ưu tiên điểm cao:** luyện đủ các CLO và đối chiếu bài làm với từng tiêu chí đánh giá; dùng tỷ trọng thật nếu syllabus có cung cấp.")
+        style = profile.get("learning_style")
+        if style == "practice":
+            lines.append("- **Cách học ưu tiên:** làm bài hoặc sản phẩm theo topic thực tế, rồi đối chiếu CLO và sửa lỗi.")
+        elif style == "reading":
+            lines.append("- **Cách học ưu tiên:** đọc từng CLO, tự tóm tắt và kiểm tra hiểu bằng bài tập/assessment tương ứng.")
+        priority = profile.get("study_priority")
+        if priority == "time":
+            lines.append("- **Ưu tiên thời gian:** bắt đầu từ thành phần đánh giá và CLO có trong đề cương, theo tỷ trọng thật nếu có; chưa có dữ liệu thì không tự xếp mức quan trọng.")
+        elif priority == "depth":
+            lines.append("- **Ưu tiên hiểu sâu:** chọn một topic thật trong đề cương để luyện và đối chiếu sản phẩm với CLO tương ứng.")
+        long_term = profile.get("long_term_goal")
+        if long_term == "study_abroad":
+            lines.append("- **Định hướng du học:** ghi lại CLO và kết quả môn này; cần tiêu chí của trường/chương trình đích trước khi kết luận phù hợp.")
+        elif long_term == "career":
+            lines.append("- **Định hướng nghề nghiệp:** liên hệ bài làm với kỹ năng trong CLO/topic của môn; không suy đoán chuẩn tuyển dụng.")
+        elif long_term == "graduate":
+            lines.append("- **Định hướng hoàn thành chương trình:** đối chiếu môn này với tiên quyết và các môn kế tiếp trong khung.")
+        career = profile.get("career_goal")
+        if isinstance(career, str) and career.strip():
+            lines.append(f"- **Định hướng tự khai:** {career.strip()[:80]}; chỉ liên hệ với CLO/topic hiện có, không suy diễn nghề nghiệp từ điểm số.")
 
         if assessment_lines:
             lines.extend(["", "**Các phần cần tập trung theo cấu trúc đánh giá thực tế:**"])
@@ -929,7 +1046,7 @@ class LLMService:
                 numbers = [int(value) for value in re.findall(r"CLO(\d+)", item[0])]
                 return (min(numbers) if numbers else 99, item[0])
 
-            for clo, topics in sorted(topic_groups.items(), key=clo_sort):
+            for clo, topics in sorted(topic_groups.items(), key=clo_sort)[:3]:
                 compact_topics = ", ".join(topics[:4])
                 lower_topics = compact_topics.lower()
                 if "entity framework" in lower_topics or "database" in lower_topics:
@@ -1006,29 +1123,18 @@ class LLMService:
                 "- Bắt đầu từ thành phần assessment có tỷ trọng cao nhất và đối chiếu trực tiếp với CLO/topic của môn; mỗi phần phải tạo ra một bài làm hoặc sản phẩm kiểm tra được.",
                 "- Sau mỗi lần luyện, lưu lỗi sai và chấm lại theo đúng tiêu chí đang có trong syllabus; không coi việc đọc lại lý thuyết là đã hoàn thành.",
             ])
-            if not goal_focused:
-                lines.extend([
-                    "",
-                    "**Lịch thực hiện gợi ý:**",
-                    "- Buổi 1: chốt CLO, topic và tỷ trọng assessment của chính môn này.",
-                    "- Buổi 2: làm bài thực hành/sản phẩm cho topic ưu tiên cao nhất.",
-                    "- Buổi 3: làm bài tổng hợp có giới hạn thời gian theo PE/FE hoặc assessment đã xác định.",
-                    "- Buổi 4: sửa lỗi, tự chấm và chuyển phần chưa đạt thành việc tuần kế tiếp.",
-                ])
-
         if prerequisites:
             lines.extend(["", f"**Môn tiên quyết cần rà lại trước:** {', '.join(prerequisites)}."])
-            history = (student_context or {}).get("subject_history", [])
-            weak = {
-                str(item.get("course_code", item.get("code", ""))).upper()
-                for item in history
-                if isinstance(item, dict) and float(item.get("score", 10)) < 5
-            }
-            missing = [code for code in prerequisites if code.upper() not in {str(item.get('code', '')).upper() for item in history if isinstance(item, dict)}]
-            if weak:
-                lines.append(f"- Bảng điểm đang có môn tiên quyết chưa đạt cần ôn lại: **{', '.join(sorted(weak))}**.")
-            if missing:
-                lines.append(f"- Chưa thấy lịch sử điểm của: **{', '.join(missing)}**; hãy kiểm tra trước khi học phần nâng cao.")
+            completed = (student_context or {}).get("completed_courses")
+            if completed is None:
+                lines.append("- Chưa có bảng điểm đã xác nhận để kết luận bạn đủ điều kiện học môn này.")
+            else:
+                completed_codes = {str(code).upper() for code in completed}
+                missing = [code for code in prerequisites if code.upper() not in completed_codes]
+                if missing:
+                    lines.append(f"- Chưa thấy môn đạt trong bảng điểm: **{', '.join(missing)}**; cần kiểm tra trước khi đăng ký.")
+                else:
+                    lines.append("- Các môn tiên quyết liệt kê đã có trạng thái đạt trong bảng điểm đã xác nhận.")
 
         lines.extend(["", "**Việc nên làm ngay:**"])
         if has_pe:
@@ -1038,6 +1144,7 @@ class LLMService:
         if tool_items:
             lines.append("- Chuẩn bị đúng công cụ theo syllabus: **" + ", ".join(tool_items[:8]) + "**.")
         lines.append("- Sau mỗi tuần, đối chiếu sản phẩm hoặc bài làm với learning outcome; phần nào chưa chứng minh được thì đưa vào lịch tuần kế tiếp.")
+        lines.append(f"\n**Nguồn:** dữ liệu đề cương FLM của môn {course_code} (tín chỉ, tiên quyết, assessment, CLO/topic); điểm cá nhân từ bảng điểm đã xác nhận nếu có. Mục tiêu và cách học là thông tin sinh viên tự khai.")
         return "\n".join(lines)
 
     @staticmethod
@@ -1380,6 +1487,8 @@ class LLMService:
                 course=course,
                 retrieved_chunks=[],
                 student_context=student_context,
+                goal_focused=(student_context or {}).get("course_goal") == "high_score"
+                and not any(token in q_lower for token in ["qua môn", "pass"]),
             )
 
         if not retrieved_chunks:
@@ -1413,6 +1522,8 @@ class LLMService:
                 course=all_courses.get(course_code.upper()),
                 retrieved_chunks=retrieved_chunks,
                 student_context=student_context,
+                goal_focused=(student_context or {}).get("course_goal") == "high_score"
+                and not any(token in q_lower for token in ["qua môn", "pass"]),
             )
 
         # Case B: Assessment / PE / FE / Grading

@@ -18,6 +18,8 @@ mono_crash.*
 
 # Build results
 [Dd]ebug/
+!flutter_app/android/app/src/debug/
+!flutter_app/android/app/src/debug/AndroidManifest.xml
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/

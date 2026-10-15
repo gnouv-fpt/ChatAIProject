@@ -49,6 +49,7 @@ class ChatApiService {
     String? id,
     String? courseCode,
     Map<String, dynamic>? studentContext,
+    List<Map<String, String>> history = const [],
   }) async {
     try {
       final payload = <String, dynamic>{'question': prompt, 'prompt': prompt};
@@ -65,6 +66,9 @@ class ChatApiService {
       // Gửi dữ kiện học tập đã tính bằng code (Mục 7.4 — LLM không tự tính GPA)
       if (studentContext != null && studentContext.isNotEmpty) {
         payload['student_context'] = studentContext;
+      }
+      if (history.isNotEmpty) {
+        payload['history'] = history;
       }
 
       final response = await client

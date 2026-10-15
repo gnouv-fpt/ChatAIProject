@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
+import '../screens/transcript_screen.dart';
 import '../theme/app_theme.dart';
 
 /// Widget "Bảng điểm & Chiến lược" đặt ở Tab Tổng quan của Màn 2.
@@ -12,7 +13,11 @@ class GradeStrategyPanel extends StatefulWidget {
   final String curriculumId;
   final ValueChanged<String>? onAdvisorPrompt;
 
-  const GradeStrategyPanel({super.key, required this.curriculumId, this.onAdvisorPrompt});
+  const GradeStrategyPanel({
+    super.key,
+    required this.curriculumId,
+    this.onAdvisorPrompt,
+  });
 
   @override
   State<GradeStrategyPanel> createState() => _GradeStrategyPanelState();
@@ -45,12 +50,18 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
               ),
               Text(
                 'Mục tiêu: ${draft.toStringAsFixed(1)}  (${_rankFor(draft)})',
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(dCtx), child: const Text('Hủy')),
+            TextButton(
+              onPressed: () => Navigator.pop(dCtx),
+              child: const Text('Hủy'),
+            ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryBlue,
@@ -92,7 +103,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
         border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFFD97706).withOpacity(0.08),
+            color: const Color(0xFFD97706).withValues(alpha: 0.08),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -105,7 +116,11 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           // ── Header ──────────────────────────────────────────────────
           Row(
             children: [
-              const Icon(Icons.analytics_outlined, color: Color(0xFFD97706), size: 22),
+              const Icon(
+                Icons.analytics_outlined,
+                color: Color(0xFFD97706),
+                size: 22,
+              ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -124,7 +139,10 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
 
           const SizedBox(height: 14),
 
-          if (!hasData) _buildEmptyState(context) else _buildGpaStats(context, tp),
+          if (!hasData)
+            _buildEmptyState(context)
+          else
+            _buildGpaStats(context, tp),
         ],
       ),
     );
@@ -132,44 +150,93 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
 
   Widget _buildTranscriptMenuButton(BuildContext ctx) {
     return PopupMenuButton<String>(
-      onSelected: (val) {
-        if (val == 'clear') context.read<TranscriptProvider>().clearTranscript();
+      onSelected: (val) async {
+        if (val == 'open') {
+          await Navigator.push<void>(
+            ctx,
+            MaterialPageRoute(builder: (_) => const TranscriptScreen()),
+          );
+          return;
+        }
+        if (val != 'clear') return;
+        final confirmed = await showDialog<bool>(
+          context: ctx,
+          builder: (dialogContext) => AlertDialog(
+            title: const Text('Xóa bảng điểm?'),
+            content: const Text(
+              'Dữ liệu bảng điểm đã lưu trên thiết bị sẽ bị xóa.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: const Text('Hủy'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: const Text('Xóa'),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !ctx.mounted) return;
+        try {
+          await ctx.read<TranscriptProvider>().clearTranscript();
+        } catch (_) {
+          if (!ctx.mounted) return;
+          ScaffoldMessenger.of(ctx).showSnackBar(
+            const SnackBar(
+              content: Text('Không thể xóa bảng điểm. Vui lòng thử lại.'),
+            ),
+          );
+        }
       },
       itemBuilder: (_) => [
+        const PopupMenuItem(
+          value: 'open',
+          child: Row(
+            children: [
+              Icon(Icons.upload_file_outlined, size: 16),
+              SizedBox(width: 8),
+              Text('Nhập / sửa bảng điểm'),
+            ],
+          ),
+        ),
         if (context.read<TranscriptProvider>().hasTranscript)
           const PopupMenuItem(
             value: 'clear',
-            child: Row(children: [
-              Icon(Icons.delete_outline, size: 16, color: Colors.red),
-              SizedBox(width: 8),
-              Text('Xóa bảng điểm', style: TextStyle(color: Colors.red)),
-            ]),
+            child: Row(
+              children: [
+                Icon(Icons.delete_outline, size: 16, color: Colors.red),
+                SizedBox(width: 8),
+                Text('Xóa bảng điểm', style: TextStyle(color: Colors.red)),
+              ],
+            ),
           ),
       ],
       child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFD97706),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: const [
-                  Icon(Icons.upload_file_outlined, size: 15, color: Colors.white),
-                  SizedBox(width: 6),
-                  Text(
-                    'Quản lý điểm',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                    ),
-                  ),
-                  SizedBox(width: 4),
-                  Icon(Icons.arrow_drop_down, color: Colors.white, size: 18),
-                ],
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD97706),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.upload_file_outlined, size: 15, color: Colors.white),
+            SizedBox(width: 6),
+            Text(
+              'Quản lý điểm',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
               ),
             ),
+            SizedBox(width: 4),
+            Icon(Icons.arrow_drop_down, color: Colors.white, size: 18),
+          ],
+        ),
+      ),
     );
   }
 
@@ -177,8 +244,12 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
     return Column(
       children: [
         Text(
-          'Gửi ảnh bảng điểm ngay trong khung chat để AI đọc, xác nhận và phân tích chiến lược các kỳ tiếp theo.',
-          style: TextStyle(fontSize: 13, color: Colors.amber.shade900, height: 1.4),
+          'Mở Quản lý điểm để nhập ảnh hoặc nhập điểm thủ công, kiểm tra rồi lưu bảng điểm trước khi nhận tư vấn cá nhân.',
+          style: TextStyle(
+            fontSize: 13,
+            color: Colors.amber.shade900,
+            height: 1.4,
+          ),
         ),
         const SizedBox(height: 12),
         Row(
@@ -193,7 +264,11 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
         const SizedBox(height: 10),
         Text(
           'Mở Chat AI và bấm biểu tượng ảnh cạnh ô nhập tin nhắn để gửi bảng điểm.',
-          style: TextStyle(fontSize: 12, color: Colors.amber.shade800, fontStyle: FontStyle.italic),
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.amber.shade800,
+            fontStyle: FontStyle.italic,
+          ),
         ),
       ],
     );
@@ -212,7 +287,10 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
         children: [
           Icon(icon, size: 12, color: const Color(0xFFD97706)),
           const SizedBox(width: 4),
-          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF92400E))),
+          Text(
+            label,
+            style: const TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+          ),
         ],
       ),
     );
@@ -224,7 +302,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
     final catalog = context.read<CourseCatalog>();
     final totalGpaCredits = catalog.totalCreditsInGpa;
     final remaining = (totalGpaCredits - eval.totalGpaCredits).clamp(0, 9999);
-    final targetResult = tp.requiredGpaFor(remaining > 0 ? remaining : 30);
+    final targetResult = tp.requiredGpaFor(remaining);
     final isFeasible = targetResult['isFeasible'] as bool;
     final reqAvg = targetResult['requiredAverage'] as double;
 
@@ -236,7 +314,11 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           spacing: 10,
           runSpacing: 10,
           children: [
-            _buildStatBadge('GPA', eval.currentGpa.toStringAsFixed(2), AppTheme.primaryBlue),
+            _buildStatBadge(
+              'GPA',
+              eval.currentGpa.toStringAsFixed(2),
+              AppTheme.primaryBlue,
+            ),
             _buildStatBadge('Xếp loại TT', eval.actualRank, Colors.teal),
             _buildStatBadge(
               'Học lại',
@@ -316,7 +398,9 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
               onPressed: () => _showTargetGpaDialog(ctx, eval.currentGpa),
               icon: const Icon(Icons.tune, size: 15),
               label: const Text('Đổi mục tiêu', style: TextStyle(fontSize: 12)),
-              style: TextButton.styleFrom(foregroundColor: AppTheme.primaryBlue),
+              style: TextButton.styleFrom(
+                foregroundColor: AppTheme.primaryBlue,
+              ),
             ),
           ],
         ),
@@ -327,12 +411,16 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: AppTheme.primaryLight.withOpacity(0.5),
+            color: AppTheme.primaryLight.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
             children: [
-              const Icon(Icons.smart_toy_outlined, size: 15, color: AppTheme.primaryBlue),
+              const Icon(
+                Icons.smart_toy_outlined,
+                size: 15,
+                color: AppTheme.primaryBlue,
+              ),
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
@@ -374,18 +462,25 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: color.withOpacity(0.35)),
+        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(label, style: TextStyle(fontSize: 11, color: Colors.grey.shade600)),
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          ),
           const SizedBox(height: 2),
           Text(
             value,
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: color),
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
           ),
         ],
       ),
@@ -413,7 +508,10 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           children: [
             Icon(icon, size: 13, color: AppTheme.slate700),
             const SizedBox(width: 5),
-            Text(label, style: const TextStyle(fontSize: 12, color: AppTheme.slate700)),
+            Text(
+              label,
+              style: const TextStyle(fontSize: 12, color: AppTheme.slate700),
+            ),
           ],
         ),
       ),
@@ -425,8 +523,8 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
     final tp = context.read<TranscriptProvider>();
     final prompt = tp.hasTranscript
         ? 'Hãy phân tích chiến lược học tập cho các học kỳ tiếp theo dựa trên bảng điểm đã xác nhận của tôi. '
-          'Mục tiêu GPA tốt nghiệp là ${tp.targetGpa.toStringAsFixed(1)}. '
-          'Chỉ rõ môn ưu tiên, lý do, tín chỉ và việc cần làm theo từng kỳ.'
+              'Mục tiêu GPA tốt nghiệp là ${tp.targetGpa.toStringAsFixed(1)}. '
+              'Chỉ rõ môn ưu tiên, lý do, tín chỉ và việc cần làm theo từng kỳ.'
         : 'Hãy phân tích chiến lược học tập cho các học kỳ tiếp theo dựa trên chương trình đào tạo. Tôi chưa có bảng điểm.';
     widget.onAdvisorPrompt?.call(prompt);
     ScaffoldMessenger.of(ctx).showSnackBar(

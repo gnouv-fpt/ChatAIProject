@@ -13,7 +13,7 @@ class AssessmentItem {
     return AssessmentItem(
       item: json['item'] as String? ?? json['type'] as String? ?? 'Thành phần đánh giá',
       weight: json['weight'] as String? ?? '${json['weight_percent'] ?? ''}%',
-      minMark: json['min_mark'] as String? ?? '>0',
+      minMark: json['min_mark'] as String? ?? '',
     );
   }
 }
@@ -97,7 +97,7 @@ class Course {
     final credits = (json['credits'] as num?)?.toInt() ?? 3;
     final semester = (json['semester'] as num?)?.toInt() ?? 1;
     final prereqRaw = json['prerequisite_raw'] as String? ?? '';
-    final sylUrl = json['syllabus_url'] as String? ?? 'https://flm.fpt.edu.vn/';
+    final sylUrl = json['syllabus_url'] as String? ?? '';
 
     final los = <String>[];
     if (json['learningOutcomes'] != null && (json['learningOutcomes'] as List).isNotEmpty) {
@@ -163,11 +163,11 @@ class Course {
       prerequisiteRaw: prereqRaw,
       syllabusUrl: sylUrl,
       assessmentScheme: assessments,
-      studentTasks: json['student_tasks'] as String? ?? 'Tham gia 80%+ slot học, làm đầy đủ Lab/Assignment.',
-      toolsSoftware: json['tools_software'] as String? ?? 'IDE/Compiler chuyên dụng, Git/GitHub, AI tools.',
-      minPassMark: json['min_pass_mark'] as String? ?? '5.0 / 10 (FE >= 4.0)',
-      timeAllocation: json['time_allocation'] as String? ?? '150h (45h Contact + 105h Self-study)',
-      teachingMethods: json['teaching_methods'] as String? ?? 'In-class lecture, Lab practice, Project-based',
+      studentTasks: json['student_tasks'] as String? ?? '',
+      toolsSoftware: json['tools_software'] as String? ?? '',
+      minPassMark: json['min_pass_mark'] as String? ?? '',
+      timeAllocation: json['time_allocation'] as String? ?? '',
+      teachingMethods: json['teaching_methods'] as String? ?? '',
       colorHex: json['color'] as String?,
       hasPe: json['has_pe'] == true,
       hasPeSource: json['has_pe_source'] as String? ?? '',

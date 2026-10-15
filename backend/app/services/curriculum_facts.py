@@ -229,6 +229,27 @@ def _gpa_facts(question: str, language: Language) -> List[str]:
     return lines
 
 
+def retake_policy_note(language: Language) -> str:
+    """Short graduation warning grounded in the same YAML used for GPA facts."""
+    rules = _load_grading_rules()
+    retake = rules.get("retake", {})
+    if not retake:
+        return ""
+    count = retake.get("penalty_threshold", 2)
+    levels = retake.get("penalty_levels", 1)
+    if language == ENGLISH:
+        return (
+            f"Retake policy: {count} or more failed courses retaken lower an "
+            f"Excellent/Very good graduation rank by {levels} level(s). "
+            "Improving a course already passed is not a retake."
+        )
+    return (
+        f"Quy chế học lại: từ {count} môn đã trượt phải học lại, xếp loại "
+        f"Giỏi/Xuất sắc bị hạ {levels} bậc. Học cải thiện môn đã đạt "
+        "không tính là học lại."
+    )
+
+
 def build_curriculum_facts(
     question: str,
     courses: Dict[str, Any],

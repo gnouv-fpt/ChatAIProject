@@ -3,6 +3,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../services/grade_import_service.dart';
+import '../../../../state/course_catalog.dart';
 import '../../../../state/transcript_provider.dart';
 import '../../../../theme/app_theme.dart';
 import '../../providers/chat_provider.dart';
@@ -109,7 +110,15 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     // Lấy dữ kiện học tập đã tính bằng code từ TranscriptProvider (Mục 7.4)
     // Nếu chưa có bảng điểm, studentContext = {} và chat vẫn hoạt động bình thường
     final tp = context.read<TranscriptProvider>();
+    final catalog = context.read<CourseCatalog>();
+    final remaining = tp.hasTranscript
+        ? (catalog.totalCreditsInGpa - tp.evaluation.totalGpaCredits).clamp(
+            0,
+            catalog.totalCreditsInGpa,
+          )
+        : catalog.totalCreditsInGpa;
     final facts = tp.buildStudentContextFacts(
+      remainingGpaCredits: remaining,
       subjectCode: widget.scope == 'subject' ? widget.scopeId : null,
       semesterNumber: widget.scope == 'curriculum'
           ? widget.semesterNumber
@@ -183,7 +192,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       return [
         'Môn ${widget.scopeId} có thi PE không?',
         'Mục tiêu môn học (LOs) là gì?',
-        'Cách học để đạt điểm cao môn này?',
+        'Tư vấn cách học môn này theo mục tiêu của tôi?',
         'Môn này có tính vào GPA không?',
       ];
     }
@@ -255,7 +264,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                             ),
                             decoration: BoxDecoration(
                               color: widget.scope == 'subject'
-                                  ? AppTheme.accentOrange.withOpacity(0.12)
+                                  ? AppTheme.accentOrange.withValues(
+                                      alpha: 0.12,
+                                    )
                                   : AppTheme.primaryLight,
                               borderRadius: BorderRadius.circular(4),
                             ),
@@ -264,7 +275,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                                   ? 'Scope: Môn'
                                   : 'Scope: Khung',
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w700,
                                 color: widget.scope == 'subject'
                                     ? AppTheme.accentOrange
@@ -279,7 +290,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         Text(
                           widget.subtitle!,
                           style: const TextStyle(
-                            fontSize: 12,
+                            fontSize: 14,
                             color: AppTheme.slate600,
                           ),
                           overflow: TextOverflow.ellipsis,
@@ -332,7 +343,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: _pendingImages.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 8),
+                separatorBuilder: (_, index) => const SizedBox(width: 8),
                 itemBuilder: (context, index) {
                   final image = _pendingImages[index];
                   return Stack(
@@ -384,7 +395,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       visualDensity: VisualDensity.compact,
                       label: Text(promptText),
                       labelStyle: const TextStyle(
-                        fontSize: 11.5,
+                        fontSize: 14,
                         color: AppTheme.primaryBlue,
                       ),
                       backgroundColor: Colors.white,
@@ -440,8 +451,8 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                           ? 'Hỏi về môn ${widget.scopeId}...'
                           : 'Hỏi về chương trình ${widget.scopeId}...',
                       hintStyle: TextStyle(
-                        fontSize: 13,
-                        color: AppTheme.slate600.withOpacity(0.7),
+                        fontSize: 14,
+                        color: AppTheme.slate600.withValues(alpha: 0.7),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,

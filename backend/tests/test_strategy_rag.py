@@ -82,7 +82,7 @@ def test_subject_learning_question_returns_actions_not_only_metadata():
     )
 
     assert "Cách học theo thứ tự ưu tiên" in answer
-    assert "Lịch thực hiện gợi ý" in answer
+    assert "Các phần cần tập trung theo cấu trúc đánh giá thực tế" in answer
     assert "bấm giờ" in answer
     assert "IDE và Git" in answer
 

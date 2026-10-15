@@ -6,6 +6,7 @@ theo schema { course_code, score, semester, status, confidence }.
 """
 import logging
 import re
+import base64
 from typing import List
 
 from fastapi import APIRouter, File, UploadFile, HTTPException, status
@@ -21,8 +22,8 @@ router = APIRouter()
 class TranscriptRow(BaseModel):
     course_code: str = Field(..., description="Mã môn học (đã chuẩn hóa: hoa, bỏ khoảng trắng)")
     score: float = Field(..., description="Điểm tổng kết thang 10")
-    credits: int = Field(3, description="Số tín chỉ (mặc định 3 nếu không đọc được)")
-    semester: int = Field(1, description="Học kỳ (mặc định 1 nếu không đọc được)")
+    credits: int = Field(0, description="Số tín chỉ (0 nếu không đọc được)")
+    semester: int = Field(0, description="Học kỳ (0 nếu không đọc được)")
     status: str = Field("unknown", description="passed | failed | in_progress | unknown")
     confidence: float = Field(1.0, ge=0.0, le=1.0, description="Độ tin cậy của dòng (0..1)")
 
@@ -68,13 +69,6 @@ Rules:
 - Skip header rows, total rows, and non-course rows.
 - If a course appears multiple times (retake), include ALL rows — do not deduplicate.
 - Output ONLY the JSON array, no markdown fences, no explanations.
-"""
-
-_VISION_RETRY_PROMPT = _VISION_SYSTEM_PROMPT + """
-
-The first pass may miss wide screenshots. Perform a second careful pass:
-read every visible row even when the table is horizontally wide, and return
-the JSON array with no commentary. The column KỲ is the numeric semester.
 """
 
 _OCR_NORMALIZE_PROMPT = _VISION_SYSTEM_PROMPT + """
@@ -126,11 +120,20 @@ def _merge_and_normalize(rows: List[dict]) -> List[TranscriptRow]:
             code = _normalize_code(str(row.get("course_code", "")))
             if not code:
                 continue
-            score_raw = str(row.get("score", "0")).replace(",", ".")
-            score = max(0.0, min(10.0, float(score_raw)))
+            status_val = str(row.get("status", "unknown")).strip().lower()
+            if status_val in ("đang học", "dang hoc", "in progress"):
+                status_val = "in_progress"
+            raw_score = row.get("score")
+            if raw_score in (None, "") and status_val != "in_progress":
+                logger.warning("Skipping row without final score for %s", code)
+                continue
+            score_raw = str(0 if raw_score in (None, "") else raw_score).replace(",", ".")
+            score = float(score_raw)
+            if not 0 <= score <= 10:
+                logger.warning("Skipping row with out-of-range score for %s", code)
+                continue
             credits = int(row.get("credits", 0) or 0)
             semester = int(row.get("semester", 0) or 0)
-            status_val = str(row.get("status", "unknown")).strip().lower()
             if status_val in ("đạt", "dat", "pass", "passed"):
                 status_val = "passed"
             elif status_val in ("không đạt", "khong dat", "fail", "failed"):
@@ -179,7 +182,7 @@ async def import_grade_images(
     if len(images) > 10:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tối đa 10 ảnh mỗi lần import.")
 
-    all_rows: List[dict] = []
+    raw_images: List[tuple[str, bytes, str]] = []
     errors: List[str] = []
     total_images = len(images)
 
@@ -188,30 +191,51 @@ async def import_grade_images(
             raw_bytes = await img_file.read()
             if not raw_bytes:
                 raise ValueError("Ảnh rỗng.")
-            ocr_text = extract_text(raw_bytes)
-            if ocr_text:
-                all_rows.append({"__ocr_text__": f"[{img_file.filename}]\n{ocr_text}"})
-                logger.info("OCR extracted %d characters from '%s'", len(ocr_text), img_file.filename)
-            else:
-                logger.warning("Local OCR returned no text for '%s'", img_file.filename)
+            raw_images.append((
+                img_file.filename or "transcript.jpg",
+                raw_bytes,
+                img_file.content_type or "image/jpeg",
+            ))
         except Exception as exc:
             logger.error("Error processing image '%s': %s", img_file.filename, exc, exc_info=True)
             errors.append(f"{img_file.filename}: {exc}")
             # Tiếp tục xử lý ảnh khác, không dừng toàn bộ request
 
-    ocr_blocks = [row["__ocr_text__"] for row in all_rows if "__ocr_text__" in row]
-    normalized_rows: List[dict] = []
-    if ocr_blocks:
+    # Vision is the primary extractor: fixed-layout OCR can silently omit rows
+    # from photos and multi-column transcripts. Keep each image in memory only.
+    vision_rows: List[dict] = []
+    for filename, raw_bytes, mime_type in raw_images:
         try:
-            response = await rag_engine.llm_service.call_text_extraction(
-                _OCR_NORMALIZE_PROMPT + "\n\n".join(ocr_blocks)
+            response = await rag_engine.llm_service.call_vision(
+                system_prompt=_VISION_SYSTEM_PROMPT,
+                image_b64=base64.b64encode(raw_bytes).decode("ascii"),
+                mime_type=mime_type,
             )
-            normalized_rows = _parse_vision_response(response)
+            vision_rows.extend(_parse_vision_response(response))
         except Exception as exc:
-            logger.error("OCR text normalization failed: %s", exc, exc_info=True)
-            errors.append(f"Text normalization: {exc}")
-
-    entries = _merge_and_normalize(normalized_rows)
+            logger.warning("Vision transcript extraction failed for %s: %s", filename, exc)
+            errors.append(f"{filename}: Vision không đọc được ảnh")
+    entries = _merge_and_normalize(vision_rows)
+    if not entries:
+        # OCR plus text normalization remains available if the configured
+        # vision model is offline or cannot read an image.
+        ocr_blocks: List[str] = []
+        for filename, raw_bytes, _ in raw_images:
+            try:
+                ocr_text = extract_text(raw_bytes)
+                if ocr_text:
+                    ocr_blocks.append(f"[{filename}]\n{ocr_text}")
+            except Exception as exc:
+                logger.warning("Local OCR failed for %s: %s", filename, exc)
+        if ocr_blocks:
+            try:
+                response = await rag_engine.llm_service.call_text_extraction(
+                    _OCR_NORMALIZE_PROMPT + "\n\n".join(ocr_blocks)
+                )
+                entries = _merge_and_normalize(_parse_vision_response(response))
+            except Exception as exc:
+                logger.error("OCR text normalization failed: %s", exc)
+                errors.append("Text normalization failed")
     low_conf = sum(1 for e in entries if e.confidence < 0.8)
     warning = ""
     if not entries:

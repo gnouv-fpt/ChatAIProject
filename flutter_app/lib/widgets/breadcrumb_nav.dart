@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 
 class BreadcrumbItem {
@@ -6,20 +7,13 @@ class BreadcrumbItem {
   final VoidCallback? onTap;
   final IconData? icon;
 
-  const BreadcrumbItem({
-    required this.label,
-    this.onTap,
-    this.icon,
-  });
+  const BreadcrumbItem({required this.label, this.onTap, this.icon});
 }
 
 class BreadcrumbNav extends StatelessWidget {
   final List<BreadcrumbItem> items;
 
-  const BreadcrumbNav({
-    super.key,
-    required this.items,
-  });
+  const BreadcrumbNav({super.key, required this.items});
 
   @override
   Widget build(BuildContext context) {
@@ -29,17 +23,24 @@ class BreadcrumbNav extends StatelessWidget {
         color: Colors.white,
         border: Border(bottom: BorderSide(color: AppTheme.slate200, width: 1)),
       ),
-      child: Row(
-        children: [
-          for (int i = 0; i < items.length; i++) ...[
-            if (i > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Icon(Icons.chevron_right, size: 18, color: AppTheme.slate600.withOpacity(0.6)),
-              ),
-            _buildItem(items[i], isLast: i == items.length - 1),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            for (int i = 0; i < items.length; i++) ...[
+              if (i > 0)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: 18,
+                    color: AppTheme.slate600.withOpacity(0.6),
+                  ),
+                ),
+              _buildItem(items[i], isLast: i == items.length - 1),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -71,7 +72,9 @@ class BreadcrumbNav extends StatelessWidget {
                   fontSize: 13.5,
                   fontWeight: isLast ? FontWeight.w700 : FontWeight.w500,
                   color: isLast ? AppTheme.slate900 : AppTheme.primaryBlue,
-                  decoration: hasAction ? TextDecoration.underline : TextDecoration.none,
+                  decoration: hasAction
+                      ? TextDecoration.underline
+                      : TextDecoration.none,
                 ),
               ),
             ],

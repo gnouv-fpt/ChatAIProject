@@ -103,7 +103,7 @@ class CurriculumListPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
-                        'FLM Knowledge Assistant - Lab 1',
+                        'Cố vấn học tập FLM',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
                       ),
                     ),

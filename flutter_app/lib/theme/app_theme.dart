@@ -9,7 +9,8 @@ class AppTheme {
   static const Color primaryBlue = Color(0xFF1565C0);
   static const Color primaryDark = Color(0xFF0D47A1);
   static const Color primaryLight = Color(0xFFE3F2FD);
-  static const Color accentOrange = Color(0xFFF57C00);
+  // White text on this accent is 5.5:1 (the former #F57C00 was 2.7:1).
+  static const Color accentOrange = Color(0xFFB34700);
   static const Color accentAmber = Color(0xFFFFB300);
 
   // Surface & Neutral tones (Obsidian-inspired)
@@ -71,7 +72,7 @@ class AppTheme {
         selectedColor: primaryLight,
         disabledColor: slate200,
         labelStyle: const TextStyle(
-          fontSize: 13,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
           color: slate800,
         ),
@@ -110,7 +111,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        hintStyle: const TextStyle(fontSize: 13, color: slate600),
+        hintStyle: const TextStyle(fontSize: 14, color: slate600),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
@@ -123,7 +124,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(radiusMd),
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 14,
+          vertical: 12,
+        ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(

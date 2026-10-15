@@ -25,6 +25,11 @@ class StudentContext(BaseModel):
     completed_courses: Optional[List[str]] = Field(default_factory=list, description="List of passed course codes")
 
 
+class ChatTurn(BaseModel):
+    role: str = Field(..., description="Conversation role: user or assistant")
+    content: str = Field(..., min_length=1, description="Conversation message content")
+
+
 class ChatRequest(BaseModel):
     question: Optional[str] = Field(None, description="User question / prompt")
     prompt: Optional[str] = Field(None, description="Alternative alias for question")
@@ -33,6 +38,7 @@ class ChatRequest(BaseModel):
     scope: Optional[str] = Field(None, description="Scope of conversation: 'curriculum' or 'subject'")
     id: Optional[str] = Field(None, description="Identifier for active scope (e.g. 'BIT_SE_K19B' or 'PRM393')")
     student_context: Optional[Dict[str, Any]] = Field(None, description="Student academic facts pre-calculated by Khối E")
+    history: List[ChatTurn] = Field(default_factory=list, description="Recent conversation turns for contextual follow-up answers")
 
 
     @model_validator(mode="before")

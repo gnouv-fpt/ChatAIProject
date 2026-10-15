@@ -5,10 +5,12 @@ import '../features/chat/views/widgets/contextual_chat_panel.dart';
 import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
 import '../models/curriculum.dart';
+import '../services/grade_calculator.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/breadcrumb_nav.dart';
+import '../widgets/course_summary_modal.dart';
 import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
@@ -32,8 +34,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _semesterScrollController = ScrollController();
 
   String _searchQuery = '';
+  String _courseStatusFilter = 'all';
+  bool? _courseGpaFilter;
   int? _expandedSemester;
   bool _showRightChat = true;
   String? _advisorPrompt;
@@ -55,6 +60,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _semesterScrollController.dispose();
     super.dispose();
   }
 
@@ -62,10 +68,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => CourseDetailPage(
-          code: code,
-          curriculumId: widget.curriculumId,
-        ),
+        builder: (_) =>
+            CourseDetailPage(code: code, curriculumId: widget.curriculumId),
       ),
     );
   }
@@ -77,9 +81,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     // Build suggested question để người dùng có thể hỏi chat
     String suggestedQuestion;
     if (courseCode != null) {
-      suggestedQuestion = 'Tư vấn cách học và ôn thi môn $courseCode để đạt điểm cao.';
+      suggestedQuestion =
+          'Tư vấn cách học và ôn thi môn $courseCode để đạt điểm cao.';
     } else if (semesterTitle != null) {
-      suggestedQuestion = 'Chiến lược học tập và phân bổ thời gian trong $semesterTitle. Tôi nên ưu tiên môn nào?';
+      suggestedQuestion =
+          'Chiến lược học tập và phân bổ thời gian trong $semesterTitle. Tôi nên ưu tiên môn nào?';
     } else {
       final hasData = tp.hasTranscript;
       final eval = hasData ? tp.evaluation : null;
@@ -103,9 +109,15 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Gợi ý câu hỏi cho Chat AI:', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Gợi ý câu hỏi cho Chat AI:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 4),
-              Text('"$suggestedQuestion"', style: const TextStyle(fontStyle: FontStyle.italic)),
+              Text(
+                '"$suggestedQuestion"',
+                style: const TextStyle(fontStyle: FontStyle.italic),
+              ),
             ],
           ),
           duration: const Duration(seconds: 7),
@@ -121,12 +133,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     final curriculum = catalog.curriculum;
 
     if (curriculum == null && catalog.isLoading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final activeCurriculum = curriculum ??
+    final activeCurriculum =
+        curriculum ??
         Curriculum(
           id: widget.curriculumId,
           code: widget.curriculumId,
@@ -154,7 +165,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
             ),
             Text(
               'Chương trình cử nhân CNTT • ${activeCurriculum.totalSubjects} môn • ${activeCurriculum.totalCredits} tín chỉ',
-              style: TextStyle(fontSize: 12, fontWeight: FontWeight.normal, color: AppTheme.slate600),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.normal,
+                color: AppTheme.slate600,
+              ),
             ),
           ],
         ),
@@ -169,7 +184,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               unselectedLabelColor: AppTheme.slate600,
               indicatorColor: AppTheme.primaryBlue,
               indicatorWeight: 3,
-              labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
               tabs: const [
                 Tab(text: 'Tổng quan'),
                 Tab(text: 'Danh sách môn'),
@@ -214,14 +232,20 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           _buildOverviewTab(context, catalog, activeCurriculum),
 
                           // Tab 2: Danh sách môn
-                          _buildSubjectListTab(context, catalog, activeCurriculum),
+                          _buildSubjectListTab(
+                            context,
+                            catalog,
+                            activeCurriculum,
+                          ),
 
                           // Tab 3: Map Graph View
                           GraphViewScreen(
                             selectedCode: _selectedCourseCode,
-                            onNodeSelected: (code) => setState(() => _selectedCourseCode = code),
+                            onNodeSelected: (code) =>
+                                setState(() => _selectedCourseCode = code),
                             onOpenDetail: _openCourseDetail,
-                            onAdvisorRequested: (code) => _showAdvisorDialog(courseCode: code),
+                            onAdvisorRequested: (code) =>
+                                _showAdvisorDialog(courseCode: code),
                           ),
                         ],
                       ),
@@ -237,7 +261,9 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           title: 'Trợ lý Khung ${activeCurriculum.id}',
                           subtitle: activeCurriculum.nameVi,
                           semesterNumber: _expandedSemester,
-                          suggestedQuestions: _advisorPrompt == null ? null : [_advisorPrompt!],
+                          suggestedQuestions: _advisorPrompt == null
+                              ? null
+                              : [_advisorPrompt!],
                           onClose: () => setState(() => _showRightChat = false),
                         ),
                       ),
@@ -266,7 +292,9 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           title: 'Trợ lý Khung ${activeCurriculum.id}',
                           subtitle: activeCurriculum.nameVi,
                           semesterNumber: _expandedSemester,
-                          suggestedQuestions: _advisorPrompt == null ? null : [_advisorPrompt!],
+                          suggestedQuestions: _advisorPrompt == null
+                              ? null
+                              : [_advisorPrompt!],
                         ),
                       ),
                     );
@@ -287,7 +315,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF6366F1).withOpacity(0.42),
+                        color: const Color(0xFF6366F1).withValues(alpha: 0.42),
                         blurRadius: 14,
                         spreadRadius: 2,
                         offset: const Offset(0, 4),
@@ -307,7 +335,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     );
   }
 
-  Widget _buildOverviewTab(BuildContext context, CourseCatalog catalog, Curriculum curriculum) {
+  Widget _buildOverviewTab(
+    BuildContext context,
+    CourseCatalog catalog,
+    Curriculum curriculum,
+  ) {
     final totalCredits = catalog.totalCredits;
     final totalCreditsGpa = catalog.totalCreditsInGpa;
     final subjectCount = catalog.courses.length;
@@ -329,25 +361,52 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        curriculum.nameVi.isNotEmpty ? curriculum.nameVi : curriculum.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: AppTheme.slate900),
+                        curriculum.nameVi.isNotEmpty
+                            ? curriculum.nameVi
+                            : curriculum.name,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.slate900,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${curriculum.id} - ${curriculum.major} - ${curriculum.institution}',
-                        style: TextStyle(fontSize: 13, color: AppTheme.slate600),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.slate600,
+                        ),
                       ),
                       const Divider(height: 28),
                       Wrap(
                         spacing: 24,
                         runSpacing: 14,
                         children: [
-                          _buildPropItem('Quyết định đào tạo', curriculum.decisionNo),
-                          _buildPropItem('Trình độ đào tạo', curriculum.degreeLevel),
-                          _buildPropItem('Tổng số học kỳ', '$semCount Học kỳ (Giai đoạn 0 - 9)'),
-                          _buildPropItem('Tổng số môn học', '$subjectCount Môn'),
-                          _buildPropItem('Tổng số tín chỉ', '$totalCredits Tín chỉ'),
-                          _buildPropItem('Tín chỉ tính GPA', '$totalCreditsGpa Tín chỉ'),
+                          _buildPropItem(
+                            'Quyết định đào tạo',
+                            curriculum.decisionNo,
+                          ),
+                          _buildPropItem(
+                            'Trình độ đào tạo',
+                            curriculum.degreeLevel,
+                          ),
+                          _buildPropItem(
+                            'Tổng số học kỳ',
+                            '$semCount Học kỳ (Giai đoạn 0 - 9)',
+                          ),
+                          _buildPropItem(
+                            'Tổng số môn học',
+                            '$subjectCount Môn',
+                          ),
+                          _buildPropItem(
+                            'Tổng số tín chỉ',
+                            '$totalCredits Tín chỉ',
+                          ),
+                          _buildPropItem(
+                            'Tín chỉ tính GPA',
+                            '$totalCreditsGpa Tín chỉ',
+                          ),
                         ],
                       ),
                     ],
@@ -374,7 +433,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               if (catalog.plos.isNotEmpty) ...[
                 const Text(
                   'Chuẩn đầu ra chương trình đào tạo (PLOs)',
-                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: AppTheme.slate900),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    color: AppTheme.slate900,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Card(
@@ -382,7 +445,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemCount: catalog.plos.length,
-                    separatorBuilder: (ctx, index) => const Divider(height: 1, color: AppTheme.slate200),
+                    separatorBuilder: (ctx, index) =>
+                        const Divider(height: 1, color: AppTheme.slate200),
                     itemBuilder: (context, index) {
                       final plo = catalog.plos[index];
                       return Padding(
@@ -391,21 +455,31 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppTheme.primaryLight,
                                 borderRadius: BorderRadius.circular(6),
                               ),
                               child: Text(
                                 plo.name,
-                                style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.primaryBlue, fontSize: 12),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryBlue,
+                                  fontSize: 12,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
                                 plo.description,
-                                style: const TextStyle(fontSize: 13.5, height: 1.35),
+                                style: const TextStyle(
+                                  fontSize: 13.5,
+                                  height: 1.35,
+                                ),
                               ),
                             ),
                           ],
@@ -430,28 +504,52 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         children: [
           Text(label, style: TextStyle(fontSize: 12, color: AppTheme.slate600)),
           const SizedBox(height: 3),
-          Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.slate900)),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+              color: AppTheme.slate900,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSubjectListTab(BuildContext context, CourseCatalog catalog, Curriculum curriculum) {
+  Widget _buildSubjectListTab(
+    BuildContext context,
+    CourseCatalog catalog,
+    Curriculum curriculum,
+  ) {
     final Map<int, List<Course>> semesterMap = {};
-    for (int s = 1; s <= 9; s++) {
-      semesterMap[s] = [];
-    }
     for (final course in catalog.courses) {
       semesterMap.putIfAbsent(course.semester, () => []).add(course);
     }
+    final semesters = semesterMap.keys.toList()..sort();
+    final transcript = context.watch<TranscriptProvider>();
 
     final query = _searchQuery.toLowerCase();
     List<Course> filterList(List<Course> list) => list.where((c) {
-          if (query.isEmpty) return true;
-          return c.code.toLowerCase().contains(query) ||
-              c.name.toLowerCase().contains(query) ||
-              c.nameVi.toLowerCase().contains(query);
-        }).toList();
+      final matchesQuery =
+          query.isEmpty ||
+          c.code.toLowerCase().contains(query) ||
+          c.name.toLowerCase().contains(query) ||
+          c.nameVi.toLowerCase().contains(query);
+      final attempts = transcript.entries
+          .where((e) => e.courseCode == c.code)
+          .toList();
+      final status = attempts.isEmpty
+          ? 'not_started'
+          : attempts.last.inProgress
+          ? 'in_progress'
+          : attempts.last.isPassed
+          ? 'passed'
+          : 'failed';
+      return matchesQuery &&
+          (_courseStatusFilter == 'all' || status == _courseStatusFilter) &&
+          (_courseGpaFilter == null || c.countsInGpa == _courseGpaFilter);
+    }).toList();
 
     return Column(
       children: [
@@ -469,7 +567,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                         controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'Tìm theo mã môn (PRM393, SWD392) hoặc tên môn...',
-                          hintStyle: TextStyle(fontSize: 13, color: AppTheme.slate600.withValues(alpha: 0.7)),
+                          hintStyle: TextStyle(
+                            fontSize: 13,
+                            color: AppTheme.slate600.withValues(alpha: 0.7),
+                          ),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
                                   icon: const Icon(Icons.clear, size: 16),
@@ -479,11 +580,98 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                                   },
                                 )
                               : null,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
                         ),
-                        onChanged: (val) => setState(() => _searchQuery = val.trim()),
+                        onChanged: (val) =>
+                            setState(() => _searchQuery = val.trim()),
                       ),
                     ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    for (var index = 0; index < semesters.length; index++)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 6),
+                        child: ActionChip(
+                          label: Text('HK${semesters[index]}'),
+                          onPressed: () {
+                            setState(
+                              () => _expandedSemester = semesters[index],
+                            );
+                            if (_semesterScrollController.hasClients) {
+                              final desktop =
+                                  MediaQuery.of(context).size.width >= 760;
+                              if (desktop) {
+                                _semesterScrollController.animateTo(
+                                  (index * 316.0).clamp(
+                                    0,
+                                    _semesterScrollController
+                                        .position
+                                        .maxScrollExtent,
+                                  ),
+                                  duration: const Duration(milliseconds: 280),
+                                  curve: Curves.easeOut,
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+              Wrap(
+                spacing: 8,
+                children: [
+                  DropdownButton<String>(
+                    value: _courseStatusFilter,
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'all',
+                        child: Text('Mọi trạng thái'),
+                      ),
+                      DropdownMenuItem(value: 'passed', child: Text('Đã đạt')),
+                      DropdownMenuItem(
+                        value: 'failed',
+                        child: Text('Chưa đạt'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'in_progress',
+                        child: Text('Đang học'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'not_started',
+                        child: Text('Chưa học'),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _courseStatusFilter = value ?? 'all'),
+                  ),
+                  DropdownButton<bool?>(
+                    value: _courseGpaFilter,
+                    items: const [
+                      DropdownMenuItem<bool?>(
+                        value: null,
+                        child: Text('Mọi môn'),
+                      ),
+                      DropdownMenuItem<bool?>(
+                        value: true,
+                        child: Text('Tính GPA'),
+                      ),
+                      DropdownMenuItem<bool?>(
+                        value: false,
+                        child: Text('Không tính GPA'),
+                      ),
+                    ],
+                    onChanged: (value) =>
+                        setState(() => _courseGpaFilter = value),
                   ),
                 ],
               ),
@@ -492,48 +680,85 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         ),
         const Divider(height: 1, color: AppTheme.slate200),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: 9,
-            itemBuilder: (context, index) {
-              final sem = index + 1;
-              final allCourses = semesterMap[sem] ?? const <Course>[];
-              final courses = filterList(allCourses);
-              final credits = allCourses.fold<int>(0, (sum, course) => sum + course.credits);
-              final title = 'Học kỳ $sem';
-              return Card(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: ExpansionTile(
-                  initiallyExpanded: _expandedSemester == sem,
-                  onExpansionChanged: (expanded) => setState(() {
-                    _expandedSemester = expanded ? sem : null;
-                  }),
-                  title: Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
-                  subtitle: Text('${allCourses.length} môn • $credits tín chỉ'),
-                  trailing: IconButton(
-                    tooltip: 'Tư vấn học kỳ',
-                    icon: const Icon(Icons.auto_awesome_outlined, color: AppTheme.accentOrange),
-                    onPressed: () {
-                      setState(() => _expandedSemester = sem);
-                      _showAdvisorDialog(semesterTitle: title);
-                    },
-                  ),
-                  children: [
-                    if (courses.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-                        child: Align(
-                          alignment: Alignment.centerLeft,
-                          child: Text('Không có môn phù hợp với nội dung tìm kiếm.'),
-                        ),
-                      )
-                    else
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                        child: Column(children: courses.map(_buildCourseCard).toList()),
+          child: LayoutBuilder(
+            builder: (context, limits) {
+              final desktop = limits.maxWidth >= 760;
+              return ListView.builder(
+                controller: _semesterScrollController,
+                scrollDirection: desktop ? Axis.horizontal : Axis.vertical,
+                padding: const EdgeInsets.all(16),
+                itemCount: semesters.length,
+                itemBuilder: (context, index) {
+                  final sem = semesters[index];
+                  final allCourses = semesterMap[sem] ?? const <Course>[];
+                  final courses = filterList(allCourses);
+                  final credits = allCourses.fold<int>(
+                    0,
+                    (sum, course) => sum + course.credits,
+                  );
+                  final title = 'Học kỳ $sem';
+                  final semesterEntries = transcript.entries
+                      .where((entry) => entry.semester == sem)
+                      .toList();
+                  final semesterGpa = semesterEntries.isEmpty
+                      ? null
+                      : GradeCalculator.evaluateTranscript(semesterEntries)
+                            .currentGpa;
+                  final card = Card(
+                    margin: EdgeInsets.only(
+                      right: desktop ? 12 : 0,
+                      bottom: desktop ? 0 : 12,
+                    ),
+                    child: ExpansionTile(
+                      key: ValueKey(
+                        'semester-$sem-${_expandedSemester == sem}',
                       ),
-                  ],
-                ),
+                      initiallyExpanded: desktop || _expandedSemester == sem,
+                      onExpansionChanged: (expanded) => setState(() {
+                        _expandedSemester = expanded ? sem : null;
+                      }),
+                      title: Text(
+                        title,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                      subtitle: Text(
+                        '${allCourses.length} môn • $credits tín chỉ'
+                        '${semesterGpa == null ? "" : " • GPA ${semesterGpa.toStringAsFixed(2)}"}',
+                      ),
+                      trailing: IconButton(
+                        tooltip: 'Tư vấn học kỳ',
+                        icon: const Icon(
+                          Icons.auto_awesome_outlined,
+                          color: AppTheme.accentOrange,
+                        ),
+                        onPressed: () {
+                          setState(() => _expandedSemester = sem);
+                          _showAdvisorDialog(semesterTitle: title);
+                        },
+                      ),
+                      children: [
+                        if (courses.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                'Không có môn phù hợp với nội dung tìm kiếm.',
+                              ),
+                            ),
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                            child: Column(
+                              children: courses.map(_buildCourseCard).toList(),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                  return desktop ? SizedBox(width: 304, child: card) : card;
+                },
               );
             },
           ),
@@ -544,6 +769,18 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
 
   Widget _buildCourseCard(Course course) {
     final isSelected = course.code == _selectedCourseCode;
+    final attempts = context
+        .read<TranscriptProvider>()
+        .entries
+        .where((entry) => entry.courseCode == course.code)
+        .toList();
+    final status = attempts.isEmpty
+        ? 'Chưa học'
+        : attempts.last.inProgress
+        ? 'Đang học'
+        : attempts.last.isPassed
+        ? 'Đã đạt'
+        : 'Chưa đạt / học lại';
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: HoverCard(
@@ -553,7 +790,13 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         backgroundColor: isSelected ? AppTheme.primaryLight : null,
         onTap: () {
           setState(() => _selectedCourseCode = course.code);
-          _openCourseDetail(course.code);
+          CourseSummaryModal.showFromCourse(
+            context,
+            course: course,
+            onDetailsPressed: () => _openCourseDetail(course.code),
+            onAdvisorPressed: () => _showAdvisorDialog(courseCode: course.code),
+            onLinksPressed: () => setState(() => _tabController.index = 2),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -562,26 +805,41 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
                     course.code,
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: AppTheme.primaryBlue),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: AppTheme.primaryBlue,
+                    ),
                   ),
                 ),
                 Text(
                   '${course.credits} TC',
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppTheme.slate600),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.slate600,
+                  ),
                 ),
               ],
             ),
             const SizedBox(height: 8),
             Text(
               course.nameVi.isNotEmpty ? course.nameVi : course.name,
-              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13.5, color: AppTheme.slate900),
+              style: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13.5,
+                color: AppTheme.slate900,
+              ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
@@ -589,7 +847,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               const SizedBox(height: 2),
               Text(
                 course.name,
-                style: TextStyle(fontSize: 11.5, color: AppTheme.slate600, fontStyle: FontStyle.italic),
+                style: TextStyle(
+                  fontSize: 11.5,
+                  color: AppTheme.slate600,
+                  fontStyle: FontStyle.italic,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -601,6 +863,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               children: [
                 StatusBadge.pe(hasPe: course.hasPe),
                 StatusBadge.gpa(countsInGpa: course.countsInGpa),
+                if (context.read<TranscriptProvider>().hasTranscript)
+                  Chip(
+                    label: Text(status, style: const TextStyle(fontSize: 11)),
+                  ),
               ],
             ),
             if (course.prerequisites.isNotEmpty) ...[

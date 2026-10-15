@@ -1,6 +1,6 @@
 {
-    "name": "flm_courses",
-    "short_name": "flm_courses",
+    "name": "Cố vấn học tập FLM",
+    "short_name": "Cố vấn FLM",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

@@ -6,16 +6,92 @@ from ..schemas.course import CourseDetail, CourseSummary
 from .flm_parser import FLMKnowledgeVaultParser, FLMDocumentChunk
 from .vector_store import SemanticVectorStore
 from .llm_service import LLMService
-from .language import detect_language
+from .language import ENGLISH, detect_language
 from .curriculum_facts import (
     build_curriculum_facts,
     detect_semester,
     find_unknown_subject,
     semester_courses,
+    retake_policy_note,
     unknown_subject_answer,
 )
+from .study_planner import build_study_plan_facts, next_semester_answer
 
 DEFAULT_CURRICULUM_ID = "BIT_SE_K19B"
+
+
+def _direct_course_fact_answer(question: str, course: CourseDetail, language: str) -> Optional[str]:
+    """Answer short factual questions from parsed FLM fields, without LLM additions."""
+    normalized = question.casefold()
+    wants_credits = any(term in normalized for term in ("tín chỉ", "credit"))
+    wants_prerequisites = any(term in normalized for term in ("tiên quyết", "prerequisite"))
+    wants_pe = any(term in normalized for term in ("thi pe", "có pe", "practical exam", "thi thực hành"))
+    wants_outcomes = any(term in normalized for term in ("mục tiêu môn", "mục tiêu của môn",
+        "learning outcome", "chuẩn đầu ra", "clo"))
+    wants_presence = "xuất hiện" in normalized or "appear in" in normalized
+    wants_semester = any(term in normalized for term in ("học kỳ mấy", "học kỳ nào", "kỳ mấy",
+        "which semester", "what semester"))
+    if not any((wants_credits, wants_prerequisites, wants_pe, wants_outcomes,
+                wants_presence, wants_semester)):
+        return None
+    if len(question) > 160 or any(
+        term in normalized
+        for term in ("tư vấn", "chiến lược", "cách học", "strategy",
+                     "study plan", "nên học", "ôn thi", "ôn tập", "để qua", "phân bổ")
+    ):
+        return None
+    if language == ENGLISH:
+        parts = []
+        if wants_credits:
+            parts.append(f"{course.code} has {course.credits} credits.")
+        if wants_prerequisites:
+            prerequisites = ", ".join(course.prerequisites or [])
+            parts.append(
+                f"The prerequisite for {course.code} is {prerequisites}."
+                if prerequisites else f"{course.code} has no listed prerequisite."
+            )
+        if wants_pe:
+            parts.append(f"{course.code} {'has' if course.has_pe else 'does not have'} a practical exam (PE) according to FLM.")
+        if wants_outcomes:
+            parts.append(f"Learning outcomes for {course.code}: {course.learning_outcomes or 'not available in FLM'}")
+        if wants_presence:
+            places = ", ".join(
+                f"{item.get('curriculum', course.curriculum)}, semester {item.get('semester', course.semester)}"
+                for item in course.appears_in
+            )
+            parts.append(f"{course.code} appears in {places or f'{course.curriculum}, semester {course.semester}'}.")
+        elif wants_semester:
+            parts.append(f"{course.code} is in semester {course.semester} of {course.curriculum}.")
+        return " ".join(parts)
+    parts = []
+    if wants_credits:
+        parts.append(f"{course.code} có {course.credits} tín chỉ.")
+    if wants_prerequisites:
+        prerequisites = ", ".join(course.prerequisites or [])
+        parts.append(
+            f"Môn tiên quyết của {course.code} là {prerequisites}."
+            if prerequisites else f"{course.code} không có môn tiên quyết được ghi trong dữ liệu FLM."
+        )
+    if wants_pe:
+        parts.append(
+            f"Theo dữ liệu FLM, {course.code} {'có' if course.has_pe else 'không có'} thi PE (thực hành)."
+        )
+    if wants_outcomes:
+        parts.append(
+            f"Chuẩn đầu ra (Learning Outcomes) của {course.code}: "
+            f"{course.learning_outcomes or 'chưa có dữ liệu trong FLM'}"
+        )
+    if wants_presence:
+        places = ", ".join(
+            f"{item.get('curriculum', course.curriculum)}, HK{item.get('semester', course.semester)}"
+            for item in course.appears_in
+        )
+        parts.append(
+            f"{course.code} xuất hiện trong {places or f'{course.curriculum}, HK{course.semester}'}."
+        )
+    elif wants_semester:
+        parts.append(f"{course.code} học ở học kỳ {course.semester} trong {course.curriculum}.")
+    return " ".join(parts)
 
 
 class RAGEngine:
@@ -93,6 +169,17 @@ class RAGEngine:
         language = detect_language(query)
         curriculum_id = (request.id if request.scope == "curriculum" else None) or DEFAULT_CURRICULUM_ID
 
+        if (request.scope == "subject" or request.course_code) and target_course and target_course.upper() not in self.courses:
+            return ChatResponse(
+                answer=unknown_subject_answer(target_course.upper(), curriculum_id, language),
+                sources=[],
+                question=query,
+                matched_courses=[],
+                provider="FLM-Structured-Synthesizer",
+                latency_ms=round((time.time() - start_time) * 1000, 2),
+                detailed_sources=[],
+            )
+
         # A named subject that is not in the curriculum gets a fixed answer
         # instead of letting the LLM improvise from unrelated chunks.
         if not detected_courses and not request.course_code and request.scope != "subject":
@@ -103,6 +190,81 @@ class RAGEngine:
                     sources=[],
                     question=query,
                     matched_courses=[],
+                    provider="FLM-Structured-Synthesizer",
+                    latency_ms=round((time.time() - start_time) * 1000, 2),
+                    detailed_sources=[],
+                )
+
+        if request.scope == "curriculum" and not detected_courses:
+            next_answer = next_semester_answer(
+                query, self.courses, request.student_context, language
+            )
+            if next_answer is not None:
+                current_semester = (request.student_context or {}).get("current_semester")
+                course_sources = (
+                    [f"{course.code}.md (Tiên quyết môn học FLM)"
+                     for course in semester_courses(self.courses, current_semester + 1)]
+                    if isinstance(current_semester, int) else []
+                )
+                return ChatResponse(
+                    answer=next_answer,
+                    sources=[f"{curriculum_id}.md (Dữ liệu curriculum FLM)", *course_sources],
+                    question=query,
+                    matched_courses=[],
+                    provider="FLM-Structured-Synthesizer",
+                    latency_ms=round((time.time() - start_time) * 1000, 2),
+                    detailed_sources=[],
+                )
+
+        if request.scope == "curriculum" and not detected_courses and any(
+            term in query.casefold() for term in ("tín chỉ", "credit")
+        ):
+            stats = self.get_curriculum_stats(curriculum_id)
+            if stats and stats.semesters:
+                semester = detect_semester(query, request.student_context)
+                if semester is not None:
+                    group = next((item for item in stats.semesters
+                                  if item.semester == semester), None)
+                    if group is not None:
+                        courses = ", ".join(group.courses)
+                        answer = (
+                            f"HK{semester} có {group.total_credits} tín chỉ "
+                            f"với {group.course_count} môn: {courses}."
+                            if language != ENGLISH else
+                            f"Semester {semester} has {group.total_credits} credits "
+                            f"across {group.course_count} courses: {courses}."
+                        )
+                    else:
+                        answer = (f"Không có dữ liệu HK{semester} trong {curriculum_id}."
+                                  if language != ENGLISH else
+                                  f"No semester {semester} is listed for {curriculum_id}.")
+                else:
+                    answer = (
+                        f"{curriculum_id} có tổng cộng {stats.total_credits} tín chỉ."
+                        if language != ENGLISH else
+                        f"{curriculum_id} has {stats.total_credits} total credits."
+                    )
+                return ChatResponse(
+                    answer=answer,
+                    sources=[f"{curriculum_id}.md (Dữ liệu curriculum FLM)"],
+                    question=query,
+                    matched_courses=[],
+                    provider="FLM-Structured-Synthesizer",
+                    latency_ms=round((time.time() - start_time) * 1000, 2),
+                    detailed_sources=[],
+                )
+
+        if target_course and target_course.upper() in self.courses:
+            direct_answer = _direct_course_fact_answer(
+                query, self.courses[target_course.upper()], language
+            )
+            if direct_answer:
+                code = target_course.upper()
+                return ChatResponse(
+                    answer=direct_answer,
+                    sources=[f"{code}.md (Dữ liệu môn học FLM)"],
+                    question=query,
+                    matched_courses=[code],
                     provider="FLM-Structured-Synthesizer",
                     latency_ms=round((time.time() - start_time) * 1000, 2),
                     detailed_sources=[],
@@ -137,6 +299,14 @@ class RAGEngine:
             student_context=request.student_context,
             detected_courses=detected_courses,
         )
+        planner_facts = build_study_plan_facts(
+            question=query,
+            courses=self.courses,
+            detected_courses=detected_courses,
+            student_context=request.student_context,
+            language=language,
+        )
+        curriculum_facts = curriculum_facts + planner_facts
 
         # 3. Generate Answer via LLM / Advanced Synthesizer
         answer_text, provider_name = await self.llm_service.generate_response(
@@ -150,7 +320,24 @@ class RAGEngine:
             all_courses=self.courses,
             curriculum_info=self.parser.curriculum_info if self.parser else {},
             curriculum_facts=curriculum_facts,
+            conversation_history=[turn.model_dump() for turn in request.history],
         )
+
+        # A small local model may omit a rank rule even when the structured
+        # grading facts were supplied. Keep this critical rule deterministic.
+        lower_query = query.casefold()
+        lower_answer = answer_text.casefold()
+        graduation_goal = any(term in lower_query for term in (
+            "ra trường", "tốt nghiệp", "mục tiêu gpa", "target gpa",
+            "graduation gpa", "graduate with",
+        ))
+        mentions_policy = any(term in lower_answer for term in (
+            "học lại", "hạ bậc", "retake", "downgrad",
+        ))
+        if graduation_goal and not mentions_policy and "GPA" in curriculum_facts:
+            note = retake_policy_note(language)
+            if note:
+                answer_text = f"{answer_text.rstrip()}\n\n{note}"
 
 
         # 4. Construct human-readable sources list & detailed source chunks
@@ -210,10 +397,6 @@ class RAGEngine:
         if code_upper in self.courses:
             return self.courses[code_upper]
         
-        # Alias fallback
-        if code_upper == "PRM392" and "PRM393" in self.courses:
-            return self.courses["PRM393"]
-
         return None
 
     def get_curriculum_stats(self, curriculum_id: str = "BIT_SE_K19B"):

@@ -1,6 +1,10 @@
 import 'package:flm_courses/main.dart';
 import 'package:flm_courses/models/course.dart';
 import 'package:flm_courses/models/curriculum.dart';
+import 'package:flm_courses/screens/roadmap_screen.dart';
+import 'package:flm_courses/screens/settings_screen.dart';
+import 'package:flm_courses/screens/transcript_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -17,7 +21,7 @@ void main() {
       'has_pe_source': 'detailed_assessment_table:practical_exam',
       'counts_in_gpa': true,
       'appears_in': [
-        {'curriculum': 'BIT_SE_K19B', 'semester': 8}
+        {'curriculum': 'BIT_SE_K19B', 'semester': 8},
       ],
     });
 
@@ -58,13 +62,50 @@ void main() {
     expect(cur.semesterCount, equals(9)); // max sem 8 + 1
   });
 
-  testWidgets('Khởi chạy ứng dụng FLM hiển thị Màn 1 CurriculumListPage', (
+  testWidgets('Khởi chạy ứng dụng FLM vào Trang chủ không cần đăng nhập', (
     tester,
   ) async {
     await tester.pumpWidget(const FlmApp());
     await tester.pump(const Duration(milliseconds: 500));
 
-    // Verify Màn 1 Header is rendered
-    expect(find.text('FLM Curriculum & Knowledge Base'), findsOneWidget);
+    expect(find.text('Cố vấn học tập FLM'), findsOneWidget);
+    expect(find.text('Trang chủ'), findsOneWidget);
+    expect(find.text('Lộ trình'), findsOneWidget);
+  });
+
+  testWidgets('Điều hướng các tab trên màn hình điện thoại', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await tester.pumpWidget(const FlmApp());
+    await tester.pump(const Duration(milliseconds: 500));
+    await tester.tap(find.text('Lộ trình'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(RoadmapScreen), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      1,
+    );
+
+    await tester.tap(find.text('Bảng điểm'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(TranscriptScreen), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      3,
+    );
+
+    await tester.tap(find.text('Cài đặt'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.byType(SettingsScreen), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      4,
+    );
+    expect(tester.takeException(), isNull);
   });
 }

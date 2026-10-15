@@ -1,127 +1,41 @@
 import 'dart:math';
-import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../models/course.dart';
-import '../../../pages/course_detail_page.dart';
 import '../../../state/course_catalog.dart';
-import '../data/vault_graph_data.dart';
+import '../../../state/transcript_provider.dart';
 
-// Kích thước canvas đồ thị chuẩn Obsidian không gian 2D rộng rãi
-const double kCanvasWidth = 1900.0;
-const double kCanvasHeight = 1500.0;
-const Offset kCanvasCenter = Offset(950.0, 750.0);
-const double kGraphMaxRadius = 560.0;
+const _canvasSize = Size(1600, 1100);
+const _semesterColors = <Color>[
+  Color(0xFF64748B),
+  Color(0xFF2563EB),
+  Color(0xFF0891B2),
+  Color(0xFF0D9488),
+  Color(0xFF16A34A),
+  Color(0xFFCA8A04),
+  Color(0xFFEA580C),
+  Color(0xFFDC2626),
+  Color(0xFF9333EA),
+  Color(0xFF4F46E5),
+];
 
-// Tọa độ vị trí chuẩn xác 100% trích xuất từ đồ thị mẫu Obsidian
-const Map<String, Offset> kObsidianGraphCoords = {
-  "#HK0": Offset(0.68, -0.18),
-  "#HK1": Offset(0.68, 0.74),
-  "#HK2": Offset(0.35, 0.77),
-  "#HK3": Offset(-0.78, -0.38),
-  "#HK4": Offset(-0.39, -0.29),
-  "#HK5": Offset(-0.88, -0.22),
-  "#HK6": Offset(0.64, -0.54),
-  "#HK7": Offset(0.24, -0.58),
-  "#HK8": Offset(0.00, 0.86),
-  "#HK9": Offset(-0.24, 0.23),
-  "BIT_SE_K19B": Offset(-0.16, 0.08),
-  "CEA201": Offset(0.48, 0.26),
-  "CSD201": Offset(-0.10, -0.28),
-  "CSI106": Offset(0.16, 0.59),
-  "Curriculum_Overview": Offset(0.00, -0.04),
-  "DBI202": Offset(-0.56, -0.16),
-  "ENW493c": Offset(0.26, -0.28),
-  "EXE101": Offset(0.42, -0.11),
-  "EXE201": Offset(0.45, 0.44),
-  "HCM202": Offset(-0.44, 0.60),
-  "IOT102": Offset(-0.38, 0.18),
-  "ITE302c": Offset(0.22, 0.40),
-  "JPD113": Offset(-0.18, -0.42),
-  "JPD123": Offset(0.00, -0.40),
-  "JPD133": Offset(0.16, -0.75),
-  "LAB211": Offset(-0.70, -0.08),
-  "MAC101": Offset(0.76, 0.10),
-  "MAD101": Offset(0.36, 0.17),
-  "MAE101": Offset(0.58, 0.36),
-  "MAS291": Offset(0.48, 0.08),
-  "MLN111": Offset(-0.20, 0.78),
-  "MLN122": Offset(-0.36, 0.72),
-  "MLN131": Offset(-0.02, 0.62),
-  "NWC204": Offset(0.10, 0.46),
-  "OJT202": Offset(0.38, -0.37),
-  "OSG202": Offset(0.06, 0.33),
-  "OTP101": Offset(0.28, -0.14),
-  "PMG201c": Offset(0.45, -0.25),
-  "PRF192": Offset(-0.20, 0.37),
-  "PRJ301": Offset(-0.78, 0.08),
-  "PRM393": Offset(-0.08, 0.30),
-  "PRN212": Offset(-0.68, 0.22),
-  "PRN222": Offset(-0.42, 0.02),
-  "PRN232": Offset(-0.38, 0.46),
-  "PRO192": Offset(-0.28, -0.04),
-  "PRU213": Offset(0.12, -0.26),
-  "Program_Learning_Outcomes": Offset(0.14, 0.10),
-  "SEP490": Offset(0.14, -0.47),
-  "SSG104": Offset(0.22, 0.22),
-  "SSL101c": Offset(0.32, 0.49),
-  "SWD392": Offset(-0.10, -0.56),
-  "SWE102": Offset(-0.20, -0.74),
-  "SWE201c": Offset(-0.52, -0.58),
-  "SWE202c": Offset(-0.42, -0.76),
-  "SWP391": Offset(-0.66, -0.32),
-  "SWR302": Offset(-0.36, -0.46),
-  "SWT301": Offset(-0.49, -0.39),
-  "TMI101": Offset(0.33, 0.31),
-  "TRS601": Offset(0.32, 0.02),
-  "VNR202": Offset(-0.60, 0.52),
-  "VOV114": Offset(0.28, 0.64),
-  "VOV124": Offset(-0.14, 0.56),
-  "VOV134": Offset(-0.50, 0.35),
-  "WDU203c": Offset(-0.54, 0.14),
-  "WED201c": Offset(-0.38, -0.15),
-};
+class _GraphNode {
+  _GraphNode(this.course, this.position);
+  final Course course;
+  Offset position;
+  Offset velocity = Offset.zero;
+  double radius = 15;
+}
 
-class GraphNodeData {
-  GraphNodeData({
-    required this.id,
-    required this.label,
-    required this.title,
-    required this.semester,
-    required this.credits,
-    required this.color,
-    required this.normPos,
-    required this.radius,
-    this.isHub = false,
-    this.isTag = false,
-  });
-
-  final String id;
-  final String label;
-  final String title;
-  final int semester;
-  final int credits;
-  final Color color;
-  final Offset normPos;
-  final double radius;
-  final bool isHub;
-  final bool isTag;
-
-  Offset getActualPos(Offset center, double maxRadius) {
-    return Offset(
-      center.dx + normPos.dx * maxRadius,
-      center.dy + normPos.dy * maxRadius,
-    );
-  }
+class _GraphEdge {
+  const _GraphEdge(this.from, this.to);
+  final String from;
+  final String to;
 }
 
 class GraphViewScreen extends StatefulWidget {
-  final String? selectedCode;
-  final ValueChanged<String?>? onNodeSelected;
-  final ValueChanged<String>? onOpenDetail;
-  final ValueChanged<String>? onAdvisorRequested;
-
   const GraphViewScreen({
     super.key,
     this.selectedCode,
@@ -130,983 +44,1103 @@ class GraphViewScreen extends StatefulWidget {
     this.onAdvisorRequested,
   });
 
+  final String? selectedCode;
+  final ValueChanged<String?>? onNodeSelected;
+  final ValueChanged<String>? onOpenDetail;
+  final ValueChanged<String>? onAdvisorRequested;
+
   @override
   State<GraphViewScreen> createState() => _GraphViewScreenState();
 }
 
-class _GraphViewScreenState extends State<GraphViewScreen> with SingleTickerProviderStateMixin {
-  final TransformationController _transformationController = TransformationController();
-  final ValueNotifier<MouseCursor> _cursorNotifier = ValueNotifier<MouseCursor>(SystemMouseCursors.basic);
-
-  late final AnimationController _hoverAnimController;
-  late final Animation<double> _hoverAnimation;
-
-  String? _hoveredNodeId;
-  String? _activeFocusId; // Node đang được soi (giữ nguyên khi animation fade-out đang chạy)
-  String? _selectedNodeId;
-  String _searchQuery = '';
+class _GraphViewScreenState extends State<GraphViewScreen>
+    with SingleTickerProviderStateMixin {
+  final TransformationController _transform = TransformationController();
+  final Map<String, _GraphNode> _nodes = {};
+  final List<_GraphEdge> _edges = [];
+  late final AnimationController _ticker;
+  String? _hovered;
+  String? _selected;
+  String? _dragging;
+  String _search = '';
+  int? _semesterFilter;
+  String _statusFilter = 'all';
+  bool? _gpaFilter;
+  bool? _prerequisiteFilter;
+  bool _hideIsolated = false;
+  bool _semesterLayout = false;
+  bool _localGraph = false;
+  bool _showLabels = true;
   bool _showArrows = true;
-  bool _showLegend = true;
-
-  List<GraphNodeData> _nodes = [];
-  Map<String, GraphNodeData> _nodeMap = {};
-  List<VaultEdge> _edges = [];
-  Map<String, Set<String>> _adjacencyMap = {};
-
-  bool _isLoading = true;
-  bool _didInitialCenter = false;
+  bool _showSemesterNodes = false;
+  double _repulsion = 1800;
+  double _spring = 0.003;
+  double _linkLength = 135;
+  double _centerForce = 0.00025;
+  double _edgeWidth = 1.2;
+  double _nodeSize = 1;
+  int _depth = 1;
+  bool _initialFit = false;
+  bool _controlsOpen = false;
+  bool _showLegend = false;
+  bool _useStatusColors = false;
+  Size _viewport = Size.zero;
+  int _frames = 0;
 
   @override
   void initState() {
     super.initState();
-
-    // Khởi tạo AnimationController cho hiệu ứng chuyển đổi mượt mà chuẩn Obsidian (fade in/out nhẹ nhàng)
-    _hoverAnimController = AnimationController(
+    _ticker = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 240),
-      reverseDuration: const Duration(milliseconds: 200),
-    );
-
-    _hoverAnimation = CurvedAnimation(
-      parent: _hoverAnimController,
-      curve: Curves.easeOutCubic,
-      reverseCurve: Curves.easeInCubic,
-    );
-
-    _hoverAnimController.addStatusListener((status) {
-      if (status == AnimationStatus.dismissed && _hoveredNodeId == null) {
-        if (mounted) {
-          setState(() {
-            _activeFocusId = null;
-          });
-        }
-      }
+      duration: const Duration(seconds: 1),
+    )..addListener(_step);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadGraph();
     });
+  }
 
-    _loadGraphData();
+  @override
+  void didUpdateWidget(covariant GraphViewScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.selectedCode != oldWidget.selectedCode &&
+        widget.selectedCode != null) {
+      setState(() => _selected = widget.selectedCode);
+    }
   }
 
   @override
   void dispose() {
-    _hoverAnimController.dispose();
-    _cursorNotifier.dispose();
-    _transformationController.dispose();
+    _ticker.dispose();
+    _transform.dispose();
     super.dispose();
   }
 
-  void _loadGraphData() {
-    final catalog = context.read<CourseCatalog>();
-    final courses = catalog.courses;
-    final coursesMap = {for (var c in courses) c.code: c};
-
-    final nodes = <GraphNodeData>[];
-    final nodeMap = <String, GraphNodeData>{};
-
-    // 1. Ba Hub trung tâm chuẩn Obsidian Vault
-    final hub1 = GraphNodeData(
-      id: 'Curriculum_Overview',
-      label: 'Curriculum_Overview',
-      title: 'Tổng quan chương trình đào tạo BIT_SE_K19B',
-      semester: 0,
-      credits: 145,
-      color: const Color(0xFFF59E0B), // Vàng cam Obsidian Hub lớn
-      normPos: kObsidianGraphCoords['Curriculum_Overview'] ?? const Offset(0.00, -0.04),
-      radius: 26,
-      isHub: true,
-    );
-    final hub2 = GraphNodeData(
-      id: 'Program_Learning_Outcomes',
-      label: 'Program_Learning_Outcomes',
-      title: '13 Chuẩn đầu ra ngành',
-      semester: 0,
-      credits: 13,
-      color: const Color(0xFFD97706), // Vàng hổ phách Hub
-      normPos: kObsidianGraphCoords['Program_Learning_Outcomes'] ?? const Offset(0.14, 0.10),
-      radius: 22,
-      isHub: true,
-    );
-    final hub3 = GraphNodeData(
-      id: 'BIT_SE_K19B',
-      label: 'BIT_SE_K19B',
-      title: 'Chuyên ngành Kỹ thuật Phần mềm',
-      semester: 0,
-      credits: 145,
-      color: const Color(0xFF374151), // Xám than đậm Obsidian Hub
-      normPos: kObsidianGraphCoords['BIT_SE_K19B'] ?? const Offset(-0.16, 0.08),
-      radius: 20,
-      isHub: true,
-    );
-
-    nodes.addAll([hub1, hub2, hub3]);
-    nodeMap[hub1.id] = hub1;
-    nodeMap[hub2.id] = hub2;
-    nodeMap[hub3.id] = hub3;
-
-    // 2. Các Tag học kỳ (#HK0 -> #HK9) màu xanh lá viền ngoài
-    for (int sem = 0; sem <= 9; sem++) {
-      final tagId = '#HK$sem';
-      final pos = kObsidianGraphCoords[tagId] ?? Offset(0.8 * cos(sem * 0.6), 0.8 * sin(sem * 0.6));
-      final tagNode = GraphNodeData(
-        id: tagId,
-        label: tagId,
-        title: 'Học kỳ $sem',
-        semester: sem,
-        credits: 0,
-        color: const Color(0xFF16A34A), // Green Obsidian Tag
-        normPos: pos,
-        radius: 8.5,
-        isTag: true,
+  void _loadGraph() {
+    final courses = context
+        .read<CourseCatalog>()
+        .courses
+        .where((course) => course.inCurriculum)
+        .toList();
+    final random = Random(19);
+    _nodes.clear();
+    _edges.clear();
+    for (final course in courses) {
+      final angle = random.nextDouble() * 2 * pi;
+      final distance = 180 + random.nextDouble() * 260;
+      _nodes[course.code.toUpperCase()] = _GraphNode(
+        course,
+        Offset(800 + cos(angle) * distance, 550 + sin(angle) * distance),
       );
-      nodes.add(tagNode);
-      nodeMap[tagId] = tagNode;
     }
-
-    // 3. Các môn học từ flm_knowledge_vault với nhóm màu theo .obsidian/graph.json
-    for (final entry in kObsidianGraphCoords.entries) {
-      final id = entry.key;
-      if (id.startsWith('#HK') || id.startsWith('Curriculum_') || id.startsWith('Program_') || id == 'BIT_SE_K19B') {
-        continue;
+    final seen = <String>{};
+    for (final course in courses) {
+      for (final raw
+          in course.prerequisitesNorm.isNotEmpty
+              ? course.prerequisitesNorm
+              : course.prerequisites) {
+        final prerequisite = raw.trim().toUpperCase().replaceAll('Ð', 'Đ');
+        final dependent = course.code.toUpperCase();
+        if (!_nodes.containsKey(prerequisite) || prerequisite == dependent) {
+          continue;
+        }
+        if (seen.add('$prerequisite>$dependent')) {
+          _edges.add(_GraphEdge(prerequisite, dependent));
+        }
       }
+    }
+    for (final node in _nodes.values) {
+      final degree = _edges
+          .where(
+            (edge) =>
+                edge.from == node.course.code || edge.to == node.course.code,
+          )
+          .length;
+      node.radius = 14 + min(13, degree * 3).toDouble();
+    }
+    _selected = widget.selectedCode;
+    _startSimulation();
+  }
 
-      final course = coursesMap[id];
-      final sem = course?.semester ?? 1;
+  void _startSimulation() {
+    _frames = 0;
+    _ticker.repeat();
+    setState(() {});
+  }
 
-      Color color = const Color(0xFF0284C7); // Mặc định xanh dương
-      double radius = 12.0;
-
-      if (id == 'PRO192') {
-        color = const Color(0xFF0D9488); // Teal PRO192
-        radius = 14.0;
-      } else if (id.startsWith('PRN') || id == 'SWP391' || id == 'SWR302' || id == 'SWT301' || id == 'OJT202') {
-        color = const Color(0xFFF97316); // Track .NET & SWP màu Cam
-        radius = 12.5;
-      } else if (id == 'SWE201c' || id == 'SWE202c' || id == 'SWE102' || id == 'LAB211' || id == 'PRJ301' || id == 'DBI202') {
-        color = const Color(0xFF10B981); // Môn Xanh ngọc
-        radius = 12.0;
-      } else if (id == 'SEP490' || id.startsWith('MLN') || id == 'VNR202' || id == 'HCM202' || id == 'ITE302c' || id == 'SSL101c') {
-        color = const Color(0xFF8B5CF6); // Capstone, Chính trị, Kỹ năng Tím
-        radius = 12.5;
-      } else if (id == 'SWD392' || id == 'PRU213' || id.startsWith('EXE')) {
-        color = const Color(0xFFEF4444); // Môn Đỏ
-        radius = 12.5;
-      } else if (id == 'MAC101' || id == 'TRS601' || id.startsWith('JPD') || id == 'ENW493c' || id == 'PMG201c' || id == 'WDU203c') {
-        color = const Color(0xFF6B7280); // Môn Xám
-        radius = 11.5;
+  void _step() {
+    if (_semesterLayout || _nodes.isEmpty || _frames++ > 300) {
+      _ticker.stop();
+      return;
+    }
+    final nodes = _nodes.values.toList();
+    final forces = {for (final node in nodes) node.course.code: Offset.zero};
+    for (var i = 0; i < nodes.length; i++) {
+      for (var j = i + 1; j < nodes.length; j++) {
+        final delta = nodes[i].position - nodes[j].position;
+        final distance = max(25.0, delta.distance);
+        final push = delta / distance * (_repulsion / (distance * distance));
+        forces[nodes[i].course.code] = forces[nodes[i].course.code]! + push;
+        forces[nodes[j].course.code] = forces[nodes[j].course.code]! - push;
       }
-
-      final node = GraphNodeData(
-        id: id,
-        label: id,
-        title: course?.nameVi.isNotEmpty == true ? course!.nameVi : (course?.name ?? id),
-        semester: sem,
-        credits: course?.credits ?? 3,
-        color: color,
-        normPos: entry.value,
-        radius: radius,
+    }
+    for (final edge in _edges) {
+      final first = _nodes[edge.from]!;
+      final second = _nodes[edge.to]!;
+      final delta = second.position - first.position;
+      final distance = max(1.0, delta.distance);
+      final pull = delta / distance * ((distance - _linkLength) * _spring);
+      forces[edge.from] = forces[edge.from]! + pull;
+      forces[edge.to] = forces[edge.to]! - pull;
+    }
+    for (final node in nodes) {
+      if (node.course.code == _dragging) continue;
+      final toCenter = const Offset(800, 550) - node.position;
+      node.velocity =
+          (node.velocity + forces[node.course.code]! + toCenter * _centerForce) *
+          0.83;
+      node.position = Offset(
+        (node.position.dx + node.velocity.dx).clamp(60, 1540),
+        (node.position.dy + node.velocity.dy).clamp(60, 1040),
       );
-
-      nodes.add(node);
-      nodeMap[id] = node;
     }
+    setState(() {});
+  }
 
-    // 4. Nạp 100% chính xác toàn bộ 334 liên kết trích xuất từ flm_knowledge_vault
-    final validEdges = <VaultEdge>[];
-    final adjacency = <String, Set<String>>{};
-
-    for (final e in kVaultEdges) {
-      if (nodeMap.containsKey(e.from) && nodeMap.containsKey(e.to)) {
-        validEdges.add(e);
-        adjacency.putIfAbsent(e.from, () => <String>{}).add(e.to);
-        adjacency.putIfAbsent(e.to, () => <String>{}).add(e.from);
+  void _arrangeBySemester() {
+    _ticker.stop();
+    final groups = <int, List<_GraphNode>>{};
+    for (final node in _nodes.values) {
+      groups.putIfAbsent(node.course.semester, () => []).add(node);
+    }
+    final semesters = groups.keys.toList()..sort();
+    for (var column = 0; column < semesters.length; column++) {
+      final group = groups[semesters[column]]!
+        ..sort((a, b) => a.course.code.compareTo(b.course.code));
+      for (var row = 0; row < group.length; row++) {
+        group[row].position = Offset(
+          90 + column * (1420 / max(1, semesters.length - 1)),
+          110 + row * (860 / max(1, group.length - 1)),
+        );
       }
     }
+    setState(() => _semesterLayout = true);
+  }
 
-    setState(() {
-      _nodes = nodes;
-      _nodeMap = nodeMap;
-      _edges = validEdges;
-      _adjacencyMap = adjacency;
-      _isLoading = false;
+  void _reset() {
+    _transform.value = Matrix4.identity();
+    _initialFit = false;
+    _semesterLayout = false;
+    _localGraph = false;
+    _semesterFilter = null;
+    _statusFilter = 'all';
+    _gpaFilter = null;
+    _prerequisiteFilter = null;
+    _hideIsolated = false;
+    _loadGraph();
+    _fit();
+  }
+
+  void _fit() {
+    if (_viewport.isEmpty) return;
+    final scale = min(
+      _viewport.width / _canvasSize.width,
+      _viewport.height / _canvasSize.height,
+    ).clamp(0.35, 1.3);
+    _transform.value = Matrix4.identity()
+      ..setEntry(0, 0, scale)
+      ..setEntry(1, 1, scale)
+      ..setEntry(0, 3, (_viewport.width - _canvasSize.width * scale) / 2)
+      ..setEntry(1, 3, (_viewport.height - _canvasSize.height * scale) / 2);
+  }
+
+  void _centerOn(_GraphNode node) {
+    if (_viewport.isEmpty) return;
+    final scale = max(0.85, _transform.value.getMaxScaleOnAxis());
+    _transform.value = Matrix4.identity()
+      ..setEntry(0, 0, scale)
+      ..setEntry(1, 1, scale)
+      ..setEntry(0, 3, _viewport.width / 2 - node.position.dx * scale)
+      ..setEntry(1, 3, _viewport.height / 2 - node.position.dy * scale);
+  }
+
+  Set<String> _visibleIds(TranscriptProvider transcript) {
+    final visible = _nodes.keys.toSet();
+    final neighborMap = <String, Set<String>>{};
+    for (final edge in _edges) {
+      neighborMap.putIfAbsent(edge.from, () => {}).add(edge.to);
+      neighborMap.putIfAbsent(edge.to, () => {}).add(edge.from);
+    }
+    if (_localGraph && _selected != null && _nodes.containsKey(_selected)) {
+      final reached = <String>{_selected!};
+      var frontier = <String>{_selected!};
+      for (var i = 0; i < _depth; i++) {
+        frontier = {for (final id in frontier) ...?neighborMap[id]};
+        reached.addAll(frontier);
+      }
+      visible.retainAll(reached);
+    }
+    visible.removeWhere((id) {
+      final course = _nodes[id]!.course;
+      final entries = transcript.entries
+          .where((e) => e.courseCode == id)
+          .toList();
+      final status = entries.isEmpty
+          ? 'not_started'
+          : entries.last.inProgress
+          ? 'in_progress'
+          : entries.last.isPassed
+          ? 'passed'
+          : 'failed';
+      return (_semesterFilter != null && course.semester != _semesterFilter) ||
+          (_gpaFilter != null && course.countsInGpa != _gpaFilter) ||
+          (_prerequisiteFilter != null &&
+              (neighborMap[id]?.isNotEmpty == true) != _prerequisiteFilter) ||
+          (_hideIsolated && neighborMap[id]?.isNotEmpty != true) ||
+          (_statusFilter != 'all' && status != _statusFilter);
     });
+    return visible;
   }
 
-  void _onHoverChanged(String? newHoverId) {
-    if (_hoveredNodeId == newHoverId) return;
-
-    _hoveredNodeId = newHoverId;
-
-    if (newHoverId != null) {
-      _activeFocusId = newHoverId;
-      _hoverAnimController.forward();
-    } else {
-      _hoverAnimController.reverse();
-    }
-  }
-
-  void _centerGraph(Size viewportSize) {
-    if (viewportSize.width <= 0 || viewportSize.height <= 0) return;
-    final scaleX = (viewportSize.width - 60) / 1250.0;
-    final scaleY = (viewportSize.height - 60) / 1150.0;
-    final scale = min(scaleX, scaleY).clamp(0.55, 1.10);
-
-    final tx = (viewportSize.width - kCanvasWidth * scale) / 2;
-    final ty = (viewportSize.height - kCanvasHeight * scale) / 2;
-
-    final matrix = Matrix4.identity()
-      ..translate(tx, ty)
-      ..scale(scale, scale);
-
-    _transformationController.value = matrix;
-  }
-
-  void _zoomBy(double factor, Size viewportSize) {
-    final currentMatrix = _transformationController.value;
-    final currentScale = currentMatrix.getMaxScaleOnAxis();
-    final newScale = (currentScale * factor).clamp(0.40, 2.50);
-    final actualFactor = newScale / currentScale;
-
-    final centerViewport = Offset(viewportSize.width / 2, viewportSize.height / 2);
-    final matrix = Matrix4.identity()
-      ..translate(centerViewport.dx, centerViewport.dy)
-      ..scale(actualFactor, actualFactor)
-      ..translate(-centerViewport.dx, -centerViewport.dy)
-      ..multiply(currentMatrix);
-
-    _transformationController.value = matrix;
-  }
-
-  GraphNodeData? _findNodeAt(Offset localPos) {
-    for (final node in _nodes) {
-      final pos = node.getActualPos(kCanvasCenter, kGraphMaxRadius);
-      final dx = localPos.dx - pos.dx;
-      final dy = localPos.dy - pos.dy;
-      // Hit check: vòng tròn node hoặc vùng chữ ngay dưới
-      if (dx * dx + dy * dy <= (node.radius + 10) * (node.radius + 10) ||
-          (dx.abs() <= 36 && dy >= node.radius && dy <= node.radius + 22)) {
+  _GraphNode? _hit(Offset point, Set<String> visible) {
+    for (final id in visible) {
+      final node = _nodes[id]!;
+      if ((point - node.position).distance <= node.radius * _nodeSize + 12) {
         return node;
       }
     }
     return null;
   }
 
-  void _showNodeModal(BuildContext context, GraphNodeData node) {
-    setState(() => _selectedNodeId = node.id);
-
-    final connectedIds = (_adjacencyMap[node.id] ?? <String>{}).toSet()..remove(node.id);
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (modalContext) => Container(
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 20,
-              offset: Offset(0, -4),
-            )
-          ],
-        ),
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: node.color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: node.color, width: 1.5),
-                  ),
-                  child: Text(
-                    node.id,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                      color: node.color,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        node.title,
-                        style: const TextStyle(
-                          fontSize: 17,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0F172A),
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        node.isHub ? 'Hub tri thức trung tâm' : (node.isTag ? 'Nhãn học kỳ Obsidian' : 'Học kỳ ${node.semester} • ${node.credits} tín chỉ'),
-                        style: const TextStyle(fontSize: 13, color: Color(0xFF64748B)),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.black54),
-                  onPressed: () => Navigator.pop(modalContext),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            if (connectedIds.isNotEmpty) ...[
-              const Text(
-                'Liên kết tri thức Vault (Tiên quyết, Mở khóa & Học kỳ):',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF475569),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 6,
-                children: connectedIds.take(16).map((cid) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(color: const Color(0xFFCBD5E1)),
-                    ),
-                    child: Text(
-                      cid,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: Color(0xFF0284C7),
-                      ),
-                    ),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-            ],
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(modalContext);
-                      if (!node.isHub && !node.isTag) {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (ctx) => CourseDetailPage(code: node.id),
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.menu_book_outlined, size: 18),
-                    label: const Text('Xem chi tiết đề cương'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black87,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(modalContext);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Đang chọn môn ${node.id}. Bạn có thể hỏi AI ngay ở ô chat góc phải!'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.chat_bubble_outline, size: 18),
-                    label: const Text('Hỏi AI về môn này'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0284C7),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    ).then((_) {
-      if (mounted) setState(() => _selectedNodeId = null);
-    });
+  Set<String> _ancestorIds(String id) {
+    final result = <String>{id};
+    var frontier = <String>{id};
+    while (frontier.isNotEmpty) {
+      frontier = {
+        for (final edge in _edges)
+          if (frontier.contains(edge.to) && !result.contains(edge.from))
+            edge.from,
+      };
+      result.addAll(frontier);
+    }
+    return result;
   }
 
-  Widget _buildLegendItem(Color color, String label, {bool isLine = false, bool isTag = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2.5),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (isLine)
-            Container(
-              width: 14,
-              height: 3.5,
-              decoration: BoxDecoration(
-                color: color,
-                borderRadius: BorderRadius.circular(2),
+  void _showCourse(_GraphNode node) {
+    setState(() => _selected = node.course.code);
+    widget.onNodeSelected?.call(node.course.code);
+    final prerequisites = _edges
+        .where((e) => e.to == node.course.code)
+        .map((e) => e.from)
+        .toList();
+    final dependents = _edges
+        .where((e) => e.from == node.course.code)
+        .map((e) => e.to)
+        .toList();
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '${node.course.code} · ${node.course.credits} tín chỉ',
+                style: Theme.of(context).textTheme.titleLarge,
               ),
-            )
-          else
-            Container(
-              width: isTag ? 8 : 10,
-              height: isTag ? 8 : 10,
-              decoration: BoxDecoration(
-                color: color,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.2),
+              const SizedBox(height: 5),
+              Text(
+                node.course.nameVi.isEmpty
+                    ? node.course.name
+                    : node.course.nameVi,
               ),
-            ),
-          const SizedBox(width: 7),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF475569),
-                fontWeight: FontWeight.w500,
+              const SizedBox(height: 12),
+              Text(
+                'Tiên quyết: ${prerequisites.isEmpty ? "Không có" : prerequisites.join(", ")}',
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+              Text(
+                'Môn phụ thuộc: ${dependents.isEmpty ? "Không có" : dependents.join(", ")}',
+              ),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      setState(() => _localGraph = true);
+                    },
+                    child: const Text('Xem liên kết'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      setState(() => _selected = node.course.code);
+                      _highlightAncestors = true;
+                    },
+                    child: const Text('Chuỗi tiên quyết'),
+                  ),
+                  OutlinedButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      widget.onAdvisorRequested?.call(node.course.code);
+                    },
+                    child: const Text('Tư vấn môn này'),
+                  ),
+                  FilledButton(
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      widget.onOpenDetail?.call(node.course.code);
+                    },
+                    child: const Text('Xem chi tiết'),
+                  ),
+                ],
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
+  bool _highlightAncestors = false;
+
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+    final transcript = context.watch<TranscriptProvider>();
+    final visible = _visibleIds(transcript);
+    final focus = _hovered ?? _selected;
+    final related = <String>{};
+    final prerequisites = <String>{};
+    final dependents = <String>{};
+    if (focus != null) {
+      related.add(focus);
+      for (final edge in _edges) {
+        if (edge.from == focus) {
+          related.add(edge.to);
+          dependents.add(edge.to);
+        }
+        if (edge.to == focus) {
+          related.add(edge.from);
+          prerequisites.add(edge.from);
+        }
+      }
+      if (_highlightAncestors) related.addAll(_ancestorIds(focus));
     }
-
     return LayoutBuilder(
-      builder: (context, constraints) {
-        final viewportSize = Size(constraints.maxWidth, constraints.maxHeight);
-
-        // Tự động căn giữa đồ thị lần đầu tiên
-        if (!_didInitialCenter && viewportSize.width > 0 && viewportSize.height > 0) {
-          _didInitialCenter = true;
+      builder: (context, limits) {
+        _viewport = Size(limits.maxWidth, limits.maxHeight);
+        if (!_initialFit && !_viewport.isEmpty) {
+          _initialFit = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _centerGraph(viewportSize);
+            if (mounted) _fit();
           });
         }
-
-        return Container(
-          color: Colors.white,
-          child: Stack(
-            children: [
-              // BỘ RENDER ĐỒ THỊ 100% CANVAS GPU - SIÊU MƯỢT 60+ FPS VỚI ANIMATION CURVED LERP
-              InteractiveViewer(
-                transformationController: _transformationController,
-                constrained: false, // Kéo di chuyển tự do 360 độ khắp không gian 2D
-                boundaryMargin: const EdgeInsets.all(1400),
-                minScale: 0.40,
-                maxScale: 2.50,
-                panEnabled: true,
-                scaleEnabled: true,
-                child: SizedBox(
-                  width: kCanvasWidth,
-                  height: kCanvasHeight,
-                  child: ValueListenableBuilder<MouseCursor>(
-                    valueListenable: _cursorNotifier,
-                    builder: (context, currentCursor, _) {
-                      return MouseRegion(
-                        cursor: currentCursor,
-                        // BẮT HOVER TRỰC TIẾP TRÊN CANVAS VÀ KÍCH HOẠT ANIMATION CHUYỂN CẢNH MƯỢT MÀ
-                        onHover: (event) {
-                          final hit = _findNodeAt(event.localPosition);
-                          final newHoverId = hit?.id;
-                          _onHoverChanged(newHoverId);
-
-                          final newCursor = hit != null ? SystemMouseCursors.click : SystemMouseCursors.basic;
-                          if (_cursorNotifier.value != newCursor) {
-                            _cursorNotifier.value = newCursor;
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: InteractiveViewer(
+                transformationController: _transform,
+                constrained: false,
+                boundaryMargin: const EdgeInsets.all(600),
+                minScale: 0.3,
+                maxScale: 3,
+                panEnabled: _dragging == null,
+                child: SizedBox.fromSize(
+                  size: _canvasSize,
+                  child: MouseRegion(
+                    onHover: (event) {
+                      final id = _hit(
+                        event.localPosition,
+                        visible,
+                      )?.course.code;
+                      if (id != _hovered) setState(() => _hovered = id);
+                    },
+                    onExit: (_) => setState(() => _hovered = null),
+                    child: Listener(
+                      onPointerDown: (event) {
+                        final id = _hit(
+                          event.localPosition,
+                          visible,
+                        )?.course.code;
+                        if (id != null) {
+                          setState(() => _dragging = id);
+                        }
+                      },
+                      onPointerMove: (event) {
+                        final node = _nodes[_dragging];
+                        if (node != null) {
+                          setState(() => node.position = event.localPosition);
+                        }
+                      },
+                      onPointerUp: (_) {
+                        if (_dragging != null) {
+                          setState(() => _dragging = null);
+                          if (!_semesterLayout) _startSimulation();
+                        }
+                      },
+                      onPointerCancel: (_) => setState(() => _dragging = null),
+                      child: GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onLongPressStart: (details) {
+                          final node = _hit(details.localPosition, visible);
+                          if (node != null) _showCourse(node);
+                        },
+                        onTapUp: (details) {
+                          final node = _hit(details.localPosition, visible);
+                          if (node == null) {
+                            setState(() {
+                              _selected = null;
+                              _highlightAncestors = false;
+                            });
+                            widget.onNodeSelected?.call(null);
+                          } else {
+                            _showCourse(node);
                           }
                         },
-                        onExit: (_) {
-                          _onHoverChanged(null);
-                          if (_cursorNotifier.value != SystemMouseCursors.basic) {
-                            _cursorNotifier.value = SystemMouseCursors.basic;
-                          }
-                        },
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.translucent,
-                          // CLICK MỞ MODAL NGAY LẬP TỨC
-                          onTapUp: (details) {
-                            final hit = _findNodeAt(details.localPosition);
-                            if (hit != null) {
-                              _showNodeModal(context, hit);
-                            }
-                          },
-                          child: CustomPaint(
-                            size: const Size(kCanvasWidth, kCanvasHeight),
-                            painter: ObsidianPureGraphPainter(
-                              nodes: _nodes,
-                              nodeMap: _nodeMap,
-                              edges: _edges,
-                              adjacencyMap: _adjacencyMap,
-                              center: kCanvasCenter,
-                              maxRadius: kGraphMaxRadius,
-                              hoverAnimation: _hoverAnimation,
-                              activeFocusId: _activeFocusId,
-                              selectedNodeId: _selectedNodeId,
-                              searchQuery: _searchQuery,
-                              showArrows: _showArrows,
-                            ),
+                        child: CustomPaint(
+                          painter: _GraphPainter(
+                            nodes: _nodes,
+                            edges: _edges,
+                            visible: visible,
+                            focus: focus,
+                            related: related,
+                            prerequisites: prerequisites,
+                            dependents: dependents,
+                            transcript: transcript,
+                            statusColors: _useStatusColors,
+                            labels: _showLabels,
+                            arrows: _showArrows,
+                            semesterNodes: _showSemesterNodes,
+                            edgeWidth: _edgeWidth,
+                            nodeSize: _nodeSize,
+                            scale: _transform.value.getMaxScaleOnAxis(),
+                            search: _search,
                           ),
                         ),
-                      );
-                    },
+                      ),
+                    ),
                   ),
                 ),
               ),
-
-              // THANH TÌM KIẾM VÀ ĐIỀU KHIỂN THU PHÓNG TRÊN CÙNG
-              Positioned(
-                top: 14,
-                left: 20,
-                right: 20,
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.96),
-                          borderRadius: BorderRadius.circular(21),
-                          border: Border.all(color: const Color(0xFFE2E8F0)),
-                          boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
-                        ),
+            ),
+            Positioned(
+              top: 12,
+              left: 12,
+              right: 12,
+              child: Material(
+                elevation: 3,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Row(
+                    children: [
+                      Expanded(
                         child: TextField(
-                          style: const TextStyle(fontSize: 13),
                           decoration: const InputDecoration(
-                            hintText: 'Tìm nhanh môn học trên Graph (PRM393, PRO192, SWP391)...',
-                            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 12.5),
-                            prefixIcon: Icon(Icons.search, size: 18, color: Color(0xFF64748B)),
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.symmetric(vertical: 11),
+                            prefixIcon: Icon(Icons.search),
+                            hintText: 'Tìm môn theo mã hoặc tên',
+                            isDense: true,
+                            border: OutlineInputBorder(),
                           ),
-                          onChanged: (v) => setState(() => _searchQuery = v.trim()),
+                          onChanged: (value) {
+                            setState(
+                              () => _search = value.trim().toLowerCase(),
+                            );
+                            final matches = _nodes.values.where(
+                              (node) =>
+                                  node.course.code.toLowerCase().contains(
+                                    _search,
+                                  ) ||
+                                  node.course.name.toLowerCase().contains(
+                                    _search,
+                                  ),
+                            );
+                            if (_search.isNotEmpty && matches.isNotEmpty) {
+                              _centerOn(matches.first);
+                            }
+                          },
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    Container(
-                      height: 42,
-                      padding: const EdgeInsets.symmetric(horizontal: 10),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.96),
-                        borderRadius: BorderRadius.circular(21),
-                        border: Border.all(color: const Color(0xFFE2E8F0)),
-                        boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
+                      IconButton(
+                        tooltip: 'Vừa màn hình',
+                        onPressed: _fit,
+                        icon: const Icon(Icons.fit_screen),
                       ),
-                      child: Row(
-                        children: [
-                          const Text('Mũi tên', style: TextStyle(fontSize: 12, color: Color(0xFF475569))),
-                          const SizedBox(width: 4),
-                          Switch(
-                            value: _showArrows,
-                            activeColor: const Color(0xFF8B5CF6),
-                            onChanged: (val) => setState(() => _showArrows = val),
-                          ),
-                        ],
+                      IconButton(
+                        tooltip: 'Reset',
+                        onPressed: _reset,
+                        icon: const Icon(Icons.restart_alt),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Nút Zoom In (+)
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.add, size: 18),
-                      tooltip: 'Phóng to (+)',
-                      onPressed: () => _zoomBy(1.20, viewportSize),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF0F172A),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Nút Zoom Out (-)
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.remove, size: 18),
-                      tooltip: 'Thu nhỏ (-)',
-                      onPressed: () => _zoomBy(0.83, viewportSize),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF0F172A),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    // Nút Căn giữa đồ thị
-                    IconButton.filledTonal(
-                      icon: const Icon(Icons.center_focus_strong, size: 18),
-                      tooltip: 'Căn giữa đồ thị',
-                      onPressed: () => _centerGraph(viewportSize),
-                      style: IconButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF0F172A),
-                        side: const BorderSide(color: Color(0xFFE2E8F0)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              // BẢNG CHÚ THÍCH ĐỒ THỊ (GRAPH LEGEND) - ĐẶT GÓC DƯỚI BÊN TRÁI TRÁNH ĐỤNG CHAT PANEL
-              Positioned(
-                bottom: 48,
-                left: 20,
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  width: _showLegend ? 260 : 185,
-                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.96),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 10,
-                        offset: Offset(0, 3),
+                      IconButton(
+                        tooltip: 'Bộ lọc',
+                        onPressed: () =>
+                            setState(() => _controlsOpen = !_controlsOpen),
+                        icon: const Icon(Icons.tune),
                       ),
                     ],
                   ),
+                ),
+              ),
+            ),
+            if (_controlsOpen)
+              Positioned(
+                top: 80,
+                right: 12,
+                child: Material(
+                  elevation: 3,
+                  borderRadius: BorderRadius.circular(12),
+                  child: SizedBox(
+                    width: min(290, limits.maxWidth - 24),
+                    height: min(530, max(120, limits.maxHeight - 96)),
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SwitchListTile(
+                              dense: true,
+                              title: const Text('Theo học kỳ'),
+                              value: _semesterLayout,
+                              onChanged: (value) {
+                                if (value) {
+                                  _arrangeBySemester();
+                                } else {
+                                  setState(() => _semesterLayout = false);
+                                  _startSimulation();
+                                }
+                              },
+                            ),
+                            SwitchListTile(
+                              dense: true,
+                              title: const Text('Xem liên kết'),
+                              value: _localGraph && _selected != null,
+                              onChanged: _selected == null
+                                  ? null
+                                  : (value) =>
+                                        setState(() => _localGraph = value),
+                            ),
+                            if (_localGraph)
+                              Row(
+                                children: [
+                                  const Text('Độ sâu'),
+                                  Expanded(
+                                    child: Slider(
+                                      min: 1,
+                                      max: 3,
+                                      divisions: 2,
+                                      value: _depth.toDouble(),
+                                      label: '$_depth',
+                                      onChanged: (value) => setState(
+                                        () => _depth = value.round(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            DropdownButtonFormField<int?>(
+                              initialValue: _semesterFilter,
+                              decoration: const InputDecoration(
+                                labelText: 'Học kỳ',
+                              ),
+                              items: [
+                                const DropdownMenuItem<int?>(
+                                  value: null,
+                                  child: Text('Tất cả'),
+                                ),
+                                for (final sem
+                                    in _nodes.values
+                                        .map((n) => n.course.semester)
+                                        .toSet()
+                                        .toList()
+                                      ..sort())
+                                  DropdownMenuItem<int?>(
+                                    value: sem,
+                                    child: Text('HK$sem'),
+                                  ),
+                              ],
+                              onChanged: (value) =>
+                                  setState(() => _semesterFilter = value),
+                            ),
+                            DropdownButtonFormField<String>(
+                              initialValue: _statusFilter,
+                              decoration: const InputDecoration(
+                                labelText: 'Trạng thái',
+                              ),
+                              items: const [
+                                DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text('Tất cả'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'passed',
+                                  child: Text('Đã đạt'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'failed',
+                                  child: Text('Chưa đạt'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'in_progress',
+                                  child: Text('Đang học'),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'not_started',
+                                  child: Text('Chưa học'),
+                                ),
+                              ],
+                              onChanged: (value) => setState(
+                                () => _statusFilter = value ?? 'all',
+                              ),
+                            ),
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 0,
+                              children: [
+                                FilterChip(
+                                  label: const Text('Tính GPA'),
+                                  selected: _gpaFilter == true,
+                                  onSelected: (value) => setState(
+                                    () => _gpaFilter = value ? true : null,
+                                  ),
+                                ),
+                                FilterChip(
+                                  label: const Text('Không tính GPA'),
+                                  selected: _gpaFilter == false,
+                                  onSelected: (value) => setState(
+                                    () => _gpaFilter = value ? false : null,
+                                  ),
+                                ),
+                                FilterChip(
+                                  label: const Text('Có tiên quyết'),
+                                  selected: _prerequisiteFilter == true,
+                                  onSelected: (value) => setState(
+                                    () => _prerequisiteFilter = value
+                                        ? true
+                                        : null,
+                                  ),
+                                ),
+                                FilterChip(
+                                  label: const Text('Ẩn node cô lập'),
+                                  selected: _hideIsolated,
+                                  onSelected: (value) =>
+                                      setState(() => _hideIsolated = value),
+                                ),
+                              ],
+                            ),
+                            Wrap(
+                              spacing: 4,
+                              children: [
+                                FilterChip(
+                                  label: const Text('Nhãn'),
+                                  selected: _showLabels,
+                                  onSelected: (v) =>
+                                      setState(() => _showLabels = v),
+                                ),
+                                FilterChip(
+                                  label: const Text('Mũi tên'),
+                                  selected: _showArrows,
+                                  onSelected: (v) =>
+                                      setState(() => _showArrows = v),
+                                ),
+                                FilterChip(
+                                  label: const Text('Node học kỳ'),
+                                  selected: _showSemesterNodes,
+                                  onSelected: (v) =>
+                                      setState(() => _showSemesterNodes = v),
+                                ),
+                                FilterChip(
+                                  label: const Text('Màu điểm'),
+                                  selected: _useStatusColors,
+                                  onSelected: transcript.hasTranscript
+                                      ? (v) =>
+                                            setState(() => _useStatusColors = v)
+                                      : null,
+                                ),
+                              ],
+                            ),
+                            const Divider(),
+                            const Text('Mô phỏng và hiển thị'),
+                            _GraphControlSlider(
+                              label: 'Lực đẩy',
+                              value: _repulsion,
+                              min: 500,
+                              max: 5000,
+                              onChanged: (value) {
+                                setState(() => _repulsion = value);
+                                if (!_semesterLayout) _startSimulation();
+                              },
+                            ),
+                            _GraphControlSlider(
+                              label: 'Lực kéo',
+                              value: _spring,
+                              min: 0.001,
+                              max: 0.01,
+                              onChanged: (value) {
+                                setState(() => _spring = value);
+                                if (!_semesterLayout) _startSimulation();
+                              },
+                            ),
+                            _GraphControlSlider(
+                              label: 'Độ dài nối',
+                              value: _linkLength,
+                              min: 80,
+                              max: 260,
+                              onChanged: (value) {
+                                setState(() => _linkLength = value);
+                                if (!_semesterLayout) _startSimulation();
+                              },
+                            ),
+                            _GraphControlSlider(
+                              label: 'Hút về tâm',
+                              value: _centerForce,
+                              min: 0,
+                              max: 0.001,
+                              onChanged: (value) {
+                                setState(() => _centerForce = value);
+                                if (!_semesterLayout) _startSimulation();
+                              },
+                            ),
+                            _GraphControlSlider(
+                              label: 'Độ dày cạnh',
+                              value: _edgeWidth,
+                              min: 0.5,
+                              max: 4,
+                              onChanged: (value) =>
+                                  setState(() => _edgeWidth = value),
+                            ),
+                            _GraphControlSlider(
+                              label: 'Kích thước node',
+                              value: _nodeSize,
+                              min: 0.65,
+                              max: 1.8,
+                              onChanged: (value) =>
+                                  setState(() => _nodeSize = value),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            Positioned(
+              left: 12,
+              bottom: 12,
+              child: Material(
+                elevation: 2,
+                borderRadius: BorderRadius.circular(10),
+                child: Padding(
+                  padding: const EdgeInsets.all(10),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       InkWell(
-                        borderRadius: BorderRadius.circular(8),
                         onTap: () => setState(() => _showLegend = !_showLegend),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Expanded(
-                              child: Row(
-                                children: [
-                                  Icon(Icons.palette_outlined, size: 15, color: Color(0xFF8B5CF6)),
-                                  SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      'Chú thích màu sắc',
-                                      style: TextStyle(
-                                        fontSize: 12.0,
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF1E293B),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Icon(
-                              _showLegend ? Icons.keyboard_arrow_down : Icons.keyboard_arrow_up,
-                              size: 18,
-                              color: const Color(0xFF64748B),
-                            ),
-                          ],
+                        child: Text(
+                          'Chú giải màu ${_showLegend ? "▾" : "▸"}',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
-                      if (_showLegend) ...[
-                        const SizedBox(height: 6),
-                        const Divider(height: 1, color: Color(0xFFF1F5F9)),
-                        const SizedBox(height: 6),
-                        _buildLegendItem(const Color(0xFF8B5CF6), 'Liên kết đang soi (Hover)', isLine: true),
-                        _buildLegendItem(const Color(0xFFF59E0B), 'Hub chương trình & CĐR'),
-                        _buildLegendItem(const Color(0xFF0284C7), 'Core CS & Kỹ thuật PM'),
-                        _buildLegendItem(const Color(0xFF10B981), 'Web & Java cơ sở'),
-                        _buildLegendItem(const Color(0xFFF97316), 'Chuyên ngành .NET & SWP'),
-                        _buildLegendItem(const Color(0xFF8B5CF6), 'Capstone, Chính trị & KN'),
-                        _buildLegendItem(const Color(0xFFEF4444), 'Kiến trúc & Đồ án thực chiến'),
-                        _buildLegendItem(const Color(0xFF6B7280), 'Toán, Ngoại ngữ & Đại cương'),
-                        _buildLegendItem(const Color(0xFF16A34A), 'Nhãn học kỳ (#HK0 - #HK9)', isTag: true),
-                      ],
+                      if (!_showLegend)
+                        SizedBox(
+                          width: min(270, limits.maxWidth - 48),
+                          child: Wrap(
+                            spacing: 8,
+                            children: [
+                              if (_useStatusColors && transcript.hasTranscript)
+                                const Text(
+                                  'Lục: đạt · Đỏ: chưa đạt · Lam: đang học · Xám: chưa học',
+                                  style: TextStyle(fontSize: 10),
+                                )
+                              else
+                                for (final sem in _nodes.values
+                                  .map((n) => n.course.semester)
+                                  .toSet()
+                                  .toList()
+                                ..sort())
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.circle,
+                                        color: _semesterColors[sem.clamp(0, 9)],
+                                        size: 9),
+                                    Text(' HK$sem',
+                                        style: const TextStyle(fontSize: 10)),
+                                  ],
+                                ),
+                              if (focus != null) ...[
+                                const Text('Lục: tiên quyết',
+                                    style: TextStyle(
+                                        color: Color(0xFF16A34A),
+                                        fontSize: 10)),
+                                const Text('Cam: phụ thuộc',
+                                    style: TextStyle(
+                                        color: Color(0xFFEA580C),
+                                        fontSize: 10)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      if (_showLegend &&
+                          !(_useStatusColors && transcript.hasTranscript))
+                        for (final sem
+                            in _nodes.values
+                                .map((n) => n.course.semester)
+                                .toSet()
+                                .toList()
+                              ..sort())
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                color: _semesterColors[sem.clamp(0, 9)],
+                                size: 12,
+                              ),
+                              Text(
+                                '  HK$sem',
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                      if (_showLegend &&
+                          _useStatusColors &&
+                          transcript.hasTranscript)
+                        const Text(
+                          'Lục: đạt · Đỏ: chưa đạt · Lam: đang học · Xám: chưa học',
+                          style: TextStyle(fontSize: 11),
+                        ),
                     ],
                   ),
                 ),
               ),
-
-              // HƯỚNG DẪN UX Ở CHÂN TRANG
-              Positioned(
-                bottom: 12,
-                left: 20,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.94),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.pan_tool_outlined, size: 14, color: Color(0xFF8B5CF6)),
-                      SizedBox(width: 6),
-                      Text(
-                        'Kéo chuột di chuyển mượt mà • Cuộn để Zoom • Rê chuột để soi liên kết nhẹ nhàng • Click xem chi tiết',
-                        style: TextStyle(fontSize: 11.5, color: Color(0xFF475569), fontWeight: FontWeight.w500),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );
   }
 }
 
-class ObsidianPureGraphPainter extends CustomPainter {
-  ObsidianPureGraphPainter({
+class _GraphControlSlider extends StatelessWidget {
+  const _GraphControlSlider({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) => Row(
+        children: [
+          SizedBox(width: 100, child: Text(label)),
+          Expanded(
+            child: Slider(
+              value: value,
+              min: min,
+              max: max,
+              onChanged: onChanged,
+            ),
+          ),
+        ],
+      );
+}
+
+class _GraphPainter extends CustomPainter {
+  _GraphPainter({
     required this.nodes,
-    required this.nodeMap,
     required this.edges,
-    required this.adjacencyMap,
-    required this.center,
-    required this.maxRadius,
-    required this.hoverAnimation,
-    required this.activeFocusId,
-    required this.selectedNodeId,
-    required this.searchQuery,
-    required this.showArrows,
-  }) : super(repaint: hoverAnimation);
-
-  final List<GraphNodeData> nodes;
-  final Map<String, GraphNodeData> nodeMap;
-  final List<VaultEdge> edges;
-  final Map<String, Set<String>> adjacencyMap;
-  final Offset center;
-  final double maxRadius;
-  final Animation<double> hoverAnimation;
-  final String? activeFocusId;
-  final String? selectedNodeId;
-  final String searchQuery;
-  final bool showArrows;
-
-  // Bút vẽ dùng chung
-  static final Paint _edgePaint = Paint()..style = PaintingStyle.stroke;
-  static final Paint _arrowPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _nodeFillPaint = Paint()..style = PaintingStyle.fill;
-  static final Paint _nodeBorderPaint = Paint()..style = PaintingStyle.stroke;
-  static final Paint _nodeGlowPaint = Paint()..style = PaintingStyle.stroke;
+    required this.visible,
+    required this.focus,
+    required this.related,
+    required this.prerequisites,
+    required this.dependents,
+    required this.transcript,
+    required this.statusColors,
+    required this.labels,
+    required this.arrows,
+    required this.semesterNodes,
+    required this.edgeWidth,
+    required this.nodeSize,
+    required this.scale,
+    required this.search,
+  });
+  final Map<String, _GraphNode> nodes;
+  final List<_GraphEdge> edges;
+  final Set<String> visible;
+  final String? focus;
+  final Set<String> related;
+  final Set<String> prerequisites;
+  final Set<String> dependents;
+  final TranscriptProvider transcript;
+  final bool statusColors;
+  final bool labels;
+  final bool arrows;
+  final bool semesterNodes;
+  final double edgeWidth;
+  final double nodeSize;
+  final double scale;
+  final String search;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final double t = hoverAnimation.value;
-    final focusId = activeFocusId ?? selectedNodeId;
-    final Set<String>? connectedIds = focusId != null ? adjacencyMap[focusId] : null;
-
-    final isFocusingHub = focusId == 'Curriculum_Overview' ||
-        focusId == 'BIT_SE_K19B' ||
-        focusId == 'Program_Learning_Outcomes';
-
-    // 1. VẼ CÁC ĐƯỜNG LIÊN KẾT (EDGES) & MŨI TÊN (ARROWS) VỚI ANIMATION LERP MƯỢT MÀ
-    for (final edge in edges) {
-      final fromNode = nodeMap[edge.from];
-      final toNode = nodeMap[edge.to];
-      if (fromNode == null || toNode == null) continue;
-
-      final isDirectlyConnected = focusId != null &&
-          (edge.from == focusId || edge.to == focusId);
-
-      // Nếu đang hover vào Hub trung tâm, chỉ giữ liên kết giữa các Hub và với các nhãn kỳ để tránh nổ 50 mũi tên
-      if (isFocusingHub && isDirectlyConnected && !edge.isHub && !edge.to.startsWith('#HK') && !edge.from.startsWith('#HK')) {
-        continue;
+    if (semesterNodes) {
+      final groups = <int, List<_GraphNode>>{};
+      for (final id in visible) {
+        final node = nodes[id]!;
+        groups.putIfAbsent(node.course.semester, () => []).add(node);
       }
-
-      final start = fromNode.getActualPos(center, maxRadius);
-      final end = toNode.getActualPos(center, maxRadius);
-
-      if (isDirectlyConnected) {
-        // ĐƯỜNG LIÊN KẾT TRỰC TIẾP ĐANG ĐƯỢC SOI:
-        // Lerp mượt mà từ màu xám nhạt sang tím rực rỡ và tăng độ dày từ 1.0 lên 2.4
-        final strokeW = lerpDouble(1.0, 2.4, t)!;
-        final edgeColor = Color.lerp(const Color(0xFFCBD5E1), const Color(0xFF8B5CF6), t)!;
-        final edgeOpacity = lerpDouble(0.50, 1.0, t)!;
-
-        _edgePaint
-          ..color = edgeColor.withOpacity(edgeOpacity)
-          ..strokeWidth = strokeW;
-        canvas.drawLine(start, end, _edgePaint);
-
-        // Vẽ mũi tên hướng cho liên kết đang focus
-        if (showArrows && (!edge.isHub || isDirectlyConnected)) {
-          final double angle = atan2(end.dy - start.dy, end.dx - start.dx);
-          final double arrowRadius = toNode.radius + 3.0;
-          final Offset arrowPos = Offset(
-            end.dx - arrowRadius * cos(angle),
-            end.dy - arrowRadius * sin(angle),
+      for (final entry in groups.entries) {
+        final group = entry.value;
+        final center = Offset(
+          group.map((n) => n.position.dx).reduce((a, b) => a + b) /
+              group.length,
+          group.map((n) => n.position.dy).reduce((a, b) => a + b) /
+                  group.length -
+              95,
+        );
+        final color = _semesterColors[entry.key.clamp(0, 9)];
+        for (final node in group) {
+          canvas.drawLine(
+            center,
+            node.position,
+            Paint()
+              ..color = color.withValues(alpha: 0.14)
+              ..strokeWidth = 0.8,
           );
-
-          final double arrowSize = lerpDouble(6.0, 9.5, t)!;
-          final arrowColor = Color.lerp(const Color(0xFF94A3B8), const Color(0xFF8B5CF6), t)!;
-          final path = Path()
-            ..moveTo(
-              arrowPos.dx - arrowSize * cos(angle - pi / 6),
-              arrowPos.dy - arrowSize * sin(angle - pi / 6),
-            )
-            ..lineTo(arrowPos.dx, arrowPos.dy)
-            ..lineTo(
-              arrowPos.dx - arrowSize * cos(angle + pi / 6),
-              arrowPos.dy - arrowSize * sin(angle + pi / 6),
-            )
-            ..close();
-
-          _arrowPaint.color = arrowColor.withOpacity(edgeOpacity);
-          canvas.drawPath(path, _arrowPaint);
         }
-      } else {
-        // ĐƯỜNG KHÔNG LIÊN QUAN:
-        // Khi hover, mờ dần nhẹ nhàng về 0.0 (fade out mềm mại) thay vì biến mất đột ngột
-        final normalOpacity = lerpDouble(0.50, 0.0, t)!;
-        if (normalOpacity > 0.01) {
-          _edgePaint
-            ..color = const Color(0xFFCBD5E1).withOpacity(normalOpacity)
-            ..strokeWidth = 1.0;
-          canvas.drawLine(start, end, _edgePaint);
-
-          if (showArrows && !edge.isHub) {
-            final double angle = atan2(end.dy - start.dy, end.dx - start.dx);
-            final double arrowRadius = toNode.radius + 3.0;
-            final Offset arrowPos = Offset(
-              end.dx - arrowRadius * cos(angle),
-              end.dy - arrowRadius * sin(angle),
-            );
-
-            const double arrowSize = 6.0;
-            final path = Path()
-              ..moveTo(
-                arrowPos.dx - arrowSize * cos(angle - pi / 6),
-                arrowPos.dy - arrowSize * sin(angle - pi / 6),
-              )
-              ..lineTo(arrowPos.dx, arrowPos.dy)
-              ..lineTo(
-                arrowPos.dx - arrowSize * cos(angle + pi / 6),
-                arrowPos.dy - arrowSize * sin(angle + pi / 6),
-              )
-              ..close();
-
-            _arrowPaint.color = const Color(0xFF94A3B8).withOpacity(normalOpacity);
-            canvas.drawPath(path, _arrowPaint);
-          }
-        }
+        canvas.drawCircle(center, 29, Paint()..color = color);
+        final title = TextPainter(
+          text: TextSpan(
+            text: 'HK${entry.key}',
+            style: const TextStyle(
+                color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        title.paint(canvas,
+            center - Offset(title.width / 2, title.height / 2));
       }
     }
-
-    // 2. VẼ CÁC NODE VÀ NHÃN CHỮ TRÊN CANVAS VỚI HIỆU ỨNG BLUR/DIM MỀM MẠI
-    for (final node in nodes) {
-      final pos = node.getActualPos(center, maxRadius);
-      final isFocused = focusId == node.id;
-      final isConnected = connectedIds != null && connectedIds.contains(node.id);
-      final isOutside = focusId != null && !isFocused && !isConnected;
-
-      final isSearched = searchQuery.isNotEmpty &&
-          (node.id.toLowerCase().contains(searchQuery.toLowerCase()) ||
-           node.title.toLowerCase().contains(searchQuery.toLowerCase()));
-
-      // Độ mờ chuyển đổi mềm mại: các node bên ngoài không liên quan mờ dần nhẹ nhàng về 0.08
-      final double opacity = isOutside ? lerpDouble(1.0, 0.08, t)! : 1.0;
-
-      // A. Vòng hào quang cho Hub trung tâm chuẩn Obsidian
-      if (node.isHub) {
-        _nodeGlowPaint
-          ..color = node.color.withOpacity(0.35 * opacity)
-          ..strokeWidth = 1.6;
-        canvas.drawCircle(pos, node.radius + 6.0, _nodeGlowPaint);
-      }
-
-      // B. Quầng sáng (Glow Shadow) khi Focus hoặc Connected
-      if ((isFocused || isConnected || isSearched) && !isOutside) {
-        final glowColor = isSearched
-            ? const Color(0xFFFBBF24)
-            : (isFocused ? const Color(0xFF8B5CF6) : node.color);
-        final glowIntensity = isFocused ? (0.65 * t) : (0.35 * t);
-        final strokeW = isFocused ? lerpDouble(2.0, 5.0, t)! : 3.0;
-
-        _nodeGlowPaint
-          ..color = glowColor.withOpacity(glowIntensity)
-          ..strokeWidth = strokeW;
-        canvas.drawCircle(pos, node.radius + (isFocused ? 3.5 : 2.0), _nodeGlowPaint);
-      }
-
-      // C. Vòng tròn node chính (màu sắc chuyển nhẹ khi hover)
-      final baseColor = isSearched
-          ? const Color(0xFFFBBF24)
-          : (isFocused ? Color.lerp(node.color, const Color(0xFF8B5CF6), t)! : node.color);
-
-      _nodeFillPaint.color = baseColor.withOpacity(opacity);
-      canvas.drawCircle(pos, node.radius, _nodeFillPaint);
-
-      // D. Viền trắng trang nhã quanh node
-      _nodeBorderPaint
-        ..color = (isFocused ? Colors.white : Colors.white70).withOpacity(opacity)
-        ..strokeWidth = isFocused ? lerpDouble(1.5, 2.5, t)! : 1.4;
-      canvas.drawCircle(pos, node.radius, _nodeBorderPaint);
-
-      // E. Nhãn chữ hiển thị thanh thoát đúng chuẩn Obsidian
-      final textColor = isFocused
-          ? const Color(0xFF0F172A)
-          : (isConnected
-              ? const Color(0xFF1E293B)
-              : (node.isTag ? const Color(0xFF16A34A) : const Color(0xFF4B5563)));
-
-      final textSpan = TextSpan(
-        text: node.id,
-        style: TextStyle(
-          fontSize: isFocused || isConnected
-              ? 13.0
-              : (node.isHub ? 12.0 : (node.isTag ? 10.5 : 11.5)),
-          fontWeight: isFocused || isConnected ? FontWeight.w800 : FontWeight.w600,
-          color: textColor.withOpacity(opacity),
-          shadows: [
-            Shadow(color: Colors.white.withOpacity(opacity * 0.9), blurRadius: 4),
-            Shadow(color: Colors.white.withOpacity(opacity * 0.9), blurRadius: 2),
-          ],
-        ),
+    for (final edge in edges) {
+      if (!visible.contains(edge.from) || !visible.contains(edge.to)) continue;
+      final from = nodes[edge.from]!;
+      final to = nodes[edge.to]!;
+      final active = focus == edge.from || focus == edge.to;
+      final dim = focus != null && !active;
+      final color = active
+          ? edge.to == focus
+              ? const Color(0xFF16A34A)
+              : const Color(0xFFEA580C)
+          : const Color(0xFF94A3B8).withValues(alpha: dim ? 0.09 : 0.48);
+      canvas.drawLine(
+        from.position,
+        to.position,
+        Paint()
+          ..color = color
+          ..strokeWidth = edgeWidth * (active ? 2.3 : 1),
       );
-
-      final tp = TextPainter(
-        text: textSpan,
-        textAlign: TextAlign.center,
-        textDirection: TextDirection.ltr,
-      )..layout();
-
-      tp.paint(canvas, Offset(pos.dx - tp.width / 2, pos.dy + node.radius + 3.5));
+      if (arrows) {
+        final delta = to.position - from.position;
+        if (delta.distance < 1) continue;
+        final direction = delta / delta.distance;
+        final tip = to.position - direction * (to.radius * nodeSize + 2);
+        final side = Offset(-direction.dy, direction.dx);
+        final path = Path()
+          ..moveTo(tip.dx, tip.dy)
+          ..lineTo(
+            (tip - direction * 8 + side * 4).dx,
+            (tip - direction * 8 + side * 4).dy,
+          )
+          ..lineTo(
+            (tip - direction * 8 - side * 4).dx,
+            (tip - direction * 8 - side * 4).dy,
+          )
+          ..close();
+        canvas.drawPath(path, Paint()..color = color);
+      }
+    }
+    for (final id in visible) {
+      final node = nodes[id]!;
+      final radius = node.radius * nodeSize;
+      final dim = focus != null && !related.contains(id);
+      Color color = _semesterColors[node.course.semester.clamp(0, 9)];
+      if (statusColors && transcript.hasTranscript) {
+        final entries = transcript.entries
+            .where((e) => e.courseCode == id)
+            .toList();
+        color = entries.isEmpty
+            ? const Color(0xFF94A3B8)
+            : entries.last.inProgress
+            ? const Color(0xFF2563EB)
+            : entries.last.isPassed
+            ? const Color(0xFF16A34A)
+            : const Color(0xFFDC2626);
+      }
+      if (prerequisites.contains(id)) color = const Color(0xFF16A34A);
+      if (dependents.contains(id)) color = const Color(0xFFEA580C);
+      if (search.isNotEmpty &&
+          (id.toLowerCase().contains(search) ||
+              node.course.name.toLowerCase().contains(search))) {
+        canvas.drawCircle(
+          node.position,
+          radius + 6,
+          Paint()..color = const Color(0xFFFACC15),
+        );
+      }
+      canvas.drawCircle(
+        node.position,
+        radius,
+        Paint()..color = color.withValues(alpha: dim ? 0.13 : 1),
+      );
+      if (focus == id) {
+        canvas.drawCircle(
+          node.position,
+          radius + 3,
+          Paint()
+            ..color = const Color(0xFF312E81)
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3,
+        );
+      }
+      if (labels &&
+          (scale > 0.65 || radius >= 20 || related.contains(id))) {
+        final painter = TextPainter(
+          text: TextSpan(
+            text: id,
+            style: TextStyle(
+              color: const Color(0xFF0F172A).withValues(alpha: dim ? 0.2 : 1),
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout();
+        painter.paint(
+          canvas,
+          Offset(
+            node.position.dx - painter.width / 2,
+            node.position.dy + radius + 4,
+          ),
+        );
+      }
     }
   }
 
   @override
-  bool shouldRepaint(covariant ObsidianPureGraphPainter oldDelegate) {
-    return oldDelegate.searchQuery != searchQuery ||
-        oldDelegate.showArrows != showArrows ||
-        oldDelegate.selectedNodeId != selectedNodeId ||
-        oldDelegate.activeFocusId != activeFocusId ||
-        oldDelegate.center != center ||
-        oldDelegate.maxRadius != maxRadius;
-  }
+  bool shouldRepaint(covariant _GraphPainter oldDelegate) => true;
 }

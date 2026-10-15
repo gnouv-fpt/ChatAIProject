@@ -5,6 +5,7 @@ class TranscriptEntry {
   int credits;
   int semester;
   bool isPassed;
+  bool inProgress;
   double confidence;
 
   TranscriptEntry({
@@ -14,6 +15,7 @@ class TranscriptEntry {
     required this.credits,
     required this.semester,
     required this.isPassed,
+    this.inProgress = false,
     this.confidence = 1.0,
   });
 
@@ -24,6 +26,7 @@ class TranscriptEntry {
     'credits': credits,
     'semester': semester,
     'isPassed': isPassed,
+    'inProgress': inProgress,
     'confidence': confidence,
   };
 
@@ -32,12 +35,16 @@ class TranscriptEntry {
     final status = json['status']?.toString();
     return TranscriptEntry(
       // FastAPI responses use snake_case; local SharedPreferences uses camelCase.
-      courseCode: _normalizeCode((json['courseCode'] ?? json['course_code'] ?? '').toString()),
+      courseCode: _normalizeCode(
+        (json['courseCode'] ?? json['course_code'] ?? '').toString(),
+      ),
       courseName: (json['courseName'] ?? json['course_name'] ?? '').toString(),
       score: score,
       credits: ((json['credits'] ?? 3) as num).toInt(),
       semester: ((json['semester'] ?? 1) as num).toInt(),
-      isPassed: (json['isPassed'] ?? (status == 'passed' || score >= 5.0)) as bool,
+      isPassed:
+          (json['isPassed'] ?? (status == 'passed' || score >= 5.0)) as bool,
+      inProgress: (json['inProgress'] == true || status == 'in_progress'),
       confidence: (json['confidence'] as num?)?.toDouble() ?? 1.0,
     );
   }

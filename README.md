@@ -774,3 +774,20 @@ Stop the app running in Visual Studio, then build again.
 ## License
 
 This project serves learning and course-demo purposes. Update the license if you need to make it public or deploy to production.
+
+## PRM323 Lab 2 — FLM Student Assistant (đang hoàn thiện)
+
+Phạm vi thiết kế: sinh viên FPT có bảng điểm từng phần cần biết môn kỳ tới, điều kiện tiên quyết và cách học theo mục tiêu. Flutter/FastAPI hiện ở `flutter_app/` và `backend/`; nội dung Razor ở trên là phần di sản của repository này, không phải bộ nộp UI/UX Lab 2.
+
+| Artefact Lab 2 | Vị trí | Trạng thái |
+| --- | --- | --- |
+| Proto-persona và vấn đề | [`ux/persona.md`](ux/persona.md) | Có; giả định, chưa phỏng vấn sinh viên |
+| IA, ba user flow và bảng flow→screen | [`ux/user-flow.md`](ux/user-flow.md) | Có; dựa trên source Flutter |
+| Design brief và token | [`design/DESIGN.md`](design/DESIGN.md) | Có; cần đưa thành Variables/Styles trong Figma |
+| Screen spec tám đích | [`design/screen-spec.md`](design/screen-spec.md) | Có; Figma Final UI chưa xác minh |
+| Quyết định và accessibility | [`design/design-decisions.md`](design/design-decisions.md) | Có; đo contrast/tap target/bố cục còn mở |
+| AI log | [`ai/ai-design-log.md`](ai/ai-design-log.md) | Có critique trên source; chưa có prompt/ảnh Stitch và ba vòng lặp |
+| Flutter handoff | [`handoff/flutter-handoff.md`](handoff/flutter-handoff.md) | Có sáu mục mỗi màn và hai bảng mapping |
+| Figma | Chưa có URL được xác minh | Cần sáu page đúng thứ tự, ≥8 frame 360×800, component variants, ba prototype flow |
+
+Bộ yêu cầu áp dụng: [PRM393 UI/UX Material](https://prm393-material.web.app/) và [đề PRM323 Lab 2](https://prm393-material.web.app/docs/PRM323-Lab2-Thiet-ke-UIUX-co-ho-tro-AI.pdf). Đề gốc yêu cầu nộp một repo tên `prm323-lab2-<student-id>` và link Figma ai có link đều xem được; repository hiện tại chưa phải gói nộp riêng đó. Đề **không yêu cầu viết Flutter code** cho Lab 2; code tại đây phục vụ sản phẩm FLM đang phát triển, còn bằng chứng thiết kế phải được hoàn thành riêng.
