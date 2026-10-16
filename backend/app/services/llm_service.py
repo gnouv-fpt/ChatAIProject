@@ -47,6 +47,11 @@ _PROMPT_LABELS: Dict[str, Dict[str, str]] = {
 }
 
 
+class GroqAllKeysExhaustedError(Exception):
+    """Raised when all configured Groq API keys are rate limited."""
+    pass
+
+
 class LLMService:
     """
     Multi-Provider LLM & Advanced Contextual Synthesis Service:
@@ -60,6 +65,8 @@ class LLMService:
     def __init__(self):
         self._http_client: Optional[httpx.AsyncClient] = None
         self._loop = None
+        self._groq_key_index: int = 0
+        self._groq_cooldowns: Dict[str, float] = {}
 
     @property
     def http_client(self) -> httpx.AsyncClient:
@@ -92,7 +99,7 @@ class LLMService:
             return "Gemini"
         if cfg == "openai" and settings.OPENAI_API_KEY:
             return "OpenAI"
-        if cfg == "groq" and settings.GROQ_API_KEY:
+        if cfg == "groq" and (settings.GROQ_API_KEY or settings.groq_api_keys):
             return "Groq"
         if cfg == "ollama":
             return "Ollama"
@@ -101,7 +108,7 @@ class LLMService:
             return "Gemini"
         if settings.OPENAI_API_KEY:
             return "OpenAI"
-        if settings.GROQ_API_KEY:
+        if settings.GROQ_API_KEY or settings.groq_api_keys:
             return "Groq"
 
         return "FLM-Advanced-Synthesizer"
@@ -199,6 +206,8 @@ class LLMService:
                         return self._sanitize_output(answer), provider
                     else:
                         last_error = "empty_provider_response"
+                except GroqAllKeysExhaustedError as exc:
+                    return str(exc), "Groq-Rate-Limited"
                 except Exception as exc:
                     last_error = self._safe_provider_error(exc)
                     print(f"[LLMService] {provider} attempt {attempt}/3 failed: {last_error}")
@@ -404,32 +413,37 @@ class LLMService:
                 "go shorter only when the data truly holds nothing more that is relevant. Never pad with invented or repeated content."
             )
         return (
-            "Bạn là Cố vấn Học tập AI chuyên trách hệ thống FLM (Curriculum & Syllabus) của FPT University. "
-            "Nhiệm vụ của bạn là giải đáp thông tin và tư vấn chiến lược học tập cho sinh viên.\n\n"
-            "Quy tắc phản hồi và ngôn ngữ:\n"
-            "1. NGÔN NGỮ PHẢN HỒI DUY NHẤT: BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, chuẩn mực vì sinh viên hỏi bằng tiếng Việt. "
-            "Dù tài liệu FLM (Curriculum, Syllabus, CLO, đề cương, assessment scheme...) trong ngữ cảnh đầu vào là tiếng Anh, "
-            "bạn phải tự động đọc hiểu, tổng hợp và diễn giải hoàn toàn bằng Tiếng Việt. "
-            "Tuyệt đối không chèn câu hoặc cụm từ tiếng Anh vào câu trả lời (kể cả khi trích CLO, mô tả môn học).\n"
-            "2. Thuật ngữ & mã định danh: Chỉ giữ nguyên mã môn học (ví dụ: PRM392, SWE201c), tên viết tắt chuẩn (PE, FE, CLO, PLO, GPA), "
-            "hoặc tên công nghệ/ngôn ngữ lập trình (Flutter, Dart, Java, SQLite...).\n"
-            "3. Mở đầu trực tiếp theo đúng điều người học đang hỏi; không dùng mẫu cố định cho mọi câu hỏi; không lạm dụng dấu in đậm (**) tràn lan.\n"
-            "4. Chỉ đưa các mục, con số hoặc khuyến nghị thật sự liên quan; không cố điền đủ một checklist chung.\n"
-            "5. Khi được hỏi tư vấn học tập hoặc chiến lược ôn thi (PE/FE), hãy đưa ra lời khuyên cụ thể, có tính hành động cao (actionable): "
-            "phân bổ thời gian, kỹ năng cần rèn luyện, cách tận dụng môn tiên quyết, lưu ý về điểm tối thiểu.\n"
-            "6. Tuyệt đối trung thực với dữ liệu FLM. Khi dữ liệu ghi rõ một thông tin cụ thể (mã môn tiên quyết, số tín chỉ, "
-            "tỷ trọng đánh giá, điểm tối thiểu, học kỳ), phải nêu đúng thông tin đó; không được nói là không có, "
-            "và không tự thêm yêu cầu hay môn tiên quyết không có trong dữ liệu. Dữ kiện ghi TÍNH BẰNG CODE là chính xác: "
-            "dùng đúng danh sách môn và con số đó, không tự tính lại. "
-            "Với thông tin ngoài phạm vi FLM, giải thích rõ ràng thay vì bịa đặt.\n"
-            "7. Định dạng Markdown thanh lịch, dễ đọc với gạch đầu dòng rõ ràng.\n"
-            "7a. Khi tư vấn chiến lược môn, điều chỉnh hành động theo mục tiêu và cách học tự khai trong dữ kiện sinh viên. Phân biệt sở thích tự khai với sự thật học vụ; dẫn nguồn đề cương FLM cho tín chỉ, tiên quyết, assessment và CLO.\n"
-            "8. Khi có DỮ KIỆN LỘ TRÌNH do code tính, hãy giải thích theo tuyến tính: mục tiêu, prerequisite đã xác minh, hành động tiếp theo và tối đa một câu hỏi bổ sung liên quan. Không được bịa lịch học, homework, deadline, phòng học hoặc tiến độ cá nhân khi dữ liệu không có.\n"
-            "9. Độ đầy đủ: trả lời đầy đủ, có chiều sâu, không trả lời cụt một hai câu. Nêu câu trả lời trực tiếp trước, "
-            "sau đó giải thích chi tiết và bối cảnh liên quan từ dữ liệu (ví dụ: môn tiên quyết dùng để làm gì, tỷ trọng "
-            "đánh giá ảnh hưởng thế nào đến việc qua môn, CLO liên quan, số tín chỉ, học kỳ), rồi kết thúc bằng lưu ý "
-            "hoặc gợi ý thực tế cho sinh viên. Tận dụng mọi chi tiết liên quan có trong dữ liệu. Độ dài thường khoảng "
-            "150-400 từ; chỉ ngắn hơn khi dữ liệu thật sự không còn gì liên quan. Không độn chữ bằng nội dung bịa hoặc lặp lại."
+            "Bạn là một người bạn tiền bối (Senior Peer) xuất sắc ngành Kỹ thuật Phần mềm của Đại học FPT, "
+            "đồng thời là Cố vấn học tập AI thông thái của hệ thống FLM (Curriculum & Syllabus). "
+            "Bạn trò chuyện với sinh viên như hai người bạn cùng ngành: chân thành, gần gũi, thấu hiểu tâm lý "
+            "(nỗi sợ thi PE, áp lực đồ án SWP/OJT, nỗi lo trượt môn, hạ bậc tốt nghiệp), nhưng tư duy cực kỳ "
+            "sắc sảo, thực chiến và đi thẳng vào trọng tâm câu hỏi.\n\n"
+            "NGUYÊN TẮC CỐT LÕI (BẮT BUỘC TUÂN THỦ):\n"
+            "1. ĐO NI ĐÓNG GIÀY (CÁ NHÂN HÓA SÂU):\n"
+            "- Soi kỹ và TRÍCH DẪN RÕ RÀNG dữ kiện của sinh viên (GPA hiện tại, GPA mục tiêu, điểm trung bình cần đạt, "
+            "môn trượt/nợ, số lần học lại, kỳ học hiện tại, mục tiêu qua môn hay điểm cao).\n"
+            "- Mỗi sinh viên là một hoàn cảnh độc bản: Lời khuyên cho sinh viên học yếu muốn qua môn phải khác hoàn toàn "
+            "người muốn săn bằng Giỏi. Nếu sinh viên có nguy cơ hạ bậc tốt nghiệp (đã học lại >= 2 môn sẽ bị hạ 1 bậc "
+            "khi tốt nghiệp loại Giỏi/Xuất sắc), hãy nhắc nhở rõ ràng và hướng dẫn họ phân bổ sức tối ưu.\n"
+            "- Nếu mục tiêu bất khả thi (cần điểm trung bình > 10), hãy thẳng thắn chỉ ra trên số liệu và định hướng "
+            "về mục tiêu khả thi nhất.\n"
+            "2. DIỆT SẠCH VĂN MẪU SÁO RỖNG (ANTI-SLOP & ACTIONABLE):\n"
+            "- Tuyệt đối cấm các lời khuyên chung chung vô thưởng vô phạt kiểu 'hãy cố gắng học tập', 'phân bổ thời gian hợp lý', "
+            "'ngủ đủ giấc'. Mọi giải pháp đưa ra phải là hành động kỹ thuật thực chiến: Môn này thi PE chiếm bao nhiêu %? "
+            "Cần rèn thuật toán hay dạng bài nào? Viết khung code (skeleton) ra sao để lấy điểm trước? Tuần mấy phải chốt đồ án?\n"
+            "- Khi tư vấn kỳ học (ví dụ kỳ 5), phải phân tích cụ thể các môn trọng điểm (như đồ án lớn SWP391, các môn lập trình nền tảng PRN212...) "
+            "để chỉ ra cách phân bổ thời gian thực tế giữa đồ án nhóm và thi cá nhân.\n"
+            "3. TRUNG THỰC TUYỆT ĐỐI VỚI DỮ LIỆU FLM:\n"
+            "- Giữ nguyên mã môn học (ví dụ: PRM392, SWE201c, SWP391, CSD201), tên viết tắt chuẩn (PE, FE, CLO, PLO, GPA), "
+            "hoặc tên công nghệ/ngôn ngữ lập trình (Flutter, Dart, Java, SQLite, .NET...).\n"
+            "- Khi dữ liệu ghi rõ mã môn tiên quyết, số tín chỉ, tỷ trọng đánh giá, điểm tối thiểu, học kỳ, phải nêu đúng. "
+            "Dữ kiện ghi 'TÍNH BẰNG CODE' là sự thật chuẩn xác: dùng đúng danh sách môn và con số đó, không tự tính lại.\n"
+            "- Không được bịa đặt môn học, điều kiện tốt nghiệp hoặc quy chế không có trong dữ liệu. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng.\n"
+            "4. NGÔN NGỮ & PHONG CÁCH:\n"
+            "- BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, gãy gọn, thân thiện như bạn bè giúp nhau cùng tiến bộ. "
+            "Tự động dịch và diễn giải các nội dung đề cương tiếng Anh sang tiếng Việt mượt mà.\n"
+            "- Mở đầu trực tiếp theo đúng điều người học đang hỏi; không dùng mẫu cố định cho mọi câu hỏi; không lạm dụng dấu in đậm (**) tràn lan.\n"
+            "- Trình bày Markdown thanh lịch, phân đoạn logic, bullet points rõ ràng để người đọc dễ nắm bắt ngay."
         )
 
     async def _call_gemini(
@@ -500,14 +514,12 @@ class LLMService:
     async def _call_groq(
         self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
     ) -> Optional[str]:
-        api_key = settings.GROQ_API_KEY
+        keys = settings.groq_api_keys
+        if not keys:
+            raise ValueError("No Groq API keys configured")
+
         model = settings.GROQ_MODEL
         url = "https://api.groq.com/openai/v1/chat/completions"
-
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        }
         user_content = self._build_user_prompt(question, context, student_facts, language)
         payload = {
             "model": model,
@@ -518,15 +530,82 @@ class LLMService:
             "temperature": 0.25,
             "max_tokens": 2048,
         }
-        resp = await self.http_client.post(url, headers=headers, json=payload, timeout=30.0)
-        if resp.status_code == 200:
-            data = resp.json()
-            return data["choices"][0]["message"]["content"].strip()
-        raise httpx.HTTPStatusError(
-            "Groq generation failed",
-            request=resp.request,
-            response=resp,
-        )
+
+        now = time.time()
+        num_keys = len(keys)
+        start_idx = self._groq_key_index
+
+        # Clean expired cooldowns
+        for k in list(self._groq_cooldowns.keys()):
+            if now >= self._groq_cooldowns[k]:
+                del self._groq_cooldowns[k]
+
+        last_status_error = None
+        for offset in range(num_keys):
+            curr_idx = (start_idx + offset) % num_keys
+            api_key = keys[curr_idx]
+
+            # If this key is cooling down from a 429, rotate to next
+            if api_key in self._groq_cooldowns and now < self._groq_cooldowns[api_key]:
+                continue
+
+            headers = {
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json",
+            }
+
+            try:
+                resp = await self.http_client.post(url, headers=headers, json=payload, timeout=30.0)
+                if resp.status_code == 200:
+                    # Update index for next request to round-robin
+                    self._groq_key_index = (curr_idx + 1) % num_keys
+                    data = resp.json()
+                    return data["choices"][0]["message"]["content"].strip()
+
+                if resp.status_code == 429:
+                    reset_header = resp.headers.get("x-ratelimit-reset-tokens") or resp.headers.get("retry-after")
+                    cooldown = 30.0
+                    if reset_header:
+                        try:
+                            if "m" in reset_header:
+                                m_part, s_part = reset_header.split("m")
+                                cooldown = float(m_part) * 60 + float(s_part.replace("s", ""))
+                            else:
+                                cooldown = float(reset_header.replace("s", ""))
+                        except Exception:
+                            cooldown = 30.0
+                    cooldown = max(10.0, min(cooldown + 2.0, 300.0))
+                    self._groq_cooldowns[api_key] = time.time() + cooldown
+                    key_hint = f"{api_key[:6]}...{api_key[-4:]}"
+                    print(f"[Groq Key Rotation] Key {key_hint} reached rate limit (429). Cooldown: {cooldown:.1f}s. Trying next key...")
+                    last_status_error = resp
+                    continue
+                else:
+                    raise httpx.HTTPStatusError(
+                        f"Groq generation failed with status {resp.status_code}",
+                        request=resp.request,
+                        response=resp,
+                    )
+            except httpx.HTTPStatusError:
+                raise
+            except Exception as e:
+                print(f"[Groq Key Rotation] Key error: {e}")
+                continue
+
+        # All keys in pool are currently in cooldown
+        if self._groq_cooldowns:
+            min_cooldown = min(self._groq_cooldowns.values())
+            wait_sec = max(5, int(min_cooldown - time.time()))
+            wait_str = f"{wait_sec // 60} phút {wait_sec % 60} giây" if wait_sec >= 60 else f"{wait_sec} giây"
+            raise GroqAllKeysExhaustedError(
+                f"Tất cả {num_keys} tài khoản AI tạm thời đạt giới hạn yêu cầu (Rate Limit). "
+                f"Vui lòng đợi khoảng {wait_str} rồi thử lại."
+            )
+
+        if last_status_error:
+            raise httpx.HTTPStatusError("All Groq keys rate limited", request=last_status_error.request, response=last_status_error)
+
+        raise RuntimeError("No available Groq key could fulfill the request")
 
     async def _call_ollama(
         self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
@@ -588,20 +667,32 @@ class LLMService:
             if resp.status_code == 200:
                 data = resp.json()
                 return self._sanitize_output(data["choices"][0]["message"]["content"].strip())
-        elif provider == "Groq" and settings.GROQ_API_KEY:
-            api_key = settings.GROQ_API_KEY
+        elif provider == "Groq" and (settings.GROQ_API_KEY or settings.groq_api_keys):
+            keys = settings.groq_api_keys
             model = settings.GROQ_MODEL
             url = "https://api.groq.com/openai/v1/chat/completions"
-            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-            payload = {
-                "model": model,
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.25,
-            }
-            resp = await self.http_client.post(url, headers=headers, json=payload, timeout=20.0)
-            if resp.status_code == 200:
-                data = resp.json()
-                return self._sanitize_output(data["choices"][0]["message"]["content"].strip())
+            for offset in range(len(keys)):
+                idx = (self._groq_key_index + offset) % len(keys)
+                api_key = keys[idx]
+                if api_key in self._groq_cooldowns and time.time() < self._groq_cooldowns[api_key]:
+                    continue
+                headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                payload = {
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.25,
+                }
+                try:
+                    resp = await self.http_client.post(url, headers=headers, json=payload, timeout=20.0)
+                    if resp.status_code == 200:
+                        self._groq_key_index = (idx + 1) % len(keys)
+                        data = resp.json()
+                        return self._sanitize_output(data["choices"][0]["message"]["content"].strip())
+                    if resp.status_code == 429:
+                        self._groq_cooldowns[api_key] = time.time() + 30.0
+                        continue
+                except Exception:
+                    continue
 
         # Fallback / Ollama
         base_url = settings.OLLAMA_BASE_URL.rstrip("/")
