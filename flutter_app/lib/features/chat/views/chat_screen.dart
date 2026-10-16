@@ -156,12 +156,16 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.chat_bubble_outline, size: 22),
+            Icon(Icons.chat_bubble_outline, size: 20),
             SizedBox(width: 8),
-            Text(
-              'Cố vấn học tập FLM',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            Flexible(
+              child: Text(
+                'Cố vấn học tập FLM',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
