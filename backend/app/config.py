@@ -57,7 +57,17 @@ class Settings(BaseModel):
     OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
     
     GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
-    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+    GROQ_API_KEYS_RAW: Optional[str] = os.getenv("GROQ_API_KEYS")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+
+    @property
+    def groq_api_keys(self) -> List[str]:
+        keys: List[str] = []
+        if self.GROQ_API_KEYS_RAW:
+            keys.extend([k.strip() for k in self.GROQ_API_KEYS_RAW.split(",") if k.strip()])
+        if self.GROQ_API_KEY and self.GROQ_API_KEY not in keys:
+            keys.append(self.GROQ_API_KEY)
+        return keys
     
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2")
