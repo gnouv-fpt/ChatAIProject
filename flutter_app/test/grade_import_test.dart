@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/models/transcript_entry.dart';
-import '../lib/services/grade_calculator.dart';
+import 'package:flm_courses/models/transcript_entry.dart';
+import 'package:flm_courses/services/grade_calculator.dart';
 
 void main() {
   testWidgets('loads the shared grading rules asset', (tester) async {
