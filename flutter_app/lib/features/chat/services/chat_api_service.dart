@@ -81,6 +81,13 @@ class ChatApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(utf8.decode(response.bodyBytes));
+        final provider = data['provider']?.toString();
+        final isUnavailable = provider != null &&
+            (provider.toLowerCase().contains('unavailable') ||
+             provider.toLowerCase().contains('failed'));
+        final error = data['error']?.toString();
+        final hasError = isUnavailable || error != null;
+
         return ChatResponseResult(
           answer:
               data['answer'] ??
@@ -92,6 +99,7 @@ class ChatApiService {
                   .toList() ??
               ['Hệ thống FLM Backend'],
           isOfflineFallback: false,
+          errorMessage: hasError ? (error ?? provider ?? 'Model unavailable') : null,
         );
       } else {
         return ChatResponseResult(

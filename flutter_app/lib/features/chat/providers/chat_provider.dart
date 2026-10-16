@@ -270,6 +270,7 @@ class ChatProvider extends ChangeNotifier {
 
     final activeScope = scope ?? _currentScope;
     final activeId = id ?? _currentScopeId;
+    final targetScopeKey = '$activeScope:$activeId';
 
     final timestamp = DateTime.now();
     final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
@@ -283,9 +284,6 @@ class ChatProvider extends ChangeNotifier {
       timestamp: timestamp,
       status: MessageStatus.success,
     );
-    _messages.add(userMessage);
-
-    // Add Loading AI Message placeholder
     final loadingAiMessage = ChatMessage(
       id: aiMsgId,
       text: 'Đang tra cứu dữ liệu FLM...',
@@ -293,19 +291,31 @@ class ChatProvider extends ChangeNotifier {
       timestamp: DateTime.now(),
       status: MessageStatus.sending,
     );
-    _messages.add(loadingAiMessage);
+
+    if (_scopeKey == targetScopeKey) {
+      _messages.add(userMessage);
+      _messages.add(loadingAiMessage);
+    }
+    final targetList = _scopeMessages.putIfAbsent(targetScopeKey, () => []);
+    if (!targetList.any((m) => m.id == userMsgId)) {
+      targetList.add(userMessage);
+    }
+    if (!targetList.any((m) => m.id == aiMsgId)) {
+      targetList.add(loadingAiMessage);
+    }
 
     _isLoading = true;
     _lastError = null;
     notifyListeners();
 
     // Call API Service with scope, id, and student_context facts (Mục 7.4)
+    final historyMessages = _scopeKey == targetScopeKey ? _messages : targetList;
     final result = await _apiService.sendMessage(
       prompt,
       scope: activeScope,
       id: activeId,
       studentContext: {...?studentContext, ...?profile?.chatContext},
-      history: _messages
+      history: historyMessages
           .where((message) => message.status != MessageStatus.sending)
           .toList()
           .reversed
@@ -322,22 +332,40 @@ class ChatProvider extends ChangeNotifier {
           .toList(),
     );
 
+    final finalAiMessage = ChatMessage(
+      id: aiMsgId,
+      text: result.answer,
+      sender: ChatSender.ai,
+      timestamp: DateTime.now(),
+      status: result.errorMessage != null
+          ? MessageStatus.error
+          : result.isOfflineFallback
+          ? MessageStatus.offlineFallback
+          : MessageStatus.success,
+      sources: result.sources,
+      errorMessage: result.errorMessage,
+    );
+
     // Update AI Message
-    final index = _messages.indexWhere((m) => m.id == aiMsgId);
-    if (index != -1) {
-      _messages[index] = ChatMessage(
-        id: aiMsgId,
-        text: result.answer,
-        sender: ChatSender.ai,
-        timestamp: DateTime.now(),
-        status: result.errorMessage != null
-            ? MessageStatus.error
-            : result.isOfflineFallback
-            ? MessageStatus.offlineFallback
-            : MessageStatus.success,
-        sources: result.sources,
-        errorMessage: result.errorMessage,
-      );
+    if (_scopeKey == targetScopeKey) {
+      final index = _messages.indexWhere((m) => m.id == aiMsgId);
+      if (index != -1) {
+        _messages[index] = finalAiMessage;
+      } else {
+        _messages.add(finalAiMessage);
+      }
+    }
+
+    final currentTargetList = _scopeMessages[targetScopeKey];
+    if (currentTargetList != null) {
+      final targetIdx = currentTargetList.indexWhere((m) => m.id == aiMsgId);
+      if (targetIdx != -1) {
+        currentTargetList[targetIdx] = finalAiMessage;
+      } else {
+        currentTargetList.add(finalAiMessage);
+      }
+    } else {
+      _scopeMessages[targetScopeKey] = [userMessage, finalAiMessage];
     }
 
     _isLoading = false;
@@ -364,26 +392,40 @@ class ChatProvider extends ChangeNotifier {
     final prompt = text.trim();
     if (prompt.isEmpty || images.isEmpty || _isLoading) return;
 
+    final activeScope = scope ?? _currentScope;
+    final activeId = id ?? _currentScopeId;
+    final targetScopeKey = '$activeScope:$activeId';
+
     final timestamp = DateTime.now();
     final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
     final aiMsgId = 'ai_${timestamp.millisecondsSinceEpoch}';
-    _messages.add(
-      ChatMessage(
-        id: userMsgId,
-        text: '📎 ${images.length} ảnh\n$prompt',
-        sender: ChatSender.user,
-        timestamp: timestamp,
-      ),
+
+    final userMessage = ChatMessage(
+      id: userMsgId,
+      text: '📎 ${images.length} ảnh\n$prompt',
+      sender: ChatSender.user,
+      timestamp: timestamp,
     );
-    _messages.add(
-      ChatMessage(
-        id: aiMsgId,
-        text: 'Đang đọc ảnh và xử lý prompt...',
-        sender: ChatSender.ai,
-        timestamp: DateTime.now(),
-        status: MessageStatus.sending,
-      ),
+    final loadingAiMessage = ChatMessage(
+      id: aiMsgId,
+      text: 'Đang đọc ảnh và xử lý prompt...',
+      sender: ChatSender.ai,
+      timestamp: DateTime.now(),
+      status: MessageStatus.sending,
     );
+
+    if (_scopeKey == targetScopeKey) {
+      _messages.add(userMessage);
+      _messages.add(loadingAiMessage);
+    }
+    final targetList = _scopeMessages.putIfAbsent(targetScopeKey, () => []);
+    if (!targetList.any((m) => m.id == userMsgId)) {
+      targetList.add(userMessage);
+    }
+    if (!targetList.any((m) => m.id == aiMsgId)) {
+      targetList.add(loadingAiMessage);
+    }
+
     _isLoading = true;
     _lastError = null;
     notifyListeners();
@@ -391,25 +433,44 @@ class ChatProvider extends ChangeNotifier {
     final result = await _apiService.sendMessageWithImages(
       prompt,
       images,
-      scope: scope ?? _currentScope,
-      id: id ?? _currentScopeId,
-      courseCode: scope == 'subject' ? (id ?? _currentScopeId) : null,
+      scope: activeScope,
+      id: activeId,
+      courseCode: activeScope == 'subject' ? activeId : null,
     );
 
-    final index = _messages.indexWhere((message) => message.id == aiMsgId);
-    if (index != -1) {
-      _messages[index] = ChatMessage(
-        id: aiMsgId,
-        text: result.answer,
-        sender: ChatSender.ai,
-        timestamp: DateTime.now(),
-        status: result.errorMessage == null
-            ? MessageStatus.success
-            : MessageStatus.error,
-        sources: result.sources,
-        errorMessage: result.errorMessage,
-      );
+    final finalAiMessage = ChatMessage(
+      id: aiMsgId,
+      text: result.answer,
+      sender: ChatSender.ai,
+      timestamp: DateTime.now(),
+      status: result.errorMessage == null
+          ? MessageStatus.success
+          : MessageStatus.error,
+      sources: result.sources,
+      errorMessage: result.errorMessage,
+    );
+
+    if (_scopeKey == targetScopeKey) {
+      final index = _messages.indexWhere((message) => message.id == aiMsgId);
+      if (index != -1) {
+        _messages[index] = finalAiMessage;
+      } else {
+        _messages.add(finalAiMessage);
+      }
     }
+
+    final currentTargetList = _scopeMessages[targetScopeKey];
+    if (currentTargetList != null) {
+      final targetIdx = currentTargetList.indexWhere((m) => m.id == aiMsgId);
+      if (targetIdx != -1) {
+        currentTargetList[targetIdx] = finalAiMessage;
+      } else {
+        currentTargetList.add(finalAiMessage);
+      }
+    } else {
+      _scopeMessages[targetScopeKey] = [userMessage, finalAiMessage];
+    }
+
     _isLoading = false;
     _lastError = result.errorMessage;
     notifyListeners();
