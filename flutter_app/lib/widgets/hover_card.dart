@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../theme/app_theme.dart';
 
 /// Card có hiệu ứng hover linh hoạt chuẩn UI Mục 8.4 (đổi viền, shadow, transform nhẹ)
@@ -37,7 +38,9 @@ class _HoverCardState extends State<HoverCard> {
     final activeBorder = widget.hoverBorderColor ?? AppTheme.primaryBlue;
 
     return MouseRegion(
-      cursor: widget.onTap != null ? SystemMouseCursors.click : SystemMouseCursors.basic,
+      cursor: widget.onTap != null
+          ? SystemMouseCursors.click
+          : SystemMouseCursors.basic,
       onEnter: (_) {
         if (widget.enableHover && mounted) setState(() => _isHovered = true);
       },
@@ -58,14 +61,14 @@ class _HoverCardState extends State<HoverCard> {
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: AppTheme.primaryBlue.withOpacity(0.08),
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.08),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
                 ]
               : [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -78,12 +81,9 @@ class _HoverCardState extends State<HoverCard> {
             onTap: widget.onTap,
             borderRadius: BorderRadius.circular(widget.borderRadius),
             hoverColor: Colors.transparent,
-            splashColor: AppTheme.primaryBlue.withOpacity(0.06),
+            splashColor: AppTheme.primaryBlue.withValues(alpha: 0.06),
             highlightColor: Colors.transparent,
-            child: Padding(
-              padding: widget.padding,
-              child: widget.child,
-            ),
+            child: Padding(padding: widget.padding, child: widget.child),
           ),
         ),
       ),

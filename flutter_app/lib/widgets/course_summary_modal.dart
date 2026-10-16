@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../models/course.dart';
 import '../models/course_node.dart';
 import '../theme/app_theme.dart';
@@ -140,11 +141,16 @@ class CourseSummaryModal extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  border: Border.all(color: AppTheme.primaryBlue.withOpacity(0.3)),
+                  border: Border.all(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Text(
                   code,
@@ -196,14 +202,21 @@ class CourseSummaryModal extends StatelessWidget {
               StatusBadge.gpa(countsInGpa: countsInGpa),
               if (prerequisites.isNotEmpty)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 3.5,
+                  ),
                   decoration: BoxDecoration(
                     color: AppTheme.slate100,
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Text(
-                    'Tiên quyết: ' + prerequisites.join(', '),
-                    style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.slate700),
+                    'Tiên quyết: ${prerequisites.join(', ')}',
+                    style: const TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.slate700,
+                    ),
                   ),
                 ),
             ],
@@ -237,7 +250,10 @@ class CourseSummaryModal extends StatelessWidget {
                   child: OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppTheme.accentOrange,
-                      side: const BorderSide(color: AppTheme.accentOrange, width: 1.3),
+                      side: const BorderSide(
+                        color: AppTheme.accentOrange,
+                        width: 1.3,
+                      ),
                       padding: const EdgeInsets.symmetric(vertical: 13),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -246,7 +262,10 @@ class CourseSummaryModal extends StatelessWidget {
                     icon: const Icon(Icons.psychology_outlined, size: 18),
                     label: const Text(
                       'Tư vấn',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     onPressed: onAdvisorPressed,
                   ),
