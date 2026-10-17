@@ -272,13 +272,45 @@ class RAGEngine:
 
         top_k = request.top_k or settings.TOP_K_CHUNKS
 
+        related_courses = [
+            code for code in detected_courses
+            if code.upper() != (target_course or "").upper() and code.upper() in self.courses
+        ]
+        # Reserve evidence slots for an explicitly named related course. Without
+        # this, a four-chunk subject scope crowds the comparison evidence out
+        # of the prompt before the generator can read it.
+        primary_top_k = max(1, top_k - min(2 * len(related_courses), top_k - 1))
+
         # 2. Retrieve most relevant context chunks
         retrieved_results = self.vector_store.search(
             query=query,
-            top_k=top_k,
+            top_k=primary_top_k,
             target_course=target_course,
             similarity_threshold=settings.SIMILARITY_THRESHOLD,
         )
+
+        # A subject-scoped conversation normally searches only the open
+        # course. When the student explicitly names another course, that
+        # restriction leaves the model unable to verify a comparison or the
+        # reason for a prerequisite. Fetch compact evidence for each named
+        # related course and retain it as a separately identifiable source.
+        if related_courses:
+            seen_chunks = {
+                (chunk.course_code, chunk.category, chunk.title, chunk.content)
+                for chunk, _ in retrieved_results
+            }
+            for related_course in related_courses:
+                related_results = self.vector_store.search(
+                    query=f"{query} chuẩn đầu ra CLO kỹ năng nội dung môn học",
+                    top_k=min(2, top_k),
+                    target_course=related_course,
+                    similarity_threshold=settings.SIMILARITY_THRESHOLD,
+                )
+                for chunk, score in related_results:
+                    identity = (chunk.course_code, chunk.category, chunk.title, chunk.content)
+                    if identity not in seen_chunks:
+                        retrieved_results.append((chunk, score))
+                        seen_chunks.add(identity)
 
         # A semester question without a specific subject must only see that
         # semester's courses; chunks of other semesters mislead the model.
