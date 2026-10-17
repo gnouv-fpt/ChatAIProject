@@ -71,6 +71,10 @@ class Settings(BaseModel):
     
     OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2")
+    # Keep the local-model timeout below the Flutter client's 90-second timeout.
+    # A request that exceeds this limit returns a clear retryable error instead
+    # of continuing on the server after the UI has already timed out.
+    OLLAMA_TIMEOUT_SECONDS: float = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "80"))
     VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini").lower()
     OLLAMA_VISION_MODEL: str = os.getenv("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
     # Ollama silently drops the start of prompts longer than its context window

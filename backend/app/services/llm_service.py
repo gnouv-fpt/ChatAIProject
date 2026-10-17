@@ -196,7 +196,11 @@ class LLMService:
         provider_call = provider_calls.get(provider)
         last_error = "provider_not_configured"
         if provider_call:
-            for attempt in range(1, 4):
+            # Retrying a local generation can run longer than the Flutter
+            # client's request deadline. One attempt gives the UI a timely,
+            # truthful failure state; cloud providers retain transient retries.
+            max_attempts = 1 if provider == "Ollama" else 3
+            for attempt in range(1, max_attempts + 1):
                 try:
                     answer = await provider_call(prompt_question, context_str, student_facts_str, language)
                     if answer and _CJK_CHARS.search(answer):
@@ -215,7 +219,7 @@ class LLMService:
                     # failure. Repeating immediately only wastes requests.
                     if last_error == "provider_rate_limited":
                         break
-                if attempt < 3:
+                if attempt < max_attempts:
                     await asyncio.sleep(attempt)
 
         return (
@@ -403,6 +407,11 @@ class LLMService:
                 "requirements or prerequisites that are not in the data. Facts marked as COMPUTED BY CODE are authoritative: "
                 "use those exact course lists and numbers instead of recalculating them. "
                 "For information outside FLM, say so clearly instead of making things up.\n"
+                "6a. Evidence gate (mandatory): write a factual claim only when the retrieved context explicitly supports it. "
+                "A prerequisite relation proves only that the prerequisite is required; it does not prove the prerequisite's topics, "
+                "teaching method, UI tools, exam format, duration, or skills. If the context cannot support a requested comparison or "
+                "explanation, say exactly which limited fact is verified and that FLM does not provide enough evidence for the rest. "
+                "Do not add generic study resources, platforms, books, attendance rules, examples, schedules, or technologies.\n"
                 "7. Use clean, readable Markdown with clear bullet points.\n"
                 "7a. For course strategy, adapt actions to the self-reported course goal and learning style in student facts. Treat preferences as user input, not verified academic facts; cite the FLM syllabus for credits, prerequisites, assessment and CLOs.\n"
                 "8. When planner facts are provided, explain the plan in a linear order: goal, verified prerequisites, recommended next actions, and one relevant follow-up question. Do not invent a timetable, homework, deadline, room, or personal progress that is absent from the data.\n"
@@ -439,6 +448,7 @@ class LLMService:
             "- Khi dữ liệu ghi rõ mã môn tiên quyết, số tín chỉ, tỷ trọng đánh giá, điểm tối thiểu, học kỳ, phải nêu đúng. "
             "Dữ kiện ghi 'TÍNH BẰNG CODE' là sự thật chuẩn xác: dùng đúng danh sách môn và con số đó, không tự tính lại.\n"
             "- Không được bịa đặt môn học, điều kiện tốt nghiệp hoặc quy chế không có trong dữ liệu. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng.\n"
+            "- CỔNG KIỂM CHỨNG BẮT BUỘC: Chỉ nêu một khẳng định thực tế khi context đã truy xuất ghi rõ khẳng định đó. Việc A là môn tiên quyết của B chỉ chứng minh A phải học trước B; không chứng minh A dạy chủ đề gì, cách dạy, widget/UI, hình thức thi, lịch học hay kỹ năng cụ thể. Nếu context không đủ để giải thích hoặc so sánh, phải nói rõ: 'Dữ liệu FLM hiện có chỉ xác nhận ...; chưa có dữ liệu để khẳng định ...'. Tuyệt đối không thêm sách, nền tảng luyện tập, quy định điểm danh, lịch tuần, ví dụ công nghệ hay mẹo thi ngoài context.\n"
             "4. NGÔN NGỮ & PHONG CÁCH:\n"
             "- BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, gãy gọn, thân thiện như bạn bè giúp nhau cùng tiến bộ. "
             "Tự động dịch và diễn giải các nội dung đề cương tiếng Anh sang tiếng Việt mượt mà.\n"
@@ -625,7 +635,11 @@ class LLMService:
                 "num_ctx": settings.OLLAMA_NUM_CTX,
             },
         }
-        resp = await self.http_client.post(f"{base_url}/api/generate", json=payload, timeout=150.0)
+        resp = await self.http_client.post(
+            f"{base_url}/api/generate",
+            json=payload,
+            timeout=settings.OLLAMA_TIMEOUT_SECONDS,
+        )
         if resp.status_code == 200:
             return resp.json().get("response", "").strip()
         raise httpx.HTTPStatusError(
