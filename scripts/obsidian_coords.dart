@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 final Map<String, Offset> obsidianNodeCoords = {
   "#HK0": const Offset(0.65, -0.18),
   "#HK1": const Offset(0.68, 0.74),
