@@ -1,4 +1,4 @@
-# Đánh giá Qwen 2.5 7B local
+# Đánh giá Qwen 2.5 7B local — **70%**
 
 ## Phạm vi kiểm thử
 
