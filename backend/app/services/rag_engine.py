@@ -1,3 +1,4 @@
+import re
 import time
 from typing import Dict, List, Optional, Tuple, Any
 from ..config import settings
@@ -20,19 +21,80 @@ from .study_planner import build_study_plan_facts, next_semester_answer
 DEFAULT_CURRICULUM_ID = "BIT_SE_K19B"
 
 
+def _parse_assessment_items(scheme: Optional[str]) -> List[Dict[str, str]]:
+    if not scheme:
+        return []
+    items = []
+    for line in scheme.strip().splitlines():
+        line = line.strip()
+        if not line.startswith("|") or line.startswith("|---") or "Thành Phần Đánh Giá" in line or "Category" in line:
+            continue
+        cols = [c.strip().strip("*").strip() for c in line.split("|")]
+        if len(cols) >= 3:
+            name = cols[1]
+            weight = cols[2]
+            min_mark = cols[3] if len(cols) > 3 else ""
+            duration = cols[4] if len(cols) > 4 else ""
+            if name and weight and "%" in weight:
+                items.append({
+                    "name": name,
+                    "weight": weight,
+                    "min_mark": min_mark,
+                    "duration": duration,
+                })
+    return items
+
+
+def _find_pe_item(course: Any) -> Optional[Dict[str, str]]:
+    scheme = getattr(course, "assessment_scheme", None)
+    items = _parse_assessment_items(scheme)
+    for it in items:
+        name_lower = it["name"].lower()
+        if "practical exam" in name_lower or name_lower == "pe" or "thực hành" in name_lower:
+            return it
+    return None
+
+
+def _find_te_item(course: Any) -> Optional[Dict[str, str]]:
+    scheme = getattr(course, "assessment_scheme", None)
+    items = _parse_assessment_items(scheme)
+    for it in items:
+        name_lower = it["name"].lower()
+        if "theoretical exam" in name_lower or name_lower == "te" or "lý thuyết" in name_lower:
+            return it
+    return None
+
+
+def _find_fe_item(course: Any) -> Optional[Dict[str, str]]:
+    scheme = getattr(course, "assessment_scheme", None)
+    items = _parse_assessment_items(scheme)
+    for it in items:
+        name_lower = it["name"].lower()
+        if "final exam" in name_lower or name_lower == "fe" or "cuối kỳ" in name_lower:
+            return it
+    return None
+
+
 def _direct_course_fact_answer(question: str, course: CourseDetail, language: str) -> Optional[str]:
     """Answer short factual questions from parsed FLM fields, without LLM additions."""
     normalized = question.casefold()
     wants_credits = any(term in normalized for term in ("tín chỉ", "credit"))
     wants_prerequisites = any(term in normalized for term in ("tiên quyết", "prerequisite"))
-    wants_pe = any(term in normalized for term in ("thi pe", "có pe", "practical exam", "thi thực hành"))
+    wants_pe = bool(re.search(r"\bpe\b", normalized)) or any(term in normalized for term in ("thi pe", "có pe", "practical exam", "thi thực hành", "thực hành"))
+    wants_te = bool(re.search(r"\bte\b", normalized)) or any(term in normalized for term in ("thi te", "có te", "theoretical exam", "thi lý thuyết", "lý thuyết"))
+    wants_fe = (bool(re.search(r"\bfe\b", normalized)) or any(term in normalized for term in ("thi fe", "có fe", "final exam", "thi cuối kỳ", "cuối kỳ"))) and not wants_pe and not wants_te
     wants_outcomes = any(term in normalized for term in ("mục tiêu môn", "mục tiêu của môn",
         "learning outcome", "chuẩn đầu ra", "clo"))
     wants_presence = "xuất hiện" in normalized or "appear in" in normalized
     wants_semester = any(term in normalized for term in ("học kỳ mấy", "học kỳ nào", "kỳ mấy",
         "which semester", "what semester"))
-    if not any((wants_credits, wants_prerequisites, wants_pe, wants_outcomes,
-                wants_presence, wants_semester)):
+    wants_grading_scheme = any(term in normalized for term in (
+        "cấu trúc điểm", "thành phần điểm", "bảng điểm", "tỷ trọng điểm", "tỷ lệ điểm",
+        "các đầu điểm", "đầu điểm", "grading scheme", "assessment scheme"
+    ))
+
+    if not any((wants_credits, wants_prerequisites, wants_pe, wants_te, wants_fe, wants_outcomes,
+                wants_presence, wants_semester, wants_grading_scheme)):
         return None
     if len(question) > 160 or any(
         term in normalized
@@ -51,7 +113,34 @@ def _direct_course_fact_answer(question: str, course: CourseDetail, language: st
                 if prerequisites else f"{course.code} has no listed prerequisite."
             )
         if wants_pe:
-            parts.append(f"{course.code} {'has' if course.has_pe else 'does not have'} a practical exam (PE) according to FLM.")
+            pe_item = _find_pe_item(course)
+            if course.has_pe:
+                weight_desc = f" accounting for {pe_item['weight']} of the total grade" if pe_item else ""
+                meta_parts = []
+                if pe_item:
+                    if pe_item.get("duration"):
+                        meta_parts.append(f"duration: {pe_item['duration']}")
+                    if pe_item.get("min_mark"):
+                        meta_parts.append(f"passing threshold: {pe_item['min_mark']}")
+                meta_desc = f" ({', '.join(meta_parts)})" if meta_parts else ""
+                parts.append(f"{course.code} has a practical exam (PE){weight_desc}{meta_desc} according to FLM.")
+            else:
+                parts.append(f"{course.code} does not have a practical exam (PE) according to FLM.")
+        if wants_te:
+            te_item = _find_te_item(course)
+            if te_item:
+                parts.append(f"The theoretical exam (TE) for {course.code} accounts for {te_item['weight']} of the total grade.")
+        if wants_fe:
+            fe_item = _find_fe_item(course)
+            if fe_item:
+                parts.append(f"The final exam (FE) for {course.code} accounts for {fe_item['weight']} of the total grade.")
+        if wants_grading_scheme:
+            items = _parse_assessment_items(course.assessment_scheme)
+            if items:
+                lines = [f"Assessment scheme for {course.code}:"]
+                for it in items:
+                    lines.append(f"- {it['name']}: {it['weight']}")
+                parts.append("\n".join(lines))
         if wants_outcomes:
             parts.append(f"Learning outcomes for {course.code}: {course.learning_outcomes or 'not available in FLM'}")
         if wants_presence:
@@ -73,9 +162,55 @@ def _direct_course_fact_answer(question: str, course: CourseDetail, language: st
             if prerequisites else f"{course.code} không có môn tiên quyết được ghi trong dữ liệu FLM."
         )
     if wants_pe:
-        parts.append(
-            f"Theo dữ liệu FLM, {course.code} {'có' if course.has_pe else 'không có'} thi PE (thực hành)."
-        )
+        pe_item = _find_pe_item(course)
+        if getattr(course, "has_pe", False):
+            weight_desc = f" và bài thi PE chiếm {pe_item['weight']} tổng điểm môn học" if pe_item else ""
+            meta_parts = []
+            if pe_item:
+                if pe_item.get("duration"):
+                    meta_parts.append(f"thời lượng {pe_item['duration']}")
+                if pe_item.get("min_mark"):
+                    meta_parts.append(f"điểm liệt {pe_item['min_mark']}")
+            meta_desc = f" ({', '.join(meta_parts)})" if meta_parts else ""
+            parts.append(
+                f"Theo dữ liệu FLM, {course.code} có thi PE (thực hành){weight_desc}{meta_desc}."
+            )
+        else:
+            parts.append(
+                f"Theo dữ liệu FLM, {course.code} không có thi PE (thực hành)."
+            )
+    if wants_te:
+        te_item = _find_te_item(course)
+        if te_item:
+            meta_parts = []
+            if te_item.get("duration"):
+                meta_parts.append(f"thời lượng {te_item['duration']}")
+            if te_item.get("min_mark"):
+                meta_parts.append(f"điểm liệt {te_item['min_mark']}")
+            meta_desc = f" ({', '.join(meta_parts)})" if meta_parts else ""
+            parts.append(
+                f"Theo dữ liệu FLM, bài thi lý thuyết (Theoretical Exam/TE) của môn {course.code} chiếm {te_item['weight']} tổng điểm{meta_desc}."
+            )
+    if wants_fe:
+        fe_item = _find_fe_item(course)
+        if fe_item:
+            parts.append(
+                f"Theo dữ liệu FLM, bài thi cuối kỳ (Final Exam/FE) của môn {course.code} chiếm {fe_item['weight']} tổng điểm."
+            )
+    if wants_grading_scheme:
+        items = _parse_assessment_items(course.assessment_scheme)
+        if items:
+            lines = [f"Cấu trúc đánh giá (Assessment Scheme) của môn {course.code} theo FLM:"]
+            for it in items:
+                line_text = f"- {it['name']}: {it['weight']}"
+                if it.get("min_mark"):
+                    line_text += f" (điểm liệt {it['min_mark']})"
+                if it.get("duration"):
+                    line_text += f", thời lượng {it['duration']}"
+                lines.append(line_text)
+            if course.min_pass_mark:
+                lines.append(f"Điểm đạt tối thiểu: {course.min_pass_mark}/10.")
+            parts.append("\n".join(lines))
     if wants_outcomes:
         parts.append(
             f"Chuẩn đầu ra (Learning Outcomes) của {course.code}: "
@@ -158,6 +293,16 @@ class RAGEngine:
         # 1. Detect target courses & query intent
         detected_courses = self.vector_store.extract_target_courses(query)
         detected_intents = self.vector_store.detect_query_intent(query)
+
+        has_semester_mention = detect_semester(query, request.student_context) is not None
+        if not detected_courses and request.history and not has_semester_mention:
+            for past_turn in reversed(request.history):
+                past_content = past_turn.content if hasattr(past_turn, "content") else past_turn.get("content", "")
+                past_courses = self.vector_store.extract_target_courses(past_content)
+                if past_courses:
+                    detected_courses = past_courses
+                    break
+
         target_course = (
             request.course_code
             or (request.id if request.scope == "subject" else None)
