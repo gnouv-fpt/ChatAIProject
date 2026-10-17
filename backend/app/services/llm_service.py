@@ -211,6 +211,13 @@ class LLMService:
                     else:
                         last_error = "empty_provider_response"
                 except GroqAllKeysExhaustedError as exc:
+                    print(f"[LLMService] All Groq keys in cooldown/exhausted: {exc}. Trying Ollama local fallback...")
+                    try:
+                        ollama_ans = await self._call_ollama(prompt_question, context_str, student_facts_str, language)
+                        if ollama_ans and not _CJK_CHARS.search(ollama_ans):
+                            return self._sanitize_output(ollama_ans), "Ollama-Qwen2.5:7b"
+                    except Exception as ollama_err:
+                        print(f"[LLMService] Ollama fallback failed: {ollama_err}")
                     return str(exc), "Groq-Rate-Limited"
                 except Exception as exc:
                     last_error = self._safe_provider_error(exc)
@@ -414,7 +421,7 @@ class LLMService:
                 "Do not add generic study resources, platforms, books, attendance rules, examples, schedules, or technologies.\n"
                 "7. Use clean, readable Markdown with clear bullet points.\n"
                 "7a. For course strategy, adapt actions to the self-reported course goal and learning style in student facts. Treat preferences as user input, not verified academic facts; cite the FLM syllabus for credits, prerequisites, assessment and CLOs.\n"
-                "8. When planner facts are provided, explain the plan in a linear order: goal, verified prerequisites, recommended next actions, and one relevant follow-up question. Do not invent a timetable, homework, deadline, room, or personal progress that is absent from the data.\n"
+                "8. When planner facts are provided, explain the plan in a linear order: goal, verified prerequisites, recommended next actions, and one relevant follow-up question. Do not invent a timetable, homework, deadline, room, or personal progress that is absent from the data. PREREQUISITES WERE ALREADY COMPLETED IN PAST TERMS: NEVER schedule past prerequisite courses into the current semester's study timetable. Always use the verified credits from FLM.\n"
                 "9. Completeness: give a full, well-developed answer, never a one-line reply. Start with the direct answer, "
                 "then explain the relevant details and context from the data (e.g. what a prerequisite is for, how the "
                 "assessment weights affect passing, related CLOs, credits, semester), and finish with practical notes or "
@@ -449,7 +456,12 @@ class LLMService:
             "Dữ kiện ghi 'TÍNH BẰNG CODE' là sự thật chuẩn xác: dùng đúng danh sách môn và con số đó, không tự tính lại.\n"
             "- Không được bịa đặt môn học, điều kiện tốt nghiệp hoặc quy chế không có trong dữ liệu. Với thông tin ngoài phạm vi FLM, giải thích rõ ràng.\n"
             "- CỔNG KIỂM CHỨNG BẮT BUỘC: Chỉ nêu một khẳng định thực tế khi context đã truy xuất ghi rõ khẳng định đó. Việc A là môn tiên quyết của B chỉ chứng minh A phải học trước B; không chứng minh A dạy chủ đề gì, cách dạy, widget/UI, hình thức thi, lịch học hay kỹ năng cụ thể. Nếu context không đủ để giải thích hoặc so sánh, phải nói rõ: 'Dữ liệu FLM hiện có chỉ xác nhận ...; chưa có dữ liệu để khẳng định ...'. Tuyệt đối không thêm sách, nền tảng luyện tập, quy định điểm danh, lịch tuần, ví dụ công nghệ hay mẹo thi ngoài context.\n"
-            "4. NGÔN NGỮ & PHONG CÁCH:\n"
+            "4. QUY CHUẨN ĐẶC THÙ ĐẠI HỌC FPT (BẮT BUỘC CHO MỌI MÔN HỌC):\n"
+            "- SỐ TÍN CHỈ: BẮT BUỘC trích xuất chính xác 100% số tín chỉ từ dữ liệu FLM được cung cấp. TUYỆT ĐỐI KHÔNG tự bịa hoặc nói sai số tín chỉ của bất kỳ môn nào.\n"
+            "- MÔN TIÊN QUYẾT: Mọi môn tiên quyết là điều kiện đầu vào sinh viên ĐÃ HỌC VÀ THI ĐỖ Ở CÁC KỲ TRƯỚC. Khi tư vấn học tập hoặc lên kế hoạch cho môn học hiện tại, TUYỆT ĐỐI KHÔNG xếp các môn tiên quyết vào lịch học hay thời khóa biểu của kỳ hiện tại. Chỉ nhắc sinh viên chuẩn bị sẵn kiến thức nền tảng (ví dụ: cần nhớ lại OOP, thuật toán, hay SQL).\n"
+            "- THỜI LƯỢNG HỌC KỲ: 1 học kỳ chuẩn tại Đại học FPT gồm 10 tuần (30 slots). Sinh viên học kiến thức môn hiện tại từ Tuần 1 đến Tuần 10. Mọi kế hoạch học tập phải bám sát 10 tuần thực tế: Tuần 1-3 (Nền tảng & Bài Lab), Tuần 4-6 (Assignment / Progress Test giữa kỳ), Tuần 7-9 (Hoàn thiện Lab nâng cao / Đồ án nhóm), Tuần 10 (Luyện đề thi thử PE trên máy nếu môn có PE và ôn lý thuyết thi FE trên EOS).\n"
+            "- HÌNH THỨC THI: Phải tuân thủ đúng trạng thái thi PE (thực hành code trên máy) và FE (lý thuyết trên EOS) theo dữ liệu FLM. Môn nào không có PE thì không được nói có PE.\n"
+            "5. NGÔN NGỮ & PHONG CÁCH:\n"
             "- BẮT BUỘC dùng 100% Tiếng Việt tự nhiên, gãy gọn, thân thiện như bạn bè giúp nhau cùng tiến bộ. "
             "Tự động dịch và diễn giải các nội dung đề cương tiếng Anh sang tiếng Việt mượt mà.\n"
             "- Mở đầu trực tiếp theo đúng điều người học đang hỏi; không dùng mẫu cố định cho mọi câu hỏi; không lạm dụng dấu in đậm (**) tràn lan.\n"
