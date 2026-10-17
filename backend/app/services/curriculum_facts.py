@@ -266,6 +266,52 @@ def build_curriculum_facts(
         lines.extend(_semester_facts(courses, semester, curriculum_id, language))
     if asks_about_gpa(question, intents):
         lines.extend(_gpa_facts(question, language))
+    if detected_courses:
+        for code in detected_courses:
+            c = courses.get(code.upper())
+            if c:
+                name = getattr(c, "name_vi", "") or getattr(c, "name_en", "") or code
+                creds = getattr(c, "credits", None)
+                sem = getattr(c, "semester", None)
+                prereqs = getattr(c, "prerequisites", []) or []
+                pe_status = "Có thi PE (thực hành trên máy)" if getattr(c, "has_pe", False) else "Không thi PE"
+                unlocks = getattr(c, "unlocks", []) or []
+                prereq_details = []
+                for p in prereqs:
+                    pc = courses.get(p)
+                    p_sem = getattr(pc, "semester", None) if pc else None
+                    prereq_details.append(f"{p} (HK{p_sem})" if p_sem is not None else p)
+                prereq_str = ", ".join(prereq_details) if prereq_details else "Không có"
+                unlocks_str = ", ".join(unlocks) if unlocks else "Không"
+                if language != ENGLISH:
+                    lines.append(
+                        f"- Môn {code} ({name}): BẮT BUỘC {creds} tín chỉ (cấm nói sai số tín chỉ này), thuộc Học kỳ {sem} (HK{sem}). "
+                        f"Hình thức thi: {pe_status}. Tiên quyết: {prereq_str}. Mở khóa: {unlocks_str}."
+                    )
+                    if prereqs:
+                        lines.append(
+                            f"  * QUY TẮC BẮT BUỘC: Tiên quyết ({', '.join(prereqs)}) là môn ĐÃ HỌC VÀ THI ĐỖ Ở CÁC KỲ TRƯỚC. "
+                            f"TUYỆT ĐỐI KHÔNG xếp các môn tiên quyết này vào lịch học hay thời khóa biểu của {code} ở HK{sem}."
+                        )
+                    assess = getattr(c, "assessment_scheme", "") or ""
+                    if assess:
+                        lines.append(f"  * BẢNG ĐIỂM & TỶ TRỌNG (%) MÔN {code}:")
+                        for row in assess.strip().splitlines()[:10]:
+                            row_clean = row.strip()
+                            if "|" in row_clean and not row_clean.startswith("|---"):
+                                lines.append(f"    {row_clean}")
+                else:
+                    lines.append(
+                        f"- Course {code} ({name}): MUST be {creds} credits, Semester {sem}. "
+                        f"PE status: {pe_status}. Prerequisites: {prereq_str}. Unlocks: {unlocks_str}."
+                    )
+                    assess = getattr(c, "assessment_scheme", "") or ""
+                    if assess:
+                        lines.append(f"  * ASSESSMENT SCHEME OF {code}:")
+                        for row in assess.strip().splitlines()[:10]:
+                            row_clean = row.strip()
+                            if "|" in row_clean and not row_clean.startswith("|---"):
+                                lines.append(f"    {row_clean}")
     if not lines:
         return ""
 
