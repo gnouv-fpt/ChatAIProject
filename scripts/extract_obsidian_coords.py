@@ -128,7 +128,17 @@ for step in range(60):
 max_c = max(max(abs(x), abs(y)) for x, y in pos.values())
 scale_factor = 0.88 / max_c
 
-out = "import 'dart:ui';\n\nfinal Map<String, Offset> obsidianNodeCoords = {\n"
+out = """class Offset {
+  final double dx;
+  final double dy;
+  const Offset(this.dx, this.dy);
+
+  @override
+  String toString() => 'Offset($dx, $dy)';
+}
+
+final Map<String, Offset> obsidianNodeCoords = {
+"""
 for nid in sorted(pos.keys()):
     x = round(pos[nid][0] * scale_factor, 4)
     y = round(pos[nid][1] * scale_factor, 4)

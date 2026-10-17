@@ -1,4 +1,11 @@
-import 'dart:ui';
+class Offset {
+  final double dx;
+  final double dy;
+  const Offset(this.dx, this.dy);
+
+  @override
+  String toString() => 'Offset($dx, $dy)';
+}
 
 final Map<String, Offset> obsidianNodeCoords = {
   "#HK0": const Offset(0.65, -0.18),

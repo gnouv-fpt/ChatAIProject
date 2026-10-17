@@ -381,3 +381,6 @@ flm_raw_syllabi/
 __pycache__/
 *.py[cod]
 *$py.class
+.vscode/
+**/devtools_options.yaml
+

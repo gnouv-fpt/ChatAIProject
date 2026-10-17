@@ -29,11 +29,13 @@
 ## 2. Chi Tiết Yêu Cầu Giao Diện (Flutter UI)
 
 ### 2.1. Chế độ danh sách môn học (List / Cards)
+
 - Hiển thị môn học phân chia theo từng học kỳ (Ví dụ: Học kỳ 1 gồm các môn lập trình C, môn cơ sở,...).
 - Mỗi môn thể hiện dưới dạng thẻ (**Card**).
 - Bấm vào thẻ để chuyển sang màn hình **Xem chi tiết** (Chi tiết đề cương, số tín chỉ, nội dung môn học).
 
 ### 2.2. Chế độ Graph View (Sơ đồ liên kết)
+
 - Có nút chức năng **"View Graph"** trên giao diện.
 - Khi bấm, hiển thị Graph trực quan (dưới dạng màn hình riêng hoặc Pop-up / Modal).
 - **Tương tác với Node trên Graph:**
@@ -50,6 +52,7 @@
 ## 3. Kịch Bản & Câu Hỏi Mẫu Cho Chat AI (RAG)
 
 Chatbot phải trả lời chính xác dựa trên nguồn dữ liệu FLM đã extract:
+
 - **Hình thức thi/đánh giá:** *Môn PRM392 có thi PE (Practical Exam) hay không?*
 - **Mục tiêu môn học (Learning Outcomes):** *Mục tiêu của môn học này là gì?* (trích từ FLM).
 - **Số tín chỉ:** *Trong khung chương trình của tôi, môn PRM392 có mấy tín chỉ?*

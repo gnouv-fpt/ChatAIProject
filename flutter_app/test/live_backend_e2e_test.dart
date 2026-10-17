@@ -1,15 +1,15 @@
+@Tags(['live'])
+library;
+
+// ignore_for_file: avoid_print
 import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flm_courses/features/chat/services/chat_api_service.dart';
 import 'package:flm_courses/features/chat/providers/chat_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class RealHttpOverrides extends HttpOverrides {
-  @override
-  HttpClient createHttpClient(SecurityContext? context) {
-    return super.createHttpClient(context);
-  }
-}
+class RealHttpOverrides extends HttpOverrides {}
 
 void main() {
   HttpOverrides.global = RealHttpOverrides();
@@ -26,7 +26,11 @@ void main() {
     test('1. Backend health check from Flutter', () async {
       final isHealthy = await apiService.checkHealth();
       print('[Flutter Test] Backend Health: $isHealthy');
-      expect(isHealthy, isTrue, reason: 'Backend must be running at http://127.0.0.1:8000');
+      expect(
+        isHealthy,
+        isTrue,
+        reason: 'Backend must be running at http://127.0.0.1:8000',
+      );
     });
 
     test('2. Live Query with Student Context & Groq RAG from Flutter ChatApiService', () async {
@@ -47,11 +51,15 @@ void main() {
       );
 
       stopwatch.stop();
-      print('[Flutter Test] Response received in ${stopwatch.elapsedMilliseconds}ms');
+      print(
+        '[Flutter Test] Response received in ${stopwatch.elapsedMilliseconds}ms',
+      );
       print('[Flutter Test] Error Message: ${result.errorMessage}');
       print('[Flutter Test] Sources: ${result.sources}');
       print('[Flutter Test] Answer Length: ${result.answer.length}');
-      print('[Flutter Test] Answer Preview: ${result.answer.substring(0, result.answer.length > 300 ? 300 : result.answer.length)}...\n');
+      print(
+        '[Flutter Test] Answer Preview: ${result.answer.substring(0, result.answer.length > 300 ? 300 : result.answer.length)}...\n',
+      );
 
       expect(result.errorMessage, isNull);
       expect(result.answer, isNotEmpty);
@@ -66,7 +74,7 @@ void main() {
         'Timestamp: ${DateTime.now()}\n'
         'Latency: ${stopwatch.elapsedMilliseconds}ms\n'
         'Sources: ${result.sources.join(", ")}\n'
-        'Answer:\n${result.answer}\n'
+        'Answer:\n${result.answer}\n',
       );
       print('[Flutter Test] Evidence written to: ${file.path}');
     });
@@ -87,7 +95,9 @@ void main() {
 
       final lastMessage = provider.messages.last;
       print('[Flutter Test] Last Message Status: ${lastMessage.status}');
-      print('[Flutter Test] Last Message Text Length: ${lastMessage.text.length}');
+      print(
+        '[Flutter Test] Last Message Text Length: ${lastMessage.text.length}',
+      );
       print('[Flutter Test] Last Message Sources: ${lastMessage.sources}');
       expect(lastMessage.status.toString(), contains('success'));
       expect(lastMessage.text, isNotEmpty);
