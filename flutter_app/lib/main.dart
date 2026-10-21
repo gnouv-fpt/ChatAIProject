@@ -10,17 +10,22 @@ import 'state/transcript_provider.dart';
 import 'state/learning_profile_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/grade_calculator.dart';
+import 'data/personal_preferences.dart';
+import 'app/firebase_entry.dart';
+import 'services/grade_import_service.dart';
+import 'services/transcript_image_picker.dart';
+import 'state/transcript_import_view_model.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await GradeCalculator.loadRules();
-  final profile = LearningProfileProvider();
-  await profile.load();
-  runApp(FlmApp(profile: profile));
+  runApp(const FirebaseEntry());
 }
 
 class FlmApp extends StatelessWidget {
-  const FlmApp({super.key, this.profile});
+  const FlmApp({super.key, this.profile, this.storage});
+
+  final PersonalPreferences? storage;
 
   final LearningProfileProvider? profile;
 
@@ -30,13 +35,29 @@ class FlmApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
         ChangeNotifierProvider(
-          create: (_) => profile ?? (LearningProfileProvider()..load()),
+          create: (_) =>
+              profile ?? (LearningProfileProvider(storage: storage)..load()),
         ),
         ChangeNotifierProvider(
-          create: (context) =>
-              ChatProvider(profile: context.read<LearningProfileProvider>()),
+          create: (context) => ChatProvider(
+            profile: context.read<LearningProfileProvider>(),
+            storage: storage,
+          ),
         ),
-        ChangeNotifierProvider(create: (_) => TranscriptProvider()..load()),
+        ChangeNotifierProvider(
+          create: (_) => TranscriptProvider(storage: storage)..load(),
+        ),
+        Provider<TranscriptImagePicker>(
+          create: (_) => FileTranscriptImagePicker(),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => TranscriptImportViewModel(
+            picker: context.read<TranscriptImagePicker>(),
+            service: () => GradeImportService(
+              baseUrl: context.read<ChatProvider>().baseUrl,
+            ),
+          ),
+        ),
       ],
       child: MaterialApp(
         title: 'Cố vấn học tập FLM',

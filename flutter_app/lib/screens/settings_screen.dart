@@ -5,6 +5,7 @@ import '../features/chat/providers/chat_provider.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../state/learning_profile_provider.dart';
+import '../state/auth_view_model.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -91,6 +92,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (context.read<AuthViewModel?>() case final auth?)
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(auth.account?.name ?? 'Tài khoản Google'),
+                    const Text(
+                      'Bộ nhớ cá nhân tách theo tài khoản. Chưa bật đồng bộ cloud.',
+                    ),
+                    if (auth.message != null) Text(auth.message!),
+                    OutlinedButton.icon(
+                      onPressed: auth.busy ? null : auth.signOut,
+                      icon: const Icon(Icons.logout),
+                      label: const Text('Đăng xuất'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
           Text(
             'Mục tiêu học tập',
             style: Theme.of(context).textTheme.titleLarge,
