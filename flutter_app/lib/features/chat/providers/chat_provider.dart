@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../data/personal_preferences.dart';
 
 import '../models/chat_message.dart';
 import '../models/chat_session.dart';
@@ -14,6 +15,7 @@ class ChatProvider extends ChangeNotifier {
   static const _historyKey = 'flm_chat_history_v1';
   static const _sessionsKey = 'flm_chat_sessions_v1';
   late ChatApiService _apiService;
+  final PersonalPreferences _storage;
   final LearningProfileProvider? profile;
 
   final List<ChatMessage> _messages = [];
@@ -55,15 +57,19 @@ class ChatProvider extends ChangeNotifier {
       '${DateTime.now().microsecondsSinceEpoch}_${++_sessionSequence}';
 
   List<ChatSession> get sessions {
-    final active = _scopeMessages.entries.map((entry) {
-      final separator = entry.key.indexOf(':');
-      return ChatSession(
-        id: _activeSessionIds.putIfAbsent(entry.key, _newSessionId),
-        scope: entry.key.substring(0, separator),
-        scopeId: entry.key.substring(separator + 1),
-        messages: entry.key == _scopeKey ? List.of(_messages) : entry.value,
-      );
-    }).where((session) => session.messages.any((m) => m.sender == ChatSender.user));
+    final active = _scopeMessages.entries
+        .map((entry) {
+          final separator = entry.key.indexOf(':');
+          return ChatSession(
+            id: _activeSessionIds.putIfAbsent(entry.key, _newSessionId),
+            scope: entry.key.substring(0, separator),
+            scopeId: entry.key.substring(separator + 1),
+            messages: entry.key == _scopeKey ? List.of(_messages) : entry.value,
+          );
+        })
+        .where(
+          (session) => session.messages.any((m) => m.sender == ChatSender.user),
+        );
     final current = ChatSession(
       id: _activeSessionIds.putIfAbsent(_scopeKey, _newSessionId),
       scope: _currentScope,
@@ -72,7 +78,8 @@ class ChatProvider extends ChangeNotifier {
     );
     final items = <ChatSession>[
       if (!_scopeMessages.containsKey(_scopeKey) &&
-          current.messages.any((m) => m.sender == ChatSender.user)) current,
+          current.messages.any((m) => m.sender == ChatSender.user))
+        current,
       ...active,
       ..._archivedSessions,
     ];
@@ -92,7 +99,9 @@ class ChatProvider extends ChangeNotifier {
 
   void openSession(String sessionId) {
     if (_isLoading) return;
-    final archivedIndex = _archivedSessions.indexWhere((s) => s.id == sessionId);
+    final archivedIndex = _archivedSessions.indexWhere(
+      (s) => s.id == sessionId,
+    );
     if (archivedIndex >= 0) {
       final selected = _archivedSessions.removeAt(archivedIndex);
       _archiveCurrent();
@@ -101,7 +110,9 @@ class ChatProvider extends ChangeNotifier {
       _currentScope = selected.scope;
       _currentScopeId = selected.scopeId;
       _activeSessionIds[_scopeKey] = selected.id;
-      _messages..clear()..addAll(selected.messages);
+      _messages
+        ..clear()
+        ..addAll(selected.messages);
       _scopeMessages[_scopeKey] = List.of(_messages);
     } else {
       final scopeKey = _activeSessionIds.entries
@@ -113,7 +124,9 @@ class ChatProvider extends ChangeNotifier {
       final separator = scopeKey.indexOf(':');
       _currentScope = scopeKey.substring(0, separator);
       _currentScopeId = scopeKey.substring(separator + 1);
-      _messages..clear()..addAll(_scopeMessages[scopeKey] ?? []);
+      _messages
+        ..clear()
+        ..addAll(_scopeMessages[scopeKey] ?? []);
     }
     _lastError = null;
     notifyListeners();
@@ -130,17 +143,23 @@ class ChatProvider extends ChangeNotifier {
     final separator = key.indexOf(':');
     final id = _activeSessionIds.putIfAbsent(key, _newSessionId);
     _archivedSessions.removeWhere((session) => session.id == id);
-    _archivedSessions.add(ChatSession(
-      id: id,
-      scope: key.substring(0, separator),
-      scopeId: key.substring(separator + 1),
-      messages: List.of(saved),
-    ));
+    _archivedSessions.add(
+      ChatSession(
+        id: id,
+        scope: key.substring(0, separator),
+        scopeId: key.substring(separator + 1),
+        messages: List.of(saved),
+      ),
+    );
     _scopeMessages.remove(key);
     _activeSessionIds.remove(key);
   }
 
-  ChatProvider({ChatApiService? apiService, this.profile}) {
+  ChatProvider({
+    ChatApiService? apiService,
+    this.profile,
+    PersonalPreferences? storage,
+  }) : _storage = storage ?? PersonalPreferences() {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
     unawaited(_loadHistory());
@@ -163,7 +182,7 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> _loadHistory() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _storage.open();
       final raw = prefs.getString(_historyKey);
       if (raw != null) {
         final decoded = jsonDecode(raw) as Map<String, dynamic>;
@@ -178,9 +197,14 @@ class ChatProvider extends ChangeNotifier {
       final sessionsRaw = prefs.getString(_sessionsKey);
       if (sessionsRaw != null) {
         final decoded = jsonDecode(sessionsRaw) as Map<String, dynamic>;
-        _activeSessionIds.addAll(Map<String, String>.from(decoded['active_ids'] as Map));
-        _archivedSessions.addAll((decoded['archived'] as List<dynamic>)
-            .map((row) => ChatSession.fromJson(row as Map<String, dynamic>)));
+        _activeSessionIds.addAll(
+          Map<String, String>.from(decoded['active_ids'] as Map),
+        );
+        _archivedSessions.addAll(
+          (decoded['archived'] as List<dynamic>).map(
+            (row) => ChatSession.fromJson(row as Map<String, dynamic>),
+          ),
+        );
       }
       if (_messages.length == 1 && _scopeMessages.containsKey(_scopeKey)) {
         _messages
@@ -211,12 +235,17 @@ class ChatProvider extends ChangeNotifier {
           ),
         ),
       );
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _storage.open();
       await prefs.setString(_historyKey, encoded);
-      await prefs.setString(_sessionsKey, jsonEncode({
-        'active_ids': _activeSessionIds,
-        'archived': _archivedSessions.map((session) => session.toJson()).toList(),
-      }));
+      await prefs.setString(
+        _sessionsKey,
+        jsonEncode({
+          'active_ids': _activeSessionIds,
+          'archived': _archivedSessions
+              .map((session) => session.toJson())
+              .toList(),
+        }),
+      );
     } catch (error) {
       debugPrint('[ChatProvider] Failed to save history: $error');
     }
@@ -309,7 +338,9 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     // Call API Service with scope, id, and student_context facts (Mục 7.4)
-    final historyMessages = _scopeKey == targetScopeKey ? _messages : targetList;
+    final historyMessages = _scopeKey == targetScopeKey
+        ? _messages
+        : targetList;
     final result = await _apiService.sendMessage(
       prompt,
       scope: activeScope,

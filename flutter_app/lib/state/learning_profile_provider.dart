@@ -1,10 +1,14 @@
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/personal_preferences.dart';
 
 /// Preferences are self-reported. Academic facts remain in TranscriptProvider.
 class LearningProfileProvider extends ChangeNotifier {
+  LearningProfileProvider({PersonalPreferences? storage})
+    : _storage = storage ?? PersonalPreferences();
+  final PersonalPreferences _storage;
   static const storageKey = 'flm_learning_profile_v1';
 
   String? _courseGoal;
@@ -34,7 +38,7 @@ class LearningProfileProvider extends ChangeNotifier {
 
   Future<void> load() async {
     if (_isLoaded) return;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _storage.open();
     final raw = prefs.getString(storageKey);
     if (raw != null) {
       try {
@@ -89,7 +93,7 @@ class LearningProfileProvider extends ChangeNotifier {
         : null;
     _careerGoal = careerGoal?.trim();
     if (_careerGoal?.isEmpty ?? false) _careerGoal = null;
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _storage.open();
     await prefs.setString(storageKey, jsonEncode(chatContext));
     notifyListeners();
   }

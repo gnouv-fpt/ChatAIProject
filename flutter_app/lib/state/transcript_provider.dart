@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../data/personal_preferences.dart';
 
 import '../models/transcript_entry.dart';
 import '../services/grade_calculator.dart';
@@ -10,6 +11,9 @@ import '../services/grade_calculator.dart';
 /// Provider toàn cục lưu transcript & GPA của sinh viên (local, không lên server).
 /// Tuân thủ Mục 8.2: bảng điểm lưu local, không lưu ảnh, không đưa vào RAG chung.
 class TranscriptProvider extends ChangeNotifier {
+  TranscriptProvider({PersonalPreferences? storage})
+    : _storage = storage ?? PersonalPreferences();
+  final PersonalPreferences _storage;
   static const _storageKey = 'flm_transcript_v1';
   static const _targetGpaKey = 'flm_target_gpa_v1';
 
@@ -18,6 +22,11 @@ class TranscriptProvider extends ChangeNotifier {
   bool _isLoaded = false;
 
   List<TranscriptEntry> get entries => List.unmodifiable(_entries);
+  List<TranscriptEntry> get sortedEntries =>
+      List<TranscriptEntry>.of(_entries)..sort((a, b) {
+        final semester = b.semester.compareTo(a.semester);
+        return semester != 0 ? semester : a.courseCode.compareTo(b.courseCode);
+      });
   double get targetGpa => _targetGpa;
   bool get hasTranscript => _entries.isNotEmpty;
   bool get isLoaded => _isLoaded;
@@ -109,7 +118,7 @@ class TranscriptProvider extends ChangeNotifier {
 
   Future<void> load() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
+      final prefs = await _storage.open();
       _targetGpa = (prefs.getDouble(_targetGpaKey) ?? 8.0).clamp(0.0, 10.0);
       final raw = prefs.getString(_storageKey);
       if (raw != null) {
@@ -126,7 +135,7 @@ class TranscriptProvider extends ChangeNotifier {
   }
 
   Future<void> save(List<TranscriptEntry> confirmed) async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _storage.open();
     final json = jsonEncode(confirmed.map((e) => e.toJson()).toList());
     if (!await prefs.setString(_storageKey, json)) {
       throw StateError('Không thể lưu bảng điểm trên thiết bị.');
@@ -143,12 +152,12 @@ class TranscriptProvider extends ChangeNotifier {
   }
 
   Future<void> _persistTargetGpa() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _storage.open();
     await prefs.setDouble(_targetGpaKey, _targetGpa);
   }
 
   Future<void> clearTranscript() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = await _storage.open();
     if (!await prefs.remove(_storageKey)) {
       throw StateError('Không thể xóa bảng điểm trên thiết bị.');
     }
