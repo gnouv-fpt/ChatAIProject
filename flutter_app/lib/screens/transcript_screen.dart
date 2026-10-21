@@ -1,10 +1,7 @@
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../features/chat/providers/chat_provider.dart';
-import '../models/transcript_entry.dart';
-import '../services/grade_import_service.dart';
+import '../state/transcript_import_view_model.dart';
 import '../state/transcript_provider.dart';
 import 'transcript_confirm_screen.dart';
 
@@ -16,101 +13,21 @@ class TranscriptScreen extends StatefulWidget {
 }
 
 class _TranscriptScreenState extends State<TranscriptScreen> {
-  bool _importing = false;
-  String? _error;
-
   Future<void> _import() async {
-    final selected = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['png', 'jpg', 'jpeg'],
-      allowMultiple: true,
-      withData: true,
+    final importer = context.read<TranscriptImportViewModel>();
+    final result = await importer.import();
+    if (!mounted || result == null) return;
+    final provider = context.read<TranscriptProvider>();
+    await Navigator.push<void>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TranscriptConfirmScreen(
+          rawExtractedEntries: importer.merge(provider.entries, result.entries),
+          importWarning: result.warning,
+          onSaved: provider.save,
+        ),
+      ),
     );
-    if (!mounted || selected == null) return;
-    if (selected.files.isEmpty || selected.files.length > 10) {
-      setState(() => _error = 'Chọn từ 1 đến 10 ảnh bảng điểm.');
-      return;
-    }
-    final images = <ImageFile>[];
-    for (final file in selected.files) {
-      final bytes = file.bytes;
-      if (bytes == null || bytes.isEmpty) {
-        setState(
-          () => _error = 'Không thể đọc ảnh ${file.name}. Vui lòng chọn lại.',
-        );
-        return;
-      }
-      images.add(
-        ImageFile(
-          filename: file.name,
-          bytes: bytes,
-          mimeType: file.extension?.toLowerCase() == 'png'
-              ? 'image/png'
-              : 'image/jpeg',
-        ),
-      );
-    }
-    setState(() {
-      _importing = true;
-      _error = null;
-    });
-    try {
-      final baseUrl = context.read<ChatProvider>().baseUrl;
-      final result = await GradeImportService(baseUrl: baseUrl)
-          .importFromImages(images);
-      if (!mounted) return;
-      if (result.entries.isEmpty) {
-        setState(
-          () =>
-              _error = 'Không đọc được môn học nào từ ảnh. Hãy thử ảnh rõ hơn.',
-        );
-        return;
-      }
-      final provider = context.read<TranscriptProvider>();
-      await Navigator.push<void>(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TranscriptConfirmScreen(
-            rawExtractedEntries: _mergeEntries(
-              provider.entries,
-              result.entries,
-            ),
-            importWarning: result.warning,
-            onSaved: (entries) => provider.save(entries),
-          ),
-        ),
-      );
-    } on GradeImportException catch (error) {
-      if (mounted) setState(() => _error = error.message);
-    } catch (_) {
-      if (mounted) {
-        setState(
-          () => _error = 'Không thể xử lý ảnh. Vui lòng thử lại hoặc nhập tay.',
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _importing = false);
-    }
-  }
-
-  List<TranscriptEntry> _mergeEntries(
-    List<TranscriptEntry> saved,
-    List<TranscriptEntry> imported,
-  ) {
-    final merged = List<TranscriptEntry>.from(saved);
-    for (final entry in imported) {
-      final index = merged.indexWhere(
-        (old) =>
-            old.courseCode == entry.courseCode &&
-            old.semester == entry.semester,
-      );
-      if (index == -1) {
-        merged.add(entry);
-      } else {
-        merged[index] = entry;
-      }
-    }
-    return merged;
   }
 
   Future<void> _editManually() async {
@@ -130,11 +47,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
   @override
   Widget build(BuildContext context) {
     final transcript = context.watch<TranscriptProvider>();
-    final entries = transcript.entries.toList()
-      ..sort((a, b) {
-        final semester = b.semester.compareTo(a.semester);
-        return semester != 0 ? semester : a.courseCode.compareTo(b.courseCode);
-      });
+    final importer = context.watch<TranscriptImportViewModel>();
+    final entries = transcript.sortedEntries;
     return Scaffold(
       appBar: AppBar(title: const Text('Bảng điểm')),
       body: !transcript.isLoaded
@@ -183,8 +97,8 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 ),
                 const SizedBox(height: 8),
                 FilledButton.icon(
-                  onPressed: _importing ? null : _import,
-                  icon: _importing
+                  onPressed: importer.busy ? null : _import,
+                  icon: importer.busy
                       ? const SizedBox(
                           width: 18,
                           height: 18,
@@ -192,23 +106,25 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         )
                       : const Icon(Icons.upload_file),
                   label: Text(
-                    _importing ? 'Đang đọc bảng điểm...' : 'Nhập ảnh bảng điểm',
+                    importer.busy
+                        ? 'Đang đọc bảng điểm...'
+                        : 'Nhập ảnh bảng điểm',
                   ),
                 ),
                 const SizedBox(height: 8),
                 OutlinedButton.icon(
-                  onPressed: _importing ? null : _editManually,
+                  onPressed: importer.busy ? null : _editManually,
                   icon: const Icon(Icons.edit_outlined),
                   label: const Text('Nhập hoặc sửa điểm thủ công'),
                 ),
-                if (_error != null) ...[
+                if (importer.message != null) ...[
                   const SizedBox(height: 8),
                   Card(
                     color: Colors.red.shade50,
                     child: Padding(
                       padding: const EdgeInsets.all(12),
                       child: Text(
-                        _error!,
+                        importer.message!,
                         style: TextStyle(color: Colors.red.shade800),
                       ),
                     ),
