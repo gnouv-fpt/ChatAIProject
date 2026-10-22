@@ -1,0 +1,49 @@
+00:00 +0: loading E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart
+00:00 +0: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: profile and transcript never cross account namespaces
+00:00 +1: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +2: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +3: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +4: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +5: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +6: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +7: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +8: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +9: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +10: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +11: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +12: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +12: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/cloud_personal_data_test.dart: cloud read failure shows retry instead of an empty successful transcript
+[TranscriptProvider] Load failed: StateError
+00:01 +13: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +14: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +15: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +16: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +17: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +18: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +19: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +20: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +21: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +22: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +23: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +24: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +25: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +26: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +27: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +28: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +29: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +30: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +31: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +32: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +33: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +33: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/transcript_persistence_test.dart: corrupt stored transcript shows error, preserves source and supports retry
+[TranscriptProvider] Load failed: FormatException
+00:03 +34: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +35: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +36: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +37: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:04 +38: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:04 +39: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:04 +40: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/transcript_manual_entry_test.dart: manual transcript entry validates course and saves catalog credits
+00:04 +41: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/transcript_manual_entry_test.dart: manual transcript entry validates course and saves catalog credits
+00:04 +42: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/transcript_manual_entry_test.dart: manual transcript entry validates course and saves catalog credits
+00:05 +43: All tests passed!

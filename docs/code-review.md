@@ -11,7 +11,7 @@ Tool: Codex (đọc source và diff trực tiếp). Baseline `6e4640bfc8399e8240
 | CR02 | flutter_app/lib/main.dart:19 | Security | main mở thẳng FlmApp/AppShell, không auth-state routing | Accept: Lab 3 mục 6 yêu cầu signed out→login, signed in→home | 8b29088; auth_gate_test.dart kiểm chưa login không có navigation bar |
 | CR03 | flutter_app/lib/screens/transcript_screen.dart:59 | Architecture | Widget tự tạo GradeImportService; chọn ảnh, gọi API và gộp dữ liệu trong State | Accept: Lab 3 mục 5 yêu cầu service inject và business logic ngoài widget | 5c7d664; service/VM được đăng ký trong 8b29088, screen chuyển sang VM trong commit riêng này |
 | CR04 | flutter_app/lib/screens/transcript_screen.dart:133 | Architecture | Sắp xếp dữ liệu bảng điểm trong build | Accept: đưa sortedEntries vào TranscriptProvider để UI chỉ render | c5499d5 thêm getter; 5c7d664 đổi screen sử dụng getter |
-| CR05 | flutter_app/lib/state/transcript_provider.dart:122 | Error handling | Lỗi load chỉ debugPrint rồi đánh dấu loaded, UI có thể hiểu là chưa có dữ liệu | Accept: cần explicit load error và retry theo Lab 3 mục 5/6 | Còn mở, chưa ghi là đã sửa |
+| CR05 | flutter_app/lib/state/transcript_provider.dart:122 | Error handling | Lỗi load chỉ debugPrint rồi đánh dấu loaded, UI có thể hiểu là chưa có dữ liệu | Accept: cần explicit load error và retry theo Lab 3 mục 5/6 | Đã triển khai LoadStatus/error/retry; regression test dữ liệu hỏng giữ nguyên source và retry. Fix commit: bf03501; toàn suite hiện tại 45/45 pass. |
 
 ## Review khi triển khai
 - Nguy cơ late request ghi lại cache sau logout: storage seal trước signout, serialize ghi, drain trước remove. Có regression test.
@@ -20,3 +20,6 @@ Tool: Codex (đọc source và diff trực tiếp). Baseline `6e4640bfc8399e8240
 
 ## Disclosure và giới hạn
 Codex dùng cho phân tích đề, code, test, review và Markdown. Google/Firebase SDK được dùng thật trong production service; test doubles chỉ nằm trong unit/widget test. Chưa có Google native picker, Firestore, FCM, Analytics, Crashlytics hoặc Remote Config console evidence. Chưa có ARTEMIS runs. Ba commit là sửa local, chưa push.
+
+## Kiểm tra trước push 22/10/2026
+CR06 (error handling): SettingsScreen che nút logout khi profile đang tải/lỗi. Đã sửa trong bf03501; hai regression tests tại settings_sign_out_test.dart pass. Code cloud/rules đã triển khai, rules emulator Enterprise 9/9 pass; Google production end-to-end vẫn mở. Các nhận xét chưa có Firebase phía trên mô tả thời điểm review 21/10, không phải trạng thái provisioning hiện tại.
