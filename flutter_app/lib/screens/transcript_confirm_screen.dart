@@ -218,8 +218,8 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
       messenger.showSnackBar(
         SnackBar(
           content: Text(confirmed.isEmpty
-              ? 'Đã xóa bảng điểm khỏi máy.'
-              : 'Đã lưu bảng điểm vào máy.'),
+              ? 'Đã xóa bảng điểm.'
+              : 'Đã lưu bảng điểm.'),
         ),
       );
     } catch (_) {

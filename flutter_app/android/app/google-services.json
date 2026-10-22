@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "913094498381",
+    "project_id": "flm-prm323-20261021",
+    "storage_bucket": "flm-prm323-20261021.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:913094498381:android:63cfdde887d3be1396e404",
+        "android_client_info": {
+          "package_name": "com.example.flm_courses"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "913094498381-nt314lfrc5loqbu0j4o36pc3hssls1io.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flm_courses",
+            "certificate_hash": "8183dcb65cb3531d0bdc4174fa49c777ad21b863"
+          }
+        },
+        {
+          "client_id": "913094498381-l2dkg0cl4mdahsapah079m16dmk3e5p0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBhm0lJ7kyDHy9DTj3mHR_WmNe3H_ZWP5w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "913094498381-l2dkg0cl4mdahsapah079m16dmk3e5p0.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

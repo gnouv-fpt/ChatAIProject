@@ -6,6 +6,8 @@ import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/auth_view_model.dart';
+import '../models/load_status.dart';
+import '../widgets/data_state_view.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -17,6 +19,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _serverController;
   late final TextEditingController _careerController;
+  bool _profileHydrated = false;
   String? _courseGoal;
   String? _learningStyle;
   String? _studyPriority;
@@ -36,6 +39,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _longTermGoal = profile.longTermGoal;
     _currentSemester = profile.currentSemester;
     _careerController = TextEditingController(text: profile.careerGoal ?? '');
+    _profileHydrated = profile.isLoaded;
   }
 
   @override
@@ -50,8 +54,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Xóa bảng điểm?'),
-        content: const Text(
-          'Dữ liệu bảng điểm đã lưu trên thiết bị sẽ bị xóa.',
+        content: Text(
+          context.read<TranscriptProvider>().usesCloud
+              ? 'Bảng điểm của tài khoản trên Firestore sẽ bị xóa.'
+              : 'Dữ liệu bảng điểm đã lưu trên thiết bị sẽ bị xóa.',
         ),
         actions: [
           TextButton(
@@ -69,9 +75,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         await context.read<TranscriptProvider>().clearTranscript();
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Đã xóa bảng điểm trên thiết bị.')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(const SnackBar(content: Text('Đã xóa bảng điểm.')));
       } catch (_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -85,6 +90,40 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthViewModel?>();
+    final profile = context.watch<LearningProfileProvider>();
+    if (profile.status == LoadStatus.loading ||
+        profile.status == LoadStatus.error) {
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Cài đặt'),
+          actions: [
+            if (auth != null)
+              TextButton.icon(
+                onPressed: auth.busy ? null : auth.signOut,
+                icon: const Icon(Icons.logout),
+                label: const Text('Đăng xuất'),
+              ),
+          ],
+        ),
+        body: DataStateView(
+          status: profile.status,
+          message: profile.error,
+          onRetry: profile.status == LoadStatus.error
+              ? () => profile.load(retry: true)
+              : null,
+        ),
+      );
+    }
+    if (!_profileHydrated && profile.isLoaded) {
+      _courseGoal = profile.courseGoal;
+      _learningStyle = profile.learningStyle;
+      _studyPriority = profile.studyPriority;
+      _longTermGoal = profile.longTermGoal;
+      _currentSemester = profile.currentSemester;
+      _careerController.text = profile.careerGoal ?? '';
+      _profileHydrated = true;
+    }
     final transcript = context.watch<TranscriptProvider>();
     final chat = context.watch<ChatProvider>();
     return Scaffold(
@@ -100,8 +139,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(auth.account?.name ?? 'Tài khoản Google'),
-                    const Text(
-                      'Bộ nhớ cá nhân tách theo tài khoản. Chưa bật đồng bộ cloud.',
+                    Text(
+                      profile.usesCloud
+                          ? 'Hồ sơ và bảng điểm lưu trên Firestore theo tài khoản.'
+                          : 'Bộ nhớ cá nhân tách theo tài khoản; chưa bật đồng bộ cloud.',
                     ),
                     if (auth.message != null) Text(auth.message!),
                     OutlinedButton.icon(
@@ -126,6 +167,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Text(
                     'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)}',
                   ),
+                  if (transcript.saveError != null) Text(transcript.saveError!),
                   Slider(
                     value: transcript.targetGpa,
                     min: 0,
@@ -145,6 +187,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text('Hồ sơ tư vấn (có thể bổ sung dần)'),
+                  if (profile.error != null) Text(profile.error!),
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: _currentSemester,
@@ -250,22 +293,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: FilledButton(
-                      onPressed: () async {
-                        await context.read<LearningProfileProvider>().update(
-                          courseGoal: _courseGoal,
-                          learningStyle: _learningStyle,
-                          studyPriority: _studyPriority,
-                          longTermGoal: _longTermGoal,
-                          currentSemester: _currentSemester,
-                          careerGoal: _careerController.text,
-                        );
-                        if (!context.mounted) return;
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Đã lưu hồ sơ tư vấn trên thiết bị.'),
-                          ),
-                        );
-                      },
+                      onPressed: profile.saving
+                          ? null
+                          : () async {
+                              try {
+                                await profile.update(
+                                  courseGoal: _courseGoal,
+                                  learningStyle: _learningStyle,
+                                  studyPriority: _studyPriority,
+                                  longTermGoal: _longTermGoal,
+                                  currentSemester: _currentSemester,
+                                  careerGoal: _careerController.text,
+                                );
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      profile.usesCloud
+                                          ? 'Đã lưu hồ sơ lên Firestore.'
+                                          : 'Đã lưu hồ sơ tư vấn trên thiết bị.',
+                                    ),
+                                  ),
+                                );
+                              } catch (_) {
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      profile.error ?? 'Không thể lưu hồ sơ. Vui lòng thử lại.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
                       child: const Text('Lưu hồ sơ'),
                     ),
                   ),

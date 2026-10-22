@@ -1,9 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+import '../data/firestore_personal_data_repository.dart';
+import '../data/personal_data_repository.dart';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../main.dart';
+import '../firebase_options.dart';
 import '../screens/sign_in_screen.dart';
 import '../services/auth_service.dart';
 import '../state/auth_view_model.dart';
@@ -27,7 +33,9 @@ class _FirebaseEntryState extends State<FirebaseEntry> {
     const senderId = String.fromEnvironment('FIREBASE_MESSAGING_SENDER_ID');
     const domain = String.fromEnvironment('FIREBASE_AUTH_DOMAIN');
     if ([apiKey, appId, projectId, senderId].any((value) => value.isEmpty)) {
-      throw StateError('Firebase configuration is missing.');
+      return Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
     }
     return Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -45,10 +53,25 @@ class _FirebaseEntryState extends State<FirebaseEntry> {
     future: _initialization,
     builder: (context, snapshot) {
       if (snapshot.hasData) {
-        return ChangeNotifierProvider(
-          create: (_) => AuthViewModel(
-            FirebaseAuthService(FirebaseAuth.instanceFor(app: snapshot.data!)),
-          ),
+        final database = FirebaseFirestore.instanceFor(
+          app: snapshot.data!,
+          databaseId: 'flm-app',
+        );
+        database.settings = const Settings(persistenceEnabled: false);
+        return MultiProvider(
+          providers: [
+            Provider<PersonalDataFactory>(
+              create: (_) =>
+                  (uid) => FirestorePersonalDataRepository(database, uid),
+            ),
+            ChangeNotifierProvider(
+              create: (_) => AuthViewModel(
+                FirebaseAuthService(
+                  FirebaseAuth.instanceFor(app: snapshot.data!),
+                ),
+              ),
+            ),
+          ],
           child: const AuthGate(),
         );
       }
@@ -89,7 +112,13 @@ class AuthGate extends StatelessWidget {
   Widget build(BuildContext context) {
     final auth = context.watch<AuthViewModel>();
     if (auth.status == AuthStatus.signedIn && auth.account != null) {
-      return FlmApp(key: ValueKey(auth.account!.uid), storage: auth.storage);
+      return FlmApp(
+        key: ValueKey(auth.account!.uid),
+        storage: auth.storage,
+        personalData: context.read<PersonalDataFactory?>()?.call(
+          auth.account!.uid,
+        ),
+      );
     }
     return MaterialApp(
       theme: AppTheme.lightTheme(),

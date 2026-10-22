@@ -1,0 +1,62 @@
+// Prototype schema: users/{uid}: role=user, createdAt timestamp (create only).
+// users/{uid}/private/profile: optional self-reported study preferences (below).
+// users/{uid}/private/preferences: required targetGpa number in [0,10].
+// users/{uid}/transcript/{id}: validated course attempt; ownership is the UID path.
+// No other collections are authorized in this Lab 3 slice.
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function validUser(d) {
+      return d.keys().hasAll(['role','createdAt'])
+        && d.keys().hasOnly(['role','createdAt'])
+        && d.role == 'user' && d.createdAt is timestamp;
+    }
+    function validProfile(d) {
+      return d.keys().hasOnly(['course_goal','learning_style','study_priority',
+        'long_term_goal','current_semester','career_goal'])
+        && (!('course_goal' in d) || d.course_goal in ['pass','high_score'])
+        && (!('learning_style' in d) || d.learning_style in ['practice','reading'])
+        && (!('study_priority' in d) || d.study_priority in ['time','depth'])
+        && (!('long_term_goal' in d) || d.long_term_goal in ['graduate','career','study_abroad'])
+        && (!('current_semester' in d) || (d.current_semester is int && d.current_semester >= 0 && d.current_semester <= 12))
+        && (!('career_goal' in d) || (d.career_goal is string && d.career_goal.size() <= 80));
+    }
+    function validPreferences(d) {
+      return d.keys().hasAll(['targetGpa']) && d.keys().hasOnly(['targetGpa'])
+        && d.targetGpa is number && d.targetGpa >= 0 && d.targetGpa <= 10;
+    }
+    function validRow(d,id) {
+      return d.keys().hasAll(['courseCode','courseName','score','credits','semester','isPassed','inProgress','confidence'])
+        && d.keys().hasOnly(['courseCode','courseName','score','credits','semester','isPassed','inProgress','confidence'])
+        && d.courseCode is string && d.courseCode.matches('^[A-Z0-9_]{2,24}$')
+        && d.courseName is string && d.courseName.size() <= 250
+        && d.score is number && d.score >= 0 && d.score <= 10
+        && d.credits is int && d.credits >= 0 && d.credits <= 30
+        && d.semester is int && d.semester >= 0 && d.semester <= 12
+        && d.isPassed is bool && d.inProgress is bool
+        && d.confidence is number && d.confidence >= 0 && d.confidence <= 1
+        && id == d.courseCode + '_' + string(d.semester);
+    }
+    match /users/{uid} {
+      allow get: if owner(uid);
+      allow create: if owner(uid) && validUser(request.resource.data);
+      allow update: if owner(uid) && validUser(request.resource.data)
+        && request.resource.data == resource.data;
+      allow list, delete: if false;
+      match /private/profile {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && validProfile(request.resource.data);
+      }
+      match /private/preferences {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && validPreferences(request.resource.data);
+      }
+      match /transcript/{id} {
+        allow read, delete: if owner(uid);
+        allow create, update: if owner(uid) && validRow(request.resource.data,id);
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

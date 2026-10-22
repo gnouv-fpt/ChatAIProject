@@ -1,0 +1,37 @@
+{
+  "auth": {
+    "authorizedDomains": [
+      "localhost",
+      "flm-prm323-20261021.firebaseapp.com",
+      "flm-prm323-20261021.web.app"
+    ],
+    "providers": {
+      "googleSignIn": {
+        "oAuthBrandDisplayName": "FLM Student Assistant",
+        "supportEmail": "zipber199@gmail.com"
+      }
+    }
+  },
+  "firestore": [
+    {
+      "database": "flm-app",
+      "rules": "firebase/firestore.rules",
+      "indexes": "firebase/firestore.indexes.json"
+    }
+  ],
+  "emulators": {
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8185,
+      "edition": "enterprise"
+    },
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9099
+    },
+    "ui": {
+      "enabled": false
+    },
+    "singleProjectMode": true
+  }
+}

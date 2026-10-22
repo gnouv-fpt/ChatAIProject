@@ -4,15 +4,19 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../data/personal_preferences.dart';
+import '../data/personal_data_repository.dart';
 
 import '../models/transcript_entry.dart';
+import '../models/load_status.dart';
 import '../services/grade_calculator.dart';
 
-/// Provider toàn cục lưu transcript & GPA của sinh viên (local, không lên server).
-/// Tuân thủ Mục 8.2: bảng điểm lưu local, không lưu ảnh, không đưa vào RAG chung.
+/// Transcript and GPA ViewModel. Authenticated production uses a UID-bound repository.
+/// Legacy local mode is retained for existing data/tests; images never enter Firestore/RAG.
 class TranscriptProvider extends ChangeNotifier {
-  TranscriptProvider({PersonalPreferences? storage})
+  TranscriptProvider({PersonalPreferences? storage, this.repository})
     : _storage = storage ?? PersonalPreferences();
+  final PersonalDataRepository? repository;
+  bool get usesCloud => repository != null;
   final PersonalPreferences _storage;
   static const _storageKey = 'flm_transcript_v1';
   static const _targetGpaKey = 'flm_target_gpa_v1';
@@ -20,6 +24,10 @@ class TranscriptProvider extends ChangeNotifier {
   List<TranscriptEntry> _entries = [];
   double _targetGpa = 8.0;
   bool _isLoaded = false;
+  bool _disposed = false;
+  LoadStatus status = LoadStatus.loading;
+  String? loadError;
+  String? saveError;
 
   List<TranscriptEntry> get entries => List.unmodifiable(_entries);
   List<TranscriptEntry> get sortedEntries =>
@@ -117,52 +125,99 @@ class TranscriptProvider extends ChangeNotifier {
   }
 
   Future<void> load() async {
+    status = LoadStatus.loading;
+    loadError = null;
+    _isLoaded = false;
+    _entries = [];
+    _cachedResult = null;
+    _notify();
     try {
-      final prefs = await _storage.open();
-      _targetGpa = (prefs.getDouble(_targetGpaKey) ?? 8.0).clamp(0.0, 10.0);
-      final raw = prefs.getString(_storageKey);
-      if (raw != null) {
-        final list = jsonDecode(raw) as List;
-        _entries = list
-            .map((e) => TranscriptEntry.fromJson(e as Map<String, dynamic>))
-            .toList();
+      if (repository != null) {
+        final saved = await repository!.loadTranscript();
+        _entries = saved.entries;
+        _targetGpa = saved.targetGpa.clamp(0.0, 10.0);
+      } else {
+        final prefs = await _storage.open();
+        _targetGpa = (prefs.getDouble(_targetGpaKey) ?? 8.0).clamp(0.0, 10.0);
+        final raw = prefs.getString(_storageKey);
+        if (raw != null) {
+          final list = jsonDecode(raw) as List;
+          _entries = list
+              .map((e) => TranscriptEntry.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
       }
+      status = _entries.isEmpty ? LoadStatus.empty : LoadStatus.data;
     } catch (e) {
-      debugPrint('[TranscriptProvider] Failed to load: $e');
+      status = LoadStatus.error;
+      loadError = 'Không thể đọc bảng điểm đã lưu. Kiểm tra kết nối và thử lại. Dữ liệu gốc chưa bị xóa.';
+      debugPrint('[TranscriptProvider] Load failed: ${e.runtimeType}');
     }
     _isLoaded = true;
-    notifyListeners();
+    _notify();
   }
 
   Future<void> save(List<TranscriptEntry> confirmed) async {
-    final prefs = await _storage.open();
-    final json = jsonEncode(confirmed.map((e) => e.toJson()).toList());
-    if (!await prefs.setString(_storageKey, json)) {
-      throw StateError('Không thể lưu bảng điểm trên thiết bị.');
+    if (repository != null) {
+      await repository!.saveTranscript(confirmed);
+    } else {
+      final prefs = await _storage.open();
+      final json = jsonEncode(confirmed.map((e) => e.toJson()).toList());
+      if (!await prefs.setString(_storageKey, json)) {
+        throw StateError('Không thể lưu bảng điểm trên thiết bị.');
+      }
     }
     _entries = List.from(confirmed);
+    status = _entries.isEmpty ? LoadStatus.empty : LoadStatus.data;
+    loadError = null;
     _cachedResult = null; // invalidate cache
-    notifyListeners();
+    _notify();
   }
 
   void setTargetGpa(double gpa) {
     _targetGpa = gpa.clamp(0.0, 10.0);
-    notifyListeners();
+    _notify();
     unawaited(_persistTargetGpa());
   }
 
   Future<void> _persistTargetGpa() async {
-    final prefs = await _storage.open();
-    await prefs.setDouble(_targetGpaKey, _targetGpa);
+    try {
+      if (repository != null) {
+        await repository!.saveTargetGpa(_targetGpa);
+      } else {
+        final prefs = await _storage.open();
+        await prefs.setDouble(_targetGpaKey, _targetGpa);
+      }
+      saveError = null;
+    } catch (_) {
+      saveError = 'Chưa lưu được GPA mục tiêu. Kiểm tra mạng và thử lại.';
+    }
+    _notify();
   }
 
   Future<void> clearTranscript() async {
-    final prefs = await _storage.open();
-    if (!await prefs.remove(_storageKey)) {
-      throw StateError('Không thể xóa bảng điểm trên thiết bị.');
+    if (repository != null) {
+      await repository!.saveTranscript([]);
+    } else {
+      final prefs = await _storage.open();
+      if (!await prefs.remove(_storageKey)) {
+        throw StateError('Không thể xóa bảng điểm trên thiết bị.');
+      }
     }
     _entries = [];
+    status = LoadStatus.empty;
+    loadError = null;
     _cachedResult = null;
-    notifyListeners();
+    _notify();
+  }
+
+  void _notify() {
+    if (!_disposed) notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

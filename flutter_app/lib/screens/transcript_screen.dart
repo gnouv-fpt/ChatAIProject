@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../state/transcript_import_view_model.dart';
+import '../models/load_status.dart';
+import '../widgets/data_state_view.dart';
 import '../state/transcript_provider.dart';
 import 'transcript_confirm_screen.dart';
 
@@ -51,8 +53,16 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final entries = transcript.sortedEntries;
     return Scaffold(
       appBar: AppBar(title: const Text('Bảng điểm')),
-      body: !transcript.isLoaded
-          ? const Center(child: CircularProgressIndicator())
+      body:
+          transcript.status == LoadStatus.loading ||
+              transcript.status == LoadStatus.error
+          ? DataStateView(
+              status: transcript.status,
+              message: transcript.loadError,
+              onRetry: transcript.status == LoadStatus.error
+                  ? transcript.load
+                  : null,
+            )
           : ListView(
               padding: const EdgeInsets.all(16),
               children: [
@@ -91,8 +101,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Ảnh được gửi tới backend chỉ để đọc điểm và không được lưu trên máy chủ. Bảng điểm đã xác nhận chỉ lưu trên thiết bị này.',
+                Text(
+                  transcript.usesCloud
+                      ? 'Ảnh được gửi tới backend để đọc điểm. Chỉ bảng điểm đã xác nhận được lưu trên Firestore theo tài khoản; không lưu ảnh trên Firestore.'
+                      : 'Ảnh được gửi tới backend chỉ để đọc điểm và không được lưu trên máy chủ. Bảng điểm đã xác nhận chỉ lưu trên thiết bị này.',
                   style: TextStyle(fontSize: 14),
                 ),
                 const SizedBox(height: 8),

@@ -11,6 +11,7 @@ import 'state/learning_profile_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/grade_calculator.dart';
 import 'data/personal_preferences.dart';
+import 'data/personal_data_repository.dart';
 import 'app/firebase_entry.dart';
 import 'services/grade_import_service.dart';
 import 'services/transcript_image_picker.dart';
@@ -23,9 +24,10 @@ Future<void> main() async {
 }
 
 class FlmApp extends StatelessWidget {
-  const FlmApp({super.key, this.profile, this.storage});
+  const FlmApp({super.key, this.profile, this.storage, this.personalData});
 
   final PersonalPreferences? storage;
+  final PersonalDataRepository? personalData;
 
   final LearningProfileProvider? profile;
 
@@ -36,7 +38,11 @@ class FlmApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
         ChangeNotifierProvider(
           create: (_) =>
-              profile ?? (LearningProfileProvider(storage: storage)..load()),
+              profile ??
+              (LearningProfileProvider(
+                storage: storage,
+                repository: personalData,
+              )..load()),
         ),
         ChangeNotifierProvider(
           create: (context) => ChatProvider(
@@ -45,7 +51,9 @@ class FlmApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => TranscriptProvider(storage: storage)..load(),
+          create: (_) =>
+              TranscriptProvider(storage: storage, repository: personalData)
+                ..load(),
         ),
         Provider<TranscriptImagePicker>(
           create: (_) => FileTranscriptImagePicker(),
