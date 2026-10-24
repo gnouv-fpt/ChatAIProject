@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Presentation.BackgroundJobs;
 using Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -89,6 +90,12 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
+{
+    client.Timeout = TimeSpan.FromMinutes(2);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("ChatAIWeb legal document crawler");
+});
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 
 // ==================== Services injection ====================
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
@@ -97,6 +104,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddSingleton<IEventPublisher, RedisEventPublisher>();
+builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddHostedService<MidnightCleanupJob>();
 
 // ==================== gRPC Client ====================
 var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
