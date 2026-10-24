@@ -16,6 +16,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Presentation.BackgroundJobs;
 using Presentation.Middleware;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +34,21 @@ builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddHealthChecks().AddCheck<Presentation.Infrastructure.DatabaseHealthCheck>("sql");
+var chatSettings = builder.Configuration.GetSection("Chat").Get<ChatSettings>() ?? new();
+if (chatSettings.ReservationTokens < 1 || chatSettings.InferenceTimeoutSeconds is < 1 or > 300 ||
+    chatSettings.MaxAttachmentBytes is < 1024 or > 5 * 1024 * 1024 || chatSettings.AttachmentRetentionHours < 1)
+    throw new InvalidOperationException("Invalid Chat configuration.");
+builder.Services.AddSingleton(chatSettings);
+builder.Services.AddScoped<IAttachmentService, PrivateAttachmentService>();
+builder.Services.AddHostedService<AttachmentCleanupService>();
+builder.Services.AddHostedService<Presentation.Infrastructure.OutboxMetricsService>();
+builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("rest-api-service"))
+    .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter())
+    .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
+        .AddMeter("ChatAIWeb.Chat", "ChatAIWeb.Chat.Outbox").AddPrometheusExporter());
+builder.Logging.AddProvider(new Presentation.Infrastructure.SafeFileLoggerProvider(
+    builder.Configuration["Logging:FilePath"] ?? "logs/rest-api.jsonl"));
 
 // ==================== Authentication ====================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -90,6 +108,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
 builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+builder.Services.AddScoped<IChatTurnRepository, ChatTurnRepository>();
 builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
 {
     client.Timeout = TimeSpan.FromMinutes(2);
@@ -103,16 +122,17 @@ builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
-builder.Services.AddSingleton<IEventPublisher, RedisEventPublisher>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
-builder.Services.AddHostedService<MidnightCleanupJob>();
+// Preserve Phuc's current scheduler until the Worker host takes ownership.
+if (builder.Configuration.GetValue("Jobs:EnableLegacyMidnight", true))
+    builder.Services.AddHostedService<MidnightCleanupJob>();
 
 // ==================== gRPC Client ====================
 var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
 builder.Services.AddGrpcClient<TrafficRagInference.TrafficRagInferenceClient>(o =>
 {
     o.Address = new Uri(grpcAddress);
-});
+}).ConfigureChannel(o => { o.MaxSendMessageSize = 20 * 1024 * 1024; o.MaxReceiveMessageSize = 2 * 1024 * 1024; });
 builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
 
 var app = builder.Build();
@@ -134,5 +154,10 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));
+app.MapHealthChecks("/health/ready");
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
+
+public partial class Program { }

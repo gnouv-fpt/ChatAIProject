@@ -89,6 +89,8 @@ Sở hữu WorkerService/*, events, Kafka/email adapters, PracticeService/ExamSe
 
 ## 8. Vương — tích hợp, Chat/ảnh, web shell và hạ tầng
 
+Cập nhật thực hiện: [VUONG-IMPLEMENTATION.md](VUONG-IMPLEMENTATION.md). Code mới có trên nhánh cá nhân; các điều kiện nghiệm thu xuyên AI/Worker chưa hoàn tất.
+
 Sở hữu Chat controllers/services/DTOs và .NET gRPC adapter; REST Program.cs, project/solution registration chung; ApiGateway/*, Compose/monitoring; web shell/router/API client và web/src/features/chat.
 
 | ID | Task code | Đầu ra/điều kiện đạt |

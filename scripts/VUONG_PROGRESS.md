@@ -1,3 +1,13 @@
+# Cập nhật 24/10/2026 — phần Vương hiện hành
+
+Code mới trên `PRN-VUONG-dev`: Chat turn/idempotency/reservation/outbox/citation validation, private attachments, React web chat, YARP Gateway, Docker/monitoring và tests. Trạng thái chi tiết, dependencies và bằng chứng thực ở [VUONG-IMPLEMENTATION.md](../docs/VUONG-IMPLEMENTATION.md).
+
+Chưa nghiệm thu RAG/vision API thật hoặc Kafka→Worker settle/email. Không dùng các checkbox Redis/fallback bên dưới làm trạng thái hiện tại.
+
+---
+
+## Nhật ký cũ — chỉ tham khảo
+
 # Tiến độ & Nghiệm thu - Vương (Chat REST API, gRPC Client & Docker DevOps)
 
 Nhánh: `PRN-VUONG-dev` (dựa trên `origin/PRN-BAO-dev`)

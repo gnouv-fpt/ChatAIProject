@@ -1,0 +1,8 @@
+{
+  "engine": "SQL Server 2022, disposable database",
+  "inference": "test fixtures only",
+  "failed": 0,
+  "passed": 33,
+  "skipped": 0,
+  "total": 33
+}

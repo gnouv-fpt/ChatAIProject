@@ -1,0 +1,14 @@
+**/bin
+**/obj
+**/node_modules
+.git
+.env
+.env.*
+data
+logs
+**/.venv
+**/__pycache__
+web/dist
+web/test-results
+.playwright-cli
+**/*.tsbuildinfo

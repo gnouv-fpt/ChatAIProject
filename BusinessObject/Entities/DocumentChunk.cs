@@ -11,6 +11,7 @@ public class DocumentChunk
     public string? Article { get; set; }
 
     public string? Clause { get; set; }
+    public string? Point { get; set; }
 
     public string Content { get; set; } = null!;
 

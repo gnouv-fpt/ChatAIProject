@@ -1,0 +1,14 @@
+{
+  "grafana": "healthy",
+  "prometheus_targets": {
+    "gateway": "1",
+    "rest-api": "1",
+    "kafka": "1"
+  },
+  "trace_services": [
+    "api-gateway",
+    "rest-api-service"
+  ],
+  "loki_streams": 1,
+  "worker_end_to_end": "not checked"
+}

@@ -1,4 +1,6 @@
 <Solution>
+  <Project Path="tests/ChatAIWeb.Tests/ChatAIWeb.Tests.csproj" />
+  <Project Path="ApiGateway/ApiGateway.csproj" />
   <Project Path="BusinessLogic/BusinessLogic.csproj" />
   <Project Path="BusinessObject/BusinessObject.csproj" />
   <Project Path="DataAccess/DataAccess.csproj" />

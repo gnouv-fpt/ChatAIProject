@@ -1,115 +1,185 @@
-version: '3.8'
-
+name: traffic-rag
 services:
-  # 1. Database: SQL Server 2022
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: traffic-rag-sqlserver
     environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=${SA_PASSWORD:-Passw@rd123456}
-    ports:
-      - "1433:1433"
-    volumes:
-      - sql_data:/var/opt/mssql
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD:?Set SA_PASSWORD in .env}
+    volumes: [sql_data:/var/opt/mssql]
     healthcheck:
-      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P '${SA_PASSWORD:-Passw@rd123456}' -C -Q 'SELECT 1' || exit 1"]
+      test: [CMD-SHELL, '/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" -b > /dev/null']
       interval: 10s
       timeout: 5s
-      retries: 5
-      start_period: 15s
-    networks:
-      - traffic-rag-net
-
-  # 2. Vector DB: Qdrant
+      retries: 15
+      start_period: 30s
+    networks: [backend]
+    restart: unless-stopped
   qdrant:
-    image: qdrant/qdrant:latest
-    container_name: traffic-rag-qdrant
-    ports:
-      - "6333:6333"
-      - "6334:6334"
-    volumes:
-      - qdrant_data:/qdrant/storage
-    networks:
-      - traffic-rag-net
-
-  # 3. Message Broker & Cache: Redis
+    image: qdrant/qdrant:v1.15.5
+    volumes: [qdrant_data:/qdrant/storage]
+    networks: [backend]
+    restart: unless-stopped
+  kafka:
+    image: apache/kafka:3.9.1
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes: [kafka_data:/var/lib/kafka/data]
+    healthcheck:
+      test: [CMD-SHELL, '/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list > /dev/null']
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks: [backend]
+    restart: unless-stopped
+  kafka-init:
+    image: apache/kafka:3.9.1
+    depends_on:
+      kafka: {condition: service_healthy}
+    entrypoint: [/bin/sh, -ec]
+    command:
+      - |
+        for topic in chat-completed-events document-updated-events chat-completed-events-dlq; do
+          /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions 3 --replication-factor 1
+        done
+    networks: [backend]
   redis:
-    image: redis:7-alpine
-    container_name: traffic-rag-redis
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - traffic-rag-net
-
-  # 4. gRPC Inference & Verification Service (Python / AI Engine)
+    image: redis:7.4-alpine
+    profiles: [cache]
+    command: [redis-server, --appendonly, 'yes']
+    volumes: [redis_data:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 10s
+    networks: [backend]
   grpc-inference-service:
-    build:
-      context: ./grpc_inference_service
-      dockerfile: Dockerfile
-    container_name: traffic-rag-grpc-service
-    ports:
-      - "50051:50051"
+    build: {context: ./grpc_inference_service}
     environment:
-      - QDRANT_HOST=qdrant
-      - QDRANT_PORT=6333
-      - QDRANT_GRPC_PORT=6334
-      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
-      - GRPC_PORT=50051
-    depends_on:
-      - qdrant
-    networks:
-      - traffic-rag-net
-
-  # 5. REST API Service Gateway (ASP.NET Core 8 Web API)
+      QDRANT_HOST: qdrant
+      QDRANT_PORT: 6333
+      GRPC_PORT: 50051
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+    depends_on: [qdrant]
+    healthcheck:
+      test: [CMD, python, -c, 'import socket; socket.create_connection(("127.0.0.1",50051),2).close()']
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    networks: [backend]
+    restart: unless-stopped
   rest-api-service:
-    build:
-      context: .
-      dockerfile: Presentation/Dockerfile
-    container_name: traffic-rag-rest-api
-    ports:
-      - "8080:8080"
+    build: {context: ., dockerfile: Presentation/Dockerfile}
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=http://+:8080
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD:-Passw@rd123456};TrustServerCertificate=true;Encrypt=false;
-      - ConnectionStrings__Redis=redis:6379
-      - GrpcService__Address=http://grpc-inference-service:50051
-      - Jwt__SecretKey=${JWT_SECRET_KEY:-ThisIsASecretKeyForJwtTokenAuthLongerThan32Bytes}
-      - Auth__SeedAdmin__Email=admin@chataiweb.local
-      - Auth__SeedAdmin__Password=Admin@123456
-      - Database__MigrateOnStartup=true
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      GrpcService__Address: http://grpc-inference-service:50051
+      Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      Auth__SeedAdmin__Email: ${ADMIN_EMAIL:-}
+      Auth__SeedAdmin__Password: ${ADMIN_PASSWORD:-}
+      Database__MigrateOnStartup: ${MIGRATE_ON_STARTUP:-false}
+      Chat__AttachmentRoot: /data/attachments
+      Logging__FilePath: /logs/rest-api.jsonl
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+    volumes: [attachments:/data/attachments, app_logs:/logs]
     depends_on:
-      sqlserver:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      grpc-inference-service:
-        condition: service_started
-    networks:
-      - traffic-rag-net
-
-  # 6. Worker Service Consumer (Trừ quota, gửi Email cảnh báo & Cron Job)
+      sqlserver: {condition: service_healthy}
+    networks: [backend]
+    restart: unless-stopped
+  api-gateway:
+    build: {context: ., dockerfile: ApiGateway/Dockerfile}
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ReverseProxy__Clusters__rest__Destinations__rest__Address: http://rest-api-service:8080/
+      ReverseProxy__Clusters__web__Destinations__web__Address: http://web:80/
+      Logging__FilePath: /logs/gateway.jsonl
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+    ports: ['127.0.0.1:${GATEWAY_PORT:-8080}:8080']
+    volumes: [app_logs:/logs]
+    depends_on: [rest-api-service, web]
+    networks: [backend]
+    restart: unless-stopped
+  web:
+    build: {context: ./web}
+    networks: [backend]
+    restart: unless-stopped
+  # Supplied by Khanh. Explicit profile avoids pretending a placeholder is a functioning Worker.
   worker-service:
-    image: mcr.microsoft.com/dotnet/runtime:8.0-alpine
-    container_name: traffic-rag-worker-service
+    profiles: [worker]
+    image: ${WORKER_IMAGE:-traffic-rag-worker:handoff}
     environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver,1433;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD:-Passw@rd123456};TrustServerCertificate=true;
-      - ConnectionStrings__Redis=redis:6379
+      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      Kafka__BootstrapServers: kafka:9092
+      Kafka__GroupId: traffic-rag-worker-v1
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     depends_on:
-      - redis
-      - sqlserver
-    command: ["echo", "Worker Service: Ready for integration by Khanh"]
-    networks:
-      - traffic-rag-net
-
+      sqlserver: {condition: service_healthy}
+      kafka-init: {condition: service_completed_successfully}
+    networks: [backend]
+    restart: unless-stopped
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    profiles: [monitoring]
+    command: [--config.file=/etc/prometheus/prometheus.yml]
+    volumes: [./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro, prometheus_data:/prometheus]
+    networks: [backend]
+  loki:
+    image: grafana/loki:3.4.2
+    profiles: [monitoring]
+    command: [-config.file=/etc/loki/local-config.yaml]
+    volumes: [loki_data:/loki]
+    networks: [backend]
+  alloy:
+    image: grafana/alloy:v1.8.2
+    profiles: [monitoring]
+    command: [run, /etc/alloy/config.alloy]
+    volumes: [./monitoring/config.alloy:/etc/alloy/config.alloy:ro, app_logs:/logs:ro]
+    networks: [backend]
+  tempo:
+    image: grafana/tempo:2.7.2
+    profiles: [monitoring]
+    command: [-config.file=/etc/tempo.yml]
+    volumes: [./monitoring/tempo.yml:/etc/tempo.yml:ro, tempo_data:/var/tempo]
+    networks: [backend]
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.9.0
+    profiles: [monitoring]
+    command: [--kafka.server=kafka:9092]
+    depends_on:
+      kafka: {condition: service_healthy}
+    networks: [backend]
+  grafana:
+    image: grafana/grafana:11.6.0
+    profiles: [monitoring]
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:?Set GRAFANA_PASSWORD in .env}
+      GF_USERS_ALLOW_SIGN_UP: 'false'
+    ports: ['127.0.0.1:${GRAFANA_PORT:-3000}:3000']
+    volumes: [./monitoring/grafana:/etc/grafana/provisioning:ro, ./monitoring/dashboards:/var/lib/grafana/dashboards:ro, grafana_data:/var/lib/grafana]
+    networks: [backend]
 networks:
-  traffic-rag-net:
-    driver: bridge
-
+  backend:
 volumes:
   sql_data:
   qdrant_data:
+  kafka_data:
   redis_data:
+  attachments:
+  app_logs:
+  prometheus_data:
+  loki_data:
+  tempo_data:
+  grafana_data:

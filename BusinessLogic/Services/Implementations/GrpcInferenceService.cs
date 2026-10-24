@@ -12,63 +12,62 @@ namespace BusinessLogic.Services.Implementations;
 /// </summary>
 public class GrpcInferenceService(
     TrafficRagInference.TrafficRagInferenceClient grpcClient,
-    ILogger<GrpcInferenceService> logger) : IGrpcInferenceService
+    ILogger<GrpcInferenceService> logger,
+    BusinessLogic.Infrastructure.Settings.ChatSettings settings) : IGrpcInferenceService
 {
-    // ─────────────────────────────────────────────────────────────────────────
-    // Vương: Chat inference + RAG
-    // ─────────────────────────────────────────────────────────────────────────
-    public async Task<ChatInferenceResultDto> ProcessChatMessageAsync(
-        string userId,
-        string sessionId,
-        string prompt,
-        CancellationToken cancellationToken = default)
-    {
-        logger.LogInformation(
-            "Calling gRPC ProcessChatMessage for user {UserId}, session {SessionId}",
-            userId, sessionId);
+    public Task<ChatInferenceResultDto> ProcessChatMessageAsync(string userId, string sessionId,
+        string prompt, CancellationToken cancellationToken = default) =>
+        ProcessTurnAsync(new(Guid.Parse(userId), Guid.Parse(sessionId), Guid.NewGuid(), prompt, [], [], 4096), cancellationToken);
 
+    public async Task<ChatInferenceResultDto> ProcessTurnAsync(ChatInferenceInputDto input, CancellationToken cancellationToken = default)
+    {
         var request = new ChatInferenceRequest
         {
-            UserId = userId,
-            SessionId = sessionId,
-            Prompt = prompt
+            UserId = input.UserId.ToString(), SessionId = input.SessionId.ToString(),
+            RequestId = input.RequestId.ToString(), Prompt = input.Prompt, MaxTokens = input.MaxTokens
         };
-
+        request.Images.AddRange(input.Images.Select(i => new ChatImage
+        {
+            AttachmentId = i.AttachmentId.ToString(), MimeType = i.MimeType,
+            Content = Google.Protobuf.ByteString.CopyFrom(i.Content)
+        }));
+        request.History.AddRange(input.History.Select(h => new HistoryItem { Role = h.Role, Content = h.Content }));
+        var headers = new Metadata();
+        if (System.Diagnostics.Activity.Current?.Id is { } trace) headers.Add("traceparent", trace);
         try
         {
-            var response = await grpcClient.ProcessChatMessageAsync(
-                request, cancellationToken: cancellationToken);
-
+            var response = await grpcClient.ProcessChatMessageAsync(request, headers,
+                deadline: DateTime.UtcNow.AddSeconds(settings.InferenceTimeoutSeconds), cancellationToken: cancellationToken);
+            if (response.ContractVersion < 2)
+                throw new BusinessLogic.Exceptions.ServiceUnavailableException("AI service chưa hỗ trợ hợp đồng chat v2. Vui lòng thử lại sau khi cập nhật dịch vụ.");
+            if (!response.HasTokensUsed)
+                throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ AI chưa cung cấp thông tin usage. Vui lòng thử lại sau khi đối soát.");
+            if (input.Images.Count > 0 && !response.ImagesProcessed)
+                throw new BusinessLogic.Exceptions.ServiceUnavailableException("AI service chưa xử lý được ảnh đính kèm.");
             return new ChatInferenceResultDto
             {
-                ResponseText = response.ResponseText,
-                TokensUsed = response.TokensUsed,
-                IsViolation = response.IsViolation,
-                ViolationKeywords = [.. response.ViolationKeywords],
-                DataVerified = response.DataVerified,
+                ContractVersion = response.ContractVersion, ImagesProcessed = response.ImagesProcessed,
+                Status = response.ResultStatus, ResponseText = response.ResponseText,
+                TokensUsed = response.TokensUsed, IsViolation = response.IsViolation,
+                ViolationKeywords = [.. response.ViolationKeywords], DataVerified = response.DataVerified,
                 Citations = response.Citations.Select(c => new CitationResultDto
                 {
-                    DocumentTitle = c.DocumentTitle,
-                    ArticleNumber = c.ArticleNumber,
-                    ClauseNumber = c.ClauseNumber,
-                    SourceUrl = c.SourceUrl,
-                    Excerpt = c.Excerpt
+                    ChunkId = c.ChunkId, ContentHash = c.ContentHash, PointNumber = c.PointNumber,
+                    DocumentTitle = c.DocumentTitle, ArticleNumber = c.ArticleNumber,
+                    ClauseNumber = c.ClauseNumber, SourceUrl = c.SourceUrl, Excerpt = c.Excerpt
                 }).ToList()
             };
         }
+        catch (RpcException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
         catch (RpcException ex)
         {
-            logger.LogError(ex, "gRPC ProcessChatMessage failed with status {StatusCode}: {Detail}", ex.StatusCode, ex.Status.Detail);
-            
-            // Graceful fallback for chat assistant
-            return new ChatInferenceResultDto
-            {
-                ResponseText = "Hệ thống AI tư vấn pháp luật giao thông hiện tại đang bận hoặc tạm thời mất kết nối tới AI Inference Service. Vui lòng kiểm tra lại kết nối hoặc thử lại sau.",
-                TokensUsed = 0,
-                IsViolation = false,
-                DataVerified = false,
-                Citations = new List<CitationResultDto>()
-            };
+            logger.LogWarning("Chat RPC failed: {Status}", ex.StatusCode);
+            if (ex.StatusCode == StatusCode.DeadlineExceeded)
+                throw new BusinessLogic.Exceptions.UpstreamTimeoutException("Dịch vụ AI phản hồi quá chậm. Vui lòng thử lại.");
+            throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ AI tạm thời không khả dụng. Vui lòng thử lại.");
         }
     }
 
@@ -95,7 +94,7 @@ public class GrpcInferenceService(
         try
         {
             var response = await grpcClient.VerifyLegalDocumentAsync(
-                request, cancellationToken: cancellationToken);
+                request, deadline: DateTime.UtcNow.AddSeconds(settings.InferenceTimeoutSeconds), cancellationToken: cancellationToken);
 
             return new VerificationResultDto
             {
@@ -104,15 +103,14 @@ public class GrpcInferenceService(
                 Notes = response.Notes
             };
         }
+        catch (RpcException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
         catch (RpcException ex)
         {
-            logger.LogError(ex, "gRPC VerifyLegalDocument failed: {Detail}", ex.Status.Detail);
-            return new VerificationResultDto
-            {
-                IsValid = false,
-                Status = "Pending",
-                Notes = $"Không thể kết nối tới verification service: {ex.Status.Detail}"
-            };
+            logger.LogWarning("Verification RPC failed: {Status}", ex.StatusCode);
+            throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ xác thực văn bản tạm thời không khả dụng.");
         }
     }
 
@@ -130,6 +128,7 @@ public class GrpcInferenceService(
         var request = new IndexDocumentRequest();
         request.Chunks.AddRange(chunkList.Select(c => new DocumentChunkItem
         {
+            Point = c.Point, ContentHash = c.ContentHash, DocumentId = c.DocumentId,
             ChunkId = c.ChunkId,
             DocumentTitle = c.DocumentTitle,
             DocumentNumber = c.DocumentNumber,
@@ -145,7 +144,7 @@ public class GrpcInferenceService(
         try
         {
             var response = await grpcClient.IndexDocumentAsync(
-                request, cancellationToken: cancellationToken);
+                request, deadline: DateTime.UtcNow.AddSeconds(settings.InferenceTimeoutSeconds), cancellationToken: cancellationToken);
 
             return new IndexDocumentResultDto
             {
@@ -154,15 +153,14 @@ public class GrpcInferenceService(
                 Message = response.Message
             };
         }
+        catch (RpcException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
         catch (RpcException ex)
         {
-            logger.LogError(ex, "gRPC IndexDocument failed: {Detail}", ex.Status.Detail);
-            return new IndexDocumentResultDto
-            {
-                Success = false,
-                IndexedCount = 0,
-                Message = $"Lỗi kết nối gRPC index: {ex.Status.Detail}"
-            };
+            logger.LogWarning("Index RPC failed: {Status}", ex.StatusCode);
+            throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ lập chỉ mục tạm thời không khả dụng.");
         }
     }
 }

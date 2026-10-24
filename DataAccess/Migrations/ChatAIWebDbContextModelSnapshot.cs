@@ -35,8 +35,40 @@ namespace DataAccess.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("EventPayload")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EventPublishedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("IsViolation")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("LeaseExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("LeaseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("QuotaSettledAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RequestContext")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RequestHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<Guid?>("RequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ReservedTokens")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResultStatus")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("SenderRole")
                         .IsRequired()
@@ -49,9 +81,17 @@ namespace DataAccess.Migrations
                     b.Property<int>("TokensUsed")
                         .HasColumnType("int");
 
+                    b.Property<string>("TurnState")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SessionId", "CreatedAt");
+
+                    b.HasIndex("SessionId", "RequestId")
+                        .IsUnique()
+                        .HasFilter("[RequestId] IS NOT NULL");
 
                     b.ToTable("ChatMessages");
                 });
@@ -103,6 +143,10 @@ namespace DataAccess.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<Guid?>("DocumentChunkId")
                         .HasColumnType("uniqueidentifier");
 
@@ -112,6 +156,10 @@ namespace DataAccess.Migrations
 
                     b.Property<string>("Excerpt")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PointNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("SourceUrl")
                         .HasMaxLength(1000)
@@ -153,6 +201,10 @@ namespace DataAccess.Migrations
 
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
+
+                    b.Property<string>("Point")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<int>("TokenCount")
                         .HasColumnType("int");

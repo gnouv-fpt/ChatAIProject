@@ -21,3 +21,8 @@ public sealed class ForbiddenException(string message) : AppException(403, messa
 public sealed class NotFoundException(string message) : AppException(404, message);
 
 public sealed class ConflictException(string message) : AppException(409, message);
+
+public sealed class ServiceUnavailableException(string message) : AppException(503, message);
+public sealed class UpstreamTimeoutException(string message) : AppException(504, message);
+public sealed class UnprocessableException(string message) : AppException(422, message);
+public sealed class QuotaExceededException(string message) : AppException(429, message);

@@ -1,0 +1,25 @@
+{
+  "passed": 19,
+  "mode": "AI unavailable; no RAG success claimed",
+  "checks": [
+    "GET /api/chats: 401",
+    "POST /api/auth/register: 201",
+    "POST /api/auth/register: 201",
+    "GET /api/auth/profile: 200",
+    "POST /api/chats: 201",
+    "GET /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8: 404",
+    "POST /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/messages: 400",
+    "POST /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/attachments: 400",
+    "POST /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/attachments: 201",
+    "GET /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/attachments/8a1ce80a-8c3f-47b9-a829-15a072fbbafc: 200",
+    "GET /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/attachments/8a1ce80a-8c3f-47b9-a829-15a072fbbafc: 404",
+    "POST /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/messages: 503",
+    "GET /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8: 200",
+    "POST /api/auth/refresh-token: 200",
+    "POST /api/auth/refresh-token: 401",
+    "DELETE /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8/attachments/8a1ce80a-8c3f-47b9-a829-15a072fbbafc: 204",
+    "DELETE /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8: 204",
+    "GET /api/chats/d07bab9e-95e0-4aec-a788-2ed956091ac8: 404",
+    "POST /api/auth/logout: 204"
+  ]
+}

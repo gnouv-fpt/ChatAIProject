@@ -6,8 +6,10 @@ public class Citation
 
     public Guid ChatMessageId { get; set; }
 
-    // Nullable: the gRPC CitationDto carries title/article/clause but no chunk id.
+    // Nullable only for historical citations created before contract v2.
     public Guid? DocumentChunkId { get; set; }
+    public string? ContentHash { get; set; }
+    public string? PointNumber { get; set; }
 
     public string? DocumentTitle { get; set; }
 

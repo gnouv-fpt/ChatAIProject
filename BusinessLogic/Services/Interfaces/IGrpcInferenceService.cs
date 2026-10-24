@@ -4,6 +4,7 @@ namespace BusinessLogic.Services.Interfaces;
 
 public interface IGrpcInferenceService
 {
+    Task<ChatInferenceResultDto> ProcessTurnAsync(ChatInferenceInputDto input, CancellationToken cancellationToken = default);
     Task<ChatInferenceResultDto> ProcessChatMessageAsync(
         string userId,
         string sessionId,

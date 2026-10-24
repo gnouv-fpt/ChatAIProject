@@ -367,3 +367,14 @@ Uploads
 
 # Python virtual environment
 python_services/.venv/
+
+# Local secrets and private uploaded content
+.env
+.env.*
+!.env.example
+data/
+web/dist/
+web/playwright-report/
+web/test-results/
+.playwright-cli/
+*.tsbuildinfo

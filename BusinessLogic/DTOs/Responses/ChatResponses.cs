@@ -4,6 +4,9 @@ namespace BusinessLogic.DTOs.Responses;
 
 public class CitationResponseDto
 {
+    public Guid? DocumentChunkId { get; set; }
+    public string? ContentHash { get; set; }
+    public string? PointNumber { get; set; }
     public Guid Id { get; set; }
 
     public string? DocumentTitle { get; set; }
@@ -19,6 +22,9 @@ public class CitationResponseDto
 
 public class ChatMessageResponseDto
 {
+    public Guid? RequestId { get; set; }
+    public string Status { get; set; } = "Answered";
+    public Guid[] AttachmentIds { get; set; } = [];
     public Guid Id { get; set; }
 
     public Guid SessionId { get; set; }

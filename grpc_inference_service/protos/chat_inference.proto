@@ -14,6 +14,20 @@ message ChatInferenceRequest {
   string user_id = 1;
   string session_id = 2;
   string prompt = 3;
+  string request_id = 4;
+  repeated ChatImage images = 5;
+  repeated HistoryItem history = 6;
+  int32 max_tokens = 7;
+}
+
+message ChatImage {
+  string attachment_id = 1;
+  string mime_type = 2;
+  bytes content = 3;
+}
+message HistoryItem {
+  string role = 1;
+  string content = 2;
 }
 
 message CitationDto {
@@ -22,15 +36,21 @@ message CitationDto {
   string clause_number = 3;
   string source_url = 4;
   string excerpt = 5;
+  string chunk_id = 6;
+  string content_hash = 7; // SHA256 of UTF-8 SQL chunk content, lowercase hex
+  string point_number = 8;
 }
 
 message ChatInferenceResponse {
   string response_text = 1;
-  int32 tokens_used = 2;
+  optional int32 tokens_used = 2; // absent is unknown usage, never silently interpreted as zero
   bool is_violation = 3;
   repeated string violation_keywords = 4;
   repeated CitationDto citations = 5;
   bool data_verified = 6;
+  string result_status = 7; // Answered, NoMatch, Blocked, NeedsClarification
+  int32 contract_version = 8; // version 2 is required by the REST adapter
+  bool images_processed = 9;
 }
 
 message VerificationRequest {
@@ -56,6 +76,9 @@ message DocumentChunkItem {
   string source_url = 8;
   bool is_verified = 9;
   bool is_active = 10;
+  string point = 11;
+  string content_hash = 12;
+  string document_id = 13;
 }
 
 message IndexDocumentRequest {

@@ -71,6 +71,7 @@ public class ChatAIWebDbContext : DbContext
             entity.Property(c => c.Chapter).HasMaxLength(100);
             entity.Property(c => c.Article).HasMaxLength(100);
             entity.Property(c => c.Clause).HasMaxLength(100);
+            entity.Property(c => c.Point).HasMaxLength(50);
             entity.Property(c => c.VectorId).HasMaxLength(100);
             entity.HasOne(c => c.Document)
                 .WithMany(d => d.Chunks)
@@ -90,6 +91,11 @@ public class ChatAIWebDbContext : DbContext
 
         modelBuilder.Entity<ChatMessage>(entity =>
         {
+            entity.Property(m => m.RequestHash).HasMaxLength(64);
+            entity.Property(m => m.TurnState).HasMaxLength(20);
+            entity.Property(m => m.ResultStatus).HasMaxLength(30);
+            entity.HasIndex(m => new { m.SessionId, m.RequestId }).IsUnique()
+                .HasFilter("[RequestId] IS NOT NULL");
             entity.HasIndex(m => new { m.SessionId, m.CreatedAt });
             entity.HasOne(m => m.Session)
                 .WithMany(s => s.Messages)
@@ -99,6 +105,8 @@ public class ChatAIWebDbContext : DbContext
 
         modelBuilder.Entity<Citation>(entity =>
         {
+            entity.Property(c => c.ContentHash).HasMaxLength(64);
+            entity.Property(c => c.PointNumber).HasMaxLength(50);
             entity.Property(c => c.DocumentTitle).HasMaxLength(500);
             entity.Property(c => c.ArticleNumber).HasMaxLength(50);
             entity.Property(c => c.ClauseNumber).HasMaxLength(50);
