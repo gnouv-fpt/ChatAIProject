@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1850" height="1310" viewBox="0 0 1850 1310">
+<defs><marker id="arrow" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7" fill="#64748b"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="40" y="51" font-family="Arial" font-size="28" font-weight="bold">C2 | Vietnam Traffic Law Advanced RAG</text>
+<text x="40" y="94" font-family="Arial" font-size="14" fill="#475569">TARGET DESIGN for teacher review | Blue: existing code; orange: proposed; green: stores; gray: external | C4 C2 = Container</text>
+<polyline points="380,222.5 450.0,222.5 450.0,230.0 520,230.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="910,230.0 1000.0,230.0 1000.0,230.0 1090,230.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1440,230.0 1470.0,230.0 1470.0,220.0 1500,220.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="715.0,310 715.0,375.0 715.0,375.0 715.0,440" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1265.0,310 1265.0,375.0 1265.0,375.0 1265.0,440" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="380,520.0 450.0,520.0 450.0,520.0 520,520.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="215.0,600 215.0,680.0 215.0,680.0 215.0,760" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="380,840.0 450.0,840.0 450.0,842.5 520,842.5" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="715.0,760 715.0,680.0 715.0,680.0 715.0,600" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="910,842.5 1000.0,842.5 1000.0,840.0 1090,840.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="715.0,925 715.0,1002.5 845.0,1002.5 845.0,1080" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="910,810 1000,810 1000,365 1220,365 1220,310" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="50" y="150" width="330" height="145" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+<text x="64" y="175" font-family="Arial" font-size="14" font-weight="bold">Citizen / Admin client</text>
+<text x="64" y="196" font-family="Arial" font-size="14"></text>
+<text x="64" y="217" font-family="Arial" font-size="14">Browser / mobile / Postman</text>
+<text x="64" y="238" font-family="Arial" font-size="14">Login, chat, documents, reports</text>
+<rect x="520" y="150" width="390" height="160" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="534" y="175" font-family="Arial" font-size="14" font-weight="bold">REST API | ASP.NET Core 8</text>
+<text x="534" y="196" font-family="Arial" font-size="14"></text>
+<text x="534" y="217" font-family="Arial" font-size="14">Controllers -&gt; BusinessLogic -&gt; DataAccess</text>
+<text x="534" y="238" font-family="Arial" font-size="14">JWT, CRUD, chat orchestration</text>
+<text x="534" y="259" font-family="Arial" font-size="14">SQL message + outbox transaction [NEW]</text>
+<rect x="1090" y="150" width="350" height="160" rx="8" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="1104" y="175" font-family="Arial" font-size="14" font-weight="bold">Inference | Python gRPC</text>
+<text x="1104" y="196" font-family="Arial" font-size="14"></text>
+<text x="1104" y="217" font-family="Arial" font-size="14">Moderation -&gt; retrieval -&gt; RAG</text>
+<text x="1104" y="238" font-family="Arial" font-size="14">VerifyLegalDocument RPC</text>
+<text x="1104" y="259" font-family="Arial" font-size="14">Return answer + citations / no-match</text>
+<rect x="1500" y="150" width="300" height="140" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+<text x="1514" y="175" font-family="Arial" font-size="14" font-weight="bold">LLM / Embedding provider</text>
+<text x="1514" y="196" font-family="Arial" font-size="14"></text>
+<text x="1514" y="217" font-family="Arial" font-size="14">External HTTPS calls</text>
+<text x="1514" y="238" font-family="Arial" font-size="14">API keys from environment</text>
+<rect x="520" y="440" width="390" height="160" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+<text x="534" y="465" font-family="Arial" font-size="14" font-weight="bold">SQL Server | ChatAIWebDb</text>
+<text x="534" y="486" font-family="Arial" font-size="14"></text>
+<text x="534" y="507" font-family="Arial" font-size="14">7 business tables</text>
+<text x="534" y="528" font-family="Arial" font-size="14">EF Core migrations; UTC timestamps</text>
+<text x="534" y="549" font-family="Arial" font-size="14">Authoritative business / audit records</text>
+<rect x="1090" y="440" width="350" height="160" rx="8" fill="#f0fdf4" stroke="#16a34a" stroke-width="1.5"/>
+<text x="1104" y="465" font-family="Arial" font-size="14" font-weight="bold">Qdrant | Vector database</text>
+<text x="1104" y="486" font-family="Arial" font-size="14"></text>
+<text x="1104" y="507" font-family="Arial" font-size="14">Vectors + document/chunk metadata</text>
+<text x="1104" y="528" font-family="Arial" font-size="14">Verified + active + date/version filter</text>
+<text x="1104" y="549" font-family="Arial" font-size="14">VectorId is a logical link; not a SQL FK</text>
+<rect x="50" y="440" width="330" height="160" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="64" y="465" font-family="Arial" font-size="14" font-weight="bold">Outbox relay | .NET Worker [NEW]</text>
+<text x="64" y="486" font-family="Arial" font-size="14"></text>
+<text x="64" y="507" font-family="Arial" font-size="14">Reads committed OutboxMessages</text>
+<text x="64" y="528" font-family="Arial" font-size="14">Kafka delivery ack -&gt; PublishedAt</text>
+<text x="64" y="549" font-family="Arial" font-size="14">Retry without losing original EventId</text>
+<rect x="50" y="760" width="330" height="160" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="64" y="785" font-family="Arial" font-size="14" font-weight="bold">Apache Kafka [NEW]</text>
+<text x="64" y="806" font-family="Arial" font-size="14"></text>
+<text x="64" y="827" font-family="Arial" font-size="14">chat-completed-events</text>
+<text x="64" y="848" font-family="Arial" font-size="14">document-updated-events</text>
+<text x="64" y="869" font-family="Arial" font-size="14">Failed events -&gt; per-topic DLQ</text>
+<rect x="520" y="760" width="390" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="534" y="785" font-family="Arial" font-size="14" font-weight="bold">Worker Service | .NET 8 [NEW]</text>
+<text x="534" y="806" font-family="Arial" font-size="14"></text>
+<text x="534" y="827" font-family="Arial" font-size="14">Consumer: quota + violation + email</text>
+<text x="534" y="848" font-family="Arial" font-size="14">Crawler + verification + indexing</text>
+<text x="534" y="869" font-family="Arial" font-size="14">Document updates -&gt; SQL outbox -&gt; relay</text>
+<text x="534" y="890" font-family="Arial" font-size="14">00:00 Asia/Ho_Chi_Minh scheduled jobs</text>
+<rect x="1090" y="760" width="350" height="160" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+<text x="1104" y="785" font-family="Arial" font-size="14" font-weight="bold">thuvienphapluat.vn / SMTP</text>
+<text x="1104" y="806" font-family="Arial" font-size="14"></text>
+<text x="1104" y="827" font-family="Arial" font-size="14">HTTPS: crawl legal documents</text>
+<text x="1104" y="848" font-family="Arial" font-size="14">SMTP: violation / report email</text>
+<rect x="520" y="1080" width="650" height="155" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="534" y="1105" font-family="Arial" font-size="14" font-weight="bold">Observability stack [NEW]</text>
+<text x="534" y="1126" font-family="Arial" font-size="14"></text>
+<text x="534" y="1147" font-family="Arial" font-size="14">Prometheus: service / Kafka metrics</text>
+<text x="534" y="1168" font-family="Arial" font-size="14">Loki: JSON file logs; Tempo: traces</text>
+<text x="534" y="1189" font-family="Arial" font-size="14">Grafana: dashboards + alerts</text>
+<text x="450.0" y="218.25" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">HTTPS / JWT</text>
+<text x="1000.0" y="222.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">gRPC / HTTP2</text>
+<text x="1470.0" y="217.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">HTTPS</text>
+<text x="715.0" y="367.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">EF Core / TDS</text>
+<text x="1265.0" y="367.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Vector search</text>
+<text x="450.0" y="512.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Read / mark sent</text>
+<text x="215.0" y="672.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Produce + ack</text>
+<text x="450.0" y="833.25" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Consume</text>
+<text x="715.0" y="672.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Dedupe + update</text>
+<text x="1000.0" y="833.25" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">HTTPS / SMTP</text>
+<text x="780.0" y="994.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Logs / metrics / traces</text>
+<text x="1000" y="700" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">gRPC verify / index [NEW]</text>
+</svg>

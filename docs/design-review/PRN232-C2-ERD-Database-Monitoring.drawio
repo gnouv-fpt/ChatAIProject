@@ -1,0 +1,270 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" pages="4">
+  <diagram id="review-1" name="C2 - Containers">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="1850" pageHeight="1310">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="C2 | Vietnam Traffic Law Advanced RAG" style="text;html=1;align=left;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="1770" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="TARGET DESIGN for teacher review | Blue: existing code; orange: proposed; green: stores; gray: external | C4 C2 = Container" style="text;html=1;align=left;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="70" width="1770" height="55" />
+        </mxCell>
+        <mxCell id="e0" value="HTTPS / JWT" source="client" target="api" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e1" value="gRPC / HTTP2" source="api" target="grpc" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e2" value="HTTPS" source="grpc" target="ai" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e3" value="EF Core / TDS" source="api" target="sql" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e4" value="Vector search" source="grpc" target="qdrant" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e5" value="Read / mark sent" source="relay" target="sql" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e6" value="Produce + ack" source="relay" target="kafka" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e7" value="Consume" source="kafka" target="worker" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e8" value="Dedupe + update" source="worker" target="sql" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0.0;entryX=0.5;entryY=1.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e9" value="HTTPS / SMTP" source="worker" target="source" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e10" value="Logs / metrics / traces" source="worker" target="obs" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e11" value="gRPC verify / index [NEW]" source="worker" target="grpc" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.30303030303030304;entryX=0.37142857142857144;entryY=1.0;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1000" y="810" />
+              <mxPoint x="1000" y="365" />
+              <mxPoint x="1220" y="365" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="client" value="&lt;b&gt;Citizen / Admin client&lt;/b&gt;&lt;br&gt;&lt;br&gt;Browser / mobile / Postman&lt;br&gt;Login, chat, documents, reports" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f1f5f9;strokeColor=#64748b;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="150" width="330" height="145" />
+        </mxCell>
+        <mxCell id="api" value="&lt;b&gt;REST API | ASP.NET Core 8&lt;/b&gt;&lt;br&gt;&lt;br&gt;Controllers -&amp;gt; BusinessLogic -&amp;gt; DataAccess&lt;br&gt;JWT, CRUD, chat orchestration&lt;br&gt;SQL message + outbox transaction [NEW]" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#eff6ff;strokeColor=#2563eb;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="520" y="150" width="390" height="160" />
+        </mxCell>
+        <mxCell id="grpc" value="&lt;b&gt;Inference | Python gRPC&lt;/b&gt;&lt;br&gt;&lt;br&gt;Moderation -&amp;gt; retrieval -&amp;gt; RAG&lt;br&gt;VerifyLegalDocument RPC&lt;br&gt;Return answer + citations / no-match" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#eff6ff;strokeColor=#2563eb;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1090" y="150" width="350" height="160" />
+        </mxCell>
+        <mxCell id="ai" value="&lt;b&gt;LLM / Embedding provider&lt;/b&gt;&lt;br&gt;&lt;br&gt;External HTTPS calls&lt;br&gt;API keys from environment" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f1f5f9;strokeColor=#64748b;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1500" y="150" width="300" height="140" />
+        </mxCell>
+        <mxCell id="sql" value="&lt;b&gt;SQL Server | ChatAIWebDb&lt;/b&gt;&lt;br&gt;&lt;br&gt;7 business tables&lt;br&gt;EF Core migrations; UTC timestamps&lt;br&gt;Authoritative business / audit records" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="520" y="440" width="390" height="160" />
+        </mxCell>
+        <mxCell id="qdrant" value="&lt;b&gt;Qdrant | Vector database&lt;/b&gt;&lt;br&gt;&lt;br&gt;Vectors + document/chunk metadata&lt;br&gt;Verified + active + date/version filter&lt;br&gt;VectorId is a logical link; not a SQL FK" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1090" y="440" width="350" height="160" />
+        </mxCell>
+        <mxCell id="relay" value="&lt;b&gt;Outbox relay | .NET Worker [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Reads committed OutboxMessages&lt;br&gt;Kafka delivery ack -&amp;gt; PublishedAt&lt;br&gt;Retry without losing original EventId" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="440" width="330" height="160" />
+        </mxCell>
+        <mxCell id="kafka" value="&lt;b&gt;Apache Kafka [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;chat-completed-events&lt;br&gt;document-updated-events&lt;br&gt;Failed events -&amp;gt; per-topic DLQ" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="760" width="330" height="160" />
+        </mxCell>
+        <mxCell id="worker" value="&lt;b&gt;Worker Service | .NET 8 [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Consumer: quota + violation + email&lt;br&gt;Crawler + verification + indexing&lt;br&gt;Document updates -&amp;gt; SQL outbox -&amp;gt; relay&lt;br&gt;00:00 Asia/Ho_Chi_Minh scheduled jobs" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="520" y="760" width="390" height="165" />
+        </mxCell>
+        <mxCell id="source" value="&lt;b&gt;thuvienphapluat.vn / SMTP&lt;/b&gt;&lt;br&gt;&lt;br&gt;HTTPS: crawl legal documents&lt;br&gt;SMTP: violation / report email" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f1f5f9;strokeColor=#64748b;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1090" y="760" width="350" height="160" />
+        </mxCell>
+        <mxCell id="obs" value="&lt;b&gt;Observability stack [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Prometheus: service / Kafka metrics&lt;br&gt;Loki: JSON file logs; Tempo: traces&lt;br&gt;Grafana: dashboards + alerts" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="520" y="1080" width="650" height="155" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="review-2" name="ERD - Logical current">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="1800" pageHeight="1600">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="ERD | Current business entities" style="text;html=1;align=left;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="1720" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="CURRENT SCOPE: 7 business tables | Historical reporting tables removed by a new migration | ? = nullable" style="text;html=1;align=left;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="70" width="1720" height="55" />
+        </mxCell>
+        <mxCell id="e0" value="1 -&gt; 0..*" source="Users" target="ChatSessions" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e1" value="1 -&gt; 0..*" source="Users" target="RefreshTokens" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e2" value="1 -&gt; 0..*" source="ChatSessions" target="ChatMessages" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e3" value="1 -&gt; 0..*" source="ChatMessages" target="Citations" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e4" value="1 -&gt; 0..*" source="LegalDocuments" target="DocumentChunks" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e5" value="0..1 chunk / 0..* citations" source="DocumentChunks" target="Citations" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.8053691275167785;entryX=0.0;entryY=0.8275862068965517;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1190" y="1240" />
+              <mxPoint x="1190" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="LegalDocuments" value="&lt;b&gt;LegalDocuments&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;    Title&lt;br&gt;    VerificationStatus" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="620" width="510" height="145" />
+        </mxCell>
+        <mxCell id="Users" value="&lt;b&gt;Users&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;UK  Username&lt;br&gt;UK  Email" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="150" width="510" height="145" />
+        </mxCell>
+        <mxCell id="DocumentChunks" value="&lt;b&gt;DocumentChunks&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;FK  DocumentId&lt;br&gt;    Content&lt;br&gt;    VectorId ?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="1120" width="510" height="149" />
+        </mxCell>
+        <mxCell id="ChatSessions" value="&lt;b&gt;ChatSessions&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;FK  UserId&lt;br&gt;    Title" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="150" width="510" height="145" />
+        </mxCell>
+        <mxCell id="RefreshTokens" value="&lt;b&gt;RefreshTokens&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;FK  UserId" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="620" width="510" height="145" />
+        </mxCell>
+        <mxCell id="ChatMessages" value="&lt;b&gt;ChatMessages&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;FK  SessionId&lt;br&gt;    Content" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="150" width="510" height="145" />
+        </mxCell>
+        <mxCell id="Citations" value="&lt;b&gt;Citations&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id&lt;br&gt;FK  ChatMessageId&lt;br&gt;FK  DocumentChunkId ?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="620" width="510" height="145" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="review-3" name="Database - Physical current">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="1800" pageHeight="1600">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="SQL Server | Physical database diagram" style="text;html=1;align=left;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="1720" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="CURRENT SCOPE: 7 business tables | Historical reporting tables removed by a new migration | ? = nullable" style="text;html=1;align=left;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="70" width="1720" height="55" />
+        </mxCell>
+        <mxCell id="e0" value="1 -&gt; 0..*" source="Users" target="ChatSessions" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e1" value="1 -&gt; 0..*" source="Users" target="RefreshTokens" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e2" value="1 -&gt; 0..*" source="ChatSessions" target="ChatMessages" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e3" value="1 -&gt; 0..*" source="ChatMessages" target="Citations" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e4" value="1 -&gt; 0..*" source="LegalDocuments" target="DocumentChunks" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e5" value="0..1 chunk / 0..* citations" source="DocumentChunks" target="Citations" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.47244094488188976;entryX=0.0;entryY=0.5150214592274678;">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1190" y="1240" />
+              <mxPoint x="1190" y="740" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="LegalDocuments" value="&lt;b&gt;LegalDocuments&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;UK  DocumentNumber : nvarchar(100)&lt;br&gt;    Title : nvarchar(500)&lt;br&gt;    DocumentType : nvarchar(30)&lt;br&gt;    IssuingAuthority : nvarchar(255) ?&lt;br&gt;    EffectiveDate : datetime2 ?&lt;br&gt;    ExpirationDate : datetime2 ?&lt;br&gt;    IsActive : bit&lt;br&gt;    VerificationStatus : nvarchar(30)&lt;br&gt;    LastVerifiedAt : datetime2 ?&lt;br&gt;    SourceUrl : nvarchar(1000) ?&lt;br&gt;    CreatedAt : datetime2" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="620" width="510" height="317" />
+        </mxCell>
+        <mxCell id="Users" value="&lt;b&gt;Users&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;UK  Username : nvarchar(50)&lt;br&gt;UK  Email : nvarchar(256)&lt;br&gt;    PasswordHash : nvarchar(256)&lt;br&gt;    Role : nvarchar(30)&lt;br&gt;    TokenQuota : int&lt;br&gt;    TokenBalance : int&lt;br&gt;    CreatedAt : datetime2" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="150" width="510" height="233" />
+        </mxCell>
+        <mxCell id="DocumentChunks" value="&lt;b&gt;DocumentChunks&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;FK  DocumentId : uniqueidentifier&lt;br&gt;    Chapter : nvarchar(100) ?&lt;br&gt;    Article : nvarchar(100) ?&lt;br&gt;    Clause : nvarchar(100) ?&lt;br&gt;    Content : nvarchar(max)&lt;br&gt;    TokenCount : int&lt;br&gt;    VectorId : nvarchar(100) ?&lt;br&gt;    IsVerified : bit" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="1120" width="510" height="254" />
+        </mxCell>
+        <mxCell id="ChatSessions" value="&lt;b&gt;ChatSessions&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;FK  UserId : uniqueidentifier&lt;br&gt;    Title : nvarchar(255)&lt;br&gt;    CreatedAt : datetime2&lt;br&gt;    LastUpdatedAt : datetime2&lt;br&gt;    IsDeleted : bit" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="150" width="510" height="191" />
+        </mxCell>
+        <mxCell id="RefreshTokens" value="&lt;b&gt;RefreshTokens&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;FK  UserId : uniqueidentifier&lt;br&gt;UK  TokenHash : nvarchar(128)&lt;br&gt;    ExpiresAt : datetime2&lt;br&gt;    CreatedAt : datetime2&lt;br&gt;    RevokedAt : datetime2 ?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="620" width="510" height="191" />
+        </mxCell>
+        <mxCell id="ChatMessages" value="&lt;b&gt;ChatMessages&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;FK  SessionId : uniqueidentifier&lt;br&gt;    SenderRole : nvarchar(30)&lt;br&gt;    Content : nvarchar(max)&lt;br&gt;    TokensUsed : int&lt;br&gt;    IsViolation : bit&lt;br&gt;    CreatedAt : datetime2" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="150" width="510" height="212" />
+        </mxCell>
+        <mxCell id="Citations" value="&lt;b&gt;Citations&lt;/b&gt;&lt;br&gt;&lt;br&gt;PK  Id : uniqueidentifier&lt;br&gt;FK  ChatMessageId : uniqueidentifier&lt;br&gt;FK  DocumentChunkId : uniqueidentifier ?&lt;br&gt;    DocumentTitle : nvarchar(500) ?&lt;br&gt;    ArticleNumber : nvarchar(50) ?&lt;br&gt;    ClauseNumber : nvarchar(50) ?&lt;br&gt;    Excerpt : nvarchar(max) ?&lt;br&gt;    SourceUrl : nvarchar(1000) ?" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f0fdf4;strokeColor=#16a34a;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1230" y="620" width="510" height="233" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="review-4" name="Monitoring - Target">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageWidth="1800" pageHeight="1300">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Kafka + Grafana | Logs, metrics and request tracing" style="text;html=1;align=left;fontSize=28;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="20" width="1720" height="45" />
+        </mxCell>
+        <mxCell id="subtitle" value="TARGET DESIGN ONLY | Each service must emit telemetry; Grafana displays data queried from configured data sources." style="text;html=1;align=left;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="70" width="1720" height="55" />
+        </mxCell>
+        <mxCell id="e0" value="Write real files" source="apps" target="files" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e1" value="Read mounted volume" source="files" target="alloy" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e2" value="Instrumented counters" source="apps" target="metrics" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e3" value="Scrape" source="metrics" target="prom" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e4" value="Logs + OTLP traces" source="alloy" target="loki" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e5" value="PromQL" source="prom" target="grafana" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e6" value="LogQL / TraceQL" source="loki" target="grafana" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e7" value="View / demo" source="ops" target="grafana" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;endArrow=block;fontSize=12;labelBackgroundColor=#ffffff;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="apps" value="&lt;b&gt;Service telemetry [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;REST / gRPC / Worker / Relay instrumentation&lt;br&gt;HTTP / gRPC metadata, duration, status&lt;br&gt;Kafka EventId / topic / partition / offset" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="160" width="450" height="165" />
+        </mxCell>
+        <mxCell id="files" value="&lt;b&gt;Persistent log files [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;logs/{service}/app-YYYYMMDD.jsonl&lt;br&gt;UTC timestamp + service + TraceId + EventId&lt;br&gt;Rotate daily; bounded retention" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="680" y="160" width="450" height="165" />
+        </mxCell>
+        <mxCell id="alloy" value="&lt;b&gt;Grafana Alloy [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Tail mounted JSON files -&amp;gt; Loki&lt;br&gt;Receive OpenTelemetry traces -&amp;gt; Tempo&lt;br&gt;File offsets persisted across restart" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1310" y="160" width="440" height="165" />
+        </mxCell>
+        <mxCell id="metrics" value="&lt;b&gt;Service / Kafka exporters [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;/metrics: HTTP + gRPC + event counters&lt;br&gt;Broker JMX: requests / errors / bytes&lt;br&gt;Kafka exporter: offsets + consumer lag" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="510" width="450" height="165" />
+        </mxCell>
+        <mxCell id="prom" value="&lt;b&gt;Prometheus [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Scrape configured targets / exporters&lt;br&gt;Counters, rates, p95 latency, errors, up&lt;br&gt;Labels: service / route / topic / group" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="680" y="510" width="450" height="165" />
+        </mxCell>
+        <mxCell id="loki" value="&lt;b&gt;Loki + Tempo [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Loki: search individual log records&lt;br&gt;Tempo: request -&amp;gt; gRPC -&amp;gt; Kafka -&amp;gt; Worker&lt;br&gt;Trace context carried in Kafka headers" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1310" y="510" width="440" height="165" />
+        </mxCell>
+        <mxCell id="grafana" value="&lt;b&gt;Grafana dashboard + alerts [NEW]&lt;/b&gt;&lt;br&gt;&lt;br&gt;Produced / processed / retry / DLQ counts&lt;br&gt;Lag, service up, consumer heartbeat&lt;br&gt;HTTP/gRPC request rate, p95 and error rate&lt;br&gt;Request/response metadata + log drilldown&lt;br&gt;TraceId links REST, gRPC and worker spans" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#fff7ed;strokeColor=#ea580c;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="680" y="900" width="670" height="210" />
+        </mxCell>
+        <mxCell id="ops" value="&lt;b&gt;Admin / teacher demo&lt;/b&gt;&lt;br&gt;&lt;br&gt;Send N requests -&amp;gt; find N distinct EventIds&lt;br&gt;Stop worker -&amp;gt; lag rises; restart -&amp;gt; drains&lt;br&gt;Retry one EventId -&amp;gt; quota deducted once&lt;br&gt;Find one request across logs + trace" style="rounded=1;whiteSpace=wrap;html=1;align=left;verticalAlign=top;spacing=14;fillColor=#f1f5f9;strokeColor=#64748b;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="50" y="900" width="450" height="210" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

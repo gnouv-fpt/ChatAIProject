@@ -6,7 +6,7 @@ Nhánh: `feature/bao-db-auth` (dựa trên `PRN-dev`)
 
 - [x] Chuyển `Presentation` từ Razor Pages sang ASP.NET Core Web API thuần (bỏ Cookie Auth, Hubs, Pages cũ).
 - [x] Thiết kế lại schema `ChatAIWebDb` đúng theo `requirement.md` (thay hoàn toàn domain cũ):
-  - `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`, `ViolationLogs`, `UsageReports`.
+  - `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`.
 - [x] Viết Entity classes (`BusinessObject/Entities`) + Enums (`UserRole`, `VerificationStatus`, `SenderRole`, `LegalDocumentType`).
 - [x] Viết `ChatAIWebDbContext` (`DataAccess/ChatAIWebDbContext.cs`) với cấu hình quan hệ, index, cascade delete, lưu enum dạng string, ép `DateTime` về UTC.
 - [x] Tạo EF Core migration `InitialCreate`, app tự động `Database.MigrateAsync()` khi khởi động.

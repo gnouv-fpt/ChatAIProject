@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1300" viewBox="0 0 1800 1300">
+<defs><marker id="arrow" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7" fill="#64748b"/></marker></defs>
+<rect width="100%" height="100%" fill="white"/>
+<text x="40" y="51" font-family="Arial" font-size="28" font-weight="bold">Kafka + Grafana | Logs, metrics and request tracing</text>
+<text x="40" y="94" font-family="Arial" font-size="14" fill="#475569">TARGET DESIGN ONLY | Each service must emit telemetry; Grafana displays data queried from configured data sources.</text>
+<polyline points="500,242.5 590.0,242.5 590.0,242.5 680,242.5" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1130,242.5 1220.0,242.5 1220.0,242.5 1310,242.5" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="275.0,325 275.0,417.5 275.0,417.5 275.0,510" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="500,592.5 590.0,592.5 590.0,592.5 680,592.5" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1530.0,325 1530.0,417.5 1530.0,417.5 1530.0,510" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="905.0,675 905.0,787.5 1015.0,787.5 1015.0,900" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="1310,592.5 1330.0,592.5 1330.0,1005.0 1350,1005.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<polyline points="500,1005.0 590.0,1005.0 590.0,1005.0 680,1005.0" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="50" y="160" width="450" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="64" y="185" font-family="Arial" font-size="14" font-weight="bold">Service telemetry [NEW]</text>
+<text x="64" y="206" font-family="Arial" font-size="14"></text>
+<text x="64" y="227" font-family="Arial" font-size="14">REST / gRPC / Worker / Relay instrumentation</text>
+<text x="64" y="248" font-family="Arial" font-size="14">HTTP / gRPC metadata, duration, status</text>
+<text x="64" y="269" font-family="Arial" font-size="14">Kafka EventId / topic / partition / offset</text>
+<rect x="680" y="160" width="450" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="694" y="185" font-family="Arial" font-size="14" font-weight="bold">Persistent log files [NEW]</text>
+<text x="694" y="206" font-family="Arial" font-size="14"></text>
+<text x="694" y="227" font-family="Arial" font-size="14">logs/{service}/app-YYYYMMDD.jsonl</text>
+<text x="694" y="248" font-family="Arial" font-size="14">UTC timestamp + service + TraceId + EventId</text>
+<text x="694" y="269" font-family="Arial" font-size="14">Rotate daily; bounded retention</text>
+<rect x="1310" y="160" width="440" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="1324" y="185" font-family="Arial" font-size="14" font-weight="bold">Grafana Alloy [NEW]</text>
+<text x="1324" y="206" font-family="Arial" font-size="14"></text>
+<text x="1324" y="227" font-family="Arial" font-size="14">Tail mounted JSON files -&gt; Loki</text>
+<text x="1324" y="248" font-family="Arial" font-size="14">Receive OpenTelemetry traces -&gt; Tempo</text>
+<text x="1324" y="269" font-family="Arial" font-size="14">File offsets persisted across restart</text>
+<rect x="50" y="510" width="450" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="64" y="535" font-family="Arial" font-size="14" font-weight="bold">Service / Kafka exporters [NEW]</text>
+<text x="64" y="556" font-family="Arial" font-size="14"></text>
+<text x="64" y="577" font-family="Arial" font-size="14">/metrics: HTTP + gRPC + event counters</text>
+<text x="64" y="598" font-family="Arial" font-size="14">Broker JMX: requests / errors / bytes</text>
+<text x="64" y="619" font-family="Arial" font-size="14">Kafka exporter: offsets + consumer lag</text>
+<rect x="680" y="510" width="450" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="694" y="535" font-family="Arial" font-size="14" font-weight="bold">Prometheus [NEW]</text>
+<text x="694" y="556" font-family="Arial" font-size="14"></text>
+<text x="694" y="577" font-family="Arial" font-size="14">Scrape configured targets / exporters</text>
+<text x="694" y="598" font-family="Arial" font-size="14">Counters, rates, p95 latency, errors, up</text>
+<text x="694" y="619" font-family="Arial" font-size="14">Labels: service / route / topic / group</text>
+<rect x="1310" y="510" width="440" height="165" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="1324" y="535" font-family="Arial" font-size="14" font-weight="bold">Loki + Tempo [NEW]</text>
+<text x="1324" y="556" font-family="Arial" font-size="14"></text>
+<text x="1324" y="577" font-family="Arial" font-size="14">Loki: search individual log records</text>
+<text x="1324" y="598" font-family="Arial" font-size="14">Tempo: request -&gt; gRPC -&gt; Kafka -&gt; Worker</text>
+<text x="1324" y="619" font-family="Arial" font-size="14">Trace context carried in Kafka headers</text>
+<rect x="680" y="900" width="670" height="210" rx="8" fill="#fff7ed" stroke="#ea580c" stroke-width="1.5"/>
+<text x="694" y="925" font-family="Arial" font-size="14" font-weight="bold">Grafana dashboard + alerts [NEW]</text>
+<text x="694" y="946" font-family="Arial" font-size="14"></text>
+<text x="694" y="967" font-family="Arial" font-size="14">Produced / processed / retry / DLQ counts</text>
+<text x="694" y="988" font-family="Arial" font-size="14">Lag, service up, consumer heartbeat</text>
+<text x="694" y="1009" font-family="Arial" font-size="14">HTTP/gRPC request rate, p95 and error rate</text>
+<text x="694" y="1030" font-family="Arial" font-size="14">Request/response metadata + log drilldown</text>
+<text x="694" y="1051" font-family="Arial" font-size="14">TraceId links REST, gRPC and worker spans</text>
+<rect x="50" y="900" width="450" height="210" rx="8" fill="#f1f5f9" stroke="#64748b" stroke-width="1.5"/>
+<text x="64" y="925" font-family="Arial" font-size="14" font-weight="bold">Admin / teacher demo</text>
+<text x="64" y="946" font-family="Arial" font-size="14"></text>
+<text x="64" y="967" font-family="Arial" font-size="14">Send N requests -&gt; find N distinct EventIds</text>
+<text x="64" y="988" font-family="Arial" font-size="14">Stop worker -&gt; lag rises; restart -&gt; drains</text>
+<text x="64" y="1009" font-family="Arial" font-size="14">Retry one EventId -&gt; quota deducted once</text>
+<text x="64" y="1030" font-family="Arial" font-size="14">Find one request across logs + trace</text>
+<text x="590.0" y="234.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Write real files</text>
+<text x="1220.0" y="234.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Read mounted volume</text>
+<text x="275.0" y="409.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Instrumented counters</text>
+<text x="590.0" y="584.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Scrape</text>
+<text x="1530.0" y="409.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">Logs + OTLP traces</text>
+<text x="960.0" y="779.5" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">PromQL</text>
+<text x="1330.0" y="790.75" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">LogQL / TraceQL</text>
+<text x="590.0" y="997.0" text-anchor="middle" font-family="Arial" font-size="12" fill="#334155" stroke="white" stroke-width="4" paint-order="stroke">View / demo</text>
+</svg>

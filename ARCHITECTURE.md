@@ -25,8 +25,8 @@ Pháp luật Giao thông Đường bộ Việt Nam được quy định phân t�
 | :--- | :--- | :--- |
 | **Sinh viên / Người dùng (User)** | Con người (End-user) | Đăng ký, đăng nhập (JWT), tạo phiên chat, đặt câu hỏi pháp lý giao thông, nhận câu trả lời kèm trích dẫn, theo dõi hạn ngạch token cá nhân và tra cứu văn bản luật. |
 | **Quản trị viên (Admin)** | Con người (Operator) | Kích hoạt crawl dữ liệu từ Thư viện Pháp luật, kích hoạt quy trình tái thẩm định hiệu lực văn bản (Verification), xem báo cáo tổng hợp hệ thống (Usage Reports), quản lý người dùng và vi phạm. |
-| **Background Worker Service** | Hệ thống (Background Consumer) | Lắng nghe sự kiện bất đồng bộ qua Message Broker (Redis Pub/Sub), thực hiện trừ hạn ngạch token, ghi nhật ký vi phạm (`ViolationLogs`), gửi email cảnh báo tự động qua MailKit/SMTP. |
-| **Scheduled Cron Engine** | Hệ thống (Scheduled Job) | Thực thi tự động lúc `00:00:00` hàng ngày: dọn dẹp phiên chat nháp, kiểm tra các văn bản đến hạn hết hiệu lực (`ExpirationDate`), tổng hợp báo cáo ngày vào bảng `UsageReports`. |
+| **Background Worker Service** | Hệ thống (Background Consumer) | Lắng nghe sự kiện bất đồng bộ qua Message Broker (Redis Pub/Sub), thực hiện trừ hạn ngạch token, ghi nhật ký vi phạm ra log file, gửi email cảnh báo tự động qua MailKit/SMTP. |
+| **Scheduled Cron Engine** | Hệ thống (Scheduled Job) | Thực thi tự động lúc `00:00:00` hàng ngày: dọn dẹp phiên chat nháp, kiểm tra các văn bản đến hạn hết hiệu lực (`ExpirationDate`), tổng hợp báo cáo ngày từ ChatMessages ra file/log. |
 | **Thư viện Pháp luật (`thuvienphapluat.vn`)** | Hệ thống bên ngoài (External) | Nguồn dữ liệu luật giao thông chính thống để hệ thống cào dữ liệu và đối soát hiệu lực. |
 | **LLM & Embedding Provider** | Dịch vụ AI bên ngoài (External) | OpenAI (text-embedding-3-small, GPT-4o-mini) hoặc Google Gemini phục vụ sinh vector ngữ nghĩa và sinh câu trả lời RAG. |
 | **SMTP Mail Server** | Dịch vụ ngoài (External) | Cung cấp hạ tầng gửi email cảnh báo người dùng khi vi phạm chính sách kiểm duyệt. |
@@ -259,7 +259,7 @@ sequenceDiagram
     Redis->>Worker: Consume event
     Worker->>SQL: Deduct token quota
     opt IsViolation == true
-        Worker->>SQL: Save ViolationLog
+        Worker->>Worker: Write structured violation log file
         Worker->>SMTP: Send alert email
     end
 ```
@@ -308,12 +308,15 @@ sequenceDiagram
     Cron->>SQL: Check expired legal documents
     Cron->>SQL: Update IsActive = false
     Cron->>Qdrant: Update is_verified = false
-    Cron->>SQL: Aggregate and insert Daily UsageReport
+    Cron->>SQL: Read and aggregate daily ChatMessages
+    Cron->>Cron: Export report to file/log
 ```
 
 ---
 
 ## 4. THIẾT KẾ CƠ SỞ DỮ LIỆU CHI TIẾT (PHYSICAL DATABASE SCHEMA)
+
+Cập nhật theo giảng viên 22/10/2026: SQL chỉ giữ Users, RefreshTokens, LegalDocuments, DocumentChunks, ChatSessions, ChatMessages, Citations. Vi phạm ghi file log và ChatMessages.IsViolation; báo cáo đọc tổng hợp từ tin nhắn. Xem requirement.md cho luồng Kafka/Grafana mới; các mô tả Redis bên dưới là thiết kế cũ.
 
 Hệ thống sử dụng cơ sở dữ liệu quan hệ **SQL Server 2022** (`ChatAIWebDb`). 
 
@@ -322,20 +325,19 @@ Hệ thống sử dụng cơ sở dữ liệu quan hệ **SQL Server 2022** (`Ch
 ```mermaid
 erDiagram
     Users ||--o{ ChatSessions : "tạo và sở hữu"
-    Users ||--o{ ViolationLogs : "bị ghi nhận vi phạm"
+    Users ||--o{ RefreshTokens : "đăng nhập"
+    RefreshTokens {
+        uniqueidentifier Id PK
+        uniqueidentifier UserId FK
+        nvarchar TokenHash UK
+        datetime2 ExpiresAt
+        datetime2 CreatedAt
+        datetime2 RevokedAt
+    }
     ChatSessions ||--o{ ChatMessages : "chứa các tin nhắn"
     ChatMessages ||--o{ Citations : "kèm trích dẫn nguồn"
-    ChatMessages ||--o| ViolationLogs : "nguyên nhân sinh ra"
     LegalDocuments ||--|{ DocumentChunks : "được phân đoạn thành"
     DocumentChunks ||--o{ Citations : "được tham chiếu trong"
-    UsageReports {
-        uniqueidentifier Id PK
-        date ReportDate
-        int TotalQueries
-        int TotalTokensUsed
-        int TotalViolations
-        datetime2 CreatedAt
-    }
 
     Users {
         uniqueidentifier Id PK
@@ -403,14 +405,6 @@ erDiagram
         datetime2 CreatedAt
     }
 
-    ViolationLogs {
-        uniqueidentifier Id PK
-        uniqueidentifier UserId FK
-        uniqueidentifier ChatMessageId FK
-        nvarchar ViolationKeywords
-        bit NotifiedViaEmail
-        datetime2 CreatedAt
-    }
 ```
 
 ---
@@ -501,30 +495,6 @@ Mỗi câu trả lời của trợ lý AI có thể dẫn xuất từ một ho�
 | `SourceUrl` | `nvarchar(1000)`| YES | - | Đường dẫn link nguồn tra cứu tại Thư viện Pháp luật |
 | `CreatedAt` | `datetime2(7)` | NO | Default `SYSUTCDATETIME()` | Thời điểm ghi nhận trích dẫn |
 
-#### Bảng 7: `ViolationLogs` (Nhật ký vi phạm quy định kiểm duyệt)
-Lưu lại các câu hỏi chứa nội dung bạo lực, xúc phạm, chống phá được phát hiện bởi Moderation Engine.
-
-| Tên cột | Kiểu dữ liệu | Nullable | Khóa / Ràng buộc | Mô tả |
-| :--- | :--- | :---: | :--- | :--- |
-| `Id` | `uniqueidentifier` | NO | PK, Default `NEWSEQUENTIALID()` | Khóa chính |
-| `UserId` | `uniqueidentifier` | NO | FK -> `Users(Id)` | Tài khoản vi phạm |
-| `ChatMessageId`| `uniqueidentifier` | YES | FK -> `ChatMessages(Id)` ON DELETE SET NULL | Tin nhắn vi phạm (nếu có) |
-| `ViolationKeywords` | `nvarchar(500)` | NO | - | Danh sách từ khóa độc hại phát hiện |
-| `NotifiedViaEmail` | `bit` | NO | Default `0` | Trạng thái đã gửi email cảnh báo hay chưa |
-| `CreatedAt` | `datetime2(7)` | NO | Default `SYSUTCDATETIME()` | Thời điểm phát hiện vi phạm |
-
-#### Bảng 8: `UsageReports` (Báo cáo Thống kê Định kỳ Ngày)
-Bảng tổng hợp độc lập được tính toán bởi Midnight Cron Job phục vụ Dashboard quản trị.
-
-| Tên cột | Kiểu dữ liệu | Nullable | Khóa / Ràng buộc | Mô tả |
-| :--- | :--- | :---: | :--- | :--- |
-| `Id` | `uniqueidentifier` | NO | PK, Default `NEWSEQUENTIALID()` | Khóa chính |
-| `ReportDate` | `date` | NO | Unique Index | Ngày thống kê |
-| `TotalQueries` | `int` | NO | Default `0` | Tổng số câu hỏi đặt ra trong ngày |
-| `TotalTokensUsed`| `int` | NO | Default `0` | Tổng số lượng token tiêu thụ |
-| `TotalViolations`| `int` | NO | Default `0` | Tổng số lượt phát hiện vi phạm |
-| `CreatedAt` | `datetime2(7)` | NO | Default `SYSUTCDATETIME()` | Thời điểm chạy tổng hợp |
-
 ---
 
 ### 4.3. Các Chỉ mục Tối ưu Hiệu năng (Database Indexes)
@@ -546,9 +516,6 @@ Bảng tổng hợp độc lập được tính toán bởi Midnight Cron Job ph
 5. **`IX_Citations_ChatMessageId`**:
    - Bảng: `Citations (ChatMessageId ASC)`
    - Mục đích: Tải nhanh danh sách trích dẫn đính kèm theo từng tin nhắn trả lời của AI.
-6. **`IX_ViolationLogs_UserId_CreatedAt`**:
-   - Bảng: `ViolationLogs (UserId ASC, CreatedAt DESC)`
-   - Mục đích: Giúp Quản trị viên tra cứu các vi phạm gần nhất của từng người dùng.
 
 ---
 

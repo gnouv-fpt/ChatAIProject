@@ -1,4 +1,47 @@
-# PHÂN CÔNG NHIỆM VỤ DỰ ÁN (TASK.MD)
+# PHÂN CÔNG CODE HIỆN HÀNH — CẬP NHẬT 24/10/2026
+
+**Bản phân công chính bên dưới thay thế phân công lịch sử ở cuối file.** Scope gồm tư vấn luật, chat chữ/ảnh, học ngân hàng câu hỏi, chọn N câu, trộn đề, thi thử và tiến độ. Chi tiết task IDs/API/file ownership ở [IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md).
+
+## Phân công mới cho 5 người
+
+| Người | Module | Công việc còn phải code | Đầu ra |
+| --- | --- | --- | --- |
+| **Bảo** | Auth, dữ liệu, quota, progress/report | Hợp nhất 7 bảng core; thiết kế persistence học/thi/ảnh; migrations/repos/transaction; quota reserve/settle; report/progress/bookmark/history; kiểm thử auth; UI tài khoản/tiến độ | Schema/state contracts, persistence, quota service, API/UI tài khoản và tiến độ |
+| **Khôi** | AI API/gRPC/vision/Qdrant | Groq generation, embedding API, vision/OCR API; bỏ local fallback; proto; citation chunk/Điểm/version; verification; index/deactivate; hiểu ảnh/follow-up | Python gRPC/API adapters, contract, test text/ảnh/RAG/lỗi |
+| **Khánh** | Kafka/Worker + engine luyện/thi | Producer/relay/consumer, retry/DLQ/email; Worker host/scheduler; chọn N/trộn câu/template/timer/chấm server; UI làm bài/kết quả | Worker thật, events, Practice/Exam services/API/UI |
+| **Vương** | Tích hợp, Chat/ảnh, web shell, hạ tầng | Ghép source; ChatbotService/gRPC adapter/idempotency; attachment API; UI chat; web shell/API client; Gateway/Compose/monitoring | Bản tích hợp và demo xuyên dịch vụ, Chat API/UI, deployment |
+| **Phúc** | Luật, ngân hàng đề và nội dung học | Hoàn thiện crawler/verify/chunk/index; Documents; import bank/ảnh/đáp án/profile/version; Admin preview/publish; questions/templates; cron nghiệp vụ; UI thư viện/học/admin | Dữ liệu thật, pipeline import/crawl, API/UI nội dung học |
+
+Tái sử dụng các nhánh PRN đã có, không viết lại auth/chat/documents từ đầu. Nhánh FastAPI FLM của Khánh không thay thế Worker PRN. AI inference dùng API; chấm thi bằng code theo đáp án chuẩn/profile, không bằng LLM.
+
+## Cách triển khai song song
+
+| Mốc tích hợp | Cả nhóm làm | Điều kiện ghép |
+| --- | --- | --- |
+| **P0: nền + contracts** | Ghép source; schema/repo interfaces; proto; event/exam interfaces; bank format; web skeleton | Chốt IDs/version/errors/ownership; skeleton build |
+| **P1: core chạy thật** | Auth/chat chữ/RAG/SQL/Kafka/Worker/quota; import bank draft; phát triển vision API | Chat có citation, replay không trừ trùng, provider lỗi trả đúng trạng thái |
+| **P2: học và thi** | Published bank, học N/chủ đề/range, đề sẵn/ngẫu nhiên, timer/chấm, progress/ôn sai | UI → API → persistence; snapshot/version và answer hiding đúng |
+| **P3: ảnh + vận hành** | Chat ảnh/follow-up, cron/expiry/cache/email, dashboards/demo | Ba luồng chat chữ/chat ảnh/học thi chạy thật, restart phục hồi |
+
+**Đây là thứ tự nghiệm thu, không phải năm người chờ nhau.** Vision/bank/exam/UI có thể code song song từ khi contract bản đầu thống nhất. Fixtures dùng unit/contract test được gắn nhãn; demo dùng API/data thật.
+
+## Quyền sở hữu file chung
+
+- **Bảo:** BusinessObject, DataAccess, DbContext/migrations/repository contracts.
+- **Khôi:** protobuf nguồn và Python AI.
+- **Khánh:** events, Worker host/consumers/relay, Practice/Exam engine.
+- **Vương:** REST Program.cs, projects/solution dùng chung, web shell/router, Gateway/Compose/monitoring.
+- **Phúc:** source/bank manifest/profile/import, crawler/chunker, Documents và question-bank APIs.
+
+Mỗi người sửa controller/service/UI module mình, bàn giao DI extension cho người giữ host. Mỗi người instrument/test module mình; Vương tích hợp dashboard, không viết thay mọi telemetry/UI.
+
+Giữ 7 bảng core theo AGENTS.md; persistence học/thi/attachment là đề xuất mở rộng cần chốt trước migration, không nhét vào ChatMessages. Frontend đề xuất React/TypeScript tại web/, không đưa Razor Pages trở lại. Không tạo nhánh/merge/push/apply migration trong lần lập plan này.
+
+Tài liệu chính: [IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [APP-FEATURES.md](docs/APP-FEATURES.md), [BRANCH-AUDIT-2026-10-24.md](docs/BRANCH-AUDIT-2026-10-24.md). Plan chưa có deadline vì chưa có thời gian rảnh của từng người.
+
+---
+
+# PHÂN CÔNG LỊCH SỬ — CHỈ THAM KHẢO, KHÔNG PHẢI TASK HIỆN HÀNH
 
 ## ĐỒ ÁN PRN232: HỆ THỐNG RAG TƯ VẤN PHÁP LUẬT GIAO THÔNG ĐƯỜNG BỘ
 
@@ -9,7 +52,7 @@
 ### 1. BẢO - DATABASE & AUTH REST API (BACKEND CORE)
 
 - **Database & Architecture:**
-  - Khởi tạo Database SQL Server (`ChatAIWebDb`), viết DbContext và Entity Classes (`User`, `LegalDocument`, `DocumentChunk`, `ChatSession`, `ChatMessage`, `Citation`, `ViolationLog`).
+  - Khởi tạo Database SQL Server (`ChatAIWebDb`), viết DbContext và Entity Classes (`User`, `LegalDocument`, `DocumentChunk`, `ChatSession`, `ChatMessage`, `Citation`).
   - Triển khai Repository Pattern (`DataAccess`) và Business Services (`BusinessLogic`) chuẩn 3-Layer Architecture theo `AGENTS.md`.
 - **Auth REST API Module:**
   - Xây dựng `Auth Controller`: Register, Login, Refresh Token, Profile.

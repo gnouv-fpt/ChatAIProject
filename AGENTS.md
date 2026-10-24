@@ -102,7 +102,9 @@ Forbidden: `BusinessObject → *`, `DataAccess → BusinessLogic/Presentation`, 
 
 SQL Server database `ChatAIWebDb`, EF Core **code-first migrations** (in `DataAccess/Migrations`). The API applies pending migrations on startup (`Database:MigrateOnStartup`).
 
-Tables: `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`, `ViolationLogs`, `UsageReports`.
+Tables: `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`.
+
+Teacher scope update (2026-10-22): no separate violation-log or usage-report tables. Keep moderation status on `ChatMessages`, operational details in file logs, and derive usage from messages/metrics.
 
 - Primary keys are `Guid`. Enums are stored as strings. All `DateTime` values are UTC (`DateTime.UtcNow`).
 - After changing entities or `ChatAIWebDbContext`, add a migration:
