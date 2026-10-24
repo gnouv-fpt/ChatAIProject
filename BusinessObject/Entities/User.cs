@@ -22,7 +22,5 @@ public class User
 
     public ICollection<ChatSession> ChatSessions { get; set; } = new List<ChatSession>();
 
-    public ICollection<ViolationLog> ViolationLogs { get; set; } = new List<ViolationLog>();
-
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

@@ -25,10 +25,6 @@ public class ChatAIWebDbContext : DbContext
 
     public DbSet<Citation> Citations => Set<Citation>();
 
-    public DbSet<ViolationLog> ViolationLogs => Set<ViolationLog>();
-
-    public DbSet<UsageReport> UsageReports => Set<UsageReport>();
-
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
         configurationBuilder.Properties<Enum>().HaveConversion<string>().HaveMaxLength(30);
@@ -117,24 +113,5 @@ public class ChatAIWebDbContext : DbContext
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
-        modelBuilder.Entity<ViolationLog>(entity =>
-        {
-            entity.Property(v => v.ViolationKeywords).HasMaxLength(1000);
-            entity.HasIndex(v => v.CreatedAt);
-            entity.HasOne(v => v.User)
-                .WithMany(u => u.ViolationLogs)
-                .HasForeignKey(v => v.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
-            // NoAction: a second cascade path from Users (via ChatSessions) is rejected by SQL Server.
-            entity.HasOne(v => v.ChatMessage)
-                .WithMany()
-                .HasForeignKey(v => v.ChatMessageId)
-                .OnDelete(DeleteBehavior.ClientSetNull);
-        });
-
-        modelBuilder.Entity<UsageReport>(entity =>
-        {
-            entity.HasIndex(r => r.ReportDate).IsUnique();
-        });
     }
 }

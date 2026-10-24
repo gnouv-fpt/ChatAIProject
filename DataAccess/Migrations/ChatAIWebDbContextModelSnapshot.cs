@@ -260,35 +260,6 @@ namespace DataAccess.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
-            modelBuilder.Entity("BusinessObject.Entities.UsageReport", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateOnly>("ReportDate")
-                        .HasColumnType("date");
-
-                    b.Property<int>("TotalQueries")
-                        .HasColumnType("int");
-
-                    b.Property<long>("TotalTokensUsed")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("TotalViolations")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReportDate")
-                        .IsUnique();
-
-                    b.ToTable("UsageReports");
-                });
-
             modelBuilder.Entity("BusinessObject.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -333,40 +304,6 @@ namespace DataAccess.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("BusinessObject.Entities.ViolationLog", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid?>("ChatMessageId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("NotifiedViaEmail")
-                        .HasColumnType("bit");
-
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("ViolationKeywords")
-                        .IsRequired()
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ChatMessageId");
-
-                    b.HasIndex("CreatedAt");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("ViolationLogs");
                 });
 
             modelBuilder.Entity("BusinessObject.Entities.ChatMessage", b =>
@@ -431,23 +368,6 @@ namespace DataAccess.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("BusinessObject.Entities.ViolationLog", b =>
-                {
-                    b.HasOne("BusinessObject.Entities.ChatMessage", "ChatMessage")
-                        .WithMany()
-                        .HasForeignKey("ChatMessageId");
-
-                    b.HasOne("BusinessObject.Entities.User", "User")
-                        .WithMany("ViolationLogs")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("ChatMessage");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("BusinessObject.Entities.ChatMessage", b =>
                 {
                     b.Navigation("Citations");
@@ -473,8 +393,6 @@ namespace DataAccess.Migrations
                     b.Navigation("ChatSessions");
 
                     b.Navigation("RefreshTokens");
-
-                    b.Navigation("ViolationLogs");
                 });
 #pragma warning restore 612, 618
         }
