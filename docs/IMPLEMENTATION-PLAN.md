@@ -2,6 +2,8 @@
 
 Ngày: 24/10/2026. Bản hiện hành cùng task.md, thay các bảng phân công rời trước đây. Scope đích gồm tư vấn luật, chat ảnh và học/luyện thi. Đây là plan code, chưa triển khai các module mới.
 
+**Trạng thái nền:** đã tạo PRN-dev local, ghép source hiện có từ các branch PRN và giữ scope 7 bảng/tài liệu. Build 0 warning/error; EF không pending model changes. Chưa push, chưa chạy API/Compose/apply migration. Task V01 đã hoàn thành phần ghép source ban đầu; các tính năng mới trong plan vẫn chưa code. Quy trình nhánh tại TEAM-GIT-WORKFLOW.md.
+
 ## 1. Nền source và quyết định chung
 
 - Dùng nền PRN-VUONG-dev đã có auth Bảo và snapshot Python/proto Khôi. Ghép Documents/crawler/cron của PRN-PHUC-dev, xử lý Program.cs và giữ các thay đổi scope 7 bảng đang chưa commit.
@@ -143,7 +145,7 @@ Owner API viết DTO/validation/controller/service/tests, repository owner Bảo
 
 Vision/bank/exam/UI có thể code từ P0 khi interfaces bản đầu thống nhất. Không chờ người khác làm xong cả module. Fixtures/stubs chỉ cho unit/contract test, demo phải dùng data/API thật. Không đưa thời hạn theo ngày khi chưa có lịch từng người.
 
-Trình tự ghép: nền tích hợp → contract/schema changes → từng lát cắt feature. Mỗi PR nhỏ, chỉ stage named paths; build/test bản ghép. Chưa thực hiện tạo nhánh/push/merge trong lần lập plan này. Tên branch đang có là điểm tham chiếu source, không mặc định branch khác chứa toàn bộ changes mới.
+Trình tự ghép: nền tích hợp → contract/schema changes → từng lát cắt feature. Mỗi PR nhỏ, chỉ stage named paths; build/test bản ghép. Nền PRN-dev đã được ghép/commit local sau bước lập plan; chưa push. Các nhánh cá nhân cần đồng bộ nền đã phát hành trước khi code tiếp. Không mặc định branch cá nhân đã chứa thay đổi mới.
 
 ## 12. Checklist nghiệm thu
 

@@ -115,14 +115,6 @@ builder.Services.AddGrpcClient<TrafficRagInference.TrafficRagInferenceClient>(o 
 });
 builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
 
-// ==================== gRPC Client ====================
-var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
-builder.Services.AddGrpcClient<TrafficRagInference.TrafficRagInferenceClient>(o =>
-{
-    o.Address = new Uri(grpcAddress);
-});
-builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
-
 var app = builder.Build();
 
 if (builder.Configuration.GetValue("Database:MigrateOnStartup", true))

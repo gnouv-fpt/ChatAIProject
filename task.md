@@ -2,6 +2,8 @@
 
 **Bản phân công chính bên dưới thay thế phân công lịch sử ở cuối file.** Scope gồm tư vấn luật, chat chữ/ảnh, học ngân hàng câu hỏi, chọn N câu, trộn đề, thi thử và tiến độ. Chi tiết task IDs/API/file ownership ở [IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md).
 
+**Nền code chung đã chọn: PRN-dev.** Đã ghép source Bảo/Khôi/Vương/Phúc trên branch local và kiểm tra build/EF model; cần push nền trước khi đồng đội dùng origin/PRN-dev. Mỗi người làm trên nhánh PRN cá nhân và PR về PRN-dev. Khánh dùng nhánh PRN-KHANH-dev tạo từ nền mới. Xem [TEAM-GIT-WORKFLOW.md](docs/TEAM-GIT-WORKFLOW.md).
+
 ## Phân công mới cho 5 người
 
 | Người | Module | Công việc còn phải code | Đầu ra |
@@ -35,7 +37,7 @@ Tái sử dụng các nhánh PRN đã có, không viết lại auth/chat/documen
 
 Mỗi người sửa controller/service/UI module mình, bàn giao DI extension cho người giữ host. Mỗi người instrument/test module mình; Vương tích hợp dashboard, không viết thay mọi telemetry/UI.
 
-Giữ 7 bảng core theo AGENTS.md; persistence học/thi/attachment là đề xuất mở rộng cần chốt trước migration, không nhét vào ChatMessages. Frontend đề xuất React/TypeScript tại web/, không đưa Razor Pages trở lại. Không tạo nhánh/merge/push/apply migration trong lần lập plan này.
+Giữ 7 bảng core theo AGENTS.md; persistence học/thi/attachment là đề xuất mở rộng cần chốt trước migration, không nhét vào ChatMessages. Frontend đề xuất React/TypeScript tại web/, không đưa Razor Pages trở lại. Đã tạo/ghép/commit nền PRN-dev local ở bước tích hợp tiếp theo; chưa push hoặc apply migration.
 
 Tài liệu chính: [IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md), [APP-FEATURES.md](docs/APP-FEATURES.md), [BRANCH-AUDIT-2026-10-24.md](docs/BRANCH-AUDIT-2026-10-24.md). Plan chưa có deadline vì chưa có thời gian rảnh của từng người.
 
