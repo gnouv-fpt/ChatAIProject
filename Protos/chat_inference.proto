@@ -6,8 +6,11 @@ option csharp_namespace = "BusinessLogic.Protos";
 
 service TrafficRagInference {
   rpc ProcessChatMessage (ChatInferenceRequest) returns (ChatInferenceResponse);
+  rpc ProcessImageChatMessage (ImageChatInferenceRequest) returns (ChatInferenceResponse);
   rpc VerifyLegalDocument (VerificationRequest) returns (VerificationResponse);
   rpc IndexDocument (IndexDocumentRequest) returns (IndexDocumentResponse);
+  rpc DeactivateDocument (DeactivateDocumentRequest) returns (DeactivateDocumentResponse);
+  rpc ExplainQuestion (ExplainQuestionRequest) returns (ExplainQuestionResponse);
 }
 
 message ChatInferenceRequest {
@@ -16,12 +19,23 @@ message ChatInferenceRequest {
   string prompt = 3;
 }
 
+message ImageChatInferenceRequest {
+  string user_id = 1;
+  string session_id = 2;
+  string prompt = 3;
+  string image_base64 = 4;
+  string mime_type = 5; // e.g. "image/jpeg", "image/png"
+}
+
 message CitationDto {
   string document_title = 1;
   string article_number = 2;
   string clause_number = 3;
   string source_url = 4;
   string excerpt = 5;
+  string chunk_id = 6;
+  string point_number = 7; // Điểm (ví dụ: Điểm a, Điểm b)
+  string document_version = 8;
 }
 
 message ChatInferenceResponse {
@@ -31,12 +45,15 @@ message ChatInferenceResponse {
   repeated string violation_keywords = 4;
   repeated CitationDto citations = 5;
   bool data_verified = 6;
+  bool requires_clarification = 7; // Trả về true nếu ảnh mờ/thiếu góc/cần hỏi thêm
 }
 
 message VerificationRequest {
   string document_title = 1;
   string document_number = 2;
   string content = 3;
+  string effective_date = 4;
+  string expiration_date = 5;
 }
 
 message VerificationResponse {
@@ -56,6 +73,8 @@ message DocumentChunkItem {
   string source_url = 8;
   bool is_verified = 9;
   bool is_active = 10;
+  string point = 11; // Điểm
+  string document_version = 12;
 }
 
 message IndexDocumentRequest {
@@ -67,3 +86,29 @@ message IndexDocumentResponse {
   int32 indexed_count = 2;
   string message = 3;
 }
+
+message DeactivateDocumentRequest {
+  string document_number = 1;
+  repeated string chunk_ids = 2;
+}
+
+message DeactivateDocumentResponse {
+  bool success = 1;
+  int32 updated_count = 2;
+  string message = 3;
+}
+
+message ExplainQuestionRequest {
+  string question_content = 1;
+  repeated string options = 2;
+  string correct_answer_key = 3;
+  string official_explanation = 4;
+}
+
+message ExplainQuestionResponse {
+  string explanation_text = 1;
+  repeated CitationDto citations = 2;
+  int32 tokens_used = 3;
+  bool data_verified = 4;
+}
+

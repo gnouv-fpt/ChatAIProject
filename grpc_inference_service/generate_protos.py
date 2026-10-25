@@ -4,11 +4,17 @@ import subprocess
 
 def compile_proto():
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    proto_dir = os.path.join(script_dir, "protos")
-    proto_file = os.path.join(proto_dir, "chat_inference.proto")
+    root_proto = os.path.abspath(os.path.join(script_dir, "..", "Protos", "chat_inference.proto"))
+    local_proto = os.path.join(script_dir, "protos", "chat_inference.proto")
 
-    if not os.path.exists(proto_file):
-        print(f"Error: {proto_file} not found!")
+    if os.path.exists(root_proto):
+        proto_file = root_proto
+        proto_dir = os.path.dirname(root_proto)
+    elif os.path.exists(local_proto):
+        proto_file = local_proto
+        proto_dir = os.path.dirname(local_proto)
+    else:
+        print(f"Error: chat_inference.proto not found in {root_proto} or {local_proto}!")
         return False
 
     cmd = [
