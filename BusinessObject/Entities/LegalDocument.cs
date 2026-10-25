@@ -28,5 +28,15 @@ public class LegalDocument
 
     public DateTime CreatedAt { get; set; }
 
+    // Incremented whenever verified content changes; citations and index jobs carry it.
+    public int Version { get; set; } = 1;
+
+    public string? ContentHash { get; set; }
+
+    // Pending document-updated-events outbox entry, written in the same transaction as the change.
+    public string? EventPayload { get; set; }
+
+    public DateTime? EventPublishedAt { get; set; }
+
     public ICollection<DocumentChunk> Chunks { get; set; } = new List<DocumentChunk>();
 }

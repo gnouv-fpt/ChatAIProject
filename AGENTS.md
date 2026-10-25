@@ -104,6 +104,8 @@ SQL Server database `ChatAIWebDb`, EF Core **code-first migrations** (in `DataAc
 
 Tables: `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`.
 
+Learning/attachment extension (migration `LearningAndAttachments`, pending teacher confirmation): `QuestionBanks`, `Questions`, `ExamTemplates`, `LearningAttempts`, `AttemptAnswers`, `QuestionBookmarks`, `ChatAttachments`. Decisions, ERD and quota state machine: `docs/BAO-DATA-DESIGN.md`.
+
 Teacher scope update (2026-10-22): no separate violation-log or usage-report tables. Keep moderation status on `ChatMessages`, operational details in file logs, and derive usage from messages/metrics.
 
 - Primary keys are `Guid`. Enums are stored as strings. All `DateTime` values are UTC (`DateTime.UtcNow`).

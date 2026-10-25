@@ -22,6 +22,115 @@ namespace DataAccess.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("BusinessObject.Entities.AttemptAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("AnsweredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("AttemptId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CorrectOptionIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool?>("IsCorrect")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsFlagged")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("OptionOrder")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Position")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SelectedOptionIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("AttemptId", "Position")
+                        .IsUnique();
+
+                    b.HasIndex("AttemptId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("AttemptAnswers", t =>
+                        {
+                            t.HasCheckConstraint("CK_AttemptAnswers_Position", "[Position] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.ChatAttachment", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Sha256")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StorageKey")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasFilter("[DeletedAt] IS NULL");
+
+                    b.HasIndex("SessionId");
+
+                    b.HasIndex("StorageKey")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "DeletedAt");
+
+                    b.ToTable("ChatAttachments", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChatAttachments_Size", "[SizeBytes] > 0");
+                        });
+                });
+
             modelBuilder.Entity("BusinessObject.Entities.ChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
@@ -87,13 +196,28 @@ namespace DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_ChatMessages_UnpublishedEvents")
+                        .HasFilter("[EventPayload] IS NOT NULL AND [EventPublishedAt] IS NULL");
+
                     b.HasIndex("SessionId", "CreatedAt");
 
                     b.HasIndex("SessionId", "RequestId")
                         .IsUnique()
                         .HasFilter("[RequestId] IS NOT NULL");
 
-                    b.ToTable("ChatMessages");
+                    b.HasIndex("TurnState", "LeaseExpiresAt")
+                        .HasDatabaseName("IX_ChatMessages_OpenReservations")
+                        .HasFilter("[QuotaSettledAt] IS NULL AND [ReservedTokens] > 0");
+
+                    b.ToTable("ChatMessages", t =>
+                        {
+                            t.HasCheckConstraint("CK_ChatMessages_Request", "[RequestId] IS NULL OR [RequestHash] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_ChatMessages_Tokens", "[TokensUsed] >= 0 AND [ReservedTokens] >= 0");
+
+                            t.HasCheckConstraint("CK_ChatMessages_TurnState", "[TurnState] IS NULL OR [TurnState] IN ('Processing', 'Completed', 'Failed')");
+                        });
                 });
 
             modelBuilder.Entity("BusinessObject.Entities.ChatSession", b =>
@@ -220,11 +344,175 @@ namespace DataAccess.Migrations
                     b.ToTable("DocumentChunks");
                 });
 
+            modelBuilder.Entity("BusinessObject.Entities.ExamTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BankId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("FailOnCriticalWrong")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("FixedQuestionIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<int>("PassingScore")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuestionCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("TopicDistribution")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankId", "Code")
+                        .IsUnique();
+
+                    b.ToTable("ExamTemplates", t =>
+                        {
+                            t.HasCheckConstraint("CK_ExamTemplates_Duration", "[DurationMinutes] >= 1");
+
+                            t.HasCheckConstraint("CK_ExamTemplates_PassingScore", "[PassingScore] >= 0 AND [PassingScore] <= [QuestionCount]");
+
+                            t.HasCheckConstraint("CK_ExamTemplates_QuestionCount", "[QuestionCount] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.LearningAttempt", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("BankId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("CorrectCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeadlineAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ExamTemplateId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FailReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool?>("IsPassed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Mode")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("ProfileSnapshot")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("QuestionCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<int?>("Score")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Seed")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SelectionCriteria")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<Guid?>("SubmitRequestId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int?>("UnansweredCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("WrongCount")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankId");
+
+                    b.HasIndex("DeadlineAt")
+                        .HasFilter("[Status] = 'InProgress' AND [DeadlineAt] IS NOT NULL");
+
+                    b.HasIndex("ExamTemplateId");
+
+                    b.HasIndex("UserId", "StartedAt");
+
+                    b.HasIndex("UserId", "BankId", "Status");
+
+                    b.ToTable("LearningAttempts", t =>
+                        {
+                            t.HasCheckConstraint("CK_LearningAttempts_ExamDeadline", "[Mode] <> 'Exam' OR [DeadlineAt] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_LearningAttempts_Graded", "[Status] IN ('InProgress', 'Abandoned') OR [SubmittedAt] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_LearningAttempts_QuestionCount", "[QuestionCount] >= 1");
+                        });
+                });
+
             modelBuilder.Entity("BusinessObject.Entities.LegalDocument", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ContentHash")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -240,6 +528,12 @@ namespace DataAccess.Migrations
                         .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime?>("EffectiveDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventPayload")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EventPublishedAt")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("ExpirationDate")
@@ -269,14 +563,193 @@ namespace DataAccess.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
+                    b.Property<int>("Version")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_LegalDocuments_UnpublishedEvents")
+                        .HasFilter("[EventPayload] IS NOT NULL AND [EventPublishedAt] IS NULL");
 
                     b.HasIndex("DocumentNumber")
                         .IsUnique();
 
                     b.HasIndex("IsActive", "VerificationStatus");
 
-                    b.ToTable("LegalDocuments");
+                    b.ToTable("LegalDocuments", t =>
+                        {
+                            t.HasCheckConstraint("CK_LegalDocuments_Version", "[Version] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.Question", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("AllowOptionShuffle")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("BankId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ContentHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("CorrectOptionIds")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Explanation")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExternalId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("ImagePath")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsCritical")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LegalReference")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BankId", "ExternalId")
+                        .IsUnique();
+
+                    b.HasIndex("BankId", "Number")
+                        .IsUnique();
+
+                    b.HasIndex("BankId", "Topic");
+
+                    b.ToTable("Questions", t =>
+                        {
+                            t.HasCheckConstraint("CK_Questions_Number", "[Number] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBank", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("LicenseClass")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("ManifestHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime?>("PublishedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("QuestionCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("RetiredAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SourceName")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("SourceUrl")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<int>("Version")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Status");
+
+                    b.HasIndex("Code", "Version")
+                        .IsUnique();
+
+                    b.ToTable("QuestionBanks", t =>
+                        {
+                            t.HasCheckConstraint("CK_QuestionBanks_Published", "[Status] <> 'Published' OR [PublishedAt] IS NOT NULL");
+
+                            t.HasCheckConstraint("CK_QuestionBanks_QuestionCount", "[QuestionCount] >= 0");
+
+                            t.HasCheckConstraint("CK_QuestionBanks_Version", "[Version] >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBookmark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuestionId");
+
+                    b.HasIndex("UserId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("QuestionBookmarks");
                 });
 
             modelBuilder.Entity("BusinessObject.Entities.RefreshToken", b =>
@@ -355,7 +828,50 @@ namespace DataAccess.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", t =>
+                        {
+                            t.HasCheckConstraint("CK_Users_TokenBalance", "[TokenBalance] >= 0");
+
+                            t.HasCheckConstraint("CK_Users_TokenQuota", "[TokenQuota] >= 0");
+                        });
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.AttemptAnswer", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.LearningAttempt", "Attempt")
+                        .WithMany("Answers")
+                        .HasForeignKey("AttemptId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Attempt");
+
+                    b.Navigation("Question");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.ChatAttachment", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.ChatSession", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Session");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("BusinessObject.Entities.ChatMessage", b =>
@@ -409,6 +925,104 @@ namespace DataAccess.Migrations
                     b.Navigation("Document");
                 });
 
+            modelBuilder.Entity("BusinessObject.Entities.ExamTemplate", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.QuestionBank", "Bank")
+                        .WithMany("ExamTemplates")
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bank");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.LearningAttempt", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.QuestionBank", "Bank")
+                        .WithMany()
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Entities.ExamTemplate", "ExamTemplate")
+                        .WithMany()
+                        .HasForeignKey("ExamTemplateId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("BusinessObject.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Bank");
+
+                    b.Navigation("ExamTemplate");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.Question", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.QuestionBank", "Bank")
+                        .WithMany("Questions")
+                        .HasForeignKey("BankId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.OwnsMany("BusinessObject.Entities.QuestionOption", "Options", b1 =>
+                        {
+                            b1.Property<Guid>("QuestionId")
+                                .HasColumnType("uniqueidentifier");
+
+                            b1.Property<int>("Id")
+                                .ValueGeneratedOnAdd()
+                                .HasColumnType("int");
+
+                            b1.Property<string>("OptionId")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasAnnotation("Relational:JsonPropertyName", "id");
+
+                            b1.Property<string>("Text")
+                                .IsRequired()
+                                .HasColumnType("nvarchar(max)")
+                                .HasAnnotation("Relational:JsonPropertyName", "text");
+
+                            b1.HasKey("QuestionId", "Id");
+
+                            b1.ToTable("Questions");
+
+                            b1.ToJson("Options");
+
+                            b1.WithOwner()
+                                .HasForeignKey("QuestionId");
+                        });
+
+                    b.Navigation("Bank");
+
+                    b.Navigation("Options");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBookmark", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.Question", "Question")
+                        .WithMany()
+                        .HasForeignKey("QuestionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BusinessObject.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Question");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("BusinessObject.Entities.RefreshToken", b =>
                 {
                     b.HasOne("BusinessObject.Entities.User", "User")
@@ -435,9 +1049,21 @@ namespace DataAccess.Migrations
                     b.Navigation("Citations");
                 });
 
+            modelBuilder.Entity("BusinessObject.Entities.LearningAttempt", b =>
+                {
+                    b.Navigation("Answers");
+                });
+
             modelBuilder.Entity("BusinessObject.Entities.LegalDocument", b =>
                 {
                     b.Navigation("Chunks");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBank", b =>
+                {
+                    b.Navigation("ExamTemplates");
+
+                    b.Navigation("Questions");
                 });
 
             modelBuilder.Entity("BusinessObject.Entities.User", b =>
