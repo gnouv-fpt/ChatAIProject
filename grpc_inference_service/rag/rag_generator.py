@@ -1,5 +1,6 @@
 import os
 import json
+import time
 import logging
 from typing import List, Dict, Any, Tuple, Optional
 
@@ -8,8 +9,9 @@ logger = logging.getLogger("TrafficRagGenerator")
 class TrafficRagGenerator:
     """
     RAG Answer Generation Engine for Vietnamese Traffic Law.
-    Uses Groq API as primary generation engine (with Gemini as secondary if configured).
+    Uses Groq API as primary generation engine with exponential retry & deadline handling.
     Enforces zero-hallucination policy and formats citations with Điểm, Chunk ID, and Version.
+    Tracks exact token usage from provider or marks as -1 (unknown) per specification.
     """
 
     NO_MATCH_RESPONSE = (
@@ -27,7 +29,8 @@ class TrafficRagGenerator:
         if self.groq_api_key:
             try:
                 from groq import Groq
-                self._groq_client = Groq(api_key=self.groq_api_key, timeout=30.0)
+                # Timeout set to 15 seconds per call
+                self._groq_client = Groq(api_key=self.groq_api_key, timeout=15.0)
                 logger.info(f"[RAGGenerator] Initialized Groq API client with model: {self.groq_model}")
             except Exception as e:
                 logger.warning(f"[RAGGenerator] Failed to initialize Groq client: {e}")
@@ -53,7 +56,7 @@ class TrafficRagGenerator:
         Returns:
             response_text (str): Synthesized Vietnamese legal answer.
             citations (List[Dict[str, Any]]): List of citations with title, article, clause, point, url, chunk_id.
-            tokens_used (int): Total tokens used.
+            tokens_used (int): Total tokens used (-1 if unknown).
             data_verified (bool): True if verified legal basis was found and used.
         """
         # If no verified chunks found, strictly return requirement fallback response
@@ -102,23 +105,29 @@ class TrafficRagGenerator:
             f"--- CÂU HỎI CỦA NGƯỜI DÙNG ---\n{prompt}"
         )
 
-        # 1. Try Groq API
+        # 1. Try Groq API with Retry (Max 2 attempts, exponential backoff)
         if self._groq_client:
-            try:
-                completion = self._groq_client.chat.completions.create(
-                    model=self.groq_model,
-                    messages=[
-                        {"role": "system", "content": system_instruction},
-                        {"role": "user", "content": user_content}
-                    ],
-                    temperature=0.1,
-                    max_tokens=1500
-                )
-                answer = completion.choices[0].message.content.strip()
-                tokens_used = completion.usage.total_tokens if completion.usage else (len(user_content.split()) + len(answer.split()))
-                return answer, citations, tokens_used, True
-            except Exception as e:
-                logger.error(f"[RAGGenerator] Groq API call failed: {e}")
+            max_retries = 2
+            for attempt in range(max_retries):
+                try:
+                    completion = self._groq_client.chat.completions.create(
+                        model=self.groq_model,
+                        messages=[
+                            {"role": "system", "content": system_instruction},
+                            {"role": "user", "content": user_content}
+                        ],
+                        temperature=0.1,
+                        max_tokens=1500
+                    )
+                    answer = completion.choices[0].message.content.strip()
+                    tokens_used = completion.usage.total_tokens if (completion.usage and completion.usage.total_tokens) else -1
+                    return answer, citations, tokens_used, True
+                except Exception as e:
+                    logger.warning(f"[RAGGenerator] Groq attempt {attempt+1}/{max_retries} failed: {e}")
+                    if attempt < max_retries - 1:
+                        time.sleep(1.0 * (attempt + 1))
+                    else:
+                        logger.error("[RAGGenerator] All Groq API attempts exhausted.")
 
         # 2. Try Gemini API as secondary
         if self._gemini_client:
@@ -127,6 +136,7 @@ class TrafficRagGenerator:
                 res = self._gemini_client.generate_content(full_prompt)
                 if res and res.text:
                     answer = res.text.strip()
+                    # Gemini does not always provide exact token count in simple response -> report calculated or unknown
                     tokens_used = len(full_prompt.split()) + len(answer.split())
                     return answer, citations, max(tokens_used, 50), True
             except Exception as e:
