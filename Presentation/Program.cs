@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Presentation.BackgroundJobs;
+using Presentation.Extensions;
 using Presentation.Middleware;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -123,6 +124,7 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddAccountLearningModule(builder.Configuration);
 // Preserve Phuc's current scheduler until the Worker host takes ownership.
 if (builder.Configuration.GetValue("Jobs:EnableLegacyMidnight", true))
     builder.Services.AddHostedService<MidnightCleanupJob>();
