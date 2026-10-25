@@ -1,0 +1,26 @@
+.account-page{flex:1;min-width:0;overflow-y:auto;padding:48px 56px;background:#fffefa}
+.account-header h1{font-size:28px;font-weight:500;letter-spacing:-1px;margin:16px 0 8px}
+.account-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:18px;margin:28px 0 18px}
+.account-card{border:1px solid #e4e9dd;border-radius:12px;padding:22px 24px;background:#fff}
+.account-card h2{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;margin:0 0 18px;color:#2f4d40}
+.account-card h2 small{margin-left:auto;font-weight:400;color:#93a08a;font-size:10px}
+.account-facts{display:grid;grid-template-columns:120px 1fr;gap:14px;font-size:12px;margin:0}
+.account-facts dt{color:#8b9881}.account-facts dd{margin:0;overflow-wrap:anywhere}
+.account-loading{display:flex;align-items:center;gap:8px}
+.quota-figure{display:flex;align-items:baseline;gap:8px}.quota-figure strong{font-size:28px;font-weight:600;letter-spacing:-1px;color:#1e5547}.quota-figure span{color:#8b9881;font-size:11px}
+.quota-meter{display:flex;height:10px;border-radius:6px;background:#edf1e8;overflow:hidden;margin:16px 0 12px}
+.quota-meter .quota-used{background:#1e5547}.quota-meter .quota-held{background:#c7a85b}
+.quota-legend{list-style:none;display:flex;flex-wrap:wrap;gap:14px;padding:0;margin:0;font-size:11px;color:#6c7b62}
+.quota-legend li{display:flex;align-items:center;gap:6px}.quota-legend i{width:9px;height:9px;border-radius:3px;background:#edf1e8;display:inline-block}
+.quota-legend i.quota-used{background:#1e5547}.quota-legend i.quota-held{background:#c7a85b}
+.usage{margin-bottom:18px}
+.usage-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px;margin-bottom:22px}
+.usage-stat{background:#f5f7f1;border-radius:9px;padding:12px 14px}.usage-stat span{display:flex;align-items:center;gap:6px;font-size:10px;color:#7c8b74}.usage-stat strong{display:block;font-size:18px;font-weight:600;margin-top:6px;color:#243b35}
+.usage-chart{display:flex;align-items:flex-end;gap:3px;height:110px;border-bottom:1px solid #e4e9dd}
+.usage-chart span{flex:1;background:#7fa58f;border-radius:3px 3px 0 0;min-width:2px}.usage-chart span.empty{background:#e7ece2}
+.usage-axis{display:flex;justify-content:space-between;font-size:9px;color:#9aa598;margin-top:6px}
+.usage-table{width:100%;border-collapse:collapse;margin-top:20px;font-size:12px}
+.usage-table th{text-align:left;font-weight:500;color:#8b9881;font-size:10px;padding:8px 6px;border-bottom:1px solid #e4e9dd}
+.usage-table td{padding:10px 6px;border-bottom:1px solid #f0f3ec}.usage-table td:not(:first-child),.usage-table th:not(:first-child){text-align:right}
+@media(max-width:800px){.account-page{padding:28px 22px}.account-facts{grid-template-columns:1fr;gap:4px}.account-facts dd{margin-bottom:10px}}
+@media(max-width:600px){.account-page{padding:20px 14px}.usage-stats{grid-template-columns:1fr 1fr}.account-header h1{font-size:22px}.account-card{padding:18px 16px}}
