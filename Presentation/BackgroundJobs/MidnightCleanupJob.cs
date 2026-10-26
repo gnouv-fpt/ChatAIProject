@@ -1,76 +1,30 @@
-using BusinessObject.Enums;
-using DataAccess;
-using Microsoft.EntityFrameworkCore;
+using BusinessLogic.Services.Interfaces;
 
 namespace Presentation.BackgroundJobs;
 
-public sealed class MidnightCleanupJob : BackgroundService
+// Temporary host until H03 Worker takes ownership. Replays idempotent expiry on startup.
+public sealed class MidnightCleanupJob(IServiceScopeFactory scopes, ILogger<MidnightCleanupJob> logger) : BackgroundService
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger<MidnightCleanupJob> _logger;
-
-    public MidnightCleanupJob(IServiceProvider serviceProvider, ILogger<MidnightCleanupJob> logger)
-    {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
-    }
-
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        try
+        var zone = TimeZoneInfo.FindSystemTimeZoneById(OperatingSystem.IsWindows() ? "SE Asia Standard Time" : "Asia/Ho_Chi_Minh");
+        while (!stoppingToken.IsCancellationRequested)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            try
             {
-                var now = DateTime.Now;
-                var nextRun = DateTime.Today.AddDays(1);
-                var delay = nextRun - now;
-
-                _logger.LogInformation("Midnight Job hẹn giờ chạy sau: {Delay}", delay);
-                await Task.Delay(delay, stoppingToken);
-                await RunCleanupAsync(stoppingToken);
+                using var scope = scopes.CreateScope();
+                await scope.ServiceProvider.GetRequiredService<IContentMaintenanceService>().RunAsync(stoppingToken);
+                var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zone);
+                var next = TimeZoneInfo.ConvertTimeToUtc(local.Date.AddDays(1), zone);
+                await Task.Delay(next - DateTime.UtcNow, stoppingToken);
             }
-        }
-        catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Midnight Job đã dừng.");
-        }
-    }
-
-    private async Task RunCleanupAsync(CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var scope = _serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ChatAIWebDbContext>();
-            var now = DateTime.UtcNow;
-
-            var expiredDocuments = await db.LegalDocuments
-                .Where(document => document.IsActive &&
-                    document.ExpirationDate != null &&
-                    document.ExpirationDate <= now)
-                .ToListAsync(cancellationToken);
-
-            foreach (var document in expiredDocuments)
+            catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
+            catch (Exception exception)
             {
-                document.IsActive = false;
-                document.VerificationStatus = VerificationStatus.Outdated;
+                logger.LogError(exception, "Content maintenance failed; retrying in one minute");
+                try { await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken); }
+                catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested) { break; }
             }
-
-            var emptySessions = await db.ChatSessions
-                .Where(session => !session.Messages.Any() && session.CreatedAt < now.AddDays(-1))
-                .ToListAsync(cancellationToken);
-
-            db.ChatSessions.RemoveRange(emptySessions);
-            await db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Midnight Job hoàn thành quét hiệu lực và dọn session.");
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (Exception exception)
-        {
-            _logger.LogError(exception, "Lỗi xảy ra trong Midnight Cron Job");
         }
     }
 }

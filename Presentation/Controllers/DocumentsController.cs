@@ -1,5 +1,6 @@
 using BusinessLogic.DTOs;
 using BusinessLogic.Services.Interfaces;
+using BusinessObject.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,9 +11,9 @@ namespace Presentation.Controllers;
 public sealed class DocumentsController : ControllerBase
 {
     private readonly IDocumentService _documentService;
-    private readonly ICrawlerService _crawlerService;
+    private readonly ICrawlJobService _crawlerService;
 
-    public DocumentsController(IDocumentService documentService, ICrawlerService crawlerService)
+    public DocumentsController(IDocumentService documentService, ICrawlJobService crawlerService)
     {
         _documentService = documentService;
         _crawlerService = crawlerService;
@@ -35,10 +36,9 @@ public sealed class DocumentsController : ControllerBase
     }
 
     [HttpPost("crawl-trigger")]
-    [Authorize(Roles = "Admin")]
+    [Authorize(Roles = nameof(UserRole.Admin))]
     public async Task<IActionResult> TriggerCrawl(CancellationToken cancellationToken)
     {
-        await _crawlerService.CrawlTrafficLawsAsync(cancellationToken);
-        return Accepted(new { message = "Tiến trình cào dữ liệu đã được kích hoạt." });
+        return Ok(await _crawlerService.RunAsync(cancellationToken));
     }
 }

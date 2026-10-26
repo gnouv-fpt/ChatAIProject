@@ -367,3 +367,7 @@ Uploads
 
 # Python virtual environment
 python_services/.venv/
+
+# Private imported content packages and publication markers
+**/App_Data/
+web/dist/
