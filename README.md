@@ -1,5 +1,7 @@
 # Feedback UI/UX — cập nhật 27/10/2026
 
+**Design system một trang:** [Figma](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558) · [PDF](output/pdf/FLM-Design-System-One-Page.pdf) · [Nội dung và kiểm tra](design/design-system-one-page.md).
+
 Nhánh chung phát triển Lab 3: `PRM-Lab3-integration`. Đã thêm hành trình học trên Home, đồng bộ theme/thông báo bảng điểm, chặn lưu thiếu tín chỉ ảnh hưởng GPA, cập nhật Figma Home/component states/mapping và nhịp loading. Xem [kết quả, giới hạn và phiếu UI/UX test chung](docs/ux-feedback-validation.md). Analyzer sạch, 50 unit/widget tests pass; đây chưa phải nghiệm thu Lab 3, ARTEMIS hoặc user test. [Cách chạy và các việc Lab 3 còn mở](docs/team-handoff.md).
 
 ---
