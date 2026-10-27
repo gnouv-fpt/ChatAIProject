@@ -1,5 +1,16 @@
 # Development verification — 21/10/2026
 
+## Feedback UI/UX — 27/10/2026
+
+- `flutter analyze`: No issues found.
+- Backend grade-import unittest: 5/5 pass (mock, không có live OCR/Groq call).
+- `flutter test --exclude-tags live`: 50 pass, gồm counts không trùng, nợ môn đã trả, thiếu tín chỉ OCR, flow tiên quyết 360/412 dp và journey/empty/confirm + Home text scale 1.3.
+- `flutter build apk --debug`: thành công từ source cuối, Gradle 13,5 giây; cảnh báo tương thích KGP/SDK không làm build fail.
+- Ảnh fixture bằng renderer Flutter thật: `evidence/ux/2026-10-27/`; ảnh canvas Figma thật: `design/evidence/2026-10-27/`. [Phạm vi và cách tái hiện](ux-feedback-validation.md).
+- Chưa có user test/ARTEMIS hoặc live Google/Firestore mới; không đổi trạng thái các gap cũ thành pass.
+
+Các mục tiếp theo giữ lại lịch sử kiểm tra trước lượt này.
+
 Đây là kết quả developer checks, không phải ARTEMIS hoặc chứng nhận cloud.
 
 | Lệnh | Kết quả đã quan sát |

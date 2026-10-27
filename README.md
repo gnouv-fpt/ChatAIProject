@@ -1,4 +1,10 @@
-﻿# ChatAIWeb
+# Feedback UI/UX — cập nhật 27/10/2026
+
+Nhánh chung phát triển Lab 3: `PRM-Lab3-integration`. Đã thêm hành trình học trên Home, đồng bộ theme/thông báo bảng điểm, chặn lưu thiếu tín chỉ ảnh hưởng GPA, cập nhật Figma Home/component states/mapping và nhịp loading. Xem [kết quả, giới hạn và phiếu UI/UX test chung](docs/ux-feedback-validation.md). Analyzer sạch, 50 unit/widget tests pass; đây chưa phải nghiệm thu Lab 3, ARTEMIS hoặc user test. [Cách chạy và các việc Lab 3 còn mở](docs/team-handoff.md).
+
+---
+
+# ChatAIWeb
 
 ChatAIWeb is an ASP.NET Core Razor Pages application that provides a RAG chatbot for Vietnamese study materials. The system lets Admins/Teachers upload PDF, DOCX, and PPTX files, split the content into chunks, generate embeddings, retrieve relevant context, and produce answers with source citations.
 
@@ -781,13 +787,16 @@ Phạm vi thiết kế: sinh viên FPT có bảng điểm từng phần cần bi
 
 | Artefact Lab 2 | Vị trí | Trạng thái |
 | --- | --- | --- |
-| Proto-persona và vấn đề | [`ux/persona.md`](ux/persona.md) | Có; giả định, chưa phỏng vấn sinh viên |
+| Persona và vấn đề | [`ux/persona.md`](ux/persona.md) | Đã cập nhật theo 4 slide người dùng cung cấp ngày 21/10; P01 Hoàng Nam ưu tiên desktop; chưa có hồ sơ nghiên cứu |
 | IA, ba user flow và bảng flow→screen | [`ux/user-flow.md`](ux/user-flow.md) | Có; dựa trên source Flutter |
-| Design brief và token | [`design/DESIGN.md`](design/DESIGN.md) | Có; cần đưa thành Variables/Styles trong Figma |
+| Design brief và token | [`design/DESIGN.md`](design/DESIGN.md) | Đã đồng bộ foundation Figma ngày 21/10: 36 variable, 5 text style; toàn bộ màn hình chưa đồng bộ |
 | Screen spec tám đích | [`design/screen-spec.md`](design/screen-spec.md) | Có; Figma Final UI chưa xác minh |
 | Quyết định và accessibility | [`design/design-decisions.md`](design/design-decisions.md) | Có; đo contrast/tap target/bố cục còn mở |
 | AI log | [`ai/ai-design-log.md`](ai/ai-design-log.md) | Có critique trên source; chưa có prompt/ảnh Stitch và ba vòng lặp |
 | Flutter handoff | [`handoff/flutter-handoff.md`](handoff/flutter-handoff.md) | Có sáu mục mỗi màn và hai bảng mapping |
-| Figma | Chưa có URL được xác minh | Cần sáu page đúng thứ tự, ≥8 frame 360×800, component variants, ba prototype flow |
+| Figma | [FLM Student Assistant](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant) | Đã đọc/chỉnh bằng MCP; Starter chặn page thứ tư, hiện 3 page và section 04–06; chưa đạt tiêu chí sáu page |
+| Component nền đã sửa | [Button/Text field](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=52-19), [7 nhóm còn lại](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=55-17) | 9 family/30 variants trong thư viện; có review instance và ảnh thật. Còn áp dụng vào màn và kiểm prototype |
+
+Chi tiết lượt sửa Figma 21/10, ảnh thật và các phần còn mở: [`design/figma-progress-2026-10-21.md`](design/figma-progress-2026-10-21.md). Đây là tiến độ từng phần, không phải xác nhận Lab 2 hoàn tất.
 
 Bộ yêu cầu áp dụng: [PRM393 UI/UX Material](https://prm393-material.web.app/) và [đề PRM323 Lab 2](https://prm393-material.web.app/docs/PRM323-Lab2-Thiet-ke-UIUX-co-ho-tro-AI.pdf). Đề gốc yêu cầu nộp một repo tên `prm323-lab2-<student-id>` và link Figma ai có link đều xem được; repository hiện tại chưa phải gói nộp riêng đó. Đề **không yêu cầu viết Flutter code** cho Lab 2; code tại đây phục vụ sản phẩm FLM đang phát triển, còn bằng chứng thiết kế phải được hoàn thành riêng.

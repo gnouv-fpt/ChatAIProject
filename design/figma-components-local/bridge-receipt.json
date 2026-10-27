@@ -1,0 +1,363 @@
+{
+  "fileKey": "N3LyPn9HWDC0M34lVR5jCC",
+  "bridgeSession": "session-mvi1vyz2-h6d6o1",
+  "phase": "created_and_verified",
+  "date": "2026-10-21",
+  "sourceFrameId": "55:16",
+  "reviewFrameId": "55:17",
+  "sets": [
+    {
+      "id": "55:349",
+      "name": "FLM/Card",
+      "variantProperties": {
+        "State": {
+          "values": [
+            "Default",
+            "Pressed",
+            "Selected",
+            "Disabled"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:18",
+          "name": "State=Default",
+          "width": 360,
+          "height": 114
+        },
+        {
+          "id": "55:19",
+          "name": "State=Pressed",
+          "width": 360,
+          "height": 114
+        },
+        {
+          "id": "55:20",
+          "name": "State=Selected",
+          "width": 360,
+          "height": 114
+        },
+        {
+          "id": "55:21",
+          "name": "State=Disabled",
+          "width": 360,
+          "height": 114
+        }
+      ]
+    },
+    {
+      "id": "55:350",
+      "name": "FLM/Navigation",
+      "variantProperties": {
+        "Active": {
+          "values": [
+            "Home",
+            "Roadmap",
+            "Assistant",
+            "Transcript",
+            "Settings"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:22",
+          "name": "Active=Home",
+          "width": 360,
+          "height": 80
+        },
+        {
+          "id": "55:23",
+          "name": "Active=Roadmap",
+          "width": 360,
+          "height": 80
+        },
+        {
+          "id": "55:24",
+          "name": "Active=Assistant",
+          "width": 360,
+          "height": 80
+        },
+        {
+          "id": "55:25",
+          "name": "Active=Transcript",
+          "width": 360,
+          "height": 80
+        },
+        {
+          "id": "55:26",
+          "name": "Active=Settings",
+          "width": 360,
+          "height": 80
+        }
+      ]
+    },
+    {
+      "id": "55:351",
+      "name": "FLM/App bar",
+      "variantProperties": {
+        "Variant": {
+          "values": [
+            "Root",
+            "Back"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:27",
+          "name": "Variant=Root",
+          "width": 360,
+          "height": 64
+        },
+        {
+          "id": "55:28",
+          "name": "Variant=Back",
+          "width": 360,
+          "height": 64
+        }
+      ]
+    },
+    {
+      "id": "55:352",
+      "name": "FLM/Dialog",
+      "variantProperties": {
+        "Variant": {
+          "values": [
+            "Confirm",
+            "Error"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:29",
+          "name": "Variant=Confirm",
+          "width": 320,
+          "height": 170
+        },
+        {
+          "id": "55:30",
+          "name": "Variant=Error",
+          "width": 320,
+          "height": 170
+        }
+      ]
+    },
+    {
+      "id": "55:353",
+      "name": "FLM/Loading",
+      "variantProperties": {
+        "Variant": {
+          "values": [
+            "Inline",
+            "Screen"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:31",
+          "name": "Variant=Inline",
+          "width": 360,
+          "height": 56
+        },
+        {
+          "id": "55:32",
+          "name": "Variant=Screen",
+          "width": 360,
+          "height": 102
+        }
+      ]
+    },
+    {
+      "id": "55:354",
+      "name": "FLM/Empty",
+      "variantProperties": {
+        "Variant": {
+          "values": [
+            "Search",
+            "Transcript"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:33",
+          "name": "Variant=Search",
+          "width": 360,
+          "height": 210
+        },
+        {
+          "id": "55:34",
+          "name": "Variant=Transcript",
+          "width": 360,
+          "height": 210
+        }
+      ]
+    },
+    {
+      "id": "55:355",
+      "name": "FLM/Error",
+      "variantProperties": {
+        "Variant": {
+          "values": [
+            "Network",
+            "Quota",
+            "Import"
+          ]
+        }
+      },
+      "variants": [
+        {
+          "id": "55:35",
+          "name": "Variant=Network",
+          "width": 360,
+          "height": 210
+        },
+        {
+          "id": "55:36",
+          "name": "Variant=Quota",
+          "width": 360,
+          "height": 210
+        },
+        {
+          "id": "55:37",
+          "name": "Variant=Import",
+          "width": 360,
+          "height": 210
+        }
+      ]
+    }
+  ],
+  "reviewInstances": [
+    {
+      "ref": "tmp:inst0_0",
+      "id": "55:359"
+    },
+    {
+      "ref": "tmp:inst0_1",
+      "id": "55:364"
+    },
+    {
+      "ref": "tmp:inst0_2",
+      "id": "55:369"
+    },
+    {
+      "ref": "tmp:inst0_3",
+      "id": "55:375"
+    },
+    {
+      "ref": "tmp:inst1_0",
+      "id": "55:383"
+    },
+    {
+      "ref": "tmp:inst1_1",
+      "id": "55:422"
+    },
+    {
+      "ref": "tmp:inst1_2",
+      "id": "55:461"
+    },
+    {
+      "ref": "tmp:inst1_3",
+      "id": "55:503"
+    },
+    {
+      "ref": "tmp:inst1_4",
+      "id": "55:544"
+    },
+    {
+      "ref": "tmp:inst2_0",
+      "id": "55:588"
+    },
+    {
+      "ref": "tmp:inst2_1",
+      "id": "55:596"
+    },
+    {
+      "ref": "tmp:inst3_0",
+      "id": "55:611"
+    },
+    {
+      "ref": "tmp:inst3_1",
+      "id": "55:620"
+    },
+    {
+      "ref": "tmp:inst4_0",
+      "id": "55:632"
+    },
+    {
+      "ref": "tmp:inst4_1",
+      "id": "55:637"
+    },
+    {
+      "ref": "tmp:inst5_0",
+      "id": "55:645"
+    },
+    {
+      "ref": "tmp:inst5_1",
+      "id": "55:655"
+    },
+    {
+      "ref": "tmp:inst6_0",
+      "id": "55:671"
+    },
+    {
+      "ref": "tmp:inst6_1",
+      "id": "55:684"
+    },
+    {
+      "ref": "tmp:inst6_2",
+      "id": "55:697"
+    }
+  ],
+  "validation": {
+    "scannedNodes": 702,
+    "complete": true,
+    "issues": [],
+    "limitations": []
+  },
+  "explicitInteractiveTargets": 44,
+  "tokenUsage": {
+    "totalUsages": 537,
+    "matchedUsages": 505,
+    "unmatchedUsages": 32,
+    "coverage": 0.9404,
+    "byGroup": {
+      "radius": {
+        "total": 57,
+        "matched": 50,
+        "unmatched": 7
+      },
+      "color": {
+        "total": 243,
+        "matched": 243,
+        "unmatched": 0
+      },
+      "spacing": {
+        "total": 170,
+        "matched": 145,
+        "unmatched": 25
+      },
+      "typography": {
+        "total": 67,
+        "matched": 67,
+        "unmatched": 0
+      }
+    },
+    "byMatchType": {
+      "boundVariable": 438,
+      "style": 67,
+      "exactValue": 0,
+      "none": 32
+    }
+  },
+  "notes": [
+    "Colors bind to existing primitive color variables selected by the bridge's exact-match resolver; semantic aliases remain available.",
+    "Typography binds to existing Roboto text styles. 32 unbound values are 7 component-set editor radii and 25 zero/4px spacing values.",
+    "No new component-property text/boolean bindings or prototype reactions were claimed.",
+    "Old standalone placeholders and existing app screens were preserved."
+  ]
+}

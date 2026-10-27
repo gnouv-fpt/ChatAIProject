@@ -1,5 +1,13 @@
 # Mốc bàn giao phát triển cho nhóm — kiểm tra 22/10/2026
 
+## Bổ sung bàn giao feedback — 27/10/2026
+
+Tiếp tục dùng **`PRM-Lab3-integration`**. Đã thêm hành trình học/tiến độ từng kỳ, theme và thông báo bảng điểm thống nhất, sửa thiếu tín chỉ OCR ảnh hưởng GPA, Figma Home và board states/mapping; Loading prototype 3 giây. [Bảng thay đổi, phiếu test và các giới hạn còn mở](ux-feedback-validation.md).
+
+Kiểm tra mới: analyzer sạch; **50 Flutter tests không cần backend pass**; build APK debug cuối thành công (13,5 giây). Ảnh render widget 360/412 dp dùng fixture synthetic, không thay thế Google/Firestore thật hoặc ARTEMIS. Figma export và ảnh Flutter ở `design/evidence/2026-10-27/` và `evidence/ux/2026-10-27/`.
+
+Mỗi thành viên dùng T1–T6 trong phiếu test, ghi commit/build, thiết bị, expected/observed và evidence rồi tổng hợp. Các mục Google production, Storage/FCM/Analytics/Crashlytics/Remote Config, ARTEMIS và bộ nộp vẫn mở theo phân công; không làm lại phần đã có. Nội dung 22/10 bên dưới là mốc lịch sử.
+
 ## Kết luận
 
 Nhánh bàn giao: `PRM-Lab3-integration`, dùng để nhóm phát triển tiếp. Đây chưa phải bản hoàn tất Lab 3/Final. Gói bàn giao bao gồm source/config Firebase, tests và các tài liệu được liệt kê bên dưới.

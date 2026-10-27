@@ -2,6 +2,10 @@
 
 Trạng thái: **luồng từ source Flutter hiện tại**. Đây là đặc tả để dựng Figma, chưa phải bằng chứng prototype Figma đã chạy.
 
+**Đầu vào persona cập nhật 21/10:** P01 Hoàng Nam ưu tiên desktop và mạng lưới môn; P02 Thu Trang chưa có bảng điểm; P03 Minh Tuấn yêu cầu điểm local-only; P04 giảng viên kiểm tra Curriculum → Subject → Contextual Chat. Theo `PRM393 User Persona.pptx` do người dùng cung cấp, xem [`persona.md`](persona.md). Mobile vẫn bắt buộc theo đề. Các flow dưới là mục tiêu đối chiếu source, chưa khẳng định mọi nhánh theo persona mới đã được triển khai.
+
+Nhánh P02: tự check trạng thái/dự định học và giải thích PE/FE, không tự tạo GPA hoặc coi một dấu tick là kết quả xác nhận. Nhánh P03: nhập tay/local-only cần có đường riêng trước khi gửi ảnh/GPA tới backend/LLM; chưa giải quyết xung đột cloud của Final. Không coi P04 là Admin/Staff nghiệp vụ khi chưa chốt vai trò.
+
 ## IA — tám đích điều hướng
 
 | ID | Màn hình | Cấp | Đường vào hiện có |

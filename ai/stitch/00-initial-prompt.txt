@@ -1,0 +1,24 @@
+Thiết kế ứng dụng Flutter bằng tiếng Việt tên FLM Student Assistant. Persona chính theo tài liệu dự án do chủ sản phẩm cung cấp là sinh viên SE K19 năm 3, 21 tuổi, chuẩn bị đồ án, tự lập kế hoạch học và dùng laptop/desktop tại nhà hoặc lab. Cần nhìn mạng lưới tiên quyết, tự quản lý trạng thái môn, tính GPA tự động bằng thuật toán và hỏi AI theo dữ liệu FLM. Có ba nhóm phụ: sinh viên năm nhất chưa có bảng điểm cần self-check/giải thích PE-FE; sinh viên cuối khóa cần phân biệt học lại/học cải thiện và muốn điểm chỉ lưu local; giảng viên kiểm tra Curriculum -> Subject -> Contextual Chat và độ đúng của GPA/RAG. Đây là persona người dùng cung cấp, không khẳng định đã có nghiên cứu thực địa. Không cần đưa tên, địa điểm hoặc thông tin nhận diện persona vào UI hay truyền tới AI.
+
+Thiết kế responsive phục vụ desktop 1440x900 cho bối cảnh persona chính, đồng thời giữ đủ Android/mobile 360x800 và kiểm tra 412dp theo đề. Desktop dùng danh sách/sơ đồ, chi tiết và chat ngữ cảnh ở các vùng rõ ràng, hover/focus và bàn phím; mobile chuyển thành từng màn đọc được. Không thay đề Android thành desktop-only. Trên mọi nền tảng, giữ luồng Curriculum -> Subject -> Contextual Chat.
+
+Tạo 8 màn hình riêng biệt, cùng hệ thống thiết kế, mobile 360x800 dp:
+S01 Trang chủ: chương trình hiện tại, tiến độ/GPA, kỳ học, môn đang học, CTA chính Xem môn kỳ tới, CTA phụ Nhập kết quả. Khi chưa có bảng điểm hiển thị Chưa có dữ liệu và hướng nhập, không dùng điểm giả.
+S02 Lộ trình: tìm mã/tên môn, lọc học kỳ hoặc kỳ tới, danh sách môn, trạng thái Đủ theo dữ liệu / Thiếu tiên quyết / Cần xác minh. Sơ đồ là cách xem bổ sung.
+S03 Chi tiết môn: ba tab Chuẩn đầu ra, Điều kiện môn học, Tiêu chí đánh giá; trạng thái cá nhân; nguồn FLM; CTA Hỏi trợ lý. Khi không có fact hiển thị Chưa có dữ liệu đã xác minh.
+S04 Trợ lý: scope môn/chương trình, mục tiêu học, hội thoại, nguồn trích dẫn, Phiên mới, Lịch sử. Tách trạng thái đang gửi, kết quả, và lỗi sang các biến thể, không hiển thị đồng thời tất cả trong một hội thoại demo.
+S05 Bảng điểm: tiến độ, danh sách kết quả đã xác nhận; CTA Nhập ảnh, phương án Nhập tay; ghi rõ ảnh được gửi tới backend và điểm chỉ lưu khi xác nhận. Cho thấy Nhập tay là lựa chọn không gửi ảnh. Self-check trạng thái/dự định học không phải điểm đã xác nhận, không tạo GPA từ dấu tick. Không quảng cáo toàn bộ hệ thống là local-only nếu chat/import vẫn gửi dữ liệu đi; ràng buộc local-only với Firestore Final chưa được chốt.
+S06 Xác nhận bảng điểm: mã môn, điểm 0-10, kỳ, trạng thái và cảnh báo dòng chưa chắc; cho sửa/xóa/thêm; nút Lưu và Back bỏ thay đổi. Tín chỉ lấy từ danh mục, không cho tự đoán.
+S07 Hồ sơ tư vấn: kỳ hiện tại, mục tiêu qua môn/điểm cao, cách học thực hành/đọc, mục tiêu dài hạn tùy chọn; CTA Lưu hồ sơ.
+S08 Chương trình đào tạo: tổng quan chương trình, các kỳ, danh sách/board môn, mở chi tiết môn và quay lại. Khóa K18/K19/K21 không được tự dùng chung dữ liệu BIT_SE_K19B; khi thiếu curriculum cần nhãn Chưa có dữ liệu chương trình phù hợp.
+
+Điều hướng gốc 5 tab: Trang chủ, Lộ trình, Trợ lý, Bảng điểm, Cài đặt. S03/S06/S08 là màn con có Back. Lab 2 hiện không yêu cầu đăng nhập; đừng tự thêm màn login hoặc chức năng khác vào 8 màn.
+
+Ba flow:
+F01 Trang chủ -> hồ sơ -> nhập/xác nhận điểm -> môn kỳ tới -> chi tiết/tiên quyết; có nhánh thiếu dữ liệu và bổ sung điểm.
+F02 Lộ trình/chương trình -> chi tiết -> đặt mục tiêu nếu thiếu -> hỏi trợ lý -> trả lời có nguồn hoặc nêu thiếu bằng chứng.
+F03 Nhập ảnh lỗi -> thử lại hoặc nhập tay -> sửa/xác nhận -> lưu -> tạo phiên tư vấn mới, mở lại phiên cũ.
+
+Visual: Material 3 light, Roboto; primary #1565C0, primary dark #0D47A1, surface #F8FAFC, card trắng, text #0F172A, secondary text #475569, border #E2E8F0, accent #B34700. Spacing 8/16/24/32, lề 16, radius 6/10/14/18. Một CTA chính/màn, hạn chế trang trí. Body tối thiểu 14sp, nút/vùng chạm tối thiểu 48x48dp, trạng thái có chữ/icon ngoài màu. Đảm bảo tương phản chữ thường 4.5:1, UI/chữ lớn 3:1; bố cục có thể thích ứng 412dp.
+
+Không tạo dữ liệu cá nhân, điểm số, lịch mở lớp, quy chế hoặc điều kiện môn như fact thật khi chưa được cung cấp. Nếu cần minh họa, dùng nhãn Mẫu minh họa và giá trị trống. Tạo thiết kế có thể chỉnh sửa và nêu các quyết định bố cục chính.

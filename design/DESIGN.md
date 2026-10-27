@@ -1,6 +1,8 @@
 # FLM — design brief cho Lab 2
 
-**Chủ đề cụ thể:** trợ lý chọn môn kỳ tới cho sinh viên FPT đang học chương trình FLM, có bảng điểm từng phần và cần đối chiếu tiên quyết trước khi xin chiến lược học. P01 hiện là **Proto-Persona (Assumed)** trong [`ux/persona.md`](../ux/persona.md).
+**Chủ đề cụ thể:** trợ lý lập kế hoạch học cho sinh viên FPT cần hiểu mạng lưới môn, tiến độ/GPA và tư vấn theo chương trình. Primary Persona là **Hoàng Nam, 21 tuổi, SE K19, ưu tiên laptop/desktop**, theo slide 1 của `PRM393 User Persona.pptx` do người dùng cung cấp ngày 21/10. Ba persona còn lại: Thu Trang, Minh Tuấn và giảng viên hỗ trợ đánh giá. Đây là đầu vào do người dùng cung cấp, chưa có hồ sơ nghiên cứu để xác nhận persona. Chi tiết và nguồn ở [`ux/persona.md`](../ux/persona.md).
+
+**Nền tảng:** desktop phục vụ bối cảnh P01; vẫn phải có Android/mobile theo đề. Primary flow giữ Curriculum → Subject → Contextual Chat. P02 cần self-check không phụ thuộc bảng điểm; P03 yêu cầu local-only, đang xung đột với Firestore của Final và cần chốt trước khi triển khai cloud.
 
 Tài liệu này mô tả thiết kế **đang có trong source Flutter** và hướng chuẩn hóa cho Figma. Nó không phải bằng chứng Google Stitch hoặc Figma đã dựng xong. `DESIGN.md` ở gốc là bản style cũ, có palette khác; file này là brief cho luồng Lab 2 hiện tại.
 
@@ -23,7 +25,7 @@ Sinh viên nhìn thấy ngay vị trí hiện tại, đi một bước tới mô
 | Success | `#2E7D32` | `color/success` + icon/nhãn chữ |
 | Warning | `#E65100` | `color/warning` + icon/nhãn chữ |
 
-Spacing 8/16/24/32 dp; lề mobile 16 dp. Radius 6/10/14/18 dp; ưu tiên radius 14 cho card và 10 cho input/nút. Typography source dùng Roboto; Figma cần định nghĩa title, section, body ≥14 sp, caption chỉ dùng cho metadata khi vẫn đọc được. Light theme bắt buộc. Giá trị trên là **source hiện tại**, chưa xác nhận tương phản của mọi cặp và chưa tạo Variables trong Figma.
+Spacing 8/16/24/32 dp; lề mobile 16 dp. Radius 6/10/14/18 dp; ưu tiên radius 14 cho card và 10 cho input/nút. Typography source dùng Roboto. Ngày 21/10 đã đồng bộ foundation Figma với 36 variable và 5 text style; Button/Text field có state thật. Toàn bộ Final UI và contrast của mọi cặp chưa nghiệm thu; xem [`figma-progress-2026-10-21.md`](figma-progress-2026-10-21.md).
 
 ## Quy tắc component
 
@@ -40,5 +42,7 @@ Spacing 8/16/24/32 dp; lề mobile 16 dp. Radius 6/10/14/18 dp; ưu tiên radius
 **Chưa gửi prompt này tới Google Stitch.** Đây là brief có thể dùng làm đầu vào; khi thực sự chạy Stitch phải chép nguyên văn prompt đã gửi và lưu ảnh kết quả vào `ai/ai-design-log.md` / `assets/stitch/`.
 
 > Thiết kế ứng dụng mobile 360×800 dp bằng tiếng Việt cho sinh viên FPT đang theo chương trình FLM, có bảng điểm từng phần và cần biết môn kỳ tới. Primary Persona là proto-persona, chưa được xác thực. Luồng chính: xem tiến độ → nhập hoặc xác nhận kết quả → xem môn kỳ tới theo học kỳ → thấy rõ đủ, thiếu hoặc chưa xác minh tiên quyết → mở chi tiết môn với ba tab Chuẩn đầu ra, Điều kiện môn học, Tiêu chí đánh giá → hỏi trợ lý theo mục tiêu qua môn hoặc điểm cao. Dùng một màu nhấn xanh #1565C0, nền #F8FAFC, chữ #0F172A, khoảng cách bội số 8, một CTA chính mỗi màn. Chữ nội dung ít nhất 14 sp, vùng chạm ít nhất 48×48 dp, trạng thái có nhãn ngoài màu, có loading, empty và error/retry. Đừng tạo điểm số giả hoặc kết luận lịch mở lớp.
+
+Đoạn trên là draft cũ trước khi nhận slide persona. Bản chuẩn bị hiện tại ở [`ai/stitch/00-initial-prompt.txt`](../ai/stitch/00-initial-prompt.txt); phải dùng persona người dùng cung cấp và chưa được ghi nhận là prompt đã gửi. Stitch đang hiển thị Additional Terms of Service, chưa được chấp nhận; chưa có output Stitch trong lượt này.
 
 Nguồn yêu cầu: [Đề Lab 2](https://prm393-material.web.app/docs/PRM323-Lab2-Thiet-ke-UIUX-co-ho-tro-AI.pdf), [UI Checklist](https://prm393-material.web.app/ui-checklist.html).

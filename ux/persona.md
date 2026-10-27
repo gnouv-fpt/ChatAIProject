@@ -1,46 +1,79 @@
-# P01 — Proto-Persona cho cố vấn học tập FLM
+# User personas cho FLM Student Assistant
 
-> **Trạng thái: Assumed.** Đây là giả thuyết thiết kế dựa trên bài toán và nhận xét giảng viên trong `nhan_xet_giang_vien.md`, không phải kết quả phỏng vấn sinh viên. Không dùng tên, câu nói hay số liệu bên dưới như bằng chứng nghiên cứu.
+**Cập nhật 27/10:** [Matrix persona → nhu cầu → màn/component → task và cách tính coverage](../docs/ux-feedback-validation.md). Phạm vi production hiện đã chọn Firestore theo `docs/requirements-cloud-amendment.md`; điều này không có nghĩa nhu cầu local-only của P03 đã được đáp ứng. Những đoạn “chưa chốt” bên dưới mô tả mâu thuẫn ở đầu vào persona, không thay thế quyết định cloud hiện tại.
+
+Nguồn: người dùng cung cấp `PRM393 User Persona.pptx` tại thư mục Lab1 ngày 21/10/2026, gồm 4 slide. Nội dung này thay bản P01 “Minh, 20 tuổi, mobile” do Codex giả định trước đây.
+
+**Trạng thái: User-provided / Reported.** Slide không kèm phương pháp nghiên cứu, số người tham gia hoặc bản ghi phỏng vấn. Không tự coi persona đã được nghiên cứu/kiểm chứng. Tên, tuổi, địa điểm là nội dung slide, không phải thông tin cá nhân đã xác minh. Các suy ra cho thiết kế bên dưới chưa phải kết quả user test.
+
+## P01 Hoàng Nam, Primary Persona
+
+Nguồn: slide 1.
+
+| Trường | Nội dung từ persona |
+|---|---|
+| Identity | Hoàng Nam, 21 tuổi, TP.HCM; FPT SE K19 |
+| Giai đoạn | Năm 3, chuẩn bị kỳ làm đồ án |
+| Bối cảnh | Đầu kỳ, trước đăng ký môn/học vượt/trả nợ; laptop/desktop tại nhà hoặc lab |
+| Mục tiêu | Ưu tiên môn để không nghẽn chuỗi tiên quyết; biết tín chỉ và điểm trung bình cần đạt để hướng tới loại Giỏi; tự quản lý trạng thái môn |
+| Pain points | FLM/FAP rời rạc, quan hệ môn thiếu trực quan; PDF/ảnh điểm khó theo dõi, tính GPA tay dễ sai; lời khuyên bạn/AI không bám chương trình riêng |
+| Hành vi | Tự lập kế hoạch, dùng Notion/Obsidian, thường hỏi AI, có nhu cầu học nhóm ôn PE |
+| JTBD | Xem mạng lưới môn và tính GPA tự động để phân bổ ôn PE/FE, hoàn thành chương trình theo mục tiêu |
+
+**Suy ra cho thiết kế:** ưu tiên mạng lưới môn, danh sách/chi tiết và chat ngữ cảnh; GPA tính bằng code. Desktop cần bố cục rộng, hover/focus và bàn phím; mobile cần danh sách rõ và mở chi tiết theo từng bước. Không tự đổi đề Android thành desktop-only.
+
+## P02 Thu Trang, Secondary Persona 1
+
+Nguồn: slide 2.
+
+- 19 tuổi, Cần Thơ, FPT SE K21; vừa qua tiếng Anh dự bị, chuẩn bị kỳ chuyên ngành 1.
+- Chưa có bảng điểm; cần self-check thủ công, xem toàn cảnh 9 học kỳ như slide mô tả, lọc môn PE, hỏi cách học PRF192/CEA201 và xem tiến độ.
+- Chưa hiểu PE/FE, tín chỉ tích lũy/tín chỉ GPA; khó đọc khung chương trình scan và bị ảnh hưởng bởi lời đồn tỷ lệ rớt thiếu bằng chứng.
+
+**Suy ra:** empty state có Tự check/Nhập tay và giải thích thuật ngữ. Tách dự định/trạng thái tự khai với điểm đã xác nhận, không tính GPA từ một dấu tick. Danh mục BIT_SE_K19B hiện tại không tự động áp dụng cho K21; phải xác minh curriculum trước khi tư vấn.
+
+## P03 Minh Tuấn, Secondary Persona 2
+
+Nguồn: slide 3.
+
+- 22 tuổi, TP.HCM, FPT SE K18; giai đoạn cuối, từng rớt một môn đại cương và một môn code cơ sở.
+- Cần phân biệt học lại/học cải thiện, đánh giá mục tiêu GPA có khả thi không, lọc môn cần trả nợ và ưu tiên phục hồi.
+- Lo về hạ bậc bằng, muốn giải thích có căn cứ và số liệu mô phỏng.
+- **Ràng buộc từ slide:** bảng điểm phải lưu local, không muốn điểm cá nhân lên server.
+
+**Suy ra:** GPA/điểm cần đạt tính bằng thuật toán; lịch sử từng lần học và quy chế có nguồn. Không lấy lời kể persona làm quy chế chính thức hoặc tự gán ngưỡng hạ bậc. K18 cần curriculum/quy chế phù hợp.
+
+**Xung đột với Final:** đề yêu cầu dữ liệu Firestore, còn P03 yêu cầu local-only. Không tự chuyển điểm lên cloud hoặc coi đã có đồng ý. Cần thống nhất phạm vi với giảng viên/chủ sản phẩm. Phương án giữ điểm chi tiết local, đưa dữ liệu công khai/quy trình cross-role lên cloud mới là đề xuất; chưa được duyệt, chưa khẳng định đáp ứng “all data on Firestore”.
+
+**Ảnh hưởng app hiện tại:** import ảnh gửi ảnh tới backend; chat có thể gửi GPA/dữ kiện học tập tới LLM. “Lưu local” không có nghĩa “không truyền lên server”. Cần thông báo trước và đường nhập tay/local-only nếu muốn đáp ứng P03; chưa có xác nhận chấp thuận truyền dữ liệu.
+
+## P04 Giảng viên, Supporting Persona
+
+Nguồn: slide 4, tên hiển thị “Giáo làng”, 42 tuổi, Dĩ An; giảng viên CNTT/trưởng bộ môn SE, hơn 15 năm kinh nghiệm theo slide.
+
+- Kiểm tra luồng Curriculum → Subject → Contextual Chat, RAG động và câu trả lời có căn cứ.
+- Dùng bảng điểm nhiều lần học để kiểm tra GPA; yêu cầu thuật toán thay vì LLM tự tính.
+- Đánh giá desktop: chữ dễ đọc, hover rõ, bố cục gọn và không lỗi hiển thị.
+
+**Suy ra:** có đường demo và nguồn để kiểm chứng phép tính/câu trả lời. Supporting Persona không tự động là vai trò Admin/Staff của Final; quyền nghiệp vụ cần đặc tả riêng.
 
 ## Problem statement
 
-Sinh viên đang theo chương trình FLM cần ghép bảng điểm, điều kiện tiên quyết và mục tiêu học tập để biết môn nào nên xem cho kỳ tới; thông tin rải ở nhiều chỗ khiến việc tự lập lộ trình và hỏi chiến lược cho từng môn mất thời gian.
+Sinh viên cần kết hợp chương trình đúng khóa, quan hệ tiên quyết, trạng thái môn và điểm đã xác nhận để lập kế hoạch. Dữ liệu rời rạc và lời khuyên thiếu nguồn khiến họ khó biết môn cần ưu tiên và mục tiêu điểm có khả thi không. Primary Persona ưu tiên desktop; đề PRM393 vẫn yêu cầu Android nên cần bố cục đáp ứng cả hai.
 
-## 12 trường lõi
+## Persona và flow
 
-| Trường | P01 — Sinh viên tự lập kế hoạch học |
-| --- | --- |
-| 01 Identity & archetype | “Minh” là tên giả định; sinh viên cần tự xem tiến độ và chọn môn tiếp theo. |
-| 02 Priority | Primary: luồng chính của sản phẩm phục vụ sinh viên đang học, có bảng điểm từng phần. |
-| 03 Usage context | **Assumed:** xem nhanh trên điện thoại trước khi hỏi cố vấn/chọn môn; có thể quay lại trên web để xem sơ đồ. |
-| 04 Goals | Biết mình đã hoàn thành gì; tìm môn kỳ tới có điều kiện phù hợp; nhận chiến lược học theo mục tiêu. |
-| 05 JTBD | Khi chuẩn bị học kỳ tiếp theo, tôi muốn đối chiếu kết quả đã xác nhận với tiên quyết của chương trình để biết môn nào cần xem tiếp và vì sao. |
-| 06 Current behaviors | **Assumed:** tự đối chiếu bảng điểm và chương trình đào tạo, hỏi bạn học/giảng viên khi không chắc điều kiện. Cần phỏng vấn để xác nhận. |
-| 07 Pain points | Khó thấy vị trí hiện tại; không rõ mã môn tiên quyết còn thiếu; lời khuyên chung không phản ánh mục tiêu qua môn/điểm cao. Đây là vấn đề giảng viên nêu, chưa phải lời kể của người dùng. |
-| 08 Motivations | Muốn quyết định có căn cứ, tiết kiệm thời gian và kiểm soát điểm mục tiêu. **Assumed.** |
-| 09 Constraints | Bảng điểm có thể thiếu/ảnh đọc sai; mạng hoặc AI có thể lỗi; ứng dụng không biết lịch mở lớp. **Assumed** về hoàn cảnh sử dụng. |
-| 10 Key scenarios | F01 nhập kết quả rồi tìm môn kỳ tới; F02 mở môn và xin chiến lược; F03 ảnh nhập sai thì sửa tay và hỏi lại. |
-| 11 Success criteria | Trong think-aloud, tự chỉ được ít nhất một môn kỳ tới và nói đúng căn cứ tiên quyết, không cần người hướng dẫn; đo thời gian và lỗi thao tác. Chưa có kết quả đo. |
-| 12 Evidence & status | `nhan_xet_giang_vien.md` và `gop_y_de_xuat_them.md`: **Reported** (góp ý giảng viên); mã màn hình và luồng từ source Flutter: **Observed**; hành vi cá nhân của Minh: **Assumed**. Chưa có E-ID phỏng vấn/quan sát sinh viên. |
+| Flow | Persona | Điều chỉnh cần giữ |
+|---|---|---|
+| F01 Tiến độ → môn kỳ tới → tiên quyết | P01; nhánh P02 chưa có điểm | Nhập tay/self-check; tách dự định với kết quả; không kết luận từ dữ liệu thiếu |
+| F02 Chương trình → môn → tư vấn theo mục tiêu | P01, P02; P04 kiểm tra | Đúng khóa; giữ Curriculum → Subject → Contextual Chat, nguồn và giới hạn |
+| F03 Import lỗi → xác nhận → lưu → tư vấn/lịch sử | P01, P03 | Có nhập tay và thông báo truyền dữ liệu; P03 cần quyết định local-only trước khi gửi |
 
-### Chi tiết Lab 2 bắt buộc
+## Chỉ số thành công đề xuất, chưa đo
 
-- Tuổi: **20, giả định**; cần xác nhận với sinh viên tham gia.
-- Vai trò: sinh viên FPT theo chương trình FLM.
-- Thói quen thiết bị: **giả định** dùng điện thoại cho tác vụ nhanh, web cho quan hệ môn; chưa khảo sát.
-- Accessibility: **chưa có bằng chứng cá nhân**; thiết kế mặc định phải dùng chữ nội dung ≥14 sp, vùng chạm ≥48×48 dp, nhãn trạng thái không chỉ dùng màu và hỗ trợ phóng to chữ.
+- P01 chọn được ít nhất một môn kỳ tới và giải thích đúng chuỗi tiên quyết theo curriculum, không cần hướng dẫn; đo thời gian/lỗi/lần cần trợ giúp.
+- P02 phân biệt self-check với kết quả đã xác nhận, mở được giải thích PE/FE; không có GPA giả khi thiếu điểm.
+- P03 phân biệt học lại/học cải thiện từ quy chế có nguồn và hiểu dữ liệu nào lưu local, dữ liệu nào gửi đi.
+- P04 kiểm tra được một phép tính GPA và một câu trả lời có nguồn; HTTP thành công không chứng minh nội dung đúng.
 
-## Giả thuyết thiết kế và cách kiểm chứng
-
-| ID | Giả thuyết | Quyết định để thử | Kiểm chứng |
-| --- | --- | --- | --- |
-| H01 | Vị trí học tập khó nhận ra | S01 đặt tín chỉ, GPA, môn hoàn thành và kỳ ở đầu trang | T01: 5-second test, hỏi người dùng chỉ ra mình đang ở đâu |
-| H02 | Tiên quyết là trở ngại chính khi chọn môn | S02 hiển thị danh sách theo kỳ và nhãn đủ/thiếu/cần xác minh | T02: tìm môn kỳ tới và giải thích lý do |
-| H03 | Mục tiêu môn làm thay đổi cách học | S07 lưu mục tiêu dần; S03/S04 tư vấn qua môn và điểm cao khác nhau | T03: đổi mục tiêu rồi so sánh hai câu trả lời |
-| H04 | Ảnh bảng điểm có thể đọc sai | S06 bắt buộc xác nhận/sửa trước khi lưu | T04: nhập ảnh có lỗi giả lập và sửa đúng một dòng |
-
-## Kế hoạch nghiên cứu còn thiếu
-
-Phỏng vấn/quan sát sinh viên thực hiện gần đây việc chọn môn và đối chiếu bảng điểm; hỏi từng bước, công cụ đã dùng, đoạn khó và thiết bị. Ghi mã E01… cho bằng chứng đã ẩn danh. Sau đó sửa/tách P01 theo khác biệt hành vi thực sự. Không gắn nhãn *Qualitative Persona* trước bước này.
-
-Nguồn rubric: [Persona Guideline](https://prm393-material.web.app/persona-guideline.html), [Chuẩn chung C2/C5](https://prm393-material.web.app/#standards).
+Đây là tiêu chí kiểm chứng đề xuất của dự án, không phải kết quả nghiên cứu hoặc số đo trong slide.
