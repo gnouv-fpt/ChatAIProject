@@ -1,5 +1,7 @@
 # Phân công 5 thành viên — Lab 2, Lab 3 và Final
 
+**Cập nhật 27/10:** dùng [kế hoạch Lab 3 theo 5 owner và 4 chặng](lab3-team-plan.md) cho đợt triển khai hiện tại. Bản mới chia Firebase cho Khánh/Phúc/Khôi, Bảo phụ trách auth và tích hợp, Vương khép UI/review/bộ nộp. Phạm vi Final bên dưới giữ làm kế hoạch sau; không giao Phúc làm web admin trong lúc cả nhóm còn thiếu các dịch vụ Lab 3.
+
 Ngày lập: 22/10/2026. Đây là đề xuất cho phạm vi mới, không thay thế lịch sử phân công Lab 1. Thành viên lấy từ bảng nhóm hiện có: Vương, Bảo, Khánh, Phúc, Khôi.
 
 ## Phân công chính
