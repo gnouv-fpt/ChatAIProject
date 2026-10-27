@@ -102,8 +102,11 @@ void main() {
           ),
         );
         await tester.pump();
-        await tester.drag(find.byType(ListView).first, const Offset(0, -400));
-        await tester.pump();
+        await tester.scrollUntilVisible(
+          find.text('Học kỳ suy ra từ môn đang học: 1'),
+          250,
+          scrollable: find.byType(Scrollable).first,
+        );
         expect(find.text('Học kỳ suy ra từ môn đang học: 1'), findsOneWidget);
         await tester.tap(find.text('Lộ trình'));
         await tester.pump();

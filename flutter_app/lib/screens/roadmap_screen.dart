@@ -250,7 +250,7 @@ class _CourseTile extends StatelessWidget {
               status,
               style: TextStyle(
                 color: progress.readiness == CourseReadiness.completed
-                    ? Colors.green.shade700
+                    ? AppTheme.success
                     : AppTheme.slate600,
               ),
             ),

@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../state/transcript_import_view_model.dart';
 import '../models/load_status.dart';
 import '../widgets/data_state_view.dart';
+import '../widgets/flm_notice.dart';
+import '../theme/app_theme.dart';
 import '../state/transcript_provider.dart';
 import 'transcript_confirm_screen.dart';
 
@@ -78,10 +80,11 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          transcript.hasTranscript
+                          transcript.hasTranscript &&
+                                  transcript.evaluation.totalGpaCredits > 0
                               ? transcript.evaluation.currentGpa
                                     .toStringAsFixed(2)
-                              : 'Chưa có dữ liệu',
+                              : 'Chưa đủ dữ liệu GPA',
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
@@ -93,7 +96,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                           if (transcript.evaluation.penaltyWarning.isNotEmpty)
                             Text(
                               transcript.evaluation.penaltyWarning,
-                              style: TextStyle(color: Colors.orange.shade800),
+                              style: TextStyle(color: AppTheme.warning),
                             ),
                         ],
                       ],
@@ -131,16 +134,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                 ),
                 if (importer.message != null) ...[
                   const SizedBox(height: 8),
-                  Card(
-                    color: Colors.red.shade50,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        importer.message!,
-                        style: TextStyle(color: Colors.red.shade800),
-                      ),
-                    ),
-                  ),
+                  FlmNotice(message: importer.message!, tone: NoticeTone.error),
                 ],
                 const SizedBox(height: 18),
                 Text(
@@ -186,10 +180,10 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                             style: TextStyle(
                               fontSize: 14,
                               color: entry.inProgress
-                                  ? Colors.blue.shade700
+                                  ? AppTheme.primaryDark
                                   : entry.isPassed
-                                  ? Colors.green.shade700
-                                  : Colors.red.shade700,
+                                  ? AppTheme.success
+                                  : AppTheme.danger,
                             ),
                           ),
                         ],

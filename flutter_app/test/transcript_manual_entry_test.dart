@@ -6,10 +6,54 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 void main() {
-  testWidgets('deleting the last course confirms and persists empty transcript',
-      (tester) async {
+  testWidgets(
+    'missing OCR credits cannot silently change GPA and can use catalog credits',
+    (tester) async {
+      final catalog = CourseCatalog();
+      List<TranscriptEntry>? saved;
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: catalog,
+          child: MaterialApp(
+            home: TranscriptConfirmScreen(
+              rawExtractedEntries: [
+                TranscriptEntry(
+                  courseCode: 'CEA201',
+                  score: 8,
+                  credits: 0,
+                  semester: 1,
+                  isPassed: true,
+                ),
+              ],
+              onSaved: (entries) async => saved = entries,
+            ),
+          ),
+        ),
+      );
+      await tester.runAsync(catalog.load);
+      await tester.pump();
+      expect(find.text('Kiểm tra tín chỉ'), findsOneWidget);
+      await tester.tap(find.byTooltip('Lưu bảng điểm'));
+      await tester.pump();
+      expect(saved, isNull);
+      await tester.tap(find.byTooltip('Sửa môn học'));
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.tap(find.text('Áp dụng'));
+      await tester.pump(const Duration(milliseconds: 850));
+      await tester.tap(find.byTooltip('Lưu bảng điểm'));
+      await tester.pump();
+      expect(saved!.single.credits, catalog.findByCode('CEA201')!.credits);
+      expect(saved!.single.credits, greaterThan(0));
+    },
+  );
+  testWidgets('scanned semester zero is valid and cards fit a phone screen', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     final catalog = CourseCatalog();
-    List<TranscriptEntry>? saved;
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: catalog,
@@ -17,32 +61,73 @@ void main() {
           home: TranscriptConfirmScreen(
             rawExtractedEntries: [
               TranscriptEntry(
-                courseCode: 'PRM393',
-                courseName: 'Lập trình di động',
-                score: 8.5,
+                courseCode: 'OTP101',
+                score: 6.9,
+                credits: 0,
+                semester: 0,
+                isPassed: true,
+                confidence: 0.65,
+              ),
+              TranscriptEntry(
+                courseCode: 'CEA201',
+                score: 7.2,
                 credits: 3,
-                semester: 8,
+                semester: 1,
                 isPassed: true,
               ),
             ],
-            manualEntry: true,
-            onSaved: (entries) async => saved = entries,
+            importWarning: 'Kiểm tra điểm và tín chỉ trước khi lưu.',
+            onSaved: (_) async {},
           ),
         ),
       ),
     );
     await tester.runAsync(catalog.load);
     await tester.pump();
-    await tester.tap(find.byIcon(Icons.delete_outline));
-    await tester.pump();
-    await tester.tap(find.byTooltip('Lưu bảng điểm'));
-    await tester.pumpAndSettle();
-    expect(find.text('Xóa toàn bộ bảng điểm?'), findsOneWidget);
-    expect(saved, isNull);
-    await tester.tap(find.text('Xóa bảng điểm'));
-    await tester.pumpAndSettle();
-    expect(saved, isEmpty);
+    expect(find.text('Mã chưa khớp'), findsNothing);
+    expect(find.textContaining('Kỳ 0 • 0 tín chỉ'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'deleting the last course confirms and persists empty transcript',
+    (tester) async {
+      final catalog = CourseCatalog();
+      List<TranscriptEntry>? saved;
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: catalog,
+          child: MaterialApp(
+            home: TranscriptConfirmScreen(
+              rawExtractedEntries: [
+                TranscriptEntry(
+                  courseCode: 'PRM393',
+                  courseName: 'Lập trình di động',
+                  score: 8.5,
+                  credits: 3,
+                  semester: 8,
+                  isPassed: true,
+                ),
+              ],
+              manualEntry: true,
+              onSaved: (entries) async => saved = entries,
+            ),
+          ),
+        ),
+      );
+      await tester.runAsync(catalog.load);
+      await tester.pump();
+      await tester.tap(find.byIcon(Icons.delete_outline));
+      await tester.pump();
+      await tester.tap(find.byTooltip('Lưu bảng điểm'));
+      await tester.pumpAndSettle();
+      expect(find.text('Xóa toàn bộ bảng điểm?'), findsOneWidget);
+      expect(saved, isNull);
+      await tester.tap(find.text('Xóa bảng điểm'));
+      await tester.pumpAndSettle();
+      expect(saved, isEmpty);
+    },
+  );
 
   testWidgets(
     'manual transcript entry validates course and saves catalog credits',

@@ -31,6 +31,35 @@ TranscriptEntry entry(
 );
 
 void main() {
+  test('journey counts distinct catalog courses and clears resolved debts', () {
+    final progress = LearningProgress(
+      [
+        course('BAS101', 1, []),
+        course('BAS102', 1, []),
+        course('ADV201', 2, []),
+        course('ADV202', 2, []),
+      ],
+      [
+        entry('BAS101', 1, passed: false),
+        entry('BAS101', 2),
+        entry('BAS101', 3),
+        entry('BAS102', 1, passed: false),
+        entry('ADV201', 2, passed: false, inProgress: true),
+        entry('OTHER101', 1),
+      ],
+    );
+    expect(progress.totalCount, 4);
+    expect(progress.completedCount, 1);
+    expect(progress.remainingCount, 3);
+    expect(progress.ongoingCount, 1);
+    expect(progress.failedCodes, {'BAS102'});
+    expect(progress.completionRatio, 0.25);
+    expect(
+      progress.semesters.map((s) => '${s.semester}:${s.completed}/${s.total}'),
+      ['1:1/2', '2:0/2'],
+    );
+    expect(LearningProgress([], []).completionRatio, 0);
+  });
   test('next semester does not recommend blocked or unknown prerequisites', () {
     final courses = [
       course('BAS101', 1, []),

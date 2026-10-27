@@ -36,6 +36,19 @@ class AppTheme {
   static const double radiusLg = 14.0;
   static const double radiusXl = 18.0;
 
+  static const double spaceXs = 4;
+  static const double spaceSm = 8;
+  static const double spaceMd = 12;
+  static const double spaceLg = 16;
+  static const double spaceXl = 24;
+  static const double targetSize = 48;
+  static const Color success = Color(0xFF166534);
+  static const Color successSurface = Color(0xFFF0FDF4);
+  static const Color warning = Color(0xFF92400E);
+  static const Color warningSurface = Color(0xFFFFFBEB);
+  static const Color danger = Color(0xFFB91C1C);
+  static const Color dangerSurface = Color(0xFFFEF2F2);
+
   static ThemeData lightTheme() {
     return ThemeData(
       useMaterial3: true,
@@ -47,12 +60,65 @@ class AppTheme {
       ),
       scaffoldBackgroundColor: slate50,
       fontFamily: 'Roboto',
+      textTheme: const TextTheme(
+        headlineMedium: TextStyle(
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          color: slate900,
+        ),
+        headlineSmall: TextStyle(
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: slate900,
+        ),
+        titleLarge: TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          color: slate900,
+        ),
+        titleMedium: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: slate900,
+        ),
+        bodyLarge: TextStyle(fontSize: 16, height: 1.45, color: slate800),
+        bodyMedium: TextStyle(fontSize: 14, height: 1.45, color: slate700),
+        bodySmall: TextStyle(fontSize: 14, height: 1.4, color: slate600),
+        labelLarge: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+        labelMedium: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        labelSmall: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+      ),
+      filledButtonTheme: FilledButtonThemeData(
+        style: FilledButton.styleFrom(
+          minimumSize: const Size(targetSize, targetSize),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMd),
+          ),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+          minimumSize: const Size(targetSize, targetSize),
+        ),
+      ),
+      navigationBarTheme: const NavigationBarThemeData(
+        backgroundColor: Colors.white,
+        indicatorColor: primaryLight,
+        labelTextStyle: WidgetStatePropertyAll(
+          TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
         backgroundColor: Colors.white,
         foregroundColor: slate900,
         centerTitle: false,
         titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
           fontSize: 18,
           fontWeight: FontWeight.w700,
           color: slate900,
@@ -138,7 +204,11 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
           ),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -149,7 +219,11 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(radiusMd),
           ),
-          textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

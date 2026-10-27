@@ -6,6 +6,9 @@ import '../state/transcript_provider.dart';
 import '../state/learning_profile_provider.dart';
 import '../services/learning_progress.dart';
 import '../theme/app_theme.dart';
+import '../models/load_status.dart';
+import '../widgets/data_state_view.dart';
+import '../widgets/learning_journey_card.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onNavigate});
@@ -78,6 +81,23 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  if (transcript.status == LoadStatus.loading ||
+                      transcript.status == LoadStatus.error)
+                    DataStateView(
+                      status: transcript.status,
+                      message: transcript.loadError,
+                      onRetry: transcript.status == LoadStatus.error
+                          ? transcript.load
+                          : null,
+                    )
+                  else
+                    LearningJourneyCard(
+                      progress: progress,
+                      hasTranscript: transcript.hasTranscript,
+                      onOpen: () =>
+                          onNavigate(transcript.hasTranscript ? 1 : 3),
+                    ),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -91,7 +111,9 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: _MetricCard(
                           label: 'Đã hoàn thành',
-                          value: '$completedCount',
+                          value: transcript.hasTranscript
+                              ? '$completedCount'
+                              : '—',
                           icon: Icons.check_circle_outline,
                         ),
                       ),
@@ -113,7 +135,9 @@ class HomeScreen extends StatelessWidget {
                       Expanded(
                         child: _MetricCard(
                           label: 'GPA hiện tại',
-                          value: transcript.hasTranscript
+                          value:
+                              transcript.hasTranscript &&
+                                  transcript.evaluation.totalGpaCredits > 0
                               ? transcript.evaluation.currentGpa
                                     .toStringAsFixed(2)
                               : '—',
@@ -158,7 +182,7 @@ class HomeScreen extends StatelessWidget {
                                       contentPadding: EdgeInsets.zero,
                                       leading: const Icon(
                                         Icons.check_circle_outline,
-                                        color: Colors.green,
+                                        color: AppTheme.success,
                                       ),
                                       title: Text(
                                         '${course.code} · ${course.nameVi.isEmpty ? course.name : course.nameVi}',

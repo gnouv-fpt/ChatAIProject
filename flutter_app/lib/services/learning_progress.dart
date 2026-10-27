@@ -45,6 +45,47 @@ class LearningProgress {
       .where((code) => !completedCodes.contains(code))
       .toSet();
 
+  /// A past failed attempt is no longer a debt once the course has been passed.
+  Set<String> get failedCodes => _entries
+      .where((entry) => !entry.inProgress && !entry.isPassed)
+      .map((entry) => _code(entry.courseCode))
+      .where(
+        (code) =>
+            _courses.containsKey(code) &&
+            !completedCodes.contains(code) &&
+            !inProgressCodes.contains(code),
+      )
+      .toSet();
+
+  int get totalCount => _courses.length;
+  int get completedCount => _courses.keys.where(completedCodes.contains).length;
+  int get ongoingCount => _courses.keys.where(inProgressCodes.contains).length;
+  int get remainingCount => totalCount - completedCount;
+  double get completionRatio =>
+      totalCount == 0 ? 0 : completedCount / totalCount;
+
+  List<SemesterProgress> get semesters {
+    final numbers =
+        _courses.values.map((course) => course.semester).toSet().toList()
+          ..sort();
+    return [
+      for (final semester in numbers)
+        SemesterProgress(
+          semester: semester,
+          total: _courses.values
+              .where((course) => course.semester == semester)
+              .length,
+          completed: _courses.values
+              .where(
+                (course) =>
+                    course.semester == semester &&
+                    completedCodes.contains(_code(course.code)),
+              )
+              .length,
+        ),
+    ];
+  }
+
   /// Null means there is no confirmed semester information yet.
   int? get currentSemester {
     if (_reportedCurrentSemester != null) return _reportedCurrentSemester;
@@ -108,4 +149,15 @@ class LearningProgress {
       unverifiedPrerequisites: unknown,
     );
   }
+}
+
+class SemesterProgress {
+  const SemesterProgress({
+    required this.semester,
+    required this.total,
+    required this.completed,
+  });
+  final int semester;
+  final int total;
+  final int completed;
 }

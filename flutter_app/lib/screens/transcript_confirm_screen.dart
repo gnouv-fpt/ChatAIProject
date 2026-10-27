@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import '../models/transcript_entry.dart';
 import '../services/grade_calculator.dart';
 import '../state/course_catalog.dart';
+import '../theme/app_theme.dart';
+import '../widgets/flm_notice.dart';
 
 class TranscriptConfirmScreen extends StatefulWidget {
   final List<TranscriptEntry> rawExtractedEntries;
@@ -30,6 +32,11 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
   late List<TranscriptEntry> _entries;
   bool _saving = false;
 
+  bool _missingCredits(TranscriptEntry entry) {
+    final course = context.read<CourseCatalog>().findByCode(entry.courseCode);
+    return entry.credits == 0 && course != null && course.credits > 0;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +55,11 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
     final semesterController = TextEditingController(
       text: original?.semester.toString() ?? '',
     );
+    final creditsController = TextEditingController(
+      text: original != null && !_missingCredits(original)
+          ? original.credits.toString()
+          : '',
+    );
     final formKey = GlobalKey<FormState>();
     final edited = await showDialog<TranscriptEntry>(
       context: context,
@@ -55,48 +67,66 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         title: Text(index == null ? 'Thêm môn học' : 'Sửa môn học'),
         content: SizedBox(
           width: 360,
-          child: Form(
-            key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: codeController,
-                  textCapitalization: TextCapitalization.characters,
-                  decoration: const InputDecoration(labelText: 'Mã môn học'),
-                  validator: (value) => catalog.findByCode(value ?? '') == null
-                      ? 'Mã môn không có trong chương trình'
-                      : null,
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: scoreController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
+          child: SingleChildScrollView(
+            child: Form(
+              key: formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: codeController,
+                    textCapitalization: TextCapitalization.characters,
+                    decoration: const InputDecoration(labelText: 'Mã môn học'),
+                    validator: (value) =>
+                        catalog.findByCode(value ?? '') == null
+                        ? 'Mã môn không có trong chương trình'
+                        : null,
                   ),
-                  decoration: const InputDecoration(labelText: 'Điểm (0–10)'),
-                  validator: (value) {
-                    final score = double.tryParse(
-                      (value ?? '').replaceAll(',', '.'),
-                    );
-                    return score == null || score < 0 || score > 10
-                        ? 'Nhập điểm từ 0 đến 10'
-                        : null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: semesterController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Học kỳ đã học'),
-                  validator: (value) {
-                    final semester = int.tryParse(value ?? '');
-                    return semester == null || semester < 1 || semester > 20
-                        ? 'Nhập học kỳ từ 1 đến 20'
-                        : null;
-                  },
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: scoreController,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    decoration: const InputDecoration(labelText: 'Điểm (0–10)'),
+                    validator: (value) {
+                      final score = double.tryParse(
+                        (value ?? '').replaceAll(',', '.'),
+                      );
+                      return score == null || score < 0 || score > 10
+                          ? 'Nhập điểm từ 0 đến 10'
+                          : null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: semesterController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Kỳ (0–20)'),
+                    validator: (value) {
+                      final semester = int.tryParse(value ?? '');
+                      return semester == null || semester < 0 || semester > 20
+                          ? 'Nhập kỳ từ 0 đến 20'
+                          : null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: creditsController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: 'Tín chỉ (để trống dùng chương trình)',
+                    ),
+                    validator: (value) {
+                      if ((value ?? '').trim().isEmpty) return null;
+                      final credits = int.tryParse(value ?? '');
+                      return credits == null || credits < 0 || credits > 30
+                          ? 'Nhập tín chỉ từ 0 đến 30'
+                          : null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -120,9 +150,12 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                       ? course.nameVi
                       : course.name,
                   score: score,
-                  credits: course.credits,
+                  credits: creditsController.text.trim().isEmpty
+                      ? course.credits
+                      : int.parse(creditsController.text),
                   semester: int.parse(semesterController.text),
-                  isPassed: score >= 5,
+                  isPassed: original?.inProgress == true ? false : score >= 5,
+                  inProgress: original?.inProgress ?? false,
                 ),
               );
             },
@@ -138,6 +171,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         codeController.dispose();
         scoreController.dispose();
         semesterController.dispose();
+        creditsController.dispose();
       }),
     );
     if (!mounted || edited == null) return;
@@ -155,22 +189,33 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
     final catalog = context.read<CourseCatalog>();
     if (_entries.isEmpty &&
         (!widget.manualEntry || widget.rawExtractedEntries.isEmpty)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chưa có môn học để lưu.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Chưa có môn học để lưu.')));
       return;
     }
     if (_entries.any(
-          (entry) =>
-              catalog.findByCode(entry.courseCode) == null ||
-              entry.semester < 1 ||
-              entry.score < 0 ||
-              entry.score > 10,
-        )) {
+      (entry) =>
+          catalog.findByCode(entry.courseCode) == null ||
+          entry.semester < 0 ||
+          entry.credits < 0 ||
+          entry.score < 0 ||
+          entry.score > 10,
+    )) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
-            'Hãy sửa mã môn, học kỳ và điểm chưa hợp lệ trước khi lưu.',
+            'Hãy sửa mã môn, kỳ, tín chỉ và điểm chưa hợp lệ trước khi lưu.',
+          ),
+        ),
+      );
+      return;
+    }
+    if (_entries.any(_missingCredits)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Có môn chưa xác nhận tín chỉ. Mở dòng được đánh dấu; để trống tín chỉ để dùng chương trình.',
           ),
         ),
       );
@@ -181,7 +226,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Xóa toàn bộ bảng điểm?'),
-          content: const Text('Các môn đã lưu sẽ bị xóa khỏi thiết bị này.'),
+          content: const Text('Bảng điểm đã lưu sẽ bị xóa. Bạn có muốn tiếp tục?'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -202,7 +247,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         courseCode: course.code,
         courseName: course.nameVi.isNotEmpty ? course.nameVi : course.name,
         score: entry.score,
-        credits: course.credits,
+        credits: entry.credits,
         semester: entry.semester,
         isPassed: entry.isPassed,
         inProgress: entry.inProgress,
@@ -217,9 +262,9 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
       Navigator.pop(context);
       messenger.showSnackBar(
         SnackBar(
-          content: Text(confirmed.isEmpty
-              ? 'Đã xóa bảng điểm.'
-              : 'Đã lưu bảng điểm.'),
+          content: Text(
+            confirmed.isEmpty ? 'Đã xóa bảng điểm.' : 'Đã lưu bảng điểm.',
+          ),
         ),
       );
     } catch (_) {
@@ -236,6 +281,8 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
   @override
   Widget build(BuildContext context) {
     final eval = GradeCalculator.evaluateTranscript(_entries);
+    final hasMissingCredits = _entries.any(_missingCredits);
+    final hasGpaCredits = eval.totalGpaCredits > 0 && !hasMissingCredits;
 
     return Scaffold(
       appBar: AppBar(
@@ -243,6 +290,8 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
           widget.manualEntry
               ? 'Nhập điểm thủ công'
               : 'Xác nhận bảng điểm đã quét',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
         actions: [
           IconButton(
@@ -259,35 +308,23 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
             child: SizedBox(
               width: double.infinity,
               child: OutlinedButton.icon(
-                onPressed: () => _editEntry(),
+                onPressed: _saving ? null : () => _editEntry(),
                 icon: const Icon(Icons.add),
                 label: const Text('Thêm môn thủ công'),
               ),
             ),
           ),
-          if (widget.importWarning.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              color: Colors.amber.shade100,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.warning_amber_rounded,
-                    color: Colors.amber.shade900,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.importWarning,
-                      style: TextStyle(
-                        color: Colors.amber.shade900,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
+          if (widget.importWarning.isNotEmpty || hasMissingCredits)
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spaceMd,
+                vertical: AppTheme.spaceSm,
+              ),
+              child: FlmNotice(
+                tone: NoticeTone.warning,
+                message: hasMissingCredits
+                    ? 'Có dòng thiếu tín chỉ. Chỉ cần mở các dòng được đánh dấu để kiểm tra trước khi lưu; GPA sẽ tính sau khi bổ sung.'
+                    : widget.importWarning,
               ),
             ),
           if (_entries.isEmpty)
@@ -298,74 +335,78 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
           else
             Container(
               padding: const EdgeInsets.all(16),
-              color: Colors.indigo.shade50,
+              color: AppTheme.primaryLight,
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  Column(
-                    children: [
-                      const Text(
-                        'GPA hiện tại',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      Text(
-                        '${eval.currentGpa}',
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'GPA hiện tại',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppTheme.slate600),
                         ),
-                      ),
-                    ],
+                        Text(
+                          hasGpaCredits ? '${eval.currentGpa}' : '—',
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryBlue,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    children: [
-                      const Text(
-                        'Xếp loại thực',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      Text(
-                        eval.actualRank,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Xếp loại thực',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppTheme.slate600),
                         ),
-                      ),
-                    ],
+                        Text(
+                          hasGpaCredits ? eval.actualRank : 'Chưa tính',
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  Column(
-                    children: [
-                      const Text(
-                        'Học lại',
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                      Text(
-                        '${eval.retakeCount} môn',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: eval.retakeCount >= 2
-                              ? Colors.red
-                              : Colors.black87,
+                  Expanded(
+                    child: Column(
+                      children: [
+                        const Text(
+                          'Học lại',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppTheme.slate600),
                         ),
-                      ),
-                    ],
+                        Text(
+                          '${eval.retakeCount} môn',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: eval.retakeCount >= 2
+                                ? AppTheme.danger
+                                : AppTheme.slate900,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
-          if (eval.penaltyWarning.isNotEmpty)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: Colors.amber.shade100,
-              child: Text(
-                eval.penaltyWarning,
-                style: const TextStyle(
-                  color: Colors.brown,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                ),
+          if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits)
+            Padding(
+              padding: const EdgeInsets.all(AppTheme.spaceMd),
+              child: FlmNotice(
+                message: eval.penaltyWarning,
+                tone: NoticeTone.warning,
               ),
             ),
           const Divider(height: 1),
@@ -374,11 +415,14 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
               itemCount: _entries.length,
               itemBuilder: (context, index) {
                 final item = _entries[index];
-                final bool isLowConfidence = item.confidence < 0.8;
+                final bool missingCredits = _missingCredits(item);
+                final bool isLowConfidence =
+                    item.confidence < 0.8 || missingCredits;
                 final bool isUnknown =
-                    context.read<CourseCatalog>().findByCode(item.courseCode) ==
-                        null ||
-                    item.semester < 1;
+                    context.watch<CourseCatalog>().findByCode(
+                      item.courseCode,
+                    ) ==
+                    null;
                 final bool isExcluded = GradeCalculator.isExcludedFromGpa(
                   item.courseCode,
                 );
@@ -389,78 +433,90 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     vertical: 6,
                   ),
                   color: isLowConfidence || isUnknown
-                      ? Colors.amber.shade50
+                      ? AppTheme.warningSurface
                       : Colors.white,
                   shape: RoundedRectangleBorder(
                     side: BorderSide(
                       color: isLowConfidence || isUnknown
-                          ? Colors.amber
-                          : Colors.grey.shade300,
+                          ? AppTheme.warning
+                          : AppTheme.slate200,
                       width: isLowConfidence || isUnknown ? 1.5 : 1.0,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
                   ),
                   child: ListTile(
-                    onTap: () => _editEntry(index),
-                    title: Row(
+                    onTap: _saving ? null : () => _editEntry(index),
+                    title: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            item.courseCode,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
+                        Text(
+                          item.courseCode,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
                           ),
                         ),
-                        if (isUnknown)
-                          const Padding(
-                            padding: EdgeInsets.only(left: 8),
-                            child: Text(
-                              'Mã chưa khớp',
-                              style: TextStyle(color: Colors.red, fontSize: 11),
-                            ),
-                          ),
-                        if (isExcluded)
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade200,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Miễn GPA',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.black54,
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          children: [
+                            if (isUnknown)
+                              const Padding(
+                                padding: EdgeInsets.zero,
+                                child: Text(
+                                  'Mã chưa khớp',
+                                  style: TextStyle(
+                                    color: AppTheme.danger,
+                                    fontSize: 14,
+                                  ),
+                                ),
                               ),
-                            ),
-                          ),
-                        if (isLowConfidence)
-                          Container(
-                            margin: const EdgeInsets.only(left: 8),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.red.shade100,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: const Text(
-                              'Cần kiểm tra',
-                              style: TextStyle(fontSize: 11, color: Colors.red),
-                            ),
-                          ),
+                            if (isExcluded)
+                              Container(
+                                margin: EdgeInsets.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.slate100,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Miễn GPA',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppTheme.slate600,
+                                  ),
+                                ),
+                              ),
+                            if (isLowConfidence)
+                              Container(
+                                margin: EdgeInsets.zero,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.dangerSurface,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  missingCredits
+                                      ? 'Kiểm tra tín chỉ'
+                                      : 'Cần kiểm tra',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: AppTheme.danger,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
                     subtitle: Text(
-                      'HK${item.semester} • ${item.credits} Tín chỉ • ${item.inProgress ? "Đang học, chưa có điểm cuối" : "Điểm: ${item.score}"}',
+                      'Kỳ ${item.semester} • ${item.credits} tín chỉ • ${item.inProgress ? "Đang học, chưa có điểm cuối" : "Điểm: ${item.score}"}',
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -468,18 +524,21 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                         IconButton(
                           tooltip: 'Sửa môn học',
                           icon: const Icon(Icons.edit_outlined),
-                          onPressed: () => _editEntry(index),
+                          onPressed: _saving ? null : () => _editEntry(index),
                         ),
                         IconButton(
+                          tooltip: 'Xóa môn học',
                           icon: const Icon(
                             Icons.delete_outline,
-                            color: Colors.red,
+                            color: AppTheme.danger,
                           ),
-                          onPressed: () {
-                            setState(() {
-                              _entries.removeAt(index);
-                            });
-                          },
+                          onPressed: _saving
+                              ? null
+                              : () {
+                                  setState(() {
+                                    _entries.removeAt(index);
+                                  });
+                                },
                         ),
                       ],
                     ),
