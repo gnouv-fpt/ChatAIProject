@@ -2,7 +2,7 @@
 
 Cập nhật 27/10/2026 theo yêu cầu gom design system thành một trang như PDF.
 
-- [Board Figma editable](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558): frame `86:558`, tên `04 · FLM Design System · ONE PAGE`, 1800×2546.
+- [Board Figma editable](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558): frame `86:558`, tên `02A · FLM Design System · ONE PAGE`, 1800×2546. [Bố cục canvas theo khu](canvas-layout.md).
 - [PDF một trang, khổ A2 dọc](../output/pdf/FLM-Design-System-One-Page.pdf), có thể zoom hoặc in thu nhỏ.
 - [Ảnh tổng hợp](evidence/2026-10-27/design-system-one-page.png).
 
