@@ -21,7 +21,9 @@ public class Citation
 
     public string? SourceUrl { get; set; }
 
+    [System.Text.Json.Serialization.JsonIgnore]
     public ChatMessage ChatMessage { get; set; } = null!;
 
+    [System.Text.Json.Serialization.JsonIgnore]
     public DocumentChunk? DocumentChunk { get; set; }
 }

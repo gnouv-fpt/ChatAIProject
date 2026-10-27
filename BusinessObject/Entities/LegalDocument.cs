@@ -27,6 +27,8 @@ public class LegalDocument
     public string? SourceUrl { get; set; }
 
     public DateTime CreatedAt { get; set; }
+    public int Version { get; set; } = 1;
+    public string? ContentHash { get; set; }
 
     public ICollection<DocumentChunk> Chunks { get; set; } = new List<DocumentChunk>();
 }

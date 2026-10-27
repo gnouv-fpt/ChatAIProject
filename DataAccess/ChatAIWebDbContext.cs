@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DataAccess;
 
+// Legacy single-database context retained only to read the original migration history.
+// Runtime hosts register UserDbContext or ContentDbContext, never this context.
 public class ChatAIWebDbContext : DbContext
 {
     public ChatAIWebDbContext(DbContextOptions<ChatAIWebDbContext> options)
@@ -58,6 +60,8 @@ public class ChatAIWebDbContext : DbContext
 
         modelBuilder.Entity<LegalDocument>(entity =>
         {
+            entity.Ignore(d => d.Version);
+            entity.Ignore(d => d.ContentHash);
             entity.Property(d => d.DocumentNumber).HasMaxLength(100);
             entity.Property(d => d.Title).HasMaxLength(500);
             entity.Property(d => d.IssuingAuthority).HasMaxLength(255);
