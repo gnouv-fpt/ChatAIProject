@@ -21,6 +21,8 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateBuilder(args);
+var module = builder.Configuration["Service:Module"] ?? "User";
+if (module is not ("User" or "Content")) throw new InvalidOperationException("Service:Module must be User or Content.");
 
 // ==================== Settings ====================
 var jwtSettings = builder.Configuration.GetSection(JwtSettings.SectionName).Get<JwtSettings>() ?? new JwtSettings();
@@ -31,6 +33,7 @@ builder.Services.AddSingleton(authSettings);
 
 // ==================== Web API ====================
 builder.Services.AddControllers()
+    .ConfigureApplicationPartManager(parts => parts.FeatureProviders.Add(new Presentation.Infrastructure.ServiceModuleFeatureProvider(module)))
     .AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -40,10 +43,13 @@ if (chatSettings.ReservationTokens < 1 || chatSettings.InferenceTimeoutSeconds i
     chatSettings.MaxAttachmentBytes is < 1024 or > 5 * 1024 * 1024 || chatSettings.AttachmentRetentionHours < 1)
     throw new InvalidOperationException("Invalid Chat configuration.");
 builder.Services.AddSingleton(chatSettings);
-builder.Services.AddScoped<IAttachmentService, PrivateAttachmentService>();
-builder.Services.AddHostedService<AttachmentCleanupService>();
-builder.Services.AddHostedService<Presentation.Infrastructure.OutboxMetricsService>();
-builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("rest-api-service"))
+if (module == "User")
+{
+    builder.Services.AddScoped<IAttachmentService, PrivateAttachmentService>();
+    builder.Services.AddHostedService<AttachmentCleanupService>();
+    builder.Services.AddHostedService<Presentation.Infrastructure.OutboxMetricsService>();
+}
+builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService(module == "User" ? "user-service" : "content-service"))
     .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter())
     .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
         .AddMeter("ChatAIWeb.Chat", "ChatAIWeb.Chat.Outbox").AddPrometheusExporter());
@@ -68,9 +74,26 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             NameClaimType = AppClaimTypes.Username,
             RoleClaimType = AppClaimTypes.Role
         };
+        options.TokenValidationParameters.ValidTypes = ["JWT"];
+        options.TokenValidationParameters.ValidAlgorithms = [SecurityAlgorithms.HmacSha256];
+        options.Events = JwtProblemDetailsEvents.Create();
+    })
+    .AddJwtBearer("ContentService", options =>
+    {
+        options.MapInboundClaims = false;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true, ValidIssuer = jwtSettings.Issuer,
+            ValidateAudience = true, ValidAudience = jwtSettings.Audience + ".ContentService",
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+            ValidateLifetime = true, ClockSkew = TimeSpan.FromSeconds(5),
+            ValidTypes = ["service+jwt"], ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
+        };
         options.Events = JwtProblemDetailsEvents.Create();
     });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => options.AddPolicy("ContentRead", policy =>
+    policy.AddAuthenticationSchemes("ContentService").RequireAuthenticatedUser().RequireClaim("scope", "content.read")));
 
 // ==================== Swagger ====================
 builder.Services.AddEndpointsApiExplorer();
@@ -97,35 +120,56 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 // ==================== Database ====================
-builder.Services.AddDbContext<ChatAIWebDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlOptions => sqlOptions.EnableRetryOnFailure()));
+var connectionName = module == "User" ? "UserConnection" : "ContentConnection";
+var connectionString = builder.Configuration.GetConnectionString(connectionName)
+    ?? throw new InvalidOperationException($"Missing ConnectionStrings:{connectionName}.");
+if (module == "User")
+{
+    builder.Services.AddDbContext<UserDbContext>(options => options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+    builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<UserDbContext>());
+}
+else
+{
+    builder.Services.AddDbContext<ContentDbContext>(options => options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
+    builder.Services.AddScoped<DbContext>(sp => sp.GetRequiredService<ContentDbContext>());
+}
 
 // ==================== Repository injection ====================
 builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
-builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
-builder.Services.AddScoped<IChatTurnRepository, ChatTurnRepository>();
-builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
-{
-    client.Timeout = TimeSpan.FromMinutes(2);
-    client.DefaultRequestHeaders.UserAgent.ParseAdd("ChatAIWeb legal document crawler");
-});
-builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
-
-// ==================== Services injection ====================
 builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
-builder.Services.AddScoped<IChatbotService, ChatbotService>();
-builder.Services.AddScoped<IDocumentService, DocumentService>();
-// Preserve Phuc's current scheduler until the Worker host takes ownership.
-if (builder.Configuration.GetValue("Jobs:EnableLegacyMidnight", true))
-    builder.Services.AddHostedService<MidnightCleanupJob>();
+if (module == "User")
+{
+    builder.Services.AddScoped<IUserRepository, UserRepository>();
+    builder.Services.AddScoped<IChatSessionRepository, ChatSessionRepository>();
+    builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
+    builder.Services.AddScoped<IChatTurnRepository, ChatTurnRepository>();
+    builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
+    builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+    builder.Services.AddScoped<IAuthService, AuthService>();
+    builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
+    builder.Services.AddScoped<IChatbotService, ChatbotService>();
+    builder.Services.AddHttpClient<IContentCatalogClient, ContentCatalogClient>(client =>
+    {
+        var address = builder.Configuration["ContentService:Address"] ?? "http://localhost:5040/";
+        client.BaseAddress = new Uri(address.TrimEnd('/') + "/");
+        client.Timeout = TimeSpan.FromSeconds(10);
+    });
+}
+else
+{
+    builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
+    builder.Services.AddScoped<IContentChunkRepository, ContentChunkRepository>();
+    builder.Services.AddScoped<IQuestionCatalogRepository, QuestionCatalogRepository>();
+    builder.Services.AddScoped<IContentChunkService, ContentChunkService>();
+    builder.Services.AddScoped<IDocumentService, DocumentService>();
+    builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
+    {
+        client.Timeout = TimeSpan.FromMinutes(2);
+        client.DefaultRequestHeaders.UserAgent.ParseAdd("ChatAIWeb legal document crawler");
+    });
+    if (builder.Configuration.GetValue("Jobs:EnableLegacyMidnight", false))
+        builder.Services.AddHostedService<MidnightCleanupJob>();
+}
 
 // ==================== gRPC Client ====================
 var grpcAddress = builder.Configuration.GetValue<string>("GrpcService:Address") ?? "http://localhost:50051";
@@ -137,10 +181,15 @@ builder.Services.AddScoped<IGrpcInferenceService, GrpcInferenceService>();
 
 var app = builder.Build();
 
-if (builder.Configuration.GetValue("Database:MigrateOnStartup", true))
+var migrateOnStartup = builder.Configuration.GetValue("Database:MigrateOnStartup", false);
+if (migrateOnStartup)
 {
     using var scope = app.Services.CreateScope();
-    await scope.ServiceProvider.GetRequiredService<ChatAIWebDbContext>().Database.MigrateAsync();
+    await scope.ServiceProvider.GetRequiredService<DbContext>().Database.MigrateAsync();
+}
+if (module == "User" && (migrateOnStartup || builder.Configuration.GetValue("Auth:SeedAdminOnStartup", false)))
+{
+    using var scope = app.Services.CreateScope();
     await scope.ServiceProvider.GetRequiredService<IAdminSeeder>().SeedAsync();
 }
 

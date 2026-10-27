@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Implementations;
 
 public class ChatMessageRepository : GenericRepository<ChatMessage>, IChatMessageRepository
 {
-    public ChatMessageRepository(ChatAIWebDbContext context)
+    public ChatMessageRepository(UserDbContext context)
         : base(context)
     {
     }
@@ -15,7 +15,6 @@ public class ChatMessageRepository : GenericRepository<ChatMessage>, IChatMessag
     {
         return await DbSet
             .AsNoTracking()
-            .Include(m => m.Citations)
             .Where(m => m.SessionId == sessionId)
             .OrderBy(m => m.CreatedAt)
             .ToListAsync(cancellationToken);
@@ -24,7 +23,6 @@ public class ChatMessageRepository : GenericRepository<ChatMessage>, IChatMessag
     public Task<ChatMessage?> GetMessageWithCitationsAsync(Guid messageId, CancellationToken cancellationToken = default)
     {
         return DbSet
-            .Include(m => m.Citations)
             .FirstOrDefaultAsync(m => m.Id == messageId, cancellationToken);
     }
 }

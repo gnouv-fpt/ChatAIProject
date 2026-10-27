@@ -40,11 +40,12 @@ dotnet build "$root/ChatAIWeb.slnx"
 
 cat <<'EOF'
 
-Xong! Database se tu tao/migrate khi chay API lan dau.
+Xong! Chua apply migrations. Xem docs/C2-SCHEMA-CONTRACT.md cho hai SQL DB.
 Chay API:
   dotnet run --project Presentation --launch-profile http
 Swagger: http://localhost:5039/swagger
 
-Neu ket noi DB that bai, sua ConnectionStrings:DefaultConnection trong Presentation/appsettings.json
+Cau hinh UserConnection va ContentConnection; chay them profile content tren port 5040.
+Sau khi apply schema, co the seed admin bang --Auth:SeedAdminOnStartup true tren User host.
 (mac dinh dung SQL Server local, Windows Authentication).
 EOF

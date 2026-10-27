@@ -49,13 +49,12 @@ services:
     entrypoint: [/bin/sh, -ec]
     command:
       - |
-        for topic in chat-completed-events document-updated-events chat-completed-events-dlq; do
+        for topic in service-notifications service-notifications-dlq; do
           /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions 3 --replication-factor 1
         done
     networks: [backend]
   redis:
     image: redis:7.4-alpine
-    profiles: [cache]
     command: [redis-server, --appendonly, 'yes']
     volumes: [redis_data:/data]
     healthcheck:
@@ -80,21 +79,43 @@ services:
       start_period: 60s
     networks: [backend]
     restart: unless-stopped
-  rest-api-service:
+  user-service:
     build: {context: ., dockerfile: Presentation/Dockerfile}
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ASPNETCORE_URLS: http://+:8080
-      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      Service__Module: User
+      ConnectionStrings__UserConnection: Server=sqlserver;Database=TrafficUserDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      ContentService__Address: http://content-service:8080/
+      ConnectionStrings__Redis: redis:6379
       GrpcService__Address: http://grpc-inference-service:50051
       Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
       Auth__SeedAdmin__Email: ${ADMIN_EMAIL:-}
       Auth__SeedAdmin__Password: ${ADMIN_PASSWORD:-}
+      Auth__SeedAdminOnStartup: ${SEED_ADMIN_ON_STARTUP:-false}
       Database__MigrateOnStartup: ${MIGRATE_ON_STARTUP:-false}
       Chat__AttachmentRoot: /data/attachments
       Logging__FilePath: /logs/rest-api.jsonl
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     volumes: [attachments:/data/attachments, app_logs:/logs]
+    depends_on:
+      sqlserver: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    networks: [backend]
+    restart: unless-stopped
+  content-service:
+    build: {context: ., dockerfile: Presentation/Dockerfile}
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_URLS: http://+:8080
+      Service__Module: Content
+      ConnectionStrings__ContentConnection: Server=sqlserver;Database=TrafficContentDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      GrpcService__Address: http://grpc-inference-service:50051
+      Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
+      Database__MigrateOnStartup: ${MIGRATE_ON_STARTUP:-false}
+      Logging__FilePath: /logs/content-api.jsonl
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+    volumes: [app_logs:/logs]
     depends_on:
       sqlserver: {condition: service_healthy}
     networks: [backend]
@@ -103,13 +124,14 @@ services:
     build: {context: ., dockerfile: ApiGateway/Dockerfile}
     environment:
       ASPNETCORE_URLS: http://+:8080
-      ReverseProxy__Clusters__rest__Destinations__rest__Address: http://rest-api-service:8080/
+      ReverseProxy__Clusters__user__Destinations__user__Address: http://user-service:8080/
+      ReverseProxy__Clusters__content__Destinations__content__Address: http://content-service:8080/
       ReverseProxy__Clusters__web__Destinations__web__Address: http://web:80/
       Logging__FilePath: /logs/gateway.jsonl
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     ports: ['127.0.0.1:${GATEWAY_PORT:-8080}:8080']
     volumes: [app_logs:/logs]
-    depends_on: [rest-api-service, web]
+    depends_on: [user-service, content-service, web]
     networks: [backend]
     restart: unless-stopped
   web:
@@ -121,9 +143,12 @@ services:
     profiles: [worker]
     image: ${WORKER_IMAGE:-traffic-rag-worker:handoff}
     environment:
-      ConnectionStrings__DefaultConnection: Server=sqlserver;Database=ChatAIWebDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
+      UserService__Address: http://user-service:8080/
+      ContentService__Address: http://content-service:8080/
+      ConnectionStrings__Redis: redis:6379
       Kafka__BootstrapServers: kafka:9092
       Kafka__GroupId: traffic-rag-worker-v1
+      Kafka__NotificationTopic: service-notifications
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     depends_on:
       sqlserver: {condition: service_healthy}

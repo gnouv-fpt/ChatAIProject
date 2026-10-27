@@ -17,27 +17,21 @@ public sealed class AuthService : IAuthService
     private const string InvalidRefreshTokenMessage = "Refresh token không hợp lệ hoặc đã hết hạn.";
 
     private readonly IUserRepository _userRepository;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly JwtSettings _jwtSettings;
     private readonly AuthSettings _authSettings;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository userRepository,
-        IRefreshTokenRepository refreshTokenRepository,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
-        JwtSettings jwtSettings,
         AuthSettings authSettings,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
-        _refreshTokenRepository = refreshTokenRepository;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
-        _jwtSettings = jwtSettings;
         _authSettings = authSettings;
         _logger = logger;
     }
@@ -95,35 +89,22 @@ public sealed class AuthService : IAuthService
         RefreshTokenRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var storedToken = await _refreshTokenRepository.GetByTokenHashWithUserAsync(
-            _jwtTokenService.HashRefreshToken(request.RefreshToken),
-            cancellationToken);
-
-        if (storedToken is null || !storedToken.IsActive(DateTime.UtcNow))
-        {
-            throw new UnauthorizedException(InvalidRefreshTokenMessage);
-        }
-
-        // Rotation: each refresh token is single-use.
-        storedToken.RevokedAt = DateTime.UtcNow;
-        return await IssueTokensAsync(storedToken.User, cancellationToken);
+        var refresh = await _jwtTokenService.ValidateRefreshTokenAsync(request.RefreshToken)
+            ?? throw new UnauthorizedException(InvalidRefreshTokenMessage);
+        var user = await _userRepository.GetByIdAsync(refresh.UserId, cancellationToken)
+            ?? throw new UnauthorizedException(InvalidRefreshTokenMessage);
+        var (accessToken, accessExpires) = _jwtTokenService.CreateAccessToken(user);
+        // Same signed client-held token and absolute expiry; refreshing does not extend its lifetime.
+        return new(accessToken, accessExpires, request.RefreshToken, refresh.ExpiresAt, MapProfile(user));
     }
 
-    public async Task LogoutAsync(
+    public Task LogoutAsync(
         RefreshTokenRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var storedToken = await _refreshTokenRepository.GetByTokenHashWithUserAsync(
-            _jwtTokenService.HashRefreshToken(request.RefreshToken),
-            cancellationToken);
-
-        if (storedToken is null || storedToken.RevokedAt is not null)
-        {
-            return;
-        }
-
-        storedToken.RevokedAt = DateTime.UtcNow;
-        await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+        // Stateless logout: client must clear both tokens. No server-side per-token revocation.
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
     }
 
     public async Task<UserProfileDto> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -137,20 +118,8 @@ public sealed class AuthService : IAuthService
     private async Task<AuthResponseDto> IssueTokensAsync(User user, CancellationToken cancellationToken)
     {
         var (accessToken, accessExpiresAt) = _jwtTokenService.CreateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
-        var refreshExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenDays);
-
-        await _refreshTokenRepository.AddAsync(new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
-            ExpiresAt = refreshExpiresAt,
-            CreatedAt = DateTime.UtcNow
-        }, cancellationToken);
-
-        // Repositories share the scoped DbContext, so this also persists pending user/token changes.
-        await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+        var (refreshToken, refreshExpiresAt) = _jwtTokenService.CreateRefreshToken(user);
+        await _userRepository.SaveChangesAsync(cancellationToken);
 
         return new AuthResponseDto(accessToken, accessExpiresAt, refreshToken, refreshExpiresAt, MapProfile(user));
     }

@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Implementations;
 
 public sealed class DocumentRepository : GenericRepository<LegalDocument>, IDocumentRepository
 {
-    public DocumentRepository(ChatAIWebDbContext context)
+    public DocumentRepository(ContentDbContext context)
         : base(context)
     {
     }

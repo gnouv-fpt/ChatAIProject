@@ -25,6 +25,7 @@ public class ChatbotService : IChatbotService
     private readonly IAttachmentService _attachments;
     private readonly ChatSettings _settings;
     private readonly ILogger<ChatbotService> _logger;
+    private readonly IContentCatalogClient _content;
 
     public ChatbotService(
         IChatSessionRepository chatSessionRepository,
@@ -34,7 +35,8 @@ public class ChatbotService : IChatbotService
         IChatTurnRepository turns,
         IAttachmentService attachments,
         ChatSettings settings,
-        ILogger<ChatbotService> logger)
+        ILogger<ChatbotService> logger,
+        IContentCatalogClient content)
     {
         _chatSessionRepository = chatSessionRepository;
         _chatMessageRepository = chatMessageRepository;
@@ -44,6 +46,7 @@ public class ChatbotService : IChatbotService
         _attachments = attachments;
         _settings = settings;
         _logger = logger;
+        _content = content;
     }
 
     public async Task<ChatSessionResponseDto> CreateSessionAsync(
@@ -195,7 +198,6 @@ public class ChatbotService : IChatbotService
                 if (existing.RequestHash != hash) throw new ConflictException("requestId đã dùng cho nội dung khác.");
                 if (existing.TurnState == "Completed")
                 {
-                    await ValidateStoredCitationsAsync(existing, cancellationToken);
                     return existing;
                 }
                 if (existing.TurnState == "Processing" && existing.LeaseExpiresAt > DateTime.UtcNow)
@@ -228,7 +230,11 @@ public class ChatbotService : IChatbotService
             if (existing == null) await _chatMessageRepository.AddAsync(message, cancellationToken);
             return message;
         }, cancellationToken);
-        if (turn.TurnState == "Completed") return MapMessage(turn);
+        if (turn.TurnState == "Completed")
+        {
+            await ValidateStoredCitationsAsync(turn, cancellationToken);
+            return MapMessage(turn);
+        }
 
         try
         {
@@ -251,7 +257,8 @@ public class ChatbotService : IChatbotService
                 throw new UpstreamTimeoutException("Dịch vụ AI phản hồi quá chậm. Vui lòng thử lại cùng requestId.");
             }
             ValidateResult(result, images.Count > 0);
-            // No DB transaction is held during inference. Completion rechecks current SQL evidence.
+            // Remote evidence check stays outside the User DB transaction; snapshots reflect this check.
+            var citations = await ValidateCitationsAsync(result.Citations, cancellationToken);
             var completed = await _turns.WithUserLockAsync(userId, async () =>
             {
                 var session = await RequireSessionAsync(userId, sessionId, cancellationToken);
@@ -259,28 +266,22 @@ public class ChatbotService : IChatbotService
                     ?? throw new ConflictException("Không tìm thấy lượt chat.");
                 if (current.LeaseId != leaseId || current.TurnState != "Processing" || current.LeaseExpiresAt <= DateTime.UtcNow)
                     throw new ConflictException("Lượt chat đã hết hạn. Vui lòng gửi lại cùng requestId.");
-                var citations = await ValidateCitationsAsync(result.Citations, cancellationToken);
                 current.Content = result.ResponseText;
                 current.TokensUsed = result.TokensUsed;
                 current.IsViolation = result.IsViolation;
                 current.ResultStatus = result.Status;
+                foreach (var citation in citations) citation.ChatMessageId = current.Id;
                 current.Citations = citations;
-                _turns.AddCitations(citations);
                 current.TurnState = "Completed";
                 current.CreatedAt = DateTime.UtcNow;
-                // Holds actual usage until the Worker's atomic balance/settlement transaction.
-                // Provider overrun remains accounted for, even if it exceeds the reservation.
-                current.ReservedTokens = result.TokensUsed;
+                // Settle locally with the completed message; Kafka is notification-only in C2.
+                var user = await _userRepository.GetByIdAsync(userId, cancellationToken)
+                    ?? throw new UnauthorizedException("Người dùng không tồn tại.");
+                user.TokenBalance = checked(user.TokenBalance - result.TokensUsed);
+                current.QuotaSettledAt = DateTime.UtcNow;
+                current.ReservedTokens = 0;
                 current.LeaseExpiresAt = null;
-                var completedEvent = new ChatCompletedEvent
-                {
-                    EventId = current.Id, MessageId = current.Id, RequestId = request.RequestId,
-                    UserId = userId, SessionId = sessionId, Prompt = prompt, Response = result.ResponseText,
-                    TokensUsed = result.TokensUsed, IsViolation = result.IsViolation,
-                    ViolationKeywords = result.ViolationKeywords, TraceParent = System.Diagnostics.Activity.Current?.Id,
-                    CreatedAt = DateTime.UtcNow
-                };
-                current.EventPayload = JsonSerializer.Serialize(completedEvent);
+                // Notification contracts/producer are owned by Khanh; no legacy quota event is emitted.
                 await _chatMessageRepository.AddAsync(new ChatMessage
                 {
                     Id = Guid.NewGuid(), SessionId = sessionId, SenderRole = SenderRole.User,
@@ -340,7 +341,7 @@ public class ChatbotService : IChatbotService
         if (citations.Any(c => !Guid.TryParse(c.ChunkId, out _)))
             throw new ServiceUnavailableException("Trích dẫn AI thiếu mã đoạn văn bản SQL.");
         var ids = citations.Select(c => Guid.Parse(c.ChunkId)).Distinct().ToArray();
-        var chunks = await _turns.GetChunksAsync(ids, ct);
+        var chunks = await _content.GetChunksAsync(ids, ct);
         var output = new List<Citation>();
         foreach (var citation in citations)
         {

@@ -6,10 +6,10 @@ namespace DataAccess.Repositories.Implementations;
 
 public class GenericRepository<TEntity> : IGenericRepository<TEntity> where TEntity : class
 {
-    protected readonly ChatAIWebDbContext Context;
+    protected readonly DbContext Context;
     protected readonly DbSet<TEntity> DbSet;
 
-    public GenericRepository(ChatAIWebDbContext context)
+    public GenericRepository(DbContext context)
     {
         Context = context;
         DbSet = context.Set<TEntity>();

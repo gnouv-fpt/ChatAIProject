@@ -2,6 +2,8 @@
 
 Bản này cùng [task.md](../task.md) thay plan 24/10. Đây là kiến trúc đích; source các nhánh cá nhân chưa chuyển đổi/tích hợp đầy đủ. Build/test cũ không chứng minh kiến trúc mới đã chạy.
 
+Schema P0/host/migrations đã được Vương triển khai trên nhánh cá nhân: [C2-SCHEMA-CONTRACT.md](C2-SCHEMA-CONTRACT.md). Kết quả kiểm tra và phần chưa ghép ở [C2-VERIFICATION-2026-10-27.md](C2-VERIFICATION-2026-10-27.md); không coi bản này đã có engine Redis/Kafka của Khánh hoặc bank UI của Phúc/Bảo.
+
 ## 1. Ranh giới dữ liệu và service
 
 | Kho | Dữ liệu theo C2 | Owner nghiệp vụ |
@@ -90,4 +92,4 @@ Remote fetch ngày 27/10: Bảo PRN-BAO-dev 3366119; Khôi PRN-KHOI-dev b7687df;
 5. P3: Kafka notification có broker ack/retry/dedup; animation URL thật; text/image RAG/errors; monitoring/demo.
 6. PR nhỏ về PRN-dev; kiểm tra module và bản ghép. EF pending-model check cho từng --context sau khi context tồn tại. Build không apply migration.
 
-Tài liệu này chưa tạo context/schema/migration, chưa deploy animation, chưa gửi tin nhắn cho đồng đội qua dịch vụ ngoài.
+Trạng thái context/schema/migration được cập nhật trong contract/bằng chứng đầu file. Chưa deploy animation hoặc gửi tin nhắn cho đồng đội qua dịch vụ ngoài.

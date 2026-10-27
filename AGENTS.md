@@ -8,6 +8,8 @@ Vuong owns shared entities/schema/repository contracts, both DbContexts/configur
 
 This is target architecture, not proof that the checked-out source already implements it. Keep useful branch code and adapt it; do not reset/rewrite others' work.
 
+The implemented P0 schema/host/auth contract on Vuong's branch is documented in docs/C2-SCHEMA-CONTRACT.md, with bounded evidence in docs/C2-VERIFICATION-2026-10-27.md. Use that contract for physical names/interfaces; it does not establish that other branches or the full runtime are integrated.
+
 ## 1. Project Overview
 
 PRN232 assignment: **Vietnam Traffic Law Advanced RAG System** — a microservices system that answers Vietnamese road-traffic law questions using only verified legal documents from thuvienphapluat.vn, with citations (Điều, Khoản, Điểm, document title, source URL).
@@ -130,7 +132,7 @@ The old single-database/seven-table limit is superseded. No RefreshTokens table 
 
 - `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh-token`, `POST /api/auth/logout`, `GET /api/auth/profile`.
 - Access token = JWT (HS256) with claims `sub` (UserId), `unique_name`, `email`, `role`, `token_quota` (names in `BusinessLogic/Infrastructure/AppClaimTypes.cs`).
-- Target scope removes the RefreshTokens table and keeps tokens on the client. Bao/Vuong must define expiry, validation, whether refresh remains, logout and revocation semantics at P0 before changing endpoints. Client storage alone does not preserve the current database-backed single-use rotation/revocation guarantees. Existing refresh/logout routes describe legacy source until adapted.
+- The new User host has no RefreshTokens table. Its current adapter uses a signed client-held refresh JWT with separate audience/type and absolute expiry; refresh does not extend that expiry. Logout requires the client to clear both tokens and does not revoke them server-side. See docs/C2-SCHEMA-CONTRACT.md before changing auth semantics; single-use rotation/per-token revocation from the legacy database-backed system are not current guarantees.
 - Passwords are hashed with PBKDF2-HMACSHA256 (`PasswordHasher`).
 
 ---

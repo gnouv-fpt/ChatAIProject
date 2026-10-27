@@ -19,7 +19,8 @@ namespace ChatAIWeb.Tests;
 public sealed class ChatTests : IAsyncLifetime
 {
     private readonly SqliteConnection connection = new("Data Source=:memory:");
-    private ChatAIWebDbContext db = null!;
+    private UserDbContext db = null!;
+    private TestContentCatalog content = new();
     private readonly Guid userId = Guid.NewGuid();
     private readonly Guid sessionId = Guid.NewGuid();
     private readonly Guid chunkId = Guid.NewGuid();
@@ -31,8 +32,8 @@ public sealed class ChatTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        var options = new DbContextOptionsBuilder<ChatAIWebDbContext>();
-        if (sql == null) { await connection.OpenAsync(); options.UseSqlite(connection); }
+        var options = new DbContextOptionsBuilder<UserDbContext>();
+        if (sql == null) { await connection.OpenAsync(); connection.CreateFunction<string, int>("ISJSON", s => { try { System.Text.Json.JsonDocument.Parse(s).Dispose(); return 1; } catch { return 0; } }); options.UseSqlite(connection); }
         else options.UseSqlServer(sql);
         db = new(options.Options);
         if (sql == null) await db.Database.EnsureCreatedAsync();
@@ -40,21 +41,22 @@ public sealed class ChatTests : IAsyncLifetime
         db.Users.Add(new User { Id = userId, Username = userId.ToString("N"), Email = userId + "@test.local", PasswordHash = "test-only", TokenBalance = 10000, TokenQuota = 10000, CreatedAt = DateTime.UtcNow });
         db.ChatSessions.Add(new ChatSession { Id = sessionId, UserId = userId, Title = "Test", CreatedAt = DateTime.UtcNow, LastUpdatedAt = DateTime.UtcNow });
         var document = new LegalDocument { Id = Guid.NewGuid(), DocumentNumber = chunkId.ToString(), Title = "Test law", SourceUrl = "https://thuvienphapluat.vn/test", IsActive = true, VerificationStatus = VerificationStatus.Verified, CreatedAt = DateTime.UtcNow };
-        db.DocumentChunks.Add(new DocumentChunk { Id = chunkId, Document = document, Content = "Verified test evidence", Article = "1", Clause = "2", IsVerified = true });
+        content.Chunks.Add(new DocumentChunk { Id = chunkId, Document = document, Content = "Verified test evidence", Article = "1", Clause = "2", IsVerified = true });
         await db.SaveChangesAsync();
         var sessions = new ChatSessionRepository(db);
         attachments = new(settings, sessions);
-        service = new(sessions, new ChatMessageRepository(db), new UserRepository(db), inference, new ChatTurnRepository(db), attachments, settings, NullLogger<ChatbotService>.Instance);
+        service = new(sessions, new ChatMessageRepository(db), new UserRepository(db), inference, new ChatTurnRepository(db), attachments, settings, NullLogger<ChatbotService>.Instance, content);
     }
     public async Task DisposeAsync() { await db.DisposeAsync(); await connection.DisposeAsync(); if (Directory.Exists(settings.AttachmentRoot)) Directory.Delete(settings.AttachmentRoot, true); }
     private SendMessageRequest Request(string prompt = "Test question") => new() { RequestId = Guid.NewGuid(), Prompt = prompt };
 
-    [Fact] public async Task RetryReturnsSameMessageAndOneEvent()
+    [Fact] public async Task RetryReturnsSameMessageAndSettlesOnlyOnceWithoutKafka()
     {
         var request = Request(); var first = await service.SendMessageAsync(userId, sessionId, request); var replay = await service.SendMessageAsync(userId, sessionId, request);
         Assert.Equal(first.Id, replay.Id); Assert.Equal(1, inference.Calls);
         Assert.Equal(2, await db.ChatMessages.CountAsync(m => m.SessionId == sessionId));
-        Assert.Equal(1, await db.ChatMessages.CountAsync(m => m.SessionId == sessionId && m.EventPayload != null));
+        Assert.Equal(0, await db.ChatMessages.CountAsync(m => m.SessionId == sessionId && m.EventPayload != null));
+        Assert.Equal(9990, (await db.Users.FindAsync(userId))!.TokenBalance);
         Assert.Equal(2, (await service.GetSessionsAsync(userId, 1, 10)).Items.Single().MessageCount);
     }
     [Fact] public async Task ReusingRequestForDifferentPromptConflicts()
@@ -81,10 +83,12 @@ public sealed class ChatTests : IAsyncLifetime
         (await db.Users.FindAsync(userId))!.TokenBalance = 0; await db.SaveChangesAsync();
         await Assert.ThrowsAsync<QuotaExceededException>(() => service.SendMessageAsync(userId, sessionId, Request())); Assert.Equal(0, inference.Calls);
     }
-    [Fact] public async Task CompletedUsageRemainsReservedUntilWorkerSettlement()
+    [Fact] public async Task CompletedUsageSettlesWithoutWorker()
     {
         (await db.Users.FindAsync(userId))!.TokenBalance = 10; await db.SaveChangesAsync();
         await service.SendMessageAsync(userId, sessionId, Request());
+        Assert.Equal(0, (await db.Users.FindAsync(userId))!.TokenBalance);
+        Assert.Equal(0, (await db.ChatMessages.SingleAsync(m => m.SessionId == sessionId && m.SenderRole == SenderRole.Assistant)).ReservedTokens);
         await Assert.ThrowsAsync<QuotaExceededException>(() => service.SendMessageAsync(userId, sessionId, Request()));
     }
     [Fact] public async Task WrongOwnerCannotSendOrReadHistory()
@@ -111,14 +115,14 @@ public sealed class ChatTests : IAsyncLifetime
         inference.Result = Answer(); var request = Request();
         var result = await service.SendMessageAsync(userId, sessionId, request);
         Assert.Equal(chunkId, result.Citations.Single().DocumentChunkId);
-        (await db.DocumentChunks.Include(c => c.Document).SingleAsync(c => c.Id == chunkId)).Document.IsActive = false; await db.SaveChangesAsync();
+        content.Chunks.Single(c => c.Id == chunkId).Document.IsActive = false;
         await Assert.ThrowsAsync<ConflictException>(() => service.SendMessageAsync(userId, sessionId, request)); Assert.Equal(1, inference.Calls);
     }
     [Fact] public async Task TamperedCitationCannotBeSaved()
     {
         inference.Result = Answer(); inference.Result.Citations[0].ContentHash = "wrong";
         await Assert.ThrowsAsync<ConflictException>(() => service.SendMessageAsync(userId, sessionId, Request()));
-        Assert.False(await db.Citations.AnyAsync(c => c.DocumentChunkId == chunkId));
+        Assert.DoesNotContain(await db.ChatMessages.ToListAsync(), m => m.Citations.Any(c => c.DocumentChunkId == chunkId));
     }
     [Theory] [InlineData("Answered", false)] [InlineData("Invalid", true)]
     public async Task InvalidAiResponseIsNotSuccessful(string status, bool verified)
@@ -189,7 +193,7 @@ public sealed class ChatTests : IAsyncLifetime
         inference.Gate = gate.Task; settings.InferenceTimeoutSeconds = 10;
         var request = Request(); var first = service.SendMessageAsync(userId, sessionId, request);
         while (inference.LastInput == null) await Task.Delay(10);
-        await using var otherDb = new ChatAIWebDbContext(new DbContextOptionsBuilder<ChatAIWebDbContext>().UseSqlServer(sql, o => o.EnableRetryOnFailure()).Options);
+        await using var otherDb = new UserDbContext(new DbContextOptionsBuilder<UserDbContext>().UseSqlServer(sql, o => o.EnableRetryOnFailure()).Options);
         var second = NewService(otherDb);
         await Assert.ThrowsAsync<ConflictException>(() => second.SendMessageAsync(userId, sessionId, request));
         gate.SetResult(); await first; Assert.Equal(1, inference.Calls);
@@ -201,7 +205,7 @@ public sealed class ChatTests : IAsyncLifetime
         inference.Gate = gate.Task; settings.InferenceTimeoutSeconds = 10;
         var first = service.SendMessageAsync(userId, sessionId, Request());
         while (inference.LastInput == null) await Task.Delay(10);
-        await using var otherDb = new ChatAIWebDbContext(new DbContextOptionsBuilder<ChatAIWebDbContext>().UseSqlServer(sql, o => o.EnableRetryOnFailure()).Options);
+        await using var otherDb = new UserDbContext(new DbContextOptionsBuilder<UserDbContext>().UseSqlServer(sql, o => o.EnableRetryOnFailure()).Options);
         await Assert.ThrowsAsync<QuotaExceededException>(() => NewService(otherDb).SendMessageAsync(userId, sessionId, Request()));
         gate.SetResult(); await first; Assert.Equal(1, inference.Calls);
     }
@@ -213,9 +217,15 @@ public sealed class ChatTests : IAsyncLifetime
         var next = Request(); next.UsePreviousAttachments = false; await service.SendMessageAsync(userId, sessionId, next);
         Assert.Empty(inference.LastInput!.Images);
     }
-    private ChatbotService NewService(ChatAIWebDbContext otherDb) => new(new ChatSessionRepository(otherDb), new ChatMessageRepository(otherDb),
+    private ChatbotService NewService(UserDbContext otherDb) => new(new ChatSessionRepository(otherDb), new ChatMessageRepository(otherDb),
         new UserRepository(otherDb), inference, new ChatTurnRepository(otherDb), new PrivateAttachmentService(settings, new ChatSessionRepository(otherDb)),
-        settings, NullLogger<ChatbotService>.Instance);
+        settings, NullLogger<ChatbotService>.Instance, content);
+    private sealed class TestContentCatalog : IContentCatalogClient
+    {
+        public List<DocumentChunk> Chunks { get; } = [];
+        public Task<List<DocumentChunk>> GetChunksAsync(Guid[] ids, CancellationToken ct) =>
+            Task.FromResult(Chunks.Where(c => ids.Contains(c.Id)).ToList());
+    }
     private ChatInferenceResultDto Answer() => new()
     {
         ContractVersion = 2, Status = "Answered", DataVerified = true, ResponseText = "Verified answer", TokensUsed = 10,

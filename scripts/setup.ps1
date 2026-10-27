@@ -44,10 +44,11 @@ Write-Host "==> Build solution" -ForegroundColor Cyan
 dotnet build (Join-Path $root "ChatAIWeb.slnx")
 
 Write-Host ""
-Write-Host "Xong! Database se tu tao/migrate khi chay API lan dau." -ForegroundColor Green
+Write-Host "Xong! Chua apply migrations. Xem docs/C2-SCHEMA-CONTRACT.md cho hai SQL DB." -ForegroundColor Green
 Write-Host "Chay API:" -ForegroundColor Cyan
 Write-Host "  dotnet run --project Presentation --launch-profile http"
 Write-Host "Swagger: http://localhost:5039/swagger"
 Write-Host ""
-Write-Host "Neu ket noi DB that bai, sua ConnectionStrings:DefaultConnection trong Presentation/appsettings.json" -ForegroundColor Yellow
+Write-Host "Cau hinh UserConnection va ContentConnection; chay them profile content tren port 5040." -ForegroundColor Yellow
+Write-Host "Sau khi apply schema, co the seed admin bang --Auth:SeedAdminOnStartup true tren User host." -ForegroundColor Yellow
 Write-Host "(mac dinh dung SQL Server local, Windows Authentication)." -ForegroundColor Yellow

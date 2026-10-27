@@ -1,0 +1,72 @@
+[
+  {
+    "Check": "User SQL readiness through Gateway",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "Content SQL readiness through Gateway",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "Content documents route",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "User host hides content controller",
+    "Expected": 404,
+    "Actual": 404
+  },
+  {
+    "Check": "Content host hides auth controller",
+    "Expected": 404,
+    "Actual": 404
+  },
+  {
+    "Check": "Gateway blocks internal endpoint",
+    "Expected": 404,
+    "Actual": 404
+  },
+  {
+    "Check": "Content internal endpoint requires service auth",
+    "Expected": 401,
+    "Actual": 401
+  },
+  {
+    "Check": "Register through Gateway and User SQL",
+    "Expected": 201,
+    "Actual": 201
+  },
+  {
+    "Check": "Profile through Gateway",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "Create chat session in User SQL",
+    "Expected": 201,
+    "Actual": 201
+  },
+  {
+    "Check": "Read saved chat session",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "Stateless refresh through Gateway",
+    "Expected": 200,
+    "Actual": 200
+  },
+  {
+    "Check": "Refresh token cannot authenticate as access token",
+    "Expected": 401,
+    "Actual": 401
+  },
+  {
+    "Check": "Logout response",
+    "Expected": 204,
+    "Actual": 204
+  }
+]

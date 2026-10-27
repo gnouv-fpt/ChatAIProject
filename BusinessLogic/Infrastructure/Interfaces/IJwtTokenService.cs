@@ -6,7 +6,7 @@ public interface IJwtTokenService
 {
     (string Token, DateTime ExpiresAt) CreateAccessToken(User user);
 
-    string GenerateRefreshToken();
-
-    string HashRefreshToken(string refreshToken);
+    (string Token, DateTime ExpiresAt) CreateRefreshToken(User user);
+    Task<(Guid UserId, DateTime ExpiresAt)?> ValidateRefreshTokenAsync(string token);
+    string CreateContentServiceToken();
 }

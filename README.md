@@ -1,8 +1,10 @@
 ﻿# ChatAIWeb
 
-ChatAIWeb is an ASP.NET Core Razor Pages application that provides a RAG chatbot for Vietnamese study materials. The system lets Admins/Teachers upload PDF, DOCX, and PPTX files, split the content into chunks, generate embeddings, retrieve relevant context, and produce answers with source citations.
+Current project (27/10/2026): Vietnam Traffic Law RAG and practice exams. Two SQL databases (User and Content/Exam), Qdrant, Redis custom exams, Kafka service notifications, and API Gateway. ASP.NET Core Web API with React clients; no Razor Pages.
 
-The project follows a 3-layer architecture for the PRN222/FPT course: `Presentation`, `BusinessLogic`, `DataAccess`, `BusinessObject`.
+Current setup/schema/API contracts: [C2-SCHEMA-CONTRACT.md](docs/C2-SCHEMA-CONTRACT.md). Assignments: [task.md](task.md). Separate migrations and two service profiles are documented there; do not use the old single-database bootstrap below for the new topology.
+
+The sections below are historical documentation from the original course-document application. They do not establish current supported models, accounts, endpoints or runtime behavior.
 
 ## Table of Contents
 

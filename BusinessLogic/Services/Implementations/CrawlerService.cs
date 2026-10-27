@@ -1,9 +1,8 @@
 using BusinessObject.Entities;
 using BusinessObject.Enums;
 using BusinessLogic.Services.Interfaces;
-using DataAccess;
+using DataAccess.Repositories.Interfaces;
 using HtmlAgilityPack;
-using Microsoft.EntityFrameworkCore;
 
 namespace BusinessLogic.Services.Implementations;
 
@@ -12,12 +11,12 @@ public sealed class CrawlerService : ICrawlerService
     private const string TrafficLawUrl = "https://thuvienphapluat.vn/van-ban/Giao-thong-Van-tai";
 
     private readonly HttpClient _httpClient;
-    private readonly ChatAIWebDbContext _context;
+    private readonly IDocumentRepository _documents;
 
-    public CrawlerService(HttpClient httpClient, ChatAIWebDbContext context)
+    public CrawlerService(HttpClient httpClient, IDocumentRepository documents)
     {
         _httpClient = httpClient;
-        _context = context;
+        _documents = documents;
     }
 
     public async Task CrawlTrafficLawsAsync(CancellationToken cancellationToken = default)
@@ -46,12 +45,12 @@ public sealed class CrawlerService : ICrawlerService
             }
 
             var sourceUrl = new Uri(new Uri(TrafficLawUrl), link).ToString();
-            if (await _context.LegalDocuments.AnyAsync(document => document.Title == title, cancellationToken))
+            if (await _documents.AnyAsync(document => document.Title == title, cancellationToken))
             {
                 continue;
             }
 
-            _context.LegalDocuments.Add(new LegalDocument
+            await _documents.AddAsync(new LegalDocument
             {
                 Id = Guid.NewGuid(),
                 DocumentNumber = CreateDocumentNumber(sourceUrl),
@@ -61,10 +60,10 @@ public sealed class CrawlerService : ICrawlerService
                 VerificationStatus = VerificationStatus.Pending,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
-            });
+            }, cancellationToken);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _documents.SaveChangesAsync(cancellationToken);
     }
 
     private static string CreateDocumentNumber(string sourceUrl)

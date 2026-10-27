@@ -41,7 +41,7 @@ public sealed class MidnightCleanupJob : BackgroundService
         try
         {
             using var scope = _serviceProvider.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ChatAIWebDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<ContentDbContext>();
             var now = DateTime.UtcNow;
 
             var expiredDocuments = await db.LegalDocuments
@@ -56,13 +56,8 @@ public sealed class MidnightCleanupJob : BackgroundService
                 document.VerificationStatus = VerificationStatus.Outdated;
             }
 
-            var emptySessions = await db.ChatSessions
-                .Where(session => !session.Messages.Any() && session.CreatedAt < now.AddDays(-1))
-                .ToListAsync(cancellationToken);
-
-            db.ChatSessions.RemoveRange(emptySessions);
             await db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Midnight Job hoàn thành quét hiệu lực và dọn session.");
+            _logger.LogInformation("Midnight Job hoàn thành quét hiệu lực trong Content DB.");
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {

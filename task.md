@@ -2,6 +2,8 @@
 
 Bản này thay phân công ngày 24/10. Chi tiết: [IMPLEMENTATION-PLAN.md](docs/IMPLEMENTATION-PLAN.md). Đồng bộ nhánh: [TEAM-GIT-WORKFLOW.md](docs/TEAM-GIT-WORKFLOW.md).
 
+Contract schema P0 và cách nối module đã có trên nhánh Vương: [C2-SCHEMA-CONTRACT.md](docs/C2-SCHEMA-CONTRACT.md). Chỉ sử dụng sau khi commit code tương ứng đã được tích hợp vào nền của mình; pull riêng bản plan không tạo ra contexts mới.
+
 ## Phạm vi đã chốt
 
 - Hai SQL DB độc lập: User DB lưu tài khoản/chat/lượt thi; Content/Exam DB lưu luật/chunks/bank câu hỏi/đề mẫu.
@@ -40,4 +42,4 @@ Bản này thay phân công ngày 24/10. Chi tiết: [IMPLEMENTATION-PLAN.md](do
 | P2 | Tạo đề custom → Redis → làm/nộp/chấm → lưu kết quả User DB; xem lại sau Redis expiry |
 | P3 | Notification giữa service, animation URL thật, chat ảnh và demo tích hợp |
 
-Đây là cập nhật tài liệu/phân công, chưa xác nhận schema mới hoặc code các nhánh đã chạy chung.
+Trạng thái triển khai theo contract/bằng chứng được liên kết ở đầu file; chưa xác nhận toàn bộ code các nhánh đã chạy chung.

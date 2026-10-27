@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Implementations;
 
 public class UserRepository : GenericRepository<User>, IUserRepository
 {
-    public UserRepository(ChatAIWebDbContext context)
+    public UserRepository(UserDbContext context)
         : base(context)
     {
     }

@@ -32,6 +32,16 @@ builder.Logging.AddProvider(new Presentation.Infrastructure.SafeFileLoggerProvid
 builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 6 * 1024 * 1024);
 var app = builder.Build();
 app.UseExceptionHandler();
+app.Use(async (context, next) =>
+{
+    // Internal service contracts are never exposed through the public Gateway.
+    if (context.Request.Path.StartsWithSegments("/internal"))
+    {
+        context.Response.StatusCode = 404;
+        return;
+    }
+    await next();
+});
 app.UseRateLimiter();
 app.Use(async (context, next) =>
 {

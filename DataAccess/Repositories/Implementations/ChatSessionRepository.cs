@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Implementations;
 
 public class ChatSessionRepository : GenericRepository<ChatSession>, IChatSessionRepository
 {
-    public ChatSessionRepository(ChatAIWebDbContext context)
+    public ChatSessionRepository(UserDbContext context)
         : base(context)
     {
     }
@@ -15,7 +15,6 @@ public class ChatSessionRepository : GenericRepository<ChatSession>, IChatSessio
     {
         return DbSet
             .Include(s => s.Messages.OrderBy(m => m.CreatedAt))
-                .ThenInclude(m => m.Citations)
             .FirstOrDefaultAsync(s => s.Id == sessionId && s.UserId == userId && !s.IsDeleted, cancellationToken);
     }
 

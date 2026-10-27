@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
 
+[Presentation.Infrastructure.ServiceModule("Content")]
 [ApiController]
 [Route("api/[controller]")]
 public sealed class DocumentsController : ControllerBase

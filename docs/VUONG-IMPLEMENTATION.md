@@ -1,3 +1,7 @@
+# Cập nhật C2 ngày 27/10/2026
+
+Phần triển khai trước đó bên dưới mô tả kiến trúc cũ. Xem [contract schema/hai DB](C2-SCHEMA-CONTRACT.md) và [bằng chứng mới](C2-VERIFICATION-2026-10-27.md). Không dùng luồng Kafka settlement hay một DbContext bên dưới làm contract hiện hành.
+
 # Vương — implementation và bàn giao, 24/10/2026
 
 Nhánh làm việc: `PRN-VUONG-dev`, lấy nền tích hợp `3a50502` của `PRN-dev`. Bản triển khai được phát hành trên nhánh cá nhân; chưa merge về PRN-dev, chờ các module liên quan đủ contract để tích hợp. Đây là trạng thái thực hiện thay cho các checkbox Redis/fallback cũ trong `scripts/VUONG_PROGRESS.md`.
