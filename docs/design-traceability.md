@@ -5,7 +5,7 @@
 S01 đã thêm `LearningJourneyCard` với counts/progress/từng kỳ lấy từ `LearningProgress`; S05/S06 dùng `FlmNotice` và token trạng thái chung. Theme chuẩn hóa typography, button và navigation. [Bảng persona–màn–component–task và phiếu test](ux-feedback-validation.md).
 
 - Home Figma giữ `2:2470`, Journey mới `86:337`, bản nội dung trước sửa `86:332`.
-- [6 nhóm component và state](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-348), [mapping và nhịp demo](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-543). Đây là board native editable có instance thư viện và token/style bindings, không phải ảnh UI nhập vào canvas.
+- [Design System một trang](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558), [mapping và nhịp demo](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-543). Đây là board native editable có instance thư viện và token/style bindings, không phải ảnh UI nhập vào canvas.
 - AI Loading `8:117`: timeout 1,2 → 3 giây. CTA Journey click sang danh sách `2:2563`.
 - Deviation D04: Flutter mở rộng từng kỳ inline; Figma hiện mở màn lộ trình theo kỳ `2:2777`. Lý do: tái sử dụng đích prototype hiện có, chưa dựng state expansion tương ứng. Còn phải đồng bộ interaction trước nghiệm thu pixel/flow parity.
 - Deviation D05: Figma dùng Button instance nhãn “Tiếp tục”, Flutter dùng “Mở lộ trình học”; cùng hành động mở lộ trình. Còn chuẩn hóa nhãn instance.

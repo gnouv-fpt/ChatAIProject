@@ -797,7 +797,7 @@ Phạm vi thiết kế: sinh viên FPT có bảng điểm từng phần cần bi
 | AI log | [`ai/ai-design-log.md`](ai/ai-design-log.md) | Có critique trên source; chưa có prompt/ảnh Stitch và ba vòng lặp |
 | Flutter handoff | [`handoff/flutter-handoff.md`](handoff/flutter-handoff.md) | Có sáu mục mỗi màn và hai bảng mapping |
 | Figma | [FLM Student Assistant](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant) | Đã đọc/chỉnh bằng MCP; Starter chặn page thứ tư, hiện 3 page và section 04–06; chưa đạt tiêu chí sáu page |
-| Component nền đã sửa | [Button/Text field](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=52-19), [7 nhóm còn lại](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=55-17) | 9 family/30 variants trong thư viện; có review instance và ảnh thật. Còn áp dụng vào màn và kiểm prototype |
+| Component nền đã sửa | [Design System một trang](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558) | 9 family/30 variants; đã gom và xóa board review cũ, giữ component sources. Còn áp dụng vào màn và kiểm prototype |
 
 Chi tiết lượt sửa Figma 21/10, ảnh thật và các phần còn mở: [`design/figma-progress-2026-10-21.md`](design/figma-progress-2026-10-21.md). Đây là tiến độ từng phần, không phải xác nhận Lab 2 hoàn tất.
 

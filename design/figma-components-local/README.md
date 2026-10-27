@@ -1,6 +1,8 @@
 # FLM Android Components
 
-**Trạng thái: đã tạo và kiểm tra trên Figma qua local MCP Bridge ngày 21/10/2026.** Có 7 component set, 20 variant và 20 instance review thật. [Mở review board](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=55-17). Receipt: `bridge-receipt.json`; ảnh thật: `../evidence/2026-10-21/seven-components-after.png`.
+**Sau khi gom trang ngày 27/10:** review cũ `55:17` đã xóa; dùng [Design System một trang](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558). Component sources `55:16` còn nguyên; số liệu bên dưới là lịch sử lượt tạo thư viện 21/10.
+
+**Trạng thái: đã tạo và kiểm tra trên Figma qua local MCP Bridge ngày 21/10/2026.** Có 7 component set, 20 variant và 20 instance review thật. [Design System một trang](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558). Receipt: `bridge-receipt.json`; ảnh thật: `../evidence/2026-10-21/seven-components-after.png`.
 
 Builder `code.js` là phương án chuẩn bị trước, **chưa chạy**. Không chạy lại plugin này trên file đang có các component do bridge tạo, để tránh trùng. Bản bridge dùng Auto Layout, icon SVG Lucide, action frame và native text; không tuyên bố đã tạo text/boolean property bindings hoặc nested Button instance như builder dự kiến.
 

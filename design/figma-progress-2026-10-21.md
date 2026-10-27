@@ -29,7 +29,7 @@ Kiểm tra cấu trúc, đối chiếu foundation với `flutter_app/lib/theme/a
 3. Tạo **5 text style Roboto**: FLM/Title 22/28 Bold, Section 18/24 Bold, Body 14/20 Regular, Label 14/20 Medium, Caption 14/20 Regular.
 4. Sửa **Button** set giữ ID `8:113`: State=Default, Disabled, Pressed, Focused, Loading; main component 180×48, Auto Layout, bind fill/radius/padding/gap. Giữ ID của hai variant cũ để bảo toàn instance hiện có.
 5. Sửa **Text field** set `52:18`: State=Default, Disabled, Focused, Filled, Error; main component 320×56, Auto Layout, nền và border đúng ngữ nghĩa. Error có thông báo chữ và viền, không chỉ đổi màu. Giữ ID hai component cũ.
-6. Tạo [review board `52:19`](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=52-19) có **10 instance thực**, một instance mỗi trạng thái. Main component nằm ở phần dưới section Components, ngoài review board.
+6. Tạo `review board `52:19`` (đã thay bằng [trang tổng hợp](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558)) có **10 instance thực**, một instance mỗi trạng thái. Main component nằm ở phần dưới section Components, ngoài review board.
 7. Đã kiểm tra cấu trúc, variable bindings, type style IDs, kích thước và screenshot. Sửa opacity thừa của disabled variant sau vòng kiểm tra ảnh.
 8. Đo contrast chữ trắng trên primary **5.75:1**, accent **5.50:1**. Hai phép đo màu này không thay thế kiểm tra toàn bộ màn hình.
 
@@ -51,7 +51,7 @@ Kiểm tra cấu trúc, đối chiếu foundation với `flutter_app/lib/theme/a
 
 ## Những phần còn mở và thứ tự tiếp theo
 
-**Cập nhật sau khi người dùng bật bridge ngày 21/10:** Đã tạo 7 native component set (Card, Navigation, App bar, Dialog, Loading, Empty, Error), tổng 20 variants, tại frame nguồn `55:16`. [Review board `55:17`](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=55-17) có 20 instance thật. Cộng Button/Text field trước đó thành 9 family với 30 variants đã xử lý ở thư viện. Giữ nguyên 14 placeholder cũ để tránh ảnh hưởng màn đang dùng.
+**Cập nhật sau khi người dùng bật bridge ngày 21/10:** Đã tạo 7 native component set (Card, Navigation, App bar, Dialog, Loading, Empty, Error), tổng 20 variants, tại frame nguồn `55:16`. `Review board `55:17`` (đã thay bằng [trang tổng hợp](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=86-558)) có 20 instance thật. Cộng Button/Text field trước đó thành 9 family với 30 variants đã xử lý ở thư viện. Giữ nguyên 14 placeholder cũ để tránh ảnh hưởng màn đang dùng.
 
 Đã sửa kích thước Auto Layout, icon và căn giữa action label; xem ảnh export thật [`seven-components-after.png`](evidence/2026-10-21/seven-components-after.png). Validator quét 702 node, không phát hiện lỗi trong hai frame; 44 target rõ ràng được kiểm minimum 48 dp. Scope nguồn mới có 243 color usage bind primitive variable và 67 typography usage bind text style; spacing/radius có 195 binding. Còn 32 giá trị editor radius/spacing 0/4 chưa bind. Semantic aliases vẫn có sẵn nhưng exact-match resolver chọn primitive cho các màu mới.
 
