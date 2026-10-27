@@ -4,6 +4,12 @@ import os
 import sys
 from pathlib import Path
 
+# Redirected Windows streams can default to cp1252, which cannot log Vietnamese
+# provider errors. Configure them before importing application logging/services.
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="backslashreplace")
+
 # Add paths
 root_dir = Path(__file__).resolve().parent
 backend_dir = root_dir / "backend"
