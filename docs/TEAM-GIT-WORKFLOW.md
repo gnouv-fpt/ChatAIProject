@@ -1,65 +1,37 @@
-# PRN-dev là nền tích hợp chung
+# Đồng bộ nhánh theo C2 mới — 27/10/2026
 
-Cập nhật 24/10/2026. Đã dựng PRN-dev local từ code PRN mới, ghép nhánh Phúc và Khôi vào nền Vương/Bảo, giữ scope 7 bảng và các tài liệu kế hoạch. Đã xử lý DI conflict và đăng ký gRPC lặp. Build .NET: 0 warning/error; EF không có pending model changes. Chưa chạy API/Compose hoặc apply migration.
+Nền chung: **PRN-dev**. Đọc [task.md](../task.md), [IMPLEMENTATION-PLAN.md](IMPLEMENTATION-PLAN.md), [AGENTS.md](../AGENTS.md). Docs mới không có nghĩa schema đã code.
 
-**Các lệnh dùng origin/PRN-dev dưới đây chỉ áp dụng sau khi người giữ nhánh đã push nền mới.** Tại thời điểm lập hướng dẫn, origin/PRN-dev còn ở initial commit cũ; commit local không tự làm đồng đội nhận code mới.
+## Giữ việc đang làm rồi lấy nền
 
-## 1. Phát hành nền chung
+Kiểm tra status, commit đúng files đang làm trên nhánh cá nhân hoặc stash có chủ đích. Không reset/clean, không git add toàn workspace nếu có file ngoài task/secrets.
 
-Người giữ nền kiểm tra working tree và commit cần phát hành, sau đó push bình thường khi được nhóm cho phép:
-
-```powershell
-git switch PRN-dev
-git status --short
-git log --oneline origin/PRN-dev..PRN-dev
-git push origin PRN-dev
-```
-
-Không force-push. Nếu remote có commit mới và push bị từ chối, fetch/kiểm tra/tích hợp thay đổi trước, không ghi đè remote. PRN-main chưa dùng làm nền phát triển ở giai đoạn này.
-
-## 2. Bốn người có nhánh PRN sẵn
-
-Nhánh tương ứng: PRN-BAO-dev, PRN-KHOI-dev, PRN-VUONG-dev, PRN-PHUC-dev. Ví dụ với Phúc:
-
-```powershell
+~~~powershell
 git status --short
 git fetch origin
-git switch PRN-PHUC-dev
+git switch <nhánh-cá-nhân>
 git merge origin/PRN-dev
-dotnet build ChatAIWeb.slnx
-```
+~~~
 
-Trước khi switch/merge, giữ công việc đang dở bằng commit chọn đúng file hoặc stash có chủ đích; không reset/clean để bỏ changes. Nếu có commit riêng mới thì giải quyết conflict với owner file chung. Khi đang merge, không chạy migration tự động chỉ để kiểm tra build.
+Thay placeholder bằng nhánh thực tế. Bảo: PRN-BAO-dev; Khôi: PRN-KHOI-dev; Vương: PRN-VUONG-dev; Phúc có code mới trên **PRN_Phúc_ASM**, không mặc định PRN-PHUC-dev là mới nhất. Khánh dùng nhánh PRN đang làm; nếu chưa có thì tạo PRN-KHANH-dev từ origin/PRN-dev sau khi kiểm tra tên chưa tồn tại. Không lấy nhánh FLM làm nền PRN.
 
-Nền mới chứa lịch sử cả bốn nhánh remote đã khảo sát, nên các nhánh chưa có commit riêng mới có thể fast-forward lên nền. Không mặc định điều này còn đúng nếu đồng đội đã commit thêm ở máy họ.
+Conflict phải xem diff/owner, không chọn toàn bộ ours/theirs. Giữ code đã làm và điều chỉnh theo contract mới.
 
-## 3. Khánh tạo nhánh PRN riêng
+## Ownership
 
-Không dùng FastAPI-RAG-Backend-Khanh/akkhanh05-test-groq-api làm branch chứa Worker/Exam PRN. Sau khi nền được push, tạo nhánh mới từ nền chung nếu tên chưa tồn tại:
+- Vương: schema/entities/repo contracts/hai DbContext/mappings/migrations, host/solution/Gateway/Compose/web shell.
+- Bảo: User nghiệp vụ/query/UI; Phúc: Content/Exam nghiệp vụ/query/UI.
+- Khánh: Redis đề custom/engine thi và Kafka notification/Worker.
+- Khôi: proto nguồn/Python AI; Vương phối hợp .NET adapter.
+- Gửi nhu cầu field/query cho Vương; không tự sinh migration mới/sửa model snapshots. Migration cũ giữ lại để rà lịch sử.
+- Chờ schema P0 thì tiếp tục UI/parser/AI/tests độc lập; không chờ tới cuối mới chốt schema.
 
-```powershell
-git fetch origin
-git switch -c PRN-KHANH-dev origin/PRN-dev
-```
+## PR về PRN-dev
 
-Nếu nhánh đã tồn tại ở local/remote, chọn nhánh đó và merge nền thay vì tạo lại. Không tạo từ PRN-main initial/Razor cũ. Các nhánh FLM giữ riêng.
+1. Commit nhỏ, stage named paths; ghi task IDs theo bản 27/10.
+2. Test module, mô tả contract/config thay đổi và giới hạn chưa kiểm chứng.
+3. Push nhánh cá nhân; PR base PRN-dev.
+4. Owner tích hợp review diff/contracts/build/tests trước merge; không force-push nền chung.
+5. Fetch/merge PRN-dev ở vòng tiếp theo.
 
-## 4. Quy trình làm việc hằng ngày
-
-1. Fetch và đồng bộ origin/PRN-dev vào nhánh cá nhân trước khi bắt đầu feature mới.
-2. Code task IDs trong docs/IMPLEMENTATION-PLAN.md; mỗi commit nhỏ, stage named paths, không git add toàn workspace.
-3. Build/test module; ghi contract/schema/config thay đổi và phần chưa kiểm chứng.
-4. Push nhánh cá nhân khi sẵn sàng, mở PR **base PRN-dev**, không base main/PRN-main.
-5. Owner tích hợp kiểm tra diff/contract/build rồi merge PR; mọi người lấy nền mới ở lượt tiếp theo.
-
-Không sửa trực tiếp nhiều người trên PRN-dev. Migrations/DbContext do Bảo; proto do Khôi; events/Worker host do Khánh; REST Program.cs/Compose/web router do Vương; bank/parser/profile do Phúc. Đổi contract phải thống nhất với consumer và ghi trong PR.
-
-## 5. Tài liệu cần gửi team
-
-- task.md: bảng giao việc chính.
-- docs/IMPLEMENTATION-PLAN.md: task IDs, APIs, ownership và nghiệm thu.
-- docs/TEAM-GIT-WORKFLOW.md: cách đồng bộ branch và PR.
-
-Sau khi các file được push, gửi link trực tiếp tới chúng trên branch PRN-dev và commit nền được phát hành. Không gửi riêng đường dẫn E: của máy cá nhân. API keys cấp qua môi trường/kênh riêng, không đưa vào Markdown/Git.
-
-Migration RemoveUnnecessaryReportingTables đã nằm trong nền; nó xóa hai bảng ngoài scope. Không chạy API với MigrateOnStartup bật trên DB có dữ liệu cũ trước khi kiểm tra/backup. Build và EF model check không áp dụng migration lên DB.
+Docs được phát hành trước; schema và tính năng qua PR tiếp theo. Pull docs chưa tạo hai SQL DB, auth mới hoặc Redis exam.
