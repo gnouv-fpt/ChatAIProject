@@ -141,6 +141,10 @@ def _merge_and_normalize(rows: List[dict]) -> List[TranscriptRow]:
             if status_val not in ("passed", "failed", "in_progress", "unknown"):
                 status_val = "passed" if score >= 5.0 else "failed"
             confidence = float(row.get("confidence", 1.0))
+            # Missing columns affect GPA and semester planning even when the
+            # course code and mark are clear. Always flag these rows for review.
+            if credits == 0 or semester == 0:
+                confidence = min(confidence, 0.65)
 
             # Dedup: cùng mã + HK + điểm → skip (trùng từ nhiều ảnh)
             dedup_key = (code, semester, round(score, 1))

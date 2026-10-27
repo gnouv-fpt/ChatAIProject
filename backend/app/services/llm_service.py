@@ -534,7 +534,8 @@ class LLMService:
         )
 
     async def _call_groq(
-        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE
+        self, question: str, context: str, student_facts: str = "", language: Language = VIETNAMESE,
+        *, extraction_prompt: Optional[str] = None,
     ) -> Optional[str]:
         keys = settings.groq_api_keys
         if not keys:
@@ -552,6 +553,16 @@ class LLMService:
             "temperature": 0.25,
             "max_tokens": 2048,
         }
+
+        if extraction_prompt is not None:
+            payload.update({
+                "messages": [
+                    {"role": "system", "content": "Extract only the supplied OCR data. Return a JSON array without explanations."},
+                    {"role": "user", "content": extraction_prompt},
+                ],
+                "temperature": 0,
+                "max_tokens": 8192,
+            })
 
         now = time.time()
         num_keys = len(keys)
@@ -737,6 +748,11 @@ class LLMService:
 
     async def call_text_extraction(self, prompt: str) -> str:
         """Normalize OCR text with the configured text model, never a vision model."""
+        if self.get_active_provider() == "Groq":
+            answer = await self._call_groq("", "", extraction_prompt=prompt)
+            if not answer:
+                raise RuntimeError("Groq OCR extraction trả về rỗng.")
+            return answer
         if settings.LLM_PROVIDER != "ollama":
             raise RuntimeError("OCR extraction hiện yêu cầu LLM_PROVIDER=ollama.")
         payload = {
