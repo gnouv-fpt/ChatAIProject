@@ -76,7 +76,7 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
     }
 
     [Fact]
-    public async Task LoginRefreshRotationAndLogout()
+    public async Task LoginRefreshAndLogoutWithoutTokenTable()
     {
         var client = factory.CreateClient();
         var registered = await RegisterAsync(client);
@@ -94,20 +94,28 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
         Assert.Equal(email, (await profile.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("email").GetString());
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/auth/profile")).StatusCode);
 
-        var oldRefresh = login.GetProperty("refreshToken").GetString();
+        var accessToken = login.GetProperty("accessToken").GetString();
+        var oldRefresh = login.GetProperty("refreshToken").GetString()!;
         var rotated = await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = oldRefresh });
         Assert.Equal(HttpStatusCode.OK, rotated.StatusCode);
         var newRefresh = (await rotated.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("refreshToken").GetString();
         Assert.NotEqual(oldRefresh, newRefresh);
-        // Single use: replaying the rotated token is rejected.
-        Assert.Equal(HttpStatusCode.Unauthorized,
-            (await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = oldRefresh })).StatusCode);
 
+        // Token types are not interchangeable: an access token is not a refresh token and vice versa.
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = accessToken })).StatusCode);
+        var refreshAsBearer = new HttpRequestMessage(HttpMethod.Get, "/api/auth/profile");
+        refreshAsBearer.Headers.Authorization = new AuthenticationHeaderValue("Bearer", oldRefresh);
+        Assert.Equal(HttpStatusCode.Unauthorized, (await client.SendAsync(refreshAsBearer)).StatusCode);
+
+        // A tampered signature is rejected.
+        var tampered = oldRefresh[..^2] + (oldRefresh[^2] == 'A' ? "BB" : "AA");
+        Assert.Equal(HttpStatusCode.Unauthorized,
+            (await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = tampered })).StatusCode);
+
+        // Logout is client-side (no token table): always 204 and idempotent.
         Assert.Equal(HttpStatusCode.NoContent,
             (await client.PostAsJsonAsync("/api/auth/logout", new { refreshToken = newRefresh })).StatusCode);
-        Assert.Equal(HttpStatusCode.Unauthorized,
-            (await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = newRefresh })).StatusCode);
-        // Logging out twice is harmless.
         Assert.Equal(HttpStatusCode.NoContent,
             (await client.PostAsJsonAsync("/api/auth/logout", new { refreshToken = newRefresh })).StatusCode);
     }

@@ -17,27 +17,21 @@ public sealed class AuthService : IAuthService
     private const string InvalidRefreshTokenMessage = "Refresh token không hợp lệ hoặc đã hết hạn.";
 
     private readonly IUserRepository _userRepository;
-    private readonly IRefreshTokenRepository _refreshTokenRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly JwtSettings _jwtSettings;
     private readonly AuthSettings _authSettings;
     private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserRepository userRepository,
-        IRefreshTokenRepository refreshTokenRepository,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
-        JwtSettings jwtSettings,
         AuthSettings authSettings,
         ILogger<AuthService> logger)
     {
         _userRepository = userRepository;
-        _refreshTokenRepository = refreshTokenRepository;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
-        _jwtSettings = jwtSettings;
         _authSettings = authSettings;
         _logger = logger;
     }
@@ -72,7 +66,8 @@ public sealed class AuthService : IAuthService
         };
 
         await _userRepository.AddAsync(user, cancellationToken);
-        var response = await IssueTokensAsync(user, cancellationToken);
+        await _userRepository.SaveChangesAsync(cancellationToken);
+        var response = IssueTokens(user);
 
         _logger.LogInformation("User {UserId} registered", user.Id);
         return response;
@@ -88,42 +83,38 @@ public sealed class AuthService : IAuthService
             throw new UnauthorizedException(InvalidCredentialsMessage);
         }
 
-        return await IssueTokensAsync(user, cancellationToken);
+        return IssueTokens(user);
     }
 
     public async Task<AuthResponseDto> RefreshTokenAsync(
         RefreshTokenRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var storedToken = await _refreshTokenRepository.GetByTokenHashWithUserAsync(
-            _jwtTokenService.HashRefreshToken(request.RefreshToken),
-            cancellationToken);
+        // Stateless refresh (no RefreshTokens table): the token is a signed JWT with its own
+        // audience. A password change invalidates it through the security stamp; otherwise it
+        // stays valid until it expires, so rotation is not single-use.
+        var claims = await _jwtTokenService.ValidateRefreshTokenAsync(request.RefreshToken)
+            ?? throw new UnauthorizedException(InvalidRefreshTokenMessage);
 
-        if (storedToken is null || !storedToken.IsActive(DateTime.UtcNow))
+        var user = await _userRepository.GetByIdAsync(claims.UserId, cancellationToken);
+        if (user is null || !string.Equals(
+                claims.SecurityStamp,
+                _jwtTokenService.ComputeSecurityStamp(user),
+                StringComparison.Ordinal))
         {
             throw new UnauthorizedException(InvalidRefreshTokenMessage);
         }
 
-        // Rotation: each refresh token is single-use.
-        storedToken.RevokedAt = DateTime.UtcNow;
-        return await IssueTokensAsync(storedToken.User, cancellationToken);
+        return IssueTokens(user);
     }
 
-    public async Task LogoutAsync(
+    public Task LogoutAsync(
         RefreshTokenRequestDto request,
         CancellationToken cancellationToken = default)
     {
-        var storedToken = await _refreshTokenRepository.GetByTokenHashWithUserAsync(
-            _jwtTokenService.HashRefreshToken(request.RefreshToken),
-            cancellationToken);
-
-        if (storedToken is null || storedToken.RevokedAt is not null)
-        {
-            return;
-        }
-
-        storedToken.RevokedAt = DateTime.UtcNow;
-        await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+        // Tokens live only on the client; logout means the client discards them. Server-side
+        // revocation needs a per-user token version column (proposed in docs/BAO-AUTH-USER-CONTRACT.md).
+        return Task.CompletedTask;
     }
 
     public async Task<UserProfileDto> GetProfileAsync(Guid userId, CancellationToken cancellationToken = default)
@@ -134,23 +125,10 @@ public sealed class AuthService : IAuthService
         return MapProfile(user);
     }
 
-    private async Task<AuthResponseDto> IssueTokensAsync(User user, CancellationToken cancellationToken)
+    private AuthResponseDto IssueTokens(User user)
     {
         var (accessToken, accessExpiresAt) = _jwtTokenService.CreateAccessToken(user);
-        var refreshToken = _jwtTokenService.GenerateRefreshToken();
-        var refreshExpiresAt = DateTime.UtcNow.AddDays(_jwtSettings.RefreshTokenDays);
-
-        await _refreshTokenRepository.AddAsync(new RefreshToken
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            TokenHash = _jwtTokenService.HashRefreshToken(refreshToken),
-            ExpiresAt = refreshExpiresAt,
-            CreatedAt = DateTime.UtcNow
-        }, cancellationToken);
-
-        // Repositories share the scoped DbContext, so this also persists pending user/token changes.
-        await _refreshTokenRepository.SaveChangesAsync(cancellationToken);
+        var (refreshToken, refreshExpiresAt) = _jwtTokenService.CreateRefreshToken(user);
 
         return new AuthResponseDto(accessToken, accessExpiresAt, refreshToken, refreshExpiresAt, MapProfile(user));
     }

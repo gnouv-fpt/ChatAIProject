@@ -16,6 +16,8 @@ public sealed class JwtSettings
 
     public int RefreshTokenDays { get; set; } = 7;
 
+    public string RefreshAudience => $"{Audience}.refresh";
+
     public void EnsureValid()
     {
         if (Encoding.UTF8.GetByteCount(SecretKey) < 32)
