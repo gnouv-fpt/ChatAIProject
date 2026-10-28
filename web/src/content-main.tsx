@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { QuestionLibrary } from './features/questions/QuestionLibrary';
 import { AdminContent } from './features/admin-content/AdminContent';
 import { LegalLibrary } from './features/questions/LegalLibrary';
+import { ContentPreflight } from './features/admin-content/ContentPreflight';
 import { createContentApi } from './features/questions/content-api';
 import './content.css';
 
@@ -13,8 +14,8 @@ function ContentPreview() {
   return <main><header><strong>Giao thông · Nội dung học</strong>{token && <button onClick={() => { setToken(''); setDraft(''); }}>Xóa phiên xem trước</button>}</header>
     {!token ? <form onSubmit={e => { e.preventDefault(); setToken(draft.trim()); setDraft(''); }}><h1>Xem trước module nội dung</h1>
       <p>Dùng access token từ Auth API. Token chỉ giữ trong bộ nhớ của tab.</p><label>Access token<input type="password" required value={draft} onChange={e => setDraft(e.target.value)}/></label><button>Kết nối API</button></form> :
-      <><nav><button onClick={() => setView('questions')}>Câu hỏi</button><button onClick={() => setView('laws')}>Văn bản luật</button><button onClick={() => setView('admin')}>Quản trị nội dung</button></nav>
-      {view === 'admin' ? <AdminContent api={api}/> : view === 'laws' ? <LegalLibrary api={api}/> : <QuestionLibrary api={api}/>}</>}
+      <><nav><button onClick={() => setView('questions')}>Câu hỏi</button><button onClick={() => setView('laws')}>Văn bản luật</button><button onClick={() => setView('preflight')}>Kiểm tra nội dung</button><button onClick={() => setView('admin')}>Quản trị phiên bản</button></nav>
+      {view === 'preflight' ? <ContentPreflight api={api}/> : view === 'admin' ? <AdminContent api={api}/> : view === 'laws' ? <LegalLibrary api={api}/> : <QuestionLibrary api={api}/>}</>}
   </main>;
 }
 createRoot(document.getElementById('root')!).render(<ContentPreview/>);

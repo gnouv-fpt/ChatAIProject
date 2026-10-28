@@ -5,13 +5,15 @@ using HtmlAgilityPack;
 namespace BusinessLogic.Services.Implementations;
 
 public sealed record ParsedLegalContent(string Number, string Title, string Content);
-public sealed record LegalChunk(string? Article, string? Clause, string Content);
+public sealed record LegalChunk(string? Article, string? Clause, string? Point, string Content);
 
 public static class LegalContentParser
 {
     public static bool IsAllowedSource(Uri uri) => uri.Scheme == "https" &&
         uri.Host.Equals("thuvienphapluat.vn", StringComparison.OrdinalIgnoreCase) && uri.IsDefaultPort &&
-        string.IsNullOrEmpty(uri.UserInfo) && uri.AbsolutePath.StartsWith("/van-ban/", StringComparison.OrdinalIgnoreCase);
+        string.IsNullOrEmpty(uri.UserInfo) && string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment) &&
+        !uri.OriginalString.Contains('\\') && !Uri.UnescapeDataString(uri.OriginalString).Split('/').Any(p => p is "." or "..") &&
+        uri.AbsolutePath.StartsWith("/van-ban/", StringComparison.OrdinalIgnoreCase);
 
     public static ParsedLegalContent Parse(string html)
     {
@@ -35,15 +37,17 @@ public static class LegalContentParser
     public static IReadOnlyList<LegalChunk> Chunk(string content)
     {
         var result = new List<LegalChunk>();
-        string? article = null, clause = null;
+        string? article = null, clause = null, point = null;
         var lines = new List<string>();
-        void Flush() { if (lines.Count > 0) { result.Add(new(article, clause, string.Join("\n", lines))); lines.Clear(); } }
+        void Flush() { if (lines.Count > 0) { result.Add(new(article, clause, point, string.Join("\n", lines))); lines.Clear(); } }
         foreach (var line in content.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var a = Regex.Match(line, @"^Điều\s+(\d+[a-zđ]?)\s*[.:]", RegexOptions.IgnoreCase);
             var c = Regex.Match(line, @"^(\d+)\.\s");
-            if (a.Success) { Flush(); article = a.Groups[1].Value; clause = null; }
-            else if (c.Success && article is not null) { Flush(); clause = c.Groups[1].Value; }
+            var p = Regex.Match(line, @"^([a-zđ])\)\s", RegexOptions.IgnoreCase);
+            if (a.Success) { Flush(); article = a.Groups[1].Value; clause = null; point = null; }
+            else if (c.Success && article is not null) { Flush(); clause = c.Groups[1].Value; point = null; }
+            else if (p.Success && clause is not null) { Flush(); point = p.Groups[1].Value; }
             if (lines.Sum(x => x.Length) + line.Length > 6000) Flush();
             for (var offset = 0; offset < line.Length; offset += 6000)
             {

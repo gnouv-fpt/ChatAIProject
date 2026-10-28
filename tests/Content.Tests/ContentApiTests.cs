@@ -3,6 +3,8 @@ using System.Net.Http.Json;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using BusinessLogic.DTOs;
+using DataAccess.Repositories.Interfaces;
+using DataAccess.Repositories.Implementations;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -19,6 +21,23 @@ namespace Content.Tests;
 
 public sealed class ContentApiTests
 {
+    [Fact]
+    public async Task C2ProductionDoesNotUseFileBankAndPreviewsRemainAvailableForAdmin()
+    {
+        using var app = new ContentApp(false); using var client = app.CreateClient();
+        client.DefaultRequestHeaders.Add("TestRole", "User");
+        Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/admin/content-previews/question-banks", new { bank = QuestionBankTests.Fixture() })).StatusCode);
+        client.DefaultRequestHeaders.Remove("TestRole"); client.DefaultRequestHeaders.Add("TestRole", "Admin");
+        var status = await client.GetFromJsonAsync<ContentCapabilitiesDto>("/api/admin/content-previews/capabilities");
+        Assert.False(status!.CanPersistBank); Assert.Equal("PendingSqlContract", status.PersistenceStatus);
+        var bank = QuestionBankTests.Fixture();
+        var response = await client.PostAsJsonAsync("/api/admin/content-previews/question-banks", new { bank, animations = Array.Empty<object>() });
+        response.EnsureSuccessStatusCode();
+        Assert.True((await response.Content.ReadFromJsonAsync<ContentManifestPreviewDto>())!.CanImport);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await client.PostAsJsonAsync("/api/admin/question-banks/import", new { bank })).StatusCode);
+        Assert.Equal(HttpStatusCode.ServiceUnavailable, (await client.GetAsync("/api/question-banks")).StatusCode);
+    }
+
     [Fact]
     public async Task HttpPermissionsValidationAndPublishedProjection()
     {
@@ -46,7 +65,7 @@ public sealed class ContentApiTests
         Assert.Equal("application/problem+json", problem.Content.Headers.ContentType?.MediaType);
     }
 
-    private sealed class ContentApp : WebApplicationFactory<Program>
+    private sealed class ContentApp(bool useFileFixture = true) : WebApplicationFactory<Program>
     {
         private readonly string _root = Path.Combine(Path.GetTempPath(), "content-api-" + Guid.NewGuid().ToString("N"));
         protected override IHost CreateHost(IHostBuilder builder)
@@ -59,6 +78,8 @@ public sealed class ContentApiTests
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
             builder.ConfigureTestServices(services => {
+                // File adapter is an explicit test fixture, never the production C2 bank source.
+                if (useFileFixture) services.AddSingleton<IQuestionBankRepository>(new FileQuestionBankRepository(_root));
                 var job = services.FirstOrDefault(s => s.ServiceType == typeof(IHostedService) && s.ImplementationType == typeof(MidnightCleanupJob));
                 if (job is not null) services.Remove(job);
                 services.AddAuthentication(options => { options.DefaultAuthenticateScheme = "Test"; options.DefaultChallengeScheme = "Test"; options.DefaultForbidScheme = "Test"; })

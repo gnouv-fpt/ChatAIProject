@@ -48,6 +48,8 @@ public sealed class CrawlerService(HttpClient httpClient, IDocumentRepository do
     {
         if (!LegalContentParser.IsAllowedSource(uri)) throw new BadRequestException("Chỉ chấp nhận nguồn thuvienphapluat.vn qua HTTPS.");
         using var response = await httpClient.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        if ((int)response.StatusCode is >= 300 and <= 399)
+            throw new BadRequestException("Nguồn chuyển hướng. Cần kiểm tra URL đích trước khi cào.");
         response.EnsureSuccessStatusCode();
         if (response.RequestMessage?.RequestUri is not Uri final || !LegalContentParser.IsAllowedSource(final))
             throw new BadRequestException("Nguồn chuyển hướng ra ngoài phạm vi cho phép.");
