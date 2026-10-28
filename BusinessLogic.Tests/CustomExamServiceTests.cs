@@ -13,7 +13,7 @@ public sealed class CustomExamServiceTests
     {
         var store = new MemoryStore();
         var sink = new MemorySink();
-        var service = new CustomExamService(new FixedSource(), store, sink);
+        var service = new CustomExamService(new FixedSource(), store, sink, new MemoryPublisher());
         var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 30));
 
         Assert.DoesNotContain("correctOptionId", JsonSerializer.Serialize(view), StringComparison.OrdinalIgnoreCase);
@@ -33,7 +33,7 @@ public sealed class CustomExamServiceTests
     [Fact]
     public async Task Rejects_other_owner_stale_revision_and_changes_after_submit()
     {
-        var service = new CustomExamService(new FixedSource(), new MemoryStore(), new MemorySink());
+        var service = new CustomExamService(new FixedSource(), new MemoryStore(), new MemorySink(), new MemoryPublisher());
         var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 30));
         await Assert.ThrowsAsync<ForbiddenException>(() => service.GetAsync(Guid.NewGuid(), view.ExamId));
         await Assert.ThrowsAsync<ConflictException>(() => service.SaveAnswerAsync(Owner, view.ExamId,
@@ -47,7 +47,7 @@ public sealed class CustomExamServiceTests
     public async Task Save_failure_keeps_frozen_attempt_retryable()
     {
         var sink = new MemorySink { FailFirst = true };
-        var service = new CustomExamService(new FixedSource(), new MemoryStore(), sink);
+        var service = new CustomExamService(new FixedSource(), new MemoryStore(), sink, new MemoryPublisher());
         var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 30));
         await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitAsync(Owner, view.ExamId));
         Assert.Equal("Submitting", (await service.GetAsync(Owner, view.ExamId)).Status);
@@ -59,7 +59,7 @@ public sealed class CustomExamServiceTests
     [Fact]
     public async Task Concurrent_autosaves_cannot_overwrite_each_other()
     {
-        var service = new CustomExamService(new FixedSource(), new MemoryStore(), new MemorySink());
+        var service = new CustomExamService(new FixedSource(), new MemoryStore(), new MemorySink(), new MemoryPublisher());
         var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 30));
         var attempts = await Task.WhenAll(view.Questions.Select(async q =>
         {
@@ -72,6 +72,36 @@ public sealed class CustomExamServiceTests
         }));
         Assert.Single(attempts.Where(x => x));
         Assert.Single((await service.GetAsync(Owner, view.ExamId)).Answers);
+    }
+
+    [Fact]
+    public async Task Deadline_blocks_autosave_but_allows_scored_submission()
+    {
+        var clock = new ManualClock();
+        var service = new CustomExamService(new FixedSource(), new MemoryStore(),
+            new MemorySink(), new MemoryPublisher(), clock);
+        var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 1));
+        clock.Advance(TimeSpan.FromMinutes(2));
+        await Assert.ThrowsAsync<ConflictException>(() => service.SaveAnswerAsync(Owner, view.ExamId,
+            view.Questions[0].Id, "a", view.Revision));
+        var score = await service.SubmitAsync(Owner, view.ExamId);
+        Assert.Equal(0, score.Correct);
+    }
+
+    [Fact]
+    public async Task Kafka_failure_keeps_saved_attempt_retryable_with_same_event_id()
+    {
+        var sink = new MemorySink();
+        var publisher = new MemoryPublisher { FailFirst = true };
+        var service = new CustomExamService(new FixedSource(), new MemoryStore(), sink, publisher);
+        var view = await service.CreateAsync(Owner, new("signs", "v1", 2, 30));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => service.SubmitAsync(Owner, view.ExamId));
+        Assert.Equal("Submitting", (await service.GetAsync(Owner, view.ExamId)).Status);
+        var score = await service.SubmitAsync(Owner, view.ExamId);
+        await service.SubmitAsync(Owner, view.ExamId);
+        Assert.Single(sink.Results);
+        Assert.Single(publisher.Events);
+        Assert.Equal(score.AttemptId, publisher.Events[0].EventId);
     }
 
     private sealed class FixedSource : IExamQuestionSource
@@ -92,6 +122,25 @@ public sealed class CustomExamServiceTests
             if (Results.All(r => r.AttemptId != result.AttemptId)) Results.Add(result);
             return Task.CompletedTask;
         }
+    }
+
+    private sealed class MemoryPublisher : IExamEventPublisher
+    {
+        public bool FailFirst { get; set; }
+        public List<ExamSubmittedEvent> Events { get; } = [];
+        public Task PublishAsync(ExamSubmittedEvent @event, CancellationToken cancellationToken)
+        {
+            if (FailFirst) { FailFirst = false; throw new InvalidOperationException("Kafka unavailable"); }
+            Events.Add(@event);
+            return Task.CompletedTask;
+        }
+    }
+
+    private sealed class ManualClock : TimeProvider
+    {
+        private DateTimeOffset _now = DateTimeOffset.Parse("2026-10-28T00:00:00Z");
+        public override DateTimeOffset GetUtcNow() => _now;
+        public void Advance(TimeSpan delta) => _now += delta;
     }
 
     private sealed class MemoryStore : ICustomExamStore

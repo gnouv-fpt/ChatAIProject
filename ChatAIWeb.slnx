@@ -1,6 +1,8 @@
 <Solution>
   <Project Path="BusinessLogic/BusinessLogic.csproj" />
+  <Project Path="BusinessLogic.Tests/BusinessLogic.Tests.csproj" />
   <Project Path="BusinessObject/BusinessObject.csproj" />
   <Project Path="DataAccess/DataAccess.csproj" />
   <Project Path="Presentation/Presentation.csproj" />
+  <Project Path="WorkerService/WorkerService.csproj" />
 </Solution>

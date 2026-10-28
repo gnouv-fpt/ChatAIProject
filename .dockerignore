@@ -1,0 +1,7 @@
+.git
+**/bin
+**/obj
+**/.vs
+**/__pycache__
+**/.venv
+*.zip

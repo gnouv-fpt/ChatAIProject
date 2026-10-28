@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Luyện thi luật giao thông</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #17233b; }
+    main { max-width: 800px; margin: 32px auto; padding: 0 16px; }
+    header, section, article { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px #13214212; }
+    h1, h2 { margin-top: 0; }
+    label { display: block; margin: 10px 0; }
+    input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #a7b2c4; border-radius: 6px; }
+    button { border: 0; border-radius: 6px; padding: 10px 16px; background: #174ea6; color: white; cursor: pointer; }
+    button:disabled { opacity: .5; cursor: default; }
+    fieldset { border: 0; padding: 0; }
+    fieldset label { display: flex; gap: 8px; align-items: flex-start; }
+    fieldset input { width: auto; margin-top: 5px; }
+    #timer { font-weight: bold; font-variant-numeric: tabular-nums; }
+    #message { min-height: 1.5em; }
+  </style>
+</head>
+<body>
+<main>
+  <header><h1>Luyện thi luật giao thông</h1><p>Đề được lưu tự động. Đồng hồ tính theo hạn nộp trên máy chủ.</p></header>
+  <section id="setup">
+    <h2>Tạo đề</h2>
+    <label>Access token <input id="token" type="password" autocomplete="off"></label>
+    <label>Mã chủ đề <input id="category" required></label>
+    <label>Phiên bản ngân hàng <input id="version" required></label>
+    <label>Số câu <input id="count" type="number" min="1" max="100" value="10"></label>
+    <label>Thời gian (phút) <input id="minutes" type="number" min="1" max="180" value="30"></label>
+    <button id="create">Bắt đầu</button>
+    <p>Nếu đã có mã đề, nhập để tiếp tục:</p>
+    <label>Mã đề <input id="resumeId"></label><button id="resume">Tiếp tục</button>
+  </section>
+  <section id="exam" hidden>
+    <h2>Đề thi</h2><p>Mã đề: <span id="examId"></span></p>
+    <p>Còn lại: <span id="timer"></span></p>
+    <div id="questions"></div>
+    <button id="submit">Nộp bài</button>
+  </section>
+  <section id="notifications" hidden>
+    <h2>Thông báo</h2><ul id="notificationList"></ul>
+  </section>
+  <p id="message" role="status" aria-live="polite"></p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let exam = null, busy = false, submitting = false;
+const token = () => $('token').value.trim();
+const notice = message => { $('message').textContent = message; };
+async function api(path, method = 'GET', data) {
+  const response = await fetch('/api/custom-exams' + path, {
+    method,
+    headers: { Authorization: 'Bearer ' + token(), ...(data ? { 'Content-Type': 'application/json' } : {}) },
+    body: data ? JSON.stringify(data) : undefined
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.detail || 'Không thể kết nối. Vui lòng thử lại.');
+  return body;
+}
+function render(data) {
+  exam = data;
+  $('setup').hidden = true; $('exam').hidden = false;
+  $('examId').textContent = data.examId;
+  $('resumeId').value = data.examId;
+  const container = $('questions'); container.replaceChildren();
+  data.questions.forEach((question, index) => {
+    const article = document.createElement('article');
+    const title = document.createElement('h3'); title.textContent = `Câu ${index + 1}: ${question.text}`;
+    const group = document.createElement('fieldset'); group.disabled = data.status !== 'Active';
+    question.options.forEach(option => {
+      const label = document.createElement('label');
+      const radio = document.createElement('input');
+      radio.type = 'radio'; radio.name = 'q-' + question.id; radio.value = option.id;
+      radio.checked = data.answers[question.id] === option.id;
+      radio.onchange = () => save(question.id, option.id);
+      label.append(radio, document.createTextNode(option.text)); group.append(label);
+    });
+    article.append(title, group); container.append(article);
+  });
+  $('submit').disabled = data.status === 'Submitted';
+  tick();
+}
+async function save(questionId, optionId) {
+  if (busy || !exam || exam.status !== 'Active') return;
+  busy = true; document.querySelectorAll('#questions fieldset').forEach(e => e.disabled = true);
+  try {
+    const saved = await api(`/${exam.examId}/answers/${encodeURIComponent(questionId)}`, 'PUT',
+      { optionId, revision: exam.revision });
+    render(saved); notice('Đã lưu câu trả lời.');
+  } catch (error) {
+    notice(error.message);
+    try { render(await api('/' + exam.examId)); } catch { /* show the original error */ }
+  } finally { busy = false; }
+}
+async function submit() {
+  if (!exam || submitting || busy) return;
+  submitting = true; $('submit').disabled = true;
+  try {
+    const score = await api('/' + exam.examId + '/submit', 'POST');
+    notice(`Đã nộp bài. Đúng ${score.correct}/${score.total} câu.`);
+    render(await api('/' + exam.examId));
+    await loadNotifications();
+  } catch (error) { notice(error.message); $('submit').disabled = false; }
+  finally { submitting = false; }
+}
+async function loadNotifications() {
+  if (!token()) return;
+  try {
+    const response = await fetch('/api/exam-notifications', {
+      headers: { Authorization: 'Bearer ' + token() }
+    });
+    if (!response.ok) return;
+    const items = await response.json();
+    $('notifications').hidden = items.length === 0;
+    const list = $('notificationList'); list.replaceChildren();
+    items.forEach(item => {
+      const li = document.createElement('li');
+      li.textContent = `Đề ${item.examId}: đúng ${item.correct}/${item.total} câu.`;
+      list.append(li);
+    });
+  } catch { /* notification polling does not interrupt the exam */ }
+}
+function tick() {
+  if (!exam) return;
+  const left = Math.max(0, Math.ceil((new Date(exam.deadlineUtc).getTime() - Date.now()) / 1000));
+  $('timer').textContent = `${Math.floor(left / 60)}:${String(left % 60).padStart(2, '0')}`;
+  if (left === 0 && exam.status === 'Active' && !busy) submit();
+}
+$('create').onclick = async () => {
+  try {
+    const data = await api('', 'POST', { categoryId: $('category').value.trim(),
+      bankVersion: $('version').value.trim(), questionCount: Number($('count').value),
+      durationMinutes: Number($('minutes').value) });
+    render(data); notice('Đề đã tạo.');
+  } catch (error) { notice(error.message); }
+};
+$('resume').onclick = async () => {
+  try { render(await api('/' + encodeURIComponent($('resumeId').value.trim()))); notice('Đã khôi phục đề.'); }
+  catch (error) { notice(error.message); }
+};
+$('submit').onclick = submit;
+setInterval(tick, 1000);
+setInterval(loadNotifications, 10000);
+</script>
+</body>
+</html>

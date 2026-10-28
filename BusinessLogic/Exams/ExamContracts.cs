@@ -8,7 +8,8 @@ public sealed record BankQuestion(
     string Version,
     string Text,
     IReadOnlyList<ExamOption> Options,
-    string CorrectOptionId);
+    string CorrectOptionId,
+    bool CanShuffleOptions = false);
 
 public sealed record CreateCustomExam(string CategoryId, string BankVersion, int QuestionCount, int DurationMinutes);
 
@@ -56,11 +57,36 @@ public interface IExamResultSink
     Task SaveAsync(SaveExamResult result, CancellationToken cancellationToken);
 }
 
+public sealed record ExamSubmittedEvent(
+    Guid EventId,
+    int SchemaVersion,
+    Guid EntityId,
+    long EntityVersion,
+    DateTimeOffset OccurredAtUtc,
+    string? TraceParent,
+    Guid UserId,
+    Guid ExamId,
+    int Correct,
+    int Total);
+
+public interface IExamEventPublisher
+{
+    Task PublishAsync(ExamSubmittedEvent @event, CancellationToken cancellationToken);
+}
+
 public interface ICustomExamStore
 {
     Task<bool> CreateAsync(StoredExam exam, TimeSpan ttl, CancellationToken cancellationToken);
     Task<StoredExam?> ReadAsync(Guid examId, CancellationToken cancellationToken);
     Task<bool> CompareExchangeAsync(StoredExam original, StoredExam updated, CancellationToken cancellationToken);
+}
+
+public interface IExamDeadlineQueue
+{
+    Task<IReadOnlyList<Guid>> GetDueAsync(DateTimeOffset nowUtc, int limit,
+        CancellationToken cancellationToken);
+    Task PostponeAsync(Guid examId, DateTimeOffset nextAttemptUtc, CancellationToken cancellationToken);
+    Task RemoveAsync(Guid examId, CancellationToken cancellationToken);
 }
 
 public sealed record StoredQuestion(

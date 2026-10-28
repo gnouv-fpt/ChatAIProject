@@ -7,14 +7,16 @@ public sealed class CustomExamService
     private readonly IExamQuestionSource _questions;
     private readonly ICustomExamStore _store;
     private readonly IExamResultSink _results;
+    private readonly IExamEventPublisher _events;
     private readonly TimeProvider _clock;
 
     public CustomExamService(IExamQuestionSource questions, ICustomExamStore store,
-        IExamResultSink results, TimeProvider? clock = null)
+        IExamResultSink results, IExamEventPublisher events, TimeProvider? clock = null)
     {
         _questions = questions;
         _store = store;
         _results = results;
+        _events = events;
         _clock = clock ?? TimeProvider.System;
     }
 
@@ -31,8 +33,11 @@ public sealed class CustomExamService
         if (bankQuestions.Count < request.QuestionCount)
             throw new BadRequestException("Ngân hàng không đủ câu hỏi cho đề đã chọn.");
 
-        if (bankQuestions.Any(q => string.IsNullOrWhiteSpace(q.Id) || q.Version != request.BankVersion ||
-                q.Options.Count < 2 || q.Options.Select(o => o.Id).Distinct().Count() != q.Options.Count ||
+        if (bankQuestions.Any(q => string.IsNullOrWhiteSpace(q.Id) || string.IsNullOrWhiteSpace(q.Text) ||
+                q.Version != request.BankVersion || string.IsNullOrWhiteSpace(q.CorrectOptionId) ||
+                q.Options.Count < 2 || q.Options.Any(o => string.IsNullOrWhiteSpace(o.Id) ||
+                    string.IsNullOrWhiteSpace(o.Text)) ||
+                q.Options.Select(o => o.Id).Distinct().Count() != q.Options.Count ||
                 !q.Options.Any(o => o.Id == q.CorrectOptionId)))
             throw new BadRequestException("Ngân hàng câu hỏi trả về dữ liệu không hợp lệ hoặc trùng câu.");
         var selected = bankQuestions.DistinctBy(q => q.Id).ToArray();
@@ -45,7 +50,7 @@ public sealed class CustomExamService
         var exam = new StoredExam(Guid.NewGuid(), Guid.NewGuid(), userId, request.BankVersion,
             now, now.AddMinutes(request.DurationMinutes), 0, "Active", null,
             selected.Select(q => new StoredQuestion(q.Id, q.Version, q.Text,
-                Shuffle(q.Options), q.CorrectOptionId)).ToArray(),
+                q.CanShuffleOptions ? Shuffle(q.Options) : q.Options.ToArray(), q.CorrectOptionId)).ToArray(),
             new Dictionary<string, string>());
 
         // The extra seven days let an in-flight submit retry after the deadline.
@@ -106,7 +111,14 @@ public sealed class CustomExamService
         var correct = graded.Count(q => q.SelectedOptionId == q.CorrectOptionId);
         var result = new SaveExamResult(exam.AttemptId, exam.ExamId, userId, exam.BankVersion,
             submittedAt, correct, graded.Length, graded);
+        if (exam.Status == "Submitted")
+            return new ExamScore(exam.AttemptId, exam.ExamId, correct, graded.Length, submittedAt);
+        if (exam.Status != "Submitting")
+            throw new ConflictException("Trạng thái đề thi không hợp lệ.");
         await _results.SaveAsync(result, cancellationToken);
+        await _events.PublishAsync(new ExamSubmittedEvent(exam.AttemptId, 1, exam.AttemptId, 1,
+            submittedAt, System.Diagnostics.Activity.Current?.Id, userId, examId, correct,
+            graded.Length), cancellationToken);
         if (exam.Status == "Submitting")
             await _store.CompareExchangeAsync(exam, exam with { Status = "Submitted", Revision = exam.Revision + 1 },
                 cancellationToken);

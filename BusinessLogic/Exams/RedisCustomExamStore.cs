@@ -3,8 +3,9 @@ using StackExchange.Redis;
 
 namespace BusinessLogic.Exams;
 
-public sealed class RedisCustomExamStore : ICustomExamStore
+public sealed class RedisCustomExamStore : ICustomExamStore, IExamDeadlineQueue
 {
+    private static readonly RedisKey DeadlineKey = "custom-exam:deadlines:v1";
     private const string CompareExchangeScript = """
         local current = redis.call('GET', KEYS[1])
         if not current then return 0 end
@@ -22,8 +23,15 @@ public sealed class RedisCustomExamStore : ICustomExamStore
     {
         cancellationToken.ThrowIfCancellationRequested();
         if (ttl <= TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(ttl));
-        return await _redis.GetDatabase().StringSetAsync(Key(exam.ExamId), JsonSerializer.Serialize(exam),
-            ttl, When.NotExists);
+        var transaction = _redis.GetDatabase().CreateTransaction();
+        transaction.AddCondition(Condition.KeyNotExists(Key(exam.ExamId)));
+        var stored = transaction.StringSetAsync(Key(exam.ExamId), JsonSerializer.Serialize(exam), ttl);
+        var scheduled = transaction.SortedSetAddAsync(DeadlineKey, exam.ExamId.ToString("N"),
+            exam.DeadlineUtc.ToUnixTimeMilliseconds());
+        if (!await transaction.ExecuteAsync()) return false;
+        await Task.WhenAll(stored, scheduled);
+        if (!await stored) throw new InvalidOperationException("Could not store custom exam in Redis.");
+        return true;
     }
 
     public async Task<StoredExam?> ReadAsync(Guid examId, CancellationToken cancellationToken)
@@ -43,6 +51,32 @@ public sealed class RedisCustomExamStore : ICustomExamStore
         var result = await _redis.GetDatabase().ScriptEvaluateAsync(CompareExchangeScript,
             [Key(original.ExamId)], [original.Revision, JsonSerializer.Serialize(updated)]);
         return (int)result == 1;
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetDueAsync(DateTimeOffset nowUtc, int limit,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        if (limit is < 1 or > 1000) throw new ArgumentOutOfRangeException(nameof(limit));
+        var values = await _redis.GetDatabase().SortedSetRangeByScoreAsync(DeadlineKey,
+            double.NegativeInfinity, nowUtc.ToUnixTimeMilliseconds(), Exclude.None,
+            Order.Ascending, 0, limit);
+        return values.Select(v => Guid.TryParse(v.ToString(), out var id) ? id : Guid.Empty)
+            .Where(id => id != Guid.Empty).ToArray();
+    }
+
+    public async Task RemoveAsync(Guid examId, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _redis.GetDatabase().SortedSetRemoveAsync(DeadlineKey, examId.ToString("N"));
+    }
+
+    public async Task PostponeAsync(Guid examId, DateTimeOffset nextAttemptUtc,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        await _redis.GetDatabase().SortedSetAddAsync(DeadlineKey, examId.ToString("N"),
+            nextAttemptUtc.ToUnixTimeMilliseconds());
     }
 
     private static RedisKey Key(Guid examId) => $"custom-exam:v1:{examId:N}";

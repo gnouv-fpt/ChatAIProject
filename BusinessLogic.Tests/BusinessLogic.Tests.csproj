@@ -22,6 +22,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BusinessLogic\BusinessLogic.csproj" />
+    <ProjectReference Include="..\Presentation\Presentation.csproj" />
+    <ProjectReference Include="..\WorkerService\WorkerService.csproj" />
   </ItemGroup>
 
 </Project>

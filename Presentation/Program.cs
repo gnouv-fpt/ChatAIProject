@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Presentation.BackgroundJobs;
+using Presentation.Exams;
 using Presentation.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -105,6 +106,7 @@ builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddSingleton<IEventPublisher, RedisEventPublisher>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
+builder.Services.AddCustomExamModule(builder.Configuration);
 builder.Services.AddHostedService<MidnightCleanupJob>();
 
 // ==================== gRPC Client ====================
@@ -129,6 +131,8 @@ app.UseStatusCodePages();
 
 app.UseSwagger();
 app.UseSwaggerUI();
+app.UseDefaultFiles();
+app.UseStaticFiles();
 
 app.UseAuthentication();
 app.UseAuthorization();
