@@ -5,6 +5,8 @@ import '../features/chat/views/widgets/contextual_chat_panel.dart';
 import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
 import '../models/curriculum.dart';
+import '../models/load_status.dart';
+import '../widgets/data_state_view.dart';
 import '../services/grade_calculator.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
@@ -135,25 +137,17 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     final catalog = context.watch<CourseCatalog>();
     final curriculum = catalog.curriculum;
 
-    if (curriculum == null && catalog.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (curriculum == null || curriculum.id != widget.curriculumId) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Chương trình học')),
+        body: DataStateView(
+          status: catalog.isLoading ? LoadStatus.loading : LoadStatus.error,
+          message: catalog.error ?? 'Chưa có dữ liệu cho chương trình này.',
+          onRetry: catalog.isLoading ? null : catalog.load,
+        ),
+      );
     }
-
-    final activeCurriculum =
-        curriculum ??
-        Curriculum(
-          id: widget.curriculumId,
-          code: widget.curriculumId,
-          name: 'Software Engineering',
-          nameVi: 'Kỹ thuật phần mềm',
-          totalCredits: 145,
-          totalSubjects: 48,
-          decisionNo: '1140/QĐ-ĐHFPT',
-          degreeLevel: 'Bachelor',
-          institution: 'FPT University',
-          major: 'Software Engineering',
-          subjects: const [],
-        );
+    final activeCurriculum = curriculum;
 
     return Scaffold(
       backgroundColor: AppTheme.slate50,
@@ -187,6 +181,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               unselectedLabelColor: AppTheme.slate600,
               indicatorColor: AppTheme.primaryBlue,
               indicatorWeight: 3,
+              isScrollable: true,
+              tabAlignment: TabAlignment.start,
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
@@ -194,7 +190,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               tabs: const [
                 Tab(text: 'Tổng quan'),
                 Tab(text: 'Danh sách môn'),
-                Tab(text: 'Map (Graph Obsidian)'),
+                Tab(text: 'Sơ đồ môn học'),
               ],
             ),
           ),
@@ -344,10 +340,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                             'Trình độ đào tạo',
                             curriculum.degreeLevel,
                           ),
-                          _buildPropItem(
-                            'Tổng số học kỳ',
-                            '$semCount Học kỳ (Giai đoạn 0 - 9)',
-                          ),
+                          _buildPropItem('Tổng số học kỳ', '$semCount học kỳ'),
                           _buildPropItem(
                             'Tổng số môn học',
                             '$subjectCount Môn',

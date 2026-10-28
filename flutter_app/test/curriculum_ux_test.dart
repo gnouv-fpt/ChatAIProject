@@ -81,6 +81,25 @@ Future<void> openCurriculum(
 }
 
 void main() {
+  testWidgets(
+    'missing or mismatched curriculum shows recovery without invented totals',
+    (tester) async {
+      for (final catalog in [
+        CourseCatalog(),
+        fixtureCatalog()..curriculum = Curriculum.fromJson({'id': 'OTHER'}),
+      ]) {
+        await openCurriculum(tester, width: 360, catalog: catalog);
+        expect(
+          find.text('Chưa có dữ liệu cho chương trình này.'),
+          findsOneWidget,
+        );
+        expect(find.text('Thử lại'), findsOneWidget);
+        expect(find.byType(TabBar), findsNothing);
+        expect(find.textContaining('145'), findsNothing);
+      }
+    },
+  );
+
   for (final width in [360.0, 412.0]) {
     testWidgets(
       'F02 mobile advisor opens, closes and keeps course context at $width',
