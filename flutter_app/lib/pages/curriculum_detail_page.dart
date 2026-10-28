@@ -94,37 +94,40 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           : 'Tư vấn lộ trình học tập toàn khóa dựa trên chương trình đào tạo. Tôi chưa import bảng điểm.';
     }
 
-    // Mở chat panel trước
+    _openAdvisor(prompt: suggestedQuestion);
+  }
+
+  void _openAdvisor({String? prompt}) {
     setState(() {
       _showRightChat = true;
-      _advisorPrompt = suggestedQuestion;
+      if (prompt != null) _advisorPrompt = prompt;
     });
-
-    // Sau đó hiện SnackBar với câu hỏi gợi ý
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Gợi ý câu hỏi cho Chat AI:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                '"$suggestedQuestion"',
-                style: const TextStyle(fontStyle: FontStyle.italic),
-              ),
-            ],
-          ),
-          duration: const Duration(seconds: 7),
-          action: SnackBarAction(label: 'OK', onPressed: () {}),
+    if (MediaQuery.sizeOf(context).width >= 960) return;
+    final curriculum = context.read<CourseCatalog>().curriculum!;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
         ),
-      );
-    });
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * 0.85,
+          child: ContextualChatPanel(
+            scope: 'curriculum',
+            scopeId: curriculum.id,
+            title: 'Trợ lý Khung ${curriculum.id}',
+            subtitle: curriculum.nameVi,
+            semesterNumber: _expandedSemester,
+            suggestedQuestions: _advisorPrompt == null
+                ? null
+                : [_advisorPrompt!],
+            onClose: () => Navigator.pop(sheetContext),
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -274,63 +277,13 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           ),
         ],
       ),
-      floatingActionButton: _showRightChat
+      floatingActionButton:
+          _showRightChat && MediaQuery.sizeOf(context).width >= 960
           ? null
-          : Tooltip(
-              message: 'Hỏi Trợ lý AI (FLM Chatbot)',
-              child: InkWell(
-                onTap: () {
-                  if (MediaQuery.of(context).size.width < 960) {
-                    showModalBottomSheet<void>(
-                      context: context,
-                      isScrollControlled: true,
-                      builder: (_) => SizedBox(
-                        height: MediaQuery.of(context).size.height * 0.85,
-                        child: ContextualChatPanel(
-                          scope: 'curriculum',
-                          scopeId: activeCurriculum.id,
-                          title: 'Trợ lý Khung ${activeCurriculum.id}',
-                          subtitle: activeCurriculum.nameVi,
-                          semesterNumber: _expandedSemester,
-                          suggestedQuestions: _advisorPrompt == null
-                              ? null
-                              : [_advisorPrompt!],
-                        ),
-                      ),
-                    );
-                  } else {
-                    setState(() => _showRightChat = true);
-                  }
-                },
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0284C7), Color(0xFF6366F1)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.42),
-                        blurRadius: 14,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.smart_toy_rounded,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                ),
-              ),
+          : FloatingActionButton(
+              tooltip: 'Hỏi Trợ lý AI',
+              onPressed: () => _openAdvisor(),
+              child: const Icon(Icons.smart_toy_outlined),
             ),
     );
   }
@@ -420,10 +373,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               GradeStrategyPanel(
                 curriculumId: widget.curriculumId,
                 onAdvisorPrompt: (prompt) {
-                  setState(() {
-                    _showRightChat = true;
-                    _advisorPrompt = prompt;
-                  });
+                  _openAdvisor(prompt: prompt);
                 },
               ),
 

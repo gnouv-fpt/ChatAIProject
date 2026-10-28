@@ -243,47 +243,23 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              widget.title,
-                              style: const TextStyle(
-                                fontSize: 14.5,
-                                fontWeight: FontWeight.bold,
-                                color: AppTheme.slate900,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: widget.scope == 'subject'
-                                  ? AppTheme.accentOrange.withValues(
-                                      alpha: 0.12,
-                                    )
-                                  : AppTheme.primaryLight,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              widget.scope == 'subject'
-                                  ? 'Scope: Môn'
-                                  : 'Scope: Khung',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: widget.scope == 'subject'
-                                    ? AppTheme.accentOrange
-                                    : AppTheme.primaryBlue,
-                              ),
-                            ),
-                          ),
-                        ],
+                      Text(
+                        widget.title,
+                        style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.bold,
+                          color: AppTheme.slate900,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        widget.scope == 'subject'
+                            ? 'Theo môn học'
+                            : 'Theo chương trình',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppTheme.primaryBlue,
+                        ),
                       ),
                       if (widget.subtitle != null) ...[
                         const SizedBox(height: 2),
