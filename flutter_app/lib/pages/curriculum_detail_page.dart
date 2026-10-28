@@ -8,6 +8,7 @@ import '../models/curriculum.dart';
 import '../models/load_status.dart';
 import '../widgets/data_state_view.dart';
 import '../services/grade_calculator.dart';
+import '../services/learning_progress.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
@@ -479,16 +480,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           c.code.toLowerCase().contains(query) ||
           c.name.toLowerCase().contains(query) ||
           c.nameVi.toLowerCase().contains(query);
-      final attempts = transcript.entries
-          .where((e) => e.courseCode == c.code)
-          .toList();
-      final status = attempts.isEmpty
-          ? 'not_started'
-          : attempts.last.inProgress
-          ? 'in_progress'
-          : attempts.last.isPassed
-          ? 'passed'
-          : 'failed';
+      final status = _courseStatus(c, catalog, transcript);
       return matchesQuery &&
           (_courseStatusFilter == 'all' || status == _courseStatusFilter) &&
           (_courseGpaFilter == null || c.countsInGpa == _courseGpaFilter);
@@ -710,20 +702,32 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     );
   }
 
+  String _courseStatus(
+    Course course,
+    CourseCatalog catalog,
+    TranscriptProvider transcript,
+  ) {
+    final progress = LearningProgress(catalog.courses, transcript.entries);
+    final status = progress.status(course).readiness;
+    if (status == CourseReadiness.completed) return 'passed';
+    if (status == CourseReadiness.inProgress) return 'in_progress';
+    if (progress.failedCodes.contains(course.code.trim().toUpperCase()))
+      return 'failed';
+    return 'not_started';
+  }
+
   Widget _buildCourseCard(Course course) {
     final isSelected = course.code == _selectedCourseCode;
-    final attempts = context
-        .read<TranscriptProvider>()
-        .entries
-        .where((entry) => entry.courseCode == course.code)
-        .toList();
-    final status = attempts.isEmpty
-        ? 'Chưa học'
-        : attempts.last.inProgress
-        ? 'Đang học'
-        : attempts.last.isPassed
-        ? 'Đã đạt'
-        : 'Chưa đạt / học lại';
+    final status = switch (_courseStatus(
+      course,
+      context.read<CourseCatalog>(),
+      context.read<TranscriptProvider>(),
+    )) {
+      'passed' => 'Đã đạt',
+      'in_progress' => 'Đang học',
+      'failed' => 'Chưa đạt / học lại',
+      _ => 'Chưa học',
+    };
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: HoverCard(
