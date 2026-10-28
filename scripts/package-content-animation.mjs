@@ -13,7 +13,7 @@ if (scenario.isFixture && !process.argv.includes('--allow-fixture')) throw new E
 const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const serialized = JSON.stringify(scenario, null, 2) + '\n';
 const scenarioHash = createHash('sha256').update(serialized).digest('hex');
-const files = ['index.html', 'animation.css', 'animation.mjs', 'scenario-contract.mjs'];
+const files = ['index.html', 'animation.css', 'animation.mjs', 'scenario-contract.mjs', 'vercel.json'];
 const assets = await Promise.all(files.map(async name => ({ name, bytes: await readFile(join(repository, 'content-animations', name)) })));
 const digest = createHash('sha256').update('scenario.json\0').update(serialized).update('\0');
 for (const asset of assets) digest.update(asset.name + '\0').update(asset.bytes).update('\0');
