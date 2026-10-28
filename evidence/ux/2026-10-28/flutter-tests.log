@@ -1,0 +1,64 @@
+00:00 +0: loading E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart
+00:00 +0: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: profile and transcript never cross account namespaces
+00:00 +1: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: legacy data is preserved but never adopted by a Google account
+00:00 +2: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: clearing account blocks stale writes and preserves other accounts
+00:00 +3: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: auth state, cancellation and logout clear only the active account
+00:00 +4: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/account_isolation_test.dart: failed logout keeps account cache writable for retry
+00:00 +5: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +6: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +7: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +8: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +9: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +10: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +11: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +12: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +12: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/cloud_personal_data_test.dart: cloud read failure shows retry instead of an empty successful transcript
+[TranscriptProvider] Load failed: StateError
+00:00 +13: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +14: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:00 +15: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +16: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +17: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +18: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +19: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +20: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +21: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +22: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +23: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +24: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:01 +25: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +26: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +27: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/advising_flow_test.dart: confirmed progress leads to next-term prerequisite detail at 360 dp
+00:02 +28: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +29: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +30: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +31: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +32: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +33: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +34: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +35: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +36: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +37: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +38: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:02 +39: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/chat_test.dart: ChatApiService Error Handling Tests sendMessage returns clear error message when server is unreachable
+00:03 +40: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +40: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/transcript_persistence_test.dart: corrupt stored transcript shows error, preserves source and supports retry
+[TranscriptProvider] Load failed: FormatException
+00:03 +41: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +42: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +43: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +44: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +45: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +46: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:03 +47: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:04 +48: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:04 +49: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:04 +50: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:04 +51: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: passed attempt stays passed regardless of import order and status filter
+00:05 +52: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: F03 OCR network failure recovers through manual entry and saved GPA
+00:06 +53: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: curriculum controls fit 360.0 dp at text scale 1.3
+00:08 +54: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: curriculum controls fit 412.0 dp at text scale 1.3
+00:10 +55: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: curriculum controls fit 1280.0 dp at text scale 1.3
+00:12 +56: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: F02 mobile advisor opens, closes and keeps course context at 360.0
+00:14 +57: E:/FPTU/2026FALL/PRM323/Lab1/ChatAIProject/flutter_app/test/curriculum_ux_test.dart: F02 mobile advisor opens, closes and keeps course context at 412.0
+00:16 +58: All tests passed!
