@@ -711,8 +711,9 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     final status = progress.status(course).readiness;
     if (status == CourseReadiness.completed) return 'passed';
     if (status == CourseReadiness.inProgress) return 'in_progress';
-    if (progress.failedCodes.contains(course.code.trim().toUpperCase()))
+    if (progress.failedCodes.contains(course.code.trim().toUpperCase())) {
       return 'failed';
+    }
     return 'not_started';
   }
 

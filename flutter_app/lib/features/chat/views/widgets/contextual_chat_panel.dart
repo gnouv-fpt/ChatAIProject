@@ -370,8 +370,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
                       label: Text(promptText),
-                      labelStyle: const TextStyle(
-                        fontSize: 14,
+                      labelStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: AppTheme.primaryBlue,
                       ),
                       backgroundColor: Colors.white,

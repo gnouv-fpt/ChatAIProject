@@ -132,11 +132,11 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
                   ),
                 ),
               ),
-              // Import button
-              _buildTranscriptMenuButton(context),
             ],
           ),
 
+          const SizedBox(height: 8),
+          _buildTranscriptMenuButton(context),
           const SizedBox(height: 14),
 
           if (!hasData)
@@ -164,7 +164,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           builder: (dialogContext) => AlertDialog(
             title: const Text('Xóa bảng điểm?'),
             content: const Text(
-              'Dữ liệu bảng điểm đã lưu trên thiết bị sẽ bị xóa.',
+              'Bảng điểm của tài khoản hiện tại sẽ bị xóa. Dữ liệu đồng bộ cũng sẽ được cập nhật khi thao tác thành công.',
             ),
             actions: [
               TextButton(
@@ -224,12 +224,14 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           children: const [
             Icon(Icons.upload_file_outlined, size: 15, color: Colors.white),
             SizedBox(width: 6),
-            Text(
-              'Quản lý điểm',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
+            Flexible(
+              child: Text(
+                'Quản lý điểm',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
               ),
             ),
             SizedBox(width: 4),
@@ -252,12 +254,15 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
           ),
         ),
         const SizedBox(height: 12),
-        Row(
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
           children: [
-            _buildFeatureChip(Icons.calculate_outlined, 'GPA chính xác'),
-            const SizedBox(width: 8),
+            _buildFeatureChip(
+              Icons.calculate_outlined,
+              'Tính GPA từ điểm đã lưu',
+            ),
             _buildFeatureChip(Icons.warning_amber_outlined, 'Cảnh báo hạ bậc'),
-            const SizedBox(width: 8),
             _buildFeatureChip(Icons.school_outlined, 'Tư vấn lộ trình'),
           ],
         ),
@@ -287,9 +292,11 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
         children: [
           Icon(icon, size: 12, color: const Color(0xFFD97706)),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+            ),
           ),
         ],
       ),

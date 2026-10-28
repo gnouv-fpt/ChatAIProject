@@ -1,7 +1,21 @@
+import 'dart:io';
+import 'dart:ui' as ui;
+
+import 'package:flutter/rendering.dart';
+
+import 'feedback_ui_test.dart' show loadEvidenceFont;
+
+import 'dart:typed_data';
+
 import 'package:flm_courses/features/chat/providers/chat_provider.dart';
 import 'package:flm_courses/features/chat/services/chat_api_service.dart';
 import 'package:flm_courses/features/chat/views/widgets/contextual_chat_panel.dart';
 import 'package:flm_courses/models/course.dart';
+import 'package:flm_courses/screens/transcript_screen.dart';
+import 'package:flm_courses/services/grade_import_service.dart';
+import 'package:flm_courses/services/transcript_image_picker.dart';
+import 'package:flm_courses/state/transcript_import_view_model.dart';
+import 'package:flm_courses/models/transcript_entry.dart';
 import 'package:flm_courses/models/curriculum.dart';
 import 'package:flm_courses/pages/curriculum_detail_page.dart';
 import 'package:flm_courses/state/course_catalog.dart';
@@ -13,10 +27,46 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+const captureUx = bool.fromEnvironment('UX_REVIEW_EVIDENCE');
+Future<void> screenshot(WidgetTester tester, String name) async {
+  if (!captureUx) return;
+  await tester.runAsync(() async {
+    final boundary = tester.renderObject<RenderRepaintBoundary>(
+      find.byKey(const Key('ux-capture')),
+    );
+    final image = await boundary.toImage();
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    final file = File('../evidence/ux/2026-10-28/$name.png');
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(bytes!.buffer.asUint8List());
+    image.dispose();
+  });
+}
+
 class _OfflineChat extends ChatApiService {
   _OfflineChat() : super(baseUrl: 'http://localhost:8000');
   @override
   Future<bool> checkHealth() async => false;
+}
+
+class _Picker implements TranscriptImagePicker {
+  @override
+  Future<List<ImageFile>?> pick() async => [
+    ImageFile(
+      filename: 'fixture.png',
+      bytes: Uint8List(1),
+      mimeType: 'image/png',
+    ),
+  ];
+}
+
+class _FailedOcr extends GradeImportService {
+  _FailedOcr() : super(baseUrl: 'http://unused.test');
+  @override
+  Future<GradeImportResult> importFromImages(List<ImageFile> images) async =>
+      throw GradeImportException(
+        'Không thể kết nối máy chủ. Thử lại hoặc nhập tay.',
+      );
 }
 
 CourseCatalog fixtureCatalog() => CourseCatalog()
@@ -44,11 +94,13 @@ Future<void> openCurriculum(
   CourseCatalog? catalog,
   double scale = 1,
   TranscriptProvider? transcript,
+  Widget? home,
 }) async {
   tester.view.physicalSize = Size(width, 900);
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+  if (captureUx) await tester.runAsync(loadEvidenceFont);
   SharedPreferences.setMockInitialValues({});
   final profile = LearningProfileProvider();
   await profile.load();
@@ -65,15 +117,21 @@ Future<void> openCurriculum(
         ChangeNotifierProvider.value(value: data),
         ChangeNotifierProvider.value(value: profile),
         ChangeNotifierProvider.value(value: chat),
+        ChangeNotifierProvider(
+          create: (_) => TranscriptImportViewModel(
+            picker: _Picker(),
+            service: _FailedOcr.new,
+          ),
+        ),
       ],
       child: MaterialApp(
         theme: AppTheme.lightTheme(),
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context)
               .copyWith(textScaler: TextScaler.linear(scale)),
-          child: child!,
+          child: RepaintBoundary(key: const Key('ux-capture'), child: child!),
         ),
-        home: const CurriculumDetailPage(curriculumId: 'TEST'),
+        home: home ?? const CurriculumDetailPage(curriculumId: 'TEST'),
       ),
     ),
   );
@@ -99,6 +157,98 @@ void main() {
       }
     },
   );
+
+  testWidgets(
+    'passed attempt stays passed regardless of import order and status filter',
+    (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final transcript = TranscriptProvider();
+      await transcript.load();
+      addTearDown(transcript.dispose);
+      await transcript.save([
+        TranscriptEntry(
+          courseCode: 'PRF192',
+          score: 8,
+          credits: 3,
+          semester: 2,
+          isPassed: true,
+        ),
+        TranscriptEntry(
+          courseCode: 'PRF192',
+          score: 3,
+          credits: 3,
+          semester: 1,
+          isPassed: false,
+        ),
+      ]);
+      await openCurriculum(tester, width: 412, transcript: transcript);
+      await tester.tap(find.text('Học kỳ 1'));
+      await tester.pumpAndSettle();
+      expect(find.text('Chưa đạt / học lại'), findsNothing);
+      expect(find.widgetWithText(Chip, 'Đã đạt'), findsOneWidget);
+      await tester.tap(find.text('Mọi trạng thái'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Đã đạt').last);
+      await tester.pumpAndSettle();
+      expect(find.text('Cơ sở lập trình'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'F03 OCR network failure recovers through manual entry and saved GPA',
+    (tester) async {
+      await openCurriculum(tester, width: 412, home: const TranscriptScreen());
+      await tester.tap(find.text('Nhập ảnh bảng điểm'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Không thể kết nối máy chủ'), findsOneWidget);
+      await tester.tap(find.text('Nhập hoặc sửa điểm thủ công'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Thêm môn thủ công'));
+      await tester.pumpAndSettle();
+      final fields = find.byType(TextFormField);
+      await tester.enterText(fields.at(0), 'PRF192');
+      await tester.enterText(fields.at(1), '8.5');
+      await tester.enterText(fields.at(2), '1');
+      await tester.tap(find.text('Áp dụng'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Lưu bảng điểm'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TranscriptScreen), findsOneWidget);
+      expect(find.text('8.50'), findsOneWidget);
+      final saved = TranscriptProvider();
+      await saved.load();
+      expect(saved.entries.single.courseCode, 'PRF192');
+      expect(saved.entries.single.score, 8.5);
+      saved.dispose();
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final width in [360.0, 412.0, 1280.0]) {
+    testWidgets('curriculum controls fit $width dp at text scale 1.3', (
+      tester,
+    ) async {
+      await openCurriculum(tester, width: width, scale: 1.3);
+      expect(tester.takeException(), isNull);
+      await tester.ensureVisible(find.text('Tổng quan'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Tổng quan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Quyết định đào tạo'), findsOneWidget);
+      await screenshot(tester, 'curriculum-${width.toInt()}-scale130');
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      if (width >= 960) {
+        expect(find.byType(ContextualChatPanel), findsOneWidget);
+        await tester.tap(find.byTooltip('Đóng Trợ lý AI'));
+        await tester.pumpAndSettle();
+        expect(find.byType(ContextualChatPanel), findsNothing);
+        await tester.tap(find.byTooltip('Hỏi Trợ lý AI'));
+        await tester.pumpAndSettle();
+        expect(find.byType(ContextualChatPanel), findsOneWidget);
+      }
+    });
+  }
 
   for (final width in [360.0, 412.0]) {
     testWidgets(
@@ -127,6 +277,7 @@ void main() {
         );
         expect(panel.semesterNumber, 1);
         expect(panel.suggestedQuestions!.single, contains('Học kỳ 1'));
+        await screenshot(tester, 'advisor-${width.toInt()}');
         expect(tester.takeException(), isNull);
       },
     );

@@ -141,6 +141,10 @@ void main() {
         await tester.tap(find.text('Điều kiện môn học'));
         await tester.pump();
         expect(find.text('PRF192'), findsWidgets);
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text('Kỳ tới · HK2'), findsOneWidget);
+        expect(find.textContaining('Còn thiếu: CSI106'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
