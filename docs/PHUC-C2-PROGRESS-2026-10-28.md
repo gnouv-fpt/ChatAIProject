@@ -6,11 +6,11 @@ Nhánh bàn giao: `PRN_Phúc_ASM`. Đã merge `origin/PRN-dev` tại `e0d53bb`, 
 
 | Task | Kết quả trong lượt này | Chưa nghiệm thu |
 | --- | --- | --- |
-| P01 | Admin preview nguồn thật qua typed HTTP client không redirect, allowlist thuvienphapluat.vn, giới hạn 8 MB/30s, kiểm HTML/UTF-8, hashes nguồn/toàn văn, UTC; parser giữ thứ tự Điều/Khoản/Điểm. | Chưa chạy nguồn live hoặc lưu evidence vào Content SQL; cần fields P0. |
+| P01 | Admin preview nguồn thật qua typed HTTP client không redirect, allowlist thuvienphapluat.vn, giới hạn 8 MB/30s, kiểm HTML/UTF-8, hashes nguồn/toàn văn, UTC; parser giữ thứ tự Điều/Khoản/Điểm. | Thử listing live ngày 28/10 nhận HTTP 403; chưa xác minh selector toàn văn hoặc lưu evidence vào Content SQL; cần fields P0. |
 | P02 | Giữ index gate mặc định tắt; lập nhu cầu Sequence/Point/version/evidence/citation-eligibility API. | Hai contexts, SQL query adapter, index/deactivate/recovery và cross-service eligibility chưa có. |
 | P03 | File bank không còn là runtime source: production bank đọc/ghi trả 503 chờ SQL. Thêm preflight manifest thuần, không ghi file/DB, hash bao gồm source/profile/keys/assets/animation mappings. | Không tự tạo entity/context/migration; SQL bank chưa có trên nền docs. |
 | P04 | Giữ APIs/questions/templates hiện có, protected Admin preflight/capabilities; transport và yêu cầu query được ghi rõ cho owner schema. | Chưa có server-only pool endpoint vì auth contract của service caller chưa chốt; không mở key cho User. |
-| P05 | Exact-host HTTPS animation validator ở backend/frontend; trang animation tĩnh theo step + đóng gói scenario có version/ID/source; component review link; fixture có nhãn. | Chưa có nguồn bank/profile hay hosting/domain được chọn, chưa deploy hoặc có ExplanationAnimationUrl thật. |
+| P05 | Exact-host HTTPS animation validator ở backend/frontend; trang animation tĩnh theo step + đóng gói scenario có version/ID/source; component review link; fixture có nhãn; static Vercel config. | Vercel đã xác thực, tạo project chatai-content-animations và dry-run 6 files; chưa upload/deploy. Theo quyết định hiện tại giữ bản chưa phát hành khi chưa có nguồn bank/profile; chưa có ExplanationAnimationUrl thật. |
 | P06 | UI Admin kiểm tra manifest/evidence độc lập SQL; chỉ rõ trạng thái chờ lưu, xem hash/Điều/Khoản/Điểm; giữ UI thư viện. | SQL bank, Practice/Progress UI và Worker cron integration còn phụ thuộc P0/owner modules. |
 
 Không sửa BusinessObject entities, DataAccess contracts/DbContext/mappings/migrations/model snapshots hoặc shared Program.cs trong lượt C2 này. Không thêm bảng RefreshTokens/ViolationLogs/UsageReports; không thay auth hoặc khôi phục Kafka quota.
@@ -55,4 +55,4 @@ Packager validate rồi xuất dưới `artifacts/content-animations/<SHA256>/` 
 - `npm run build` trong web: TypeScript/Vite thành công.
 - Browser kiểm tra packaged fixture, nút Bước sau chuyển đúng 1/3 → 2/3 và caption.
 
-Chưa chạy live source/SQL/Gateway/Kafka/Qdrant/Redis/Worker hoặc deploy animation. Không chạy migration-on-startup hay generate migration. Build/model-check legacy không chứng minh hai DB đã có. Xem đề xuất bàn giao cụ thể tại [PHUC-P0-CONTENT-REQUIREMENTS.md](PHUC-P0-CONTENT-REQUIREMENTS.md).
+Đã thử listing nguồn live và nhận HTTP 403; chưa crawl thành công nguồn thật. Chưa chạy tích hợp SQL/Gateway/Kafka/Qdrant/Redis/Worker hoặc deploy animation. Không chạy migration-on-startup hay generate migration. Build/model-check legacy không chứng minh hai DB đã có. Xem đề xuất bàn giao cụ thể tại [PHUC-P0-CONTENT-REQUIREMENTS.md](PHUC-P0-CONTENT-REQUIREMENTS.md) và [báo cáo gửi leader](PHUC-LEADER-STATUS-2026-10-28.md).
