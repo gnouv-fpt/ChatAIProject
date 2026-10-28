@@ -1,0 +1,25 @@
+import { readFile, mkdir, writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { dirname, resolve, join } from 'node:path';
+import { createHash } from 'node:crypto';
+import { validateScenario } from '../content-animations/scenario-contract.mjs';
+
+const input = process.argv[2];
+if (!input) throw new Error('Usage: node scripts/package-content-animation.mjs <scenario.json> [--allow-fixture]');
+const scenario = JSON.parse(await readFile(resolve(input), 'utf8'));
+const errors = validateScenario(scenario);
+if (errors.length) throw new Error(errors.join(' '));
+if (scenario.isFixture && !process.argv.includes('--allow-fixture')) throw new Error('Fixture requires --allow-fixture and cannot be treated as official content.');
+const repository = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const serialized = JSON.stringify(scenario, null, 2) + '\n';
+const scenarioHash = createHash('sha256').update(serialized).digest('hex');
+const files = ['index.html', 'animation.css', 'animation.mjs', 'scenario-contract.mjs'];
+const assets = await Promise.all(files.map(async name => ({ name, bytes: await readFile(join(repository, 'content-animations', name)) })));
+const digest = createHash('sha256').update('scenario.json\0').update(serialized).update('\0');
+for (const asset of assets) digest.update(asset.name + '\0').update(asset.bytes).update('\0');
+const artifactHash = digest.digest('hex');
+const output = join(repository, 'artifacts', 'content-animations', artifactHash);
+await mkdir(output, { recursive: true });
+for (const asset of assets) await writeFile(join(output, asset.name), asset.bytes);
+await writeFile(join(output, 'scenario.json'), serialized);
+process.stdout.write(`Packaged ${scenario.isFixture ? 'TEST FIXTURE' : 'scenario'} at ${output}\nScenario SHA-256: ${scenarioHash}\nArtifact SHA-256: ${artifactHash}\n`);

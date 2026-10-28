@@ -1,5 +1,7 @@
 # Bàn giao module Phúc — 26/10/2026
 
+> **Tài liệu lịch sử theo plan 24/10.** Từ C2 ngày 27/10, SQL Content/Exam là nguồn bank chính; adapter file không còn đăng ký cho runtime. Trạng thái mới và task IDs: [PHUC-C2-PROGRESS-2026-10-28.md](PHUC-C2-PROGRESS-2026-10-28.md). Không áp dụng mục persistence tạm dưới đây như kiến trúc hiện hành.
+
 Branch: `codex/phuc-content-learning`, từ nền local `PRN-dev` tại `3a50502`.
 
 ## Phạm vi đã code và phần phụ thuộc

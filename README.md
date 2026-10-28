@@ -1,8 +1,12 @@
 ﻿# ChatAIWeb
 
-ChatAIWeb is an ASP.NET Core Razor Pages application that provides a RAG chatbot for Vietnamese study materials. The system lets Admins/Teachers upload PDF, DOCX, and PPTX files, split the content into chunks, generate embeddings, retrieve relevant context, and produce answers with source citations.
+ChatAIWeb là đồ án PRN232 tư vấn pháp luật giao thông Việt Nam qua REST/gRPC, có RAG và trích dẫn nguồn được kiểm tra. Kiến trúc đích C2 ngày 27/10/2026 gồm User service và Content/Exam service với hai SQL database độc lập, Qdrant, Redis cho đề custom và Kafka notification.
 
-The project follows a 3-layer architecture for the PRN222/FPT course: `Presentation`, `BusinessLogic`, `DataAccess`, `BusinessObject`.
+Code theo `Presentation → BusinessLogic → DataAccess → BusinessObject`. Kiến trúc mới đang được tích hợp; tài liệu không đồng nghĩa hai contexts hoặc các luồng đã chạy thật. Đọc [AGENTS.md](AGENTS.md), [task.md](task.md), [kế hoạch hiện hành](docs/IMPLEMENTATION-PLAN.md) và [quy trình đồng bộ nhánh](docs/TEAM-GIT-WORKFLOW.md) trước khi code.
+
+Module Phúc: [tiến độ C2 ngày 28/10](docs/PHUC-C2-PROGRESS-2026-10-28.md), [nhu cầu contract P0 cho Vương](docs/PHUC-P0-CONTENT-REQUIREMENTS.md). Parser/preflight/UI có thể kiểm thử độc lập; bank production hiện chờ SQL contract, không ghi file làm nguồn chính.
+
+Các mục setup/features bên dưới là tài liệu lịch sử của bản Razor/môn học, chưa chuyển đổi đầy đủ. Dùng các tài liệu hiện hành ở trên cho scope, auth và cấu hình triển khai mới.
 
 ## Table of Contents
 

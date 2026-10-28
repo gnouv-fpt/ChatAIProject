@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Minh họa lời giải · Giao thông</title>
+  <link rel="stylesheet" href="animation.css">
+</head>
+<body>
+  <main>
+    <header><span class="eyebrow">Nội dung học · Minh họa lời giải</span><h1 id="title">Chưa nạp tình huống</h1><p id="description">Chọn gói tình huống đã đối chiếu với bank/version để xem trước.</p></header>
+    <section aria-label="Minh họa chuyển động">
+      <svg viewBox="0 0 640 400" role="img" aria-labelledby="scene-title scene-description">
+        <title id="scene-title">Sơ đồ giao lộ minh họa</title><desc id="scene-description">Xe chuyển động theo các bước do người biên soạn cấu hình. Nội dung bước hiện ở phần chú thích.</desc>
+        <rect width="640" height="400" fill="#dfeadb"/>
+        <path d="M0 140H640V260H0Z M260 0H380V400H260Z" fill="#65746e"/>
+        <path d="M0 200H230 M410 200H640 M320 0V110 M320 290V400" stroke="#f5edcf" stroke-width="4" stroke-dasharray="14 12"/>
+        <g id="vehicle"><rect x="-25" y="-14" width="50" height="28" rx="7" fill="#0e7357" stroke="#fff" stroke-width="2"/><path d="M11-9L20 0L11 9" fill="none" stroke="#fff" stroke-width="3"/></g>
+      </svg>
+      <p id="caption" role="status" aria-live="polite">Chưa có nội dung tình huống.</p>
+      <div class="controls"><button id="previous" disabled>Bước trước</button><button id="play" disabled>Phát</button><button id="next" disabled>Bước sau</button><button id="reset" disabled>Về đầu</button><span id="position"></span></div>
+    </section>
+    <section class="metadata"><h2>Nguồn và phiên bản</h2><p id="identity">Chưa liên kết câu hỏi.</p><a id="source" hidden target="_blank" rel="noopener noreferrer">Đọc nguồn của tình huống</a></section>
+    <details id="authoring"><summary>Xem trước gói JSON tại máy</summary><label>Chọn tình huống<input id="file" type="file" accept="application/json,.json"></label><p id="notice">File chỉ được đọc trong tab này.</p></details>
+    <p id="error" role="alert"></p>
+  </main>
+  <script type="module" src="animation.mjs"></script>
+</body>
+</html>
