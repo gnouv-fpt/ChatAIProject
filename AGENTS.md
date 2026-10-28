@@ -1,5 +1,13 @@
 # AGENTS.md — ChatAIWeb Project Instructions
 
+## Current scope — 2026-10-27 (supersedes the 2026-10-24 plan)
+
+Read task.md and docs/IMPLEMENTATION-PLAN.md for the current assignments. Two independent SQL databases: User (accounts/chat/exam attempts) and Content/Exam (legal documents/chunks/question bank/templates/items); Qdrant is the vector database. Redis holds user-owned custom exams with TTL. Kafka carries notifications/events between the two application services; Kafka-driven quota settlement from the old plan is not a current requirement. HTML animations are hosted separately; questions store ExplanationAnimationUrl.
+
+Vuong owns shared entities/schema/repository contracts, both DbContexts/configurations and migrations. Bao owns User business/query modules, Phuc owns Content/Exam business/query modules, Khanh owns Redis custom exams/scoring and Kafka notifications, Khoi owns AI/proto/Qdrant. Do not independently generate migrations or change shared schema: send field/query requirements to Vuong. Publish the initial schema contract early, then review integrated migrations at the end. Preserve existing commits/migrations for transition review.
+
+This is target architecture, not proof that the checked-out source already implements it. Keep useful branch code and adapt it; do not reset/rewrite others' work.
+
 ## 1. Project Overview
 
 PRN232 assignment: **Vietnam Traffic Law Advanced RAG System** — a microservices system that answers Vietnamese road-traffic law questions using only verified legal documents from thuvienphapluat.vn, with citations (Điều, Khoản, Điểm, document title, source URL).
@@ -8,9 +16,11 @@ Services (see `requirement.md` for the full spec):
 
 - **REST API Service** — this .NET solution (`Presentation` project): ASP.NET Core 8 Web API, JWT, Swagger.
 - **gRPC Inference & Verification Service** — moderation + RAG over Qdrant (separate service).
-- **Message Broker** — Redis Pub/Sub / Kafka, topics `chat-completed-events`, `document-updated-events`.
-- **Worker Service** — consumes `ChatCompletedEvent` (quota deduction, violation email) + midnight cron jobs.
-- **Docker Compose** — sqlserver, qdrant, redis, grpc-inference-service, rest-api-service, worker-service.
+- **Application services** — User and Content/Exam APIs behind the Gateway, each owning its SQL database.
+- **Message Broker** — Kafka for service-to-service notification events; topic/payload/consumer contracts are finalized at P0.
+- **Redis** — custom exam snapshots/state/deadline/TTL and optional cache; not the canonical question bank.
+- **Worker Service** — notification/retry and scheduled handlers according to service ownership; no mandatory Kafka quota-settlement pipeline.
+- **Docker Compose** — Gateway, application/AI/Worker hosts, two SQL databases, Qdrant, Redis and Kafka; deployment mapping finalized at P0.
 
 The REST API solution must follow a strict **3-layer architecture**. There are no Razor Pages; the API is consumed by React/mobile/Postman clients.
 
@@ -80,7 +90,7 @@ Business rules, orchestration, calling repositories and external clients (gRPC c
 
 - `IGenericRepository<T>` / `GenericRepository<T>` provides `GetByIdAsync`, `FindAsync`, `AnyAsync`, `AddAsync`, `Update`, `Remove`, `SaveChangesAsync`. It is registered as an open generic, so `IGenericRepository<ChatSession>` can be injected directly.
 - Add a specific repository (`IXxxRepository : IGenericRepository<Xxx>`) only when you need custom queries (includes, paging, filtering).
-- All repositories share the scoped DbContext: one `SaveChangesAsync` persists every pending change in the request.
+- Repositories share a scoped DbContext only within their owning database. SaveChangesAsync/transactions do not span the two databases. No cross-database EF navigation/FKs/joins; use API/event contracts and logical IDs/version snapshots.
 
 ### 3.4. BusinessObject
 
@@ -100,22 +110,19 @@ Forbidden: `BusinessObject → *`, `DataAccess → BusinessLogic/Presentation`, 
 
 ## 5. Database Rules
 
-SQL Server database `ChatAIWebDb`, EF Core **code-first migrations** (in `DataAccess/Migrations`). The API applies pending migrations on startup (`Database:MigrateOnStartup`).
+Two independent SQL Server databases, EF Core code-first, separate contexts/connection strings/migration histories owned by Vuong:
 
-Tables: `Users`, `RefreshTokens`, `LegalDocuments`, `DocumentChunks`, `ChatSessions`, `ChatMessages`, `Citations`.
+- User: USERS, USER_CHAT_SESSIONS, USER_CHAT_MESSAGES, EXAM_ATTEMPTS.
+- Content/Exam: LEGAL_DOCUMENTS, LEGAL_DOCUMENT_CHUNKS, TRAFFIC_QUESTION_CATEGORIES, TRAFFIC_QUESTIONS, EXAM_TEMPLATES, EXAM_TEMPLATE_ITEMS.
+- Qdrant: vectors with document/chunk IDs and version metadata. Redis: user-owned custom exams with TTL.
 
-Learning/attachment extension (migration `LearningAndAttachments`, pending teacher confirmation): `QuestionBanks`, `Questions`, `ExamTemplates`, `LearningAttempts`, `AttemptAnswers`, `QuestionBookmarks`, `ChatAttachments`. Decisions, ERD and quota state machine: `docs/BAO-DATA-DESIGN.md`.
+The old single-database/seven-table limit is superseded. No RefreshTokens table in the target schema; no separate ViolationLogs/UsageReports just for logging/reporting. Citations use User message snapshots without FKs into Content DB. Attempts retain stable exam/version references and enough snapshot data to review submitted work after Redis expiry.
 
-Teacher scope update (2026-10-22): no separate violation-log or usage-report tables. Keep moderation status on `ChatMessages`, operational details in file logs, and derive usage from messages/metrics.
-
-- Primary keys are `Guid`. Enums are stored as strings. All `DateTime` values are UTC (`DateTime.UtcNow`).
-- After changing entities or `ChatAIWebDbContext`, add a migration:
-
-```bash
-dotnet ef migrations add <Name> --project DataAccess --startup-project Presentation --output-dir Migrations
-```
-
-- The connection string lives in `Presentation/appsettings.json` (`ConnectionStrings:DefaultConnection`); never hard-code it.
+- Final physical names, ID types/mapping, JSON fields and constraints are published in Vuong's P0 schema contract. Do not mechanically replace GUIDs with integers from diagram labels.
+- Enums remain strings; store timestamps in UTC and display Vietnam time.
+- Vuong generates migrations with an explicit --context and separate output directory per database after contexts exist. Other contributors send model/query proposals; do not generate new migrations independently.
+- Preserve existing migrations; inspect applied state and plan data transition before destructive changes. Do not start migration-on-startup against existing databases just to verify a build.
+- Configuration holds separate connection strings; never hard-code credentials. Gateway routes to services, never directly to database connections.
 
 ---
 
@@ -123,7 +130,7 @@ dotnet ef migrations add <Name> --project DataAccess --startup-project Presentat
 
 - `POST /api/auth/register`, `POST /api/auth/login`, `POST /api/auth/refresh-token`, `POST /api/auth/logout`, `GET /api/auth/profile`.
 - Access token = JWT (HS256) with claims `sub` (UserId), `unique_name`, `email`, `role`, `token_quota` (names in `BusinessLogic/Infrastructure/AppClaimTypes.cs`).
-- Refresh tokens are random, stored as SHA-256 hashes, single-use (rotated on refresh), revoked on logout.
+- Target scope removes the RefreshTokens table and keeps tokens on the client. Bao/Vuong must define expiry, validation, whether refresh remains, logout and revocation semantics at P0 before changing endpoints. Client storage alone does not preserve the current database-backed single-use rotation/revocation guarantees. Existing refresh/logout routes describe legacy source until adapted.
 - Passwords are hashed with PBKDF2-HMACSHA256 (`PasswordHasher`).
 
 ---
@@ -160,7 +167,7 @@ dotnet user-secrets set "Auth:SeedAdmin:Email" "admin@chataiweb.local" --project
 dotnet user-secrets set "Auth:SeedAdmin:Password" "<password>" --project Presentation
 ```
 
-Requires a reachable SQL Server (`ConnectionStrings:DefaultConnection` in `Presentation/appsettings.json`, default is `localhost` with Windows Authentication) — install SQL Server/LocalDB or point it at a container. The API creates/migrates `ChatAIWebDb` automatically on startup.
+The setup scripts/current DefaultConnection are legacy single-database bootstrap until adapted. The target needs reachable User and Content/Exam databases and separately configured connections. Vuong owns provisioning/migration changes; do not assume running the old script creates the new topology.
 
 ---
 
@@ -170,7 +177,7 @@ Requires a reachable SQL Server (`ConnectionStrings:DefaultConnection` in `Prese
 dotnet run --project Presentation --launch-profile http   # Swagger: http://localhost:5039/swagger
 ```
 
-Check: dependency direction, async usage, thin controllers, no business rules in repositories, no pending model changes (`dotnet ef migrations has-pending-model-changes --project DataAccess --startup-project Presentation`).
+Check dependency direction, async usage, thin controllers and no business rules in repositories. After both contexts exist, check pending model changes separately with explicit --context and the correct startup host. Verify Gateway routes, database isolation, Redis ownership/TTL/submit recovery and Kafka notifications on the integrated runtime. Build/model checks do not apply migrations.
 
 ---
 
