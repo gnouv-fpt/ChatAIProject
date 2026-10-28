@@ -78,9 +78,21 @@ Giữ: `Id (Guid)`, `Username` unique, `Email` unique (lưu lowercase), `Passwor
 - Khánh chỉ xóa hoặc đánh dấu Redis sau khi nhận 200/201 (durable save).
 - Bảo không chấm lại. Điểm do engine Khánh tính theo đáp án chuẩn; User service chỉ kiểm tra tính nhất quán số đếm.
 
-## 4. Việc tiếp theo của Bảo khi schema P0 phát hành
+## 4. Nhu cầu Content API gửi Phúc (B04)
 
-1. B02: đổi `LearningAttemptRepository`, `LearningProgressRepository` sang EXAM_ATTEMPTS theo interface của Vương.
+Từ 28/10, `LearningProgressService` không còn query bảng bank/câu hỏi/đề mẫu. Service đọc qua port `IContentCatalogClient` (`BusinessLogic/Infrastructure/Interfaces`). Adapter tạm `LocalContentCatalogClient` vẫn đọc DB cũ; khi Content API có thì thay bằng HTTP client. Repository attempts/bookmarks cũng đã bỏ join sang `QuestionBank`/`Question`/`ExamTemplate`.
+
+| Port method | Endpoint đề xuất phía Content | Trả về (không có đáp án) |
+| --- | --- | --- |
+| `GetPublishedBanksAsync` | `GET /api/question-banks?status=Published` | Id, Code, Name, Version, LicenseClass, Status |
+| `GetBankAsync`, `GetBanksByIdsAsync` | `GET /api/question-banks/{id}`, `GET /api/question-banks?ids=...` | Như trên, gồm cả bank Retired (để xem lịch sử) |
+| `GetQuestionsAsync(bankId)` | `GET /api/question-banks/{id}/questions/summary` | Id, BankId, Number, Topic, IsCritical, HasImage, Content |
+| `GetQuestionsByIdsAsync` | `POST /api/questions/summary` body `{ids}` | Như trên |
+| `GetExamTemplateNamesAsync` | `GET /api/exam-templates?ids=...` | Id, Name |
+
+## 5. Việc tiếp theo của Bảo khi schema P0 phát hành
+
+1. B02: đổi `LearningAttemptRepository`, `LearningProgressRepository` sang EXAM_ATTEMPTS theo interface của Vương; thay `LocalContentCatalogClient` bằng HTTP client khi Content API có.
 2. B03: `ExamAttemptService.SaveResultAsync` theo mục 3, kèm test retry/concurrent.
-3. B04: progress/history/report đọc từ attempts + Content API. Bỏ phụ thuộc Question/QuestionBank SQL cũ.
+3. B04: progress/history/report đọc từ attempts + Content API (đã tách qua port ở mục 4).
 4. B05: UI account/progress đổi theo DTO mới. B06: test auth (đã có) + ownership attempts.

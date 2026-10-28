@@ -80,10 +80,7 @@ public class LearningProgressRepository : ILearningProgressRepository
             .Select(a => new AttemptHistoryRow(
                 a.Id,
                 a.BankId,
-                a.Bank.Name,
-                a.Bank.Version,
                 a.ExamTemplateId,
-                a.ExamTemplate != null ? a.ExamTemplate.Name : null,
                 a.Mode,
                 a.Status,
                 a.QuestionCount,

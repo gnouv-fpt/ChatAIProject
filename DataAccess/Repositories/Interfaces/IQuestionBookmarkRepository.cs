@@ -9,10 +9,10 @@ public interface IQuestionBookmarkRepository : IGenericRepository<QuestionBookma
 
     Task<(IReadOnlyList<BookmarkRow> Items, int TotalCount)> GetPagedAsync(
         Guid userId,
-        Guid? bankId,
+        IReadOnlyCollection<Guid>? questionIds,
         int pageIndex,
         int pageSize,
         CancellationToken cancellationToken = default);
 
-    Task<IReadOnlyList<Guid>> GetQuestionIdsAsync(Guid userId, Guid bankId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Guid>> GetQuestionIdsAsync(Guid userId, CancellationToken cancellationToken = default);
 }

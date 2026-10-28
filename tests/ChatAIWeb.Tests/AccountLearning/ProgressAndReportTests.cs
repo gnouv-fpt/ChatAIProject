@@ -1,5 +1,6 @@
 using BusinessLogic.DTOs.Requests;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Infrastructure.Implementations;
 using BusinessLogic.Infrastructure.Settings;
 using BusinessLogic.Services.Implementations;
 using BusinessObject.Constants;
@@ -20,8 +21,9 @@ public sealed class ProgressAndReportTests : IClassFixture<SqlServerDatabase>
     public ProgressAndReportTests(SqlServerDatabase database) => this.database = database;
 
     private static LearningProgressService Progress(ChatAIWebDbContext db) =>
-        new(new LearningProgressRepository(db), new QuestionBankRepository(db), new QuestionBookmarkRepository(db),
-            new GenericRepository<Question>(db));
+        new(new LearningProgressRepository(db),
+            new LocalContentCatalogClient(new QuestionBankRepository(db), new GenericRepository<Question>(db), new GenericRepository<ExamTemplate>(db)),
+            new QuestionBookmarkRepository(db));
 
     private static UsageReportService Reports(ChatAIWebDbContext db) =>
         new(new UsageReportRepository(db), new UserRepository(db),
@@ -86,6 +88,8 @@ public sealed class ProgressAndReportTests : IClassFixture<SqlServerDatabase>
         Assert.Equal(4, page.TotalCount);
         Assert.Equal(3, page.Items.Count);
         Assert.True(page.Items.Zip(page.Items.Skip(1)).All(p => p.First.StartedAt >= p.Second.StartedAt));
+        // Bank names are resolved through the Content catalog, not a cross-database join.
+        Assert.All(page.Items, item => Assert.Equal("Bộ đề thử nghiệm", item.BankName));
 
         var other = await database.AddUserAsync();
         Assert.Equal(0, (await Progress(db).GetHistoryAsync(other.Id, null, null, 1, 20)).TotalCount);
@@ -106,7 +110,10 @@ public sealed class ProgressAndReportTests : IClassFixture<SqlServerDatabase>
         var service = Progress(db);
         await service.AddBookmarkAsync(user.Id, seed.Questions[1]);
         await service.AddBookmarkAsync(user.Id, seed.Questions[1]);
-        Assert.Equal(1, (await service.GetBookmarksAsync(user.Id, seed.BankId, 1, 20)).TotalCount);
+        var bookmarks = await service.GetBookmarksAsync(user.Id, seed.BankId, 1, 20);
+        Assert.Equal(1, bookmarks.TotalCount);
+        Assert.Equal(2, Assert.Single(bookmarks.Items).Number);
+        Assert.Equal(0, (await service.GetBookmarksAsync(user.Id, seed.DraftBankId, 1, 20)).TotalCount);
         Assert.Equal(1, (await service.GetBankProgressAsync(user.Id, seed.BankId)).BookmarkedQuestions);
 
         await service.RemoveBookmarkAsync(user.Id, seed.Questions[1]);

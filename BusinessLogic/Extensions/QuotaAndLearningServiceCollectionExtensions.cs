@@ -1,3 +1,5 @@
+using BusinessLogic.Infrastructure.Implementations;
+using BusinessLogic.Infrastructure.Interfaces;
 using BusinessLogic.Infrastructure.Settings;
 using BusinessLogic.Services.Implementations;
 using BusinessLogic.Services.Interfaces;
@@ -22,6 +24,7 @@ public static class QuotaAndLearningServiceCollectionExtensions
         services.AddScoped<IQuestionBankRepository, QuestionBankRepository>();
         services.AddScoped<ILearningAttemptRepository, LearningAttemptRepository>();
         services.AddScoped<ILearningProgressRepository, LearningProgressRepository>();
+        services.AddScoped<IContentCatalogClient, LocalContentCatalogClient>();
         services.AddScoped<IQuestionBookmarkRepository, QuestionBookmarkRepository>();
         services.AddScoped<IChatAttachmentRepository, ChatAttachmentRepository>();
 

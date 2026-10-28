@@ -1,5 +1,6 @@
 using BusinessLogic.DTOs.Responses;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Infrastructure.Interfaces;
 using BusinessLogic.Services.Interfaces;
 using BusinessObject.Entities;
 using BusinessObject.Enums;
@@ -13,34 +14,31 @@ public sealed class LearningProgressService : ILearningProgressService
 {
     private const int MaxPageSize = 100;
     private const int PreviewLength = 160;
+    private const string UnknownBankName = "Bộ câu hỏi không còn tồn tại";
 
     private readonly ILearningProgressRepository _progressRepository;
-    private readonly IQuestionBankRepository _questionBankRepository;
+    private readonly IContentCatalogClient _contentCatalog;
     private readonly IQuestionBookmarkRepository _bookmarkRepository;
-    private readonly IGenericRepository<Question> _questionRepository;
 
+    // Bank/question data comes from the Content service through IContentCatalogClient; this
+    // service only queries User-owned data (attempts, answers, bookmarks).
     public LearningProgressService(
         ILearningProgressRepository progressRepository,
-        IQuestionBankRepository questionBankRepository,
-        IQuestionBookmarkRepository bookmarkRepository,
-        IGenericRepository<Question> questionRepository)
+        IContentCatalogClient contentCatalog,
+        IQuestionBookmarkRepository bookmarkRepository)
     {
         _progressRepository = progressRepository;
-        _questionBankRepository = questionBankRepository;
+        _contentCatalog = contentCatalog;
         _bookmarkRepository = bookmarkRepository;
-        _questionRepository = questionRepository;
     }
 
     public async Task<IReadOnlyList<BankProgressDto>> GetOverviewAsync(Guid userId, CancellationToken cancellationToken = default)
     {
-        var banks = (await _questionBankRepository.GetBanksAsync(QuestionBankStatus.Published, cancellationToken)).ToList();
-        foreach (var bankId in await _progressRepository.GetBankIdsWithActivityAsync(userId, cancellationToken))
-        {
-            if (banks.All(b => b.Id != bankId) && await _questionBankRepository.GetBankAsync(bankId, cancellationToken) is { } bank)
-            {
-                banks.Add(bank);
-            }
-        }
+        var banks = (await _contentCatalog.GetPublishedBanksAsync(cancellationToken)).ToList();
+        var otherBankIds = (await _progressRepository.GetBankIdsWithActivityAsync(userId, cancellationToken))
+            .Where(id => banks.All(b => b.Id != id))
+            .ToList();
+        banks.AddRange(await _contentCatalog.GetBanksByIdsAsync(otherBankIds, cancellationToken));
 
         var result = new List<BankProgressDto>();
         foreach (var bank in banks)
@@ -65,7 +63,7 @@ public sealed class LearningProgressService : ILearningProgressService
         CancellationToken cancellationToken = default)
     {
         await RequireVisibleBankAsync(bankId, cancellationToken);
-        var questions = await _questionBankRepository.GetQuestionSummariesAsync(bankId, cancellationToken: cancellationToken);
+        var questions = await _contentCatalog.GetQuestionsAsync(bankId, cancellationToken);
         var states = await GetQuestionStatesAsync(userId, bankId, cancellationToken);
 
         var items = questions
@@ -83,7 +81,7 @@ public sealed class LearningProgressService : ILearningProgressService
         CancellationToken cancellationToken = default)
     {
         await RequireVisibleBankAsync(bankId, cancellationToken);
-        var questions = await _questionBankRepository.GetQuestionSummariesAsync(bankId, cancellationToken: cancellationToken);
+        var questions = await _contentCatalog.GetQuestionsAsync(bankId, cancellationToken);
         var states = await GetQuestionStatesAsync(userId, bankId, cancellationToken);
 
         var items = questions
@@ -101,7 +99,7 @@ public sealed class LearningProgressService : ILearningProgressService
 
     public async Task<IReadOnlyList<Guid>> GetUnseenQuestionIdsAsync(Guid userId, Guid bankId, CancellationToken cancellationToken = default)
     {
-        var questions = await _questionBankRepository.GetQuestionSummariesAsync(bankId, cancellationToken: cancellationToken);
+        var questions = await _contentCatalog.GetQuestionsAsync(bankId, cancellationToken);
         var states = await GetQuestionStatesAsync(userId, bankId, cancellationToken);
         return questions.Where(q => !states.ContainsKey(q.Id)).Select(q => q.Id).ToList();
     }
@@ -118,11 +116,23 @@ public sealed class LearningProgressService : ILearningProgressService
         var (rows, totalCount) = await _progressRepository.GetAttemptHistoryAsync(
             userId, bankId, mode, pageIndex, pageSize, cancellationToken);
 
+        var banks = (await _contentCatalog.GetBanksByIdsAsync(rows.Select(r => r.BankId).Distinct().ToList(), cancellationToken))
+            .ToDictionary(b => b.Id);
+        var templateNames = await _contentCatalog.GetExamTemplateNamesAsync(
+            rows.Where(r => r.ExamTemplateId is not null).Select(r => r.ExamTemplateId!.Value).Distinct().ToList(),
+            cancellationToken);
+
         return new PagedResultDto<AttemptHistoryItemDto>
         {
-            Items = rows.Select(r => new AttemptHistoryItemDto(
-                r.Id, r.BankId, r.BankName, r.BankVersion, r.ExamTemplateId, r.ExamTemplateName, r.Mode, r.Status,
-                r.QuestionCount, r.AnsweredCount, r.CorrectCount, r.Score, r.IsPassed, r.StartedAt, r.DeadlineAt, r.SubmittedAt))
+            Items = rows.Select(r =>
+                {
+                    banks.TryGetValue(r.BankId, out var bank);
+                    var templateName = r.ExamTemplateId is { } templateId ? templateNames.GetValueOrDefault(templateId) : null;
+                    return new AttemptHistoryItemDto(
+                        r.Id, r.BankId, bank?.Name ?? UnknownBankName, bank?.Version ?? 0, r.ExamTemplateId, templateName,
+                        r.Mode, r.Status, r.QuestionCount, r.AnsweredCount, r.CorrectCount, r.Score, r.IsPassed,
+                        r.StartedAt, r.DeadlineAt, r.SubmittedAt);
+                })
                 .ToList(),
             TotalCount = totalCount,
             PageIndex = pageIndex,
@@ -138,12 +148,32 @@ public sealed class LearningProgressService : ILearningProgressService
         CancellationToken cancellationToken = default)
     {
         (pageIndex, pageSize) = NormalizePage(pageIndex, pageSize);
-        var (rows, totalCount) = await _bookmarkRepository.GetPagedAsync(userId, bankId, pageIndex, pageSize, cancellationToken);
+        IReadOnlyCollection<Guid>? bankQuestionIds = null;
+        if (bankId is { } id)
+        {
+            bankQuestionIds = (await _contentCatalog.GetQuestionsAsync(id, cancellationToken)).Select(q => q.Id).ToList();
+        }
+
+        var (rows, totalCount) = await _bookmarkRepository.GetPagedAsync(
+            userId, bankQuestionIds, pageIndex, pageSize, cancellationToken);
+
+        var questions = (await _contentCatalog.GetQuestionsByIdsAsync(rows.Select(r => r.QuestionId).ToList(), cancellationToken))
+            .ToDictionary(q => q.Id);
+        var banks = (await _contentCatalog.GetBanksByIdsAsync(
+                questions.Values.Select(q => q.BankId).Distinct().ToList(), cancellationToken))
+            .ToDictionary(b => b.Id);
 
         return new PagedResultDto<BookmarkItemDto>
         {
-            Items = rows.Select(r => new BookmarkItemDto(
-                r.QuestionId, r.BankId, r.BankName, r.BankVersion, r.Number, r.Topic, Preview(r.Content), r.HasImage, r.BookmarkedAt))
+            // A bookmark whose question no longer exists in the Content service is not shown.
+            Items = rows.Where(r => questions.ContainsKey(r.QuestionId)).Select(r =>
+                {
+                    var question = questions[r.QuestionId];
+                    banks.TryGetValue(question.BankId, out var bank);
+                    return new BookmarkItemDto(
+                        question.Id, question.BankId, bank?.Name ?? UnknownBankName, bank?.Version ?? 0, question.Number,
+                        question.Topic, Preview(question.Content), question.HasImage, r.BookmarkedAt);
+                })
                 .ToList(),
             TotalCount = totalCount,
             PageIndex = pageIndex,
@@ -153,7 +183,7 @@ public sealed class LearningProgressService : ILearningProgressService
 
     public async Task AddBookmarkAsync(Guid userId, Guid questionId, CancellationToken cancellationToken = default)
     {
-        var question = await _questionRepository.GetByIdAsync(questionId, cancellationToken)
+        var question = (await _contentCatalog.GetQuestionsByIdsAsync([questionId], cancellationToken)).FirstOrDefault()
             ?? throw new NotFoundException("Không tìm thấy câu hỏi.");
         await RequireVisibleBankAsync(question.BankId, cancellationToken);
 
@@ -198,14 +228,15 @@ public sealed class LearningProgressService : ILearningProgressService
 
     private async Task<BankProgressDto> BuildProgressAsync(
         Guid userId,
-        QuestionBank bank,
+        CatalogBank bank,
         bool includeTopics,
         CancellationToken cancellationToken)
     {
-        var questions = await _questionBankRepository.GetQuestionSummariesAsync(bank.Id, cancellationToken: cancellationToken);
+        var questions = await _contentCatalog.GetQuestionsAsync(bank.Id, cancellationToken);
         var history = await _progressRepository.GetAnswerHistoryAsync(userId, bank.Id, cancellationToken);
         var attempts = await _progressRepository.GetAttemptSummariesAsync(userId, bank.Id, cancellationToken);
-        var bookmarks = await _bookmarkRepository.GetQuestionIdsAsync(userId, bank.Id, cancellationToken);
+        var bookmarkedIds = (await _bookmarkRepository.GetQuestionIdsAsync(userId, cancellationToken)).ToHashSet();
+        var bookmarkCount = questions.Count(q => bookmarkedIds.Contains(q.Id));
 
         var graded = history.Where(IsGraded).ToList();
         var states = BuildStates(graded);
@@ -242,7 +273,7 @@ public sealed class LearningProgressService : ILearningProgressService
             states.Values.Count(s => s.LatestCorrect),
             states.Values.Count(s => !s.LatestCorrect),
             questions.Count - states.Count,
-            bookmarks.Count,
+            bookmarkCount,
             graded.Count,
             correctAnswers,
             graded.Count == 0 ? 0 : Math.Round(correctAnswers * 100.0 / graded.Count, 1),
@@ -288,9 +319,9 @@ public sealed class LearningProgressService : ILearningProgressService
             });
     }
 
-    private async Task<QuestionBank> RequireVisibleBankAsync(Guid bankId, CancellationToken cancellationToken)
+    private async Task<CatalogBank> RequireVisibleBankAsync(Guid bankId, CancellationToken cancellationToken)
     {
-        var bank = await _questionBankRepository.GetBankAsync(bankId, cancellationToken);
+        var bank = await _contentCatalog.GetBankAsync(bankId, cancellationToken);
         // Draft banks are not visible to learners; retired ones stay readable for history.
         if (bank is null || bank.Status == QuestionBankStatus.Draft)
         {
@@ -300,7 +331,7 @@ public sealed class LearningProgressService : ILearningProgressService
         return bank;
     }
 
-    private static QuestionProgressItemDto ToItem(QuestionSummaryRow question, QuestionState? state)
+    private static QuestionProgressItemDto ToItem(CatalogQuestion question, QuestionState? state)
     {
         return new QuestionProgressItemDto(
             question.Id,

@@ -36,13 +36,11 @@ public sealed record AttemptSummaryRow(
     DateTime StartedAt,
     DateTime? SubmittedAt);
 
+// Bank/template names come from the Content service, not from a join (separate databases).
 public sealed record AttemptHistoryRow(
     Guid Id,
     Guid BankId,
-    string BankName,
-    int BankVersion,
     Guid? ExamTemplateId,
-    string? ExamTemplateName,
     AttemptMode Mode,
     AttemptStatus Status,
     int QuestionCount,
@@ -54,13 +52,4 @@ public sealed record AttemptHistoryRow(
     DateTime? DeadlineAt,
     DateTime? SubmittedAt);
 
-public sealed record BookmarkRow(
-    Guid QuestionId,
-    Guid BankId,
-    string BankName,
-    int BankVersion,
-    int Number,
-    string Topic,
-    string Content,
-    bool HasImage,
-    DateTime BookmarkedAt);
+public sealed record BookmarkRow(Guid QuestionId, DateTime BookmarkedAt);
