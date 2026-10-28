@@ -1,5 +1,9 @@
 # Figma → Flutter traceability
 
+## Kiểm chứng code 28/10/2026
+
+[Review và bàn giao Vương](vuong-ui-review-2026-10-28.md): sửa đường tư vấn S08 trên mobile, recovery khi thiếu/sai curriculum, thống nhất trạng thái môn, responsive phần chiến lược và copy xóa dữ liệu theo account. Widget checks F01 Back, F02 scope/close, F03 lỗi OCR → nhập tay → lưu; 58 tests pass. Ảnh 360/412/1280 dp tại `evidence/ux/2026-10-28`. Đây không phải nghiệm thu Figma hay live services. Các deviation bên dưới tiếp tục mở.
+
 ## Cập nhật feedback 27/10/2026
 
 S01 đã thêm `LearningJourneyCard` với counts/progress/từng kỳ lấy từ `LearningProgress`; S05/S06 dùng `FlmNotice` và token trạng thái chung. Theme chuẩn hóa typography, button và navigation. [Bảng persona–màn–component–task và phiếu test](ux-feedback-validation.md).
