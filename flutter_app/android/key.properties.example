@@ -1,0 +1,6 @@
+# Copy to android/key.properties (ignored by Git) and put the team keystore
+# flm-team-debug.keystore next to it. See docs/team-debug-keystore.md.
+debugStoreFile=flm-team-debug.keystore
+debugStorePassword=android
+debugKeyAlias=androiddebugkey
+debugKeyPassword=android
