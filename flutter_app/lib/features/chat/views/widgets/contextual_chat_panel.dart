@@ -91,7 +91,11 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   }
 
   void _handleSend(ChatProvider provider, String text) {
-    if (text.trim().isEmpty) return;
+    if (!provider.historyAvailable ||
+        provider.isLoading ||
+        text.trim().isEmpty) {
+      return;
+    }
     _textController.clear();
 
     if (_pendingImages.isNotEmpty) {
@@ -296,6 +300,17 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
 
           // Server status bar
           const ServerStatusBar(),
+          if (provider.historyError != null)
+            ListTile(
+              title: Text(
+                provider.historyError!,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+              trailing: TextButton(
+                onPressed: provider.retryHistorySync,
+                child: const Text('Thử lại'),
+              ),
+            ),
 
           // Messages ListView
           Expanded(

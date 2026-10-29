@@ -4,10 +4,14 @@
 
 ## Baseline chung
 
+**Triển khai local 29/10 — Firebase:** đã nối UI preferences, cloud chat sessions/messages, inbox/read state, FCM FID registration theo UID và cleanup logout, PDF/Storage + metadata, 2 Remote Config parameters tác động UI và instrumentation Analytics/Crashlytics. [Bàn giao + giới hạn](firebase-lab3-implementation-2026-10-29.md). Chưa deploy rules/template, chưa có bằng chứng Google/Storage/FCM/DebugView/Crashlytics thật; các owner vẫn cần nghiệm thu, không tự chuyển task thành Verified. Baseline/package counts ở các đoạn cũ bên dưới là lịch sử trước lượt này.
+
+**Cập nhật 29/10 — Vương:** code/UI review đã fast-forward vào nhánh tích hợp **local** ở `493942c` (hơn origin 6 commits, chưa push). Figma đã thêm S08, S06 sửa dòng, account/logout, AUTH và D01–D05 phần thiết kế/config; [bàn giao và evidence](figma-lab3-sync-2026-10-29.md). Chưa xác minh Figma sync cloud; chưa Present walkthrough, user test T1–T6 hoặc ARTEMIS. UX-01/UX-02 chưa Verified toàn bộ. Phiếu user tasks: `ux-user-test-session.md`.
+
 - Đã có Flutter/Provider, Google auth gate, service Firestore theo UID và rules tests; login/cloud production đầu-cuối còn cần nghiệm thu.
 - Đã sửa hành trình học, thiếu tín chỉ OCR, theme/thông báo; Figma có Design System một trang và canvas theo khu. Còn deviations trong `design-traceability.md`.
 - Lượt kiểm gần nhất: 50 Flutter unit/widget tests, 5 backend unittest pass; analyzer sạch, APK debug build được. Đây không phải kết quả ARTEMIS hay Google/Firebase thật.
-- Chưa thấy package tích hợp Storage/FCM/Analytics/Crashlytics/Remote Config trong `flutter_app/pubspec.yaml`. Các phần này là việc triển khai + nghiệm thu, không chỉ thêm ảnh Console.
+- Đã có packages và source local cho Storage/FCM/Analytics/Crashlytics/Remote Config từ lượt 29/10. Còn phải nghiệm thu trên cloud; không chỉ thêm ảnh Console. [Trạng thái kiểm tra tiếp](lab3-readiness-2026-10-29.md).
 
 ## Phân công theo tính năng chạy đầu-cuối
 

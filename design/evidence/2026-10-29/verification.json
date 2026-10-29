@@ -1,0 +1,1009 @@
+{
+  "baseline": "493942c",
+  "layout": {
+    "scannedNodes": 374,
+    "complete": true,
+    "issues": [],
+    "limitations": []
+  },
+  "tokenBindingSummary": {
+    "consideredUsages": 897,
+    "planned": 0,
+    "applied": 897,
+    "skipped": 0,
+    "errors": 0,
+    "partialSuccess": false,
+    "plannedGroups": [],
+    "appliedGroups": [
+      "color",
+      "spacing",
+      "typography",
+      "radius"
+    ],
+    "failedGroups": []
+  },
+  "editability": [
+    {
+      "id": "2:2915",
+      "name": "S07 · Cài đặt & hồ sơ",
+      "counts": {
+        "FRAME": 34,
+        "TEXT": 16,
+        "VECTOR": 13,
+        "GROUP": 2,
+        "RECTANGLE": 1,
+        "INSTANCE": 2
+      },
+      "fonts": [
+        "Inter",
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "2:2414",
+      "name": "S06 · Xác nhận bảng điểm OCR",
+      "counts": {
+        "FRAME": 10,
+        "TEXT": 13,
+        "VECTOR": 3,
+        "RECTANGLE": 1,
+        "INSTANCE": 4
+      },
+      "fonts": [
+        "Inter",
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:443",
+      "name": "AUTH · Đăng nhập Google",
+      "counts": {
+        "FRAME": 3,
+        "TEXT": 5,
+        "INSTANCE": 1
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:489",
+      "name": "S08 · Chương trình · Danh sách môn",
+      "counts": {
+        "FRAME": 8,
+        "TEXT": 14,
+        "INSTANCE": 1
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:516",
+      "name": "S08 · Chương trình · Tổng quan",
+      "counts": {
+        "FRAME": 6,
+        "TEXT": 11
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:552",
+      "name": "S06 · Sửa một dòng · Dialog",
+      "counts": {
+        "FRAME": 1,
+        "TEXT": 7,
+        "INSTANCE": 2
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:591",
+      "name": "S06 · Bảng điểm đã sửa · Sẵn sàng lưu",
+      "counts": {
+        "FRAME": 3,
+        "TEXT": 12,
+        "INSTANCE": 4
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:610",
+      "name": "S01 · Hành trình · Mở rộng học kỳ",
+      "counts": {
+        "FRAME": 21,
+        "TEXT": 15,
+        "INSTANCE": 2,
+        "VECTOR": 19
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:674",
+      "name": "S08 · Danh sách · 360 dp",
+      "counts": {
+        "FRAME": 8,
+        "TEXT": 14,
+        "INSTANCE": 1
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:697",
+      "name": "S08 · Danh sách · 412 dp",
+      "counts": {
+        "FRAME": 8,
+        "TEXT": 14,
+        "INSTANCE": 1
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    },
+    {
+      "id": "90:814",
+      "name": "S08 · Desktop · 1280 dp",
+      "counts": {
+        "FRAME": 5,
+        "TEXT": 14,
+        "INSTANCE": 2
+      },
+      "fonts": [
+        "Roboto"
+      ],
+      "imageNodes": []
+    }
+  ],
+  "reactionConfigurationChecks": [
+    {
+      "nodeId": "90:453",
+      "expected": "90:478",
+      "actual": [
+        "90:478"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:473",
+      "expected": "90:478",
+      "actual": [
+        "90:478"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:485",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:487",
+      "expected": "90:458",
+      "actual": [
+        "90:458"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:566",
+      "expected": "90:443",
+      "actual": [
+        "90:443"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:575",
+      "expected": "90:489",
+      "actual": [
+        "90:489"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "86:343",
+      "expected": "90:610",
+      "actual": [
+        "90:610"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:621",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:624",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "86:345",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:500",
+      "expected": "90:516",
+      "actual": [
+        "90:516"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:522",
+      "expected": "90:489",
+      "actual": [
+        "90:489"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:510",
+      "expected": "2:2673",
+      "actual": [
+        "2:2673"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:514",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:531",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:527",
+      "expected": "2:2910",
+      "actual": [
+        "2:2910"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:504",
+      "expected": "2:2777",
+      "actual": [
+        "2:2777"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:490",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:517",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:582",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "16:106",
+      "expected": "2:2920",
+      "actual": [
+        "2:2920"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:203",
+      "expected": "2:2414",
+      "actual": [
+        "2:2414"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:205",
+      "expected": "2:2910",
+      "actual": [
+        "2:2910"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:537",
+      "expected": "90:552",
+      "actual": [
+        "90:552"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:547",
+      "expected": "90:552",
+      "actual": [
+        "90:552"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:549",
+      "expected": "90:667",
+      "actual": [
+        "90:667"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:535",
+      "expected": "2:2910",
+      "actual": [
+        "2:2910"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:558",
+      "expected": "90:591",
+      "actual": [
+        "90:591"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:560",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:607",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:593",
+      "expected": "2:2910",
+      "actual": [
+        "2:2910"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:605",
+      "expected": "90:552",
+      "actual": [
+        "90:552"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:595",
+      "expected": "90:552",
+      "actual": [
+        "90:552"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:670",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:587",
+      "expected": "90:489",
+      "actual": [
+        "90:489"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:589",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2478",
+      "expected": "90:516",
+      "actual": [
+        "90:516"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:253",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:317",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:316",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:209",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:214",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:219",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:224",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:229",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:315",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:59",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:64",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:69",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:74",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:314",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:149",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:154",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:159",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:164",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:169",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "25:783",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "25:820",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "25:825",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "25:830",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "25:845",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:313",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:286",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:291",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:301",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "10:306",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2882",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2886",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2890",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2894",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2898",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2754",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2758",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2762",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2766",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2770",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2650",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2658",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2662",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2666",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2544",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2548",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2552",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2556",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "55:55",
+      "expected": "2:2470",
+      "actual": [
+        "2:2470"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "55:62",
+      "expected": "2:2563",
+      "actual": [
+        "2:2563"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "55:70",
+      "expected": "2:2905",
+      "actual": [
+        "2:2905"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "55:102",
+      "expected": "25:772",
+      "actual": [
+        "25:772"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "55:150",
+      "expected": "2:2915",
+      "actual": [
+        "2:2915"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:681",
+      "expected": "90:516",
+      "actual": [
+        "90:516"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:691",
+      "expected": "2:2673",
+      "actual": [
+        "2:2673"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:695",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:685",
+      "expected": "2:2777",
+      "actual": [
+        "2:2777"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:675",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:704",
+      "expected": "90:516",
+      "actual": [
+        "90:516"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:714",
+      "expected": "2:2673",
+      "actual": [
+        "2:2673"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:812",
+      "expected": "90:577",
+      "actual": [
+        "90:577"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:708",
+      "expected": "2:2777",
+      "actual": [
+        "2:2777"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:698",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:825",
+      "expected": "2:2910",
+      "actual": [
+        "2:2910"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:833",
+      "expected": "BACK",
+      "actual": [
+        "BACK"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "90:835",
+      "expected": "2:2414",
+      "actual": [
+        "2:2414"
+      ],
+      "pass": true
+    },
+    {
+      "nodeId": "2:2587",
+      "expected": "2:2673",
+      "actual": [
+        "2:2673"
+      ],
+      "pass": true
+    }
+  ],
+  "limitations": [
+    "Configuration readback, not a Figma Present walkthrough or user study",
+    "Native Google picker, Firebase persistence, OCR/AI and ARTEMIS were not tested in this design task",
+    "No pixel parity claim; static S08 representations at 360/412/1280 dp",
+    "Figma cloud synchronization unverified"
+  ]
+}

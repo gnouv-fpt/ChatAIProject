@@ -1,5 +1,23 @@
 # Figma → Flutter traceability
 
+## Áp dụng vào code 29/10/2026
+
+Đã đọc Figma Desktop qua bridge local và đối chiếu AUTH `90:443`, S07 `2:2915`, S08 `90:489`/`90:516`, S06 `90:552` với source. AUTH đồng bộ căn lề/typography/nút full width; S07 đồng bộ card tài khoản, mục tiêu/hồ sơ, privacy copy và CTA Xem chương trình; S08 đưa identity vào body, dùng lựa chọn tab xuống dòng trên mobile và chỉnh search/filter theo tokens. Giữ dữ liệu và hành vi thật; không đưa TEST/account picker giả vào app. Home/S06 và các flow tư vấn đã có trong code trước lượt này.
+
+15 widget/regression tests liên quan pass, analyzer sạch; ảnh render ở `evidence/ux/2026-10-29/`. Kiểm 360/412/1280 dp với chữ 1.3×, login cancel, Settings → chương trình → Back, recovery, filter, OCR nhập tay và tư vấn mobile. Không phải pixel parity cả tám màn, live Firebase hoặc user research. Full suite bị gián đoạn do tài nguyên máy; APK mới chưa build thành công (Gradle daemon crash). Xem evidence README. Figma Desktop vẫn báo saved locally/will sync when reconnects.
+
+## Đồng bộ thiết kế 29/10/2026
+
+[Bàn giao và link node](figma-lab3-sync-2026-10-29.md): thêm S08 tổng quan/danh sách và layout 360/412/1280; S06 sửa từng dòng; S07 account/logout, AUTH và Home mở rộng học kỳ. Đã xem ảnh tám màn; 103 interaction configs khớp readback, validator 374 nodes không báo issue. Đây là kiểm cấu trúc/config và ảnh, chưa phải pixel parity, Present walkthrough, user test hoặc live Firebase. Figma Desktop có changes lưu local, chưa xác minh sync cloud.
+
+- D01: AUTH `90:443`, hủy/thử lại và chọn tài khoản mô phỏng đã có.
+- D02–D03: S07 `2:2915` có account/logout, copy theo tài khoản; badge bảng điểm đổi thành “CÁ NHÂN”.
+- D04: disclosure Home `86:343` → expanded `90:610` → thu gọn Home; không còn mở màn lộ trình từ disclosure này.
+- D05: Button `86:345` có nhãn “Mở lộ trình học”.
+- S06 giữ root `2:2414`, thêm dialog `90:552` và ready `90:591`; Save thiếu tín chỉ đi tới validation.
+
+Các thay đổi trên chưa đóng nghiệm thu UX-01 tổng thể. Các đoạn ngày 27/28 bên dưới là lịch sử; trạng thái mới dùng mục ngày 29 và báo cáo bàn giao.
+
 ## Kiểm chứng code 28/10/2026
 
 [Review và bàn giao Vương](vuong-ui-review-2026-10-28.md): sửa đường tư vấn S08 trên mobile, recovery khi thiếu/sai curriculum, thống nhất trạng thái môn, responsive phần chiến lược và copy xóa dữ liệu theo account. Widget checks F01 Back, F02 scope/close, F03 lỗi OCR → nhập tay → lưu; 58 tests pass. Ảnh 360/412/1280 dp tại `evidence/ux/2026-10-28`. Đây không phải nghiệm thu Figma hay live services. Các deviation bên dưới tiếp tục mở.
@@ -27,10 +45,10 @@ Trạng thái: bảng ánh xạ source, chưa phải nghiệm thu pixel parity h
 | S03 | Chi tiết môn | /courses/:code | pages/course_detail_page.dart | CourseRepository; RAG theo mã môn | Có code; kiểm ba tab và error recovery |
 | S04 | Trợ lý / lịch sử | shell tab 2; contextual panel | features/chat/views/chat_screen.dart | ChatProvider → ChatApiService; cache theo UID | Có code; backend thật cần chạy để nghiệm thu |
 | S05 | Bảng điểm | shell tab 3 | screens/transcript_screen.dart | TranscriptProvider; OCR API | Có code; cloud chưa có bằng chứng |
-| S06 | Sửa/xác nhận điểm | Navigator từ S05 | screens/transcript_confirm_screen.dart | TranscriptEntry; save callback | Có code; cần ảnh đối chiếu |
-| S07 | Cài đặt / hồ sơ | shell tab 4 | screens/settings_screen.dart | LearningProfileProvider; AuthViewModel | Thêm account/sign out; chưa cập nhật Figma |
-| S08 | Chương trình | /curricula/:id; CTA Home | pages/curriculum_detail_page.dart | CourseCatalog / repository | Cần đối chiếu frame Figma chính thức |
-| AUTH | Google Sign-In | FirebaseEntry → AuthGate | screens/sign_in_screen.dart | AuthService | Mới triển khai; chưa chạy Google thật; chưa có frame Figma |
+| S06 | Sửa/xác nhận điểm | Navigator từ S05 | screens/transcript_confirm_screen.dart | TranscriptEntry; save callback | Figma sửa dòng + validation/ready; còn nghiệm thu app/Present |
+| S07 | Cài đặt / hồ sơ | shell tab 4 | screens/settings_screen.dart | LearningProfileProvider; AuthViewModel | Figma có account/sign out; live account và sync cloud còn mở |
+| S08 | Chương trình | /curricula/:id; CTA Home | pages/curriculum_detail_page.dart | CourseCatalog / repository | Có frame 90:489/90:516 và 360/412/1280; chưa pixel parity |
+| AUTH | Google Sign-In | FirebaseEntry → AuthGate | screens/sign_in_screen.dart | AuthService | Figma 90:443; picker mô phỏng; Google thật còn mở |
 
 | Flow | Màn | Kết quả cần kiểm |
 |---|---|---|
@@ -51,8 +69,8 @@ Trạng thái: bảng ánh xạ source, chưa phải nghiệm thu pixel parity h
 ## Deviation ledger
 | ID | Thay đổi | Lý do | Code | Trạng thái Figma |
 |---|---|---|---|---|
-| D01 | Thêm Google Sign-In và auth gate | Lab 3 bắt buộc khi Lab 2 chưa có login | FirebaseEntry, AuthViewModel, SignInScreen | Chưa cập nhật |
-| D02 | Thêm account và sign out tại S07 | Lab 3 yêu cầu logout và xóa cache | SettingsScreen | Chưa cập nhật |
-| D03 | Cache tách UID; không tự nhận dữ liệu legacy | Ngăn lộ hồ sơ/điểm/chat giữa tài khoản | PersonalPreferences, các Provider | Cần cập nhật mô tả dữ liệu |
+| D01 | Thêm Google Sign-In và auth gate | Lab 3 bắt buộc khi Lab 2 chưa có login | FirebaseEntry, AuthViewModel, SignInScreen | Prototype cập nhật 29/10; chưa live/Present/cloud sync |
+| D02 | Thêm account và sign out tại S07 | Lab 3 yêu cầu logout và xóa cache | SettingsScreen | Prototype cập nhật 29/10; chưa nghiệm thu account thật |
+| D03 | Cache tách UID; không tự nhận dữ liệu legacy | Ngăn lộ hồ sơ/điểm/chat giữa tài khoản | PersonalPreferences, các Provider | Copy theo tài khoản cập nhật 29/10; isolation runtime còn mở |
 
 Mọi hàng chưa nghiệm thu phải giữ trạng thái mở; có widget không đồng nghĩa flow đã pass.

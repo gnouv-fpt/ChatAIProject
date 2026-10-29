@@ -1,5 +1,15 @@
 # Development verification — 21/10/2026
 
+## Kiểm tra tiếp 29/10/2026
+
+- `flutter analyze --no-pub`: sạch. Full `flutter test --no-pub --exclude-tags live --concurrency=1 --reporter expanded`: **72 pass**. `flutter build apk --debug --no-pub`: thành công; đã cài bản mới lên FLM_API36. [Raw logs](../evidence/lab3/2026-10-29/README.md).
+- Regression mới: search ở Roadmap chỉ gửi query_length/result_count khi submit, có kết quả và empty result; không gửi từ khóa. URL PDF yêu cầu consent, cancel không gọi SDK, link lỗi giữ PDF, dispose xóa link khỏi phiên; layout 360/412/1280 dp 1.3× đã kiểm.
+- Google login/cancel thật; Remote Config đổi giá trị/PE hint không rebuild; reports offline hiện lỗi rồi retry thành công. Đây là Android walkthrough bằng ADB, không tự đổi nhãn thành ARTEMIS.
+- ARTEMIS TC01: **2/5 attempts pass** tổng cộng; hai lỗi adapter ban đầu và một lỗi Gemini HTTP 429/timeout vẫn được giữ. Sau sửa adapter, run slots 1/2 pass, slot 3 fail do quota. TC02 và các cases còn lại chưa chạy ARTEMIS vì dừng `-x` ở TC01. [Bảng đầy đủ](../evidence/lab3/2026-10-29/artemis-results.md). Chưa đạt ≥10 cases ×3 hoặc exploratory Pro.
+- Firestore rules production đã đọc lại và khớp source cho đúng named database `flm-app`; RC restored `3/true`. Storage deploy fail do chưa thiết lập và yêu cầu billing Blaze, chưa phải production pass.
+
+Các số liệu cũ bên dưới là lịch sử, không đại diện source hiện tại.
+
 ## Feedback UI/UX — 27/10/2026
 
 - `flutter analyze`: No issues found.

@@ -49,6 +49,63 @@ class AppTheme {
   static const Color danger = Color(0xFFB91C1C);
   static const Color dangerSurface = Color(0xFFFEF2F2);
 
+  static ThemeData darkTheme() {
+    final light = lightTheme();
+    return light.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: primaryBlue,
+        brightness: Brightness.dark,
+        surface: slate800,
+      ),
+      scaffoldBackgroundColor: slate900,
+      iconTheme: const IconThemeData(color: slate100),
+      iconButtonTheme: IconButtonThemeData(
+        style: light.iconButtonTheme.style?.copyWith(
+          foregroundColor: const WidgetStatePropertyAll(slate100),
+        ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: light.outlinedButtonTheme.style?.copyWith(
+          foregroundColor: const WidgetStatePropertyAll(Color(0xFF90CAF9)),
+          side: const WidgetStatePropertyAll(
+            BorderSide(color: Color(0xFF90CAF9)),
+          ),
+        ),
+      ),
+      textTheme: light.textTheme.apply(
+        bodyColor: slate100,
+        displayColor: slate50,
+      ),
+      appBarTheme: light.appBarTheme.copyWith(
+        backgroundColor: slate800,
+        foregroundColor: slate50,
+        titleTextStyle: light.appBarTheme.titleTextStyle?.copyWith(
+          color: slate50,
+        ),
+      ),
+      cardTheme: light.cardTheme.copyWith(color: slate800),
+      inputDecorationTheme: light.inputDecorationTheme.copyWith(
+        fillColor: slate800,
+        hintStyle: light.inputDecorationTheme.hintStyle?.copyWith(
+          color: slate200,
+        ),
+      ),
+      navigationBarTheme: light.navigationBarTheme.copyWith(
+        backgroundColor: slate800,
+        indicatorColor: primaryDark,
+        labelTextStyle: WidgetStatePropertyAll(
+          light.textTheme.labelMedium!.copyWith(color: slate100),
+        ),
+      ),
+      chipTheme: light.chipTheme.copyWith(
+        backgroundColor: slate700,
+        selectedColor: primaryDark,
+        labelStyle: light.chipTheme.labelStyle?.copyWith(color: slate100),
+      ),
+    );
+  }
+
   static ThemeData lightTheme() {
     return ThemeData(
       useMaterial3: true,

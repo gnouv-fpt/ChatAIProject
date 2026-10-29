@@ -39,11 +39,19 @@ class _ChatScreenState extends State<ChatScreen> {
                         children: [
                           for (final session in provider.sessions)
                             ListTile(
-                              leading: Icon(session.scope == 'subject'
-                                  ? Icons.menu_book_outlined
-                                  : Icons.route_outlined),
-                              title: Text(session.title, maxLines: 1, overflow: TextOverflow.ellipsis),
-                              subtitle: Text('${session.category} · ${session.scopeId}'),
+                              leading: Icon(
+                                session.scope == 'subject'
+                                    ? Icons.menu_book_outlined
+                                    : Icons.route_outlined,
+                              ),
+                              title: Text(
+                                session.title,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                '${session.category} · ${session.scopeId}',
+                              ),
                               onTap: () {
                                 provider.openSession(session.id);
                                 Navigator.pop(sheetContext);
@@ -114,7 +122,11 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _handleSend(ChatProvider provider, String text) {
-    if (provider.isLoading || (text.trim().isEmpty && _images.isEmpty)) return;
+    if (!provider.historyAvailable ||
+        provider.isLoading ||
+        (text.trim().isEmpty && _images.isEmpty)) {
+      return;
+    }
     final images = List<ImageFile>.from(_images);
     _textController.clear();
     setState(_images.clear);
@@ -154,6 +166,19 @@ class _ChatScreenState extends State<ChatScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
     return Scaffold(
+      bottomSheet: provider.historyError == null
+          ? null
+          : Material(
+              child: SafeArea(
+                child: ListTile(
+                  title: Text(provider.historyError!),
+                  trailing: TextButton(
+                    onPressed: provider.retryHistorySync,
+                    child: const Text('Thử lại'),
+                  ),
+                ),
+              ),
+            ),
       appBar: AppBar(
         title: const Row(
           mainAxisSize: MainAxisSize.min,
@@ -225,9 +250,11 @@ class _ChatScreenState extends State<ChatScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(provider.currentScope == 'subject'
-                  ? 'Phiên môn học · ${provider.currentScopeId}'
-                  : 'Phiên tổng quan · ${provider.currentScopeId}'),
+              child: Text(
+                provider.currentScope == 'subject'
+                    ? 'Phiên môn học · ${provider.currentScopeId}'
+                    : 'Phiên tổng quan · ${provider.currentScopeId}',
+              ),
             ),
           ),
           if (provider.lastError != null)

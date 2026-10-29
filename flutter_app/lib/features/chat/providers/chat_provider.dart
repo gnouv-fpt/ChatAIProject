@@ -4,6 +4,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 
 import '../../../data/personal_preferences.dart';
+import '../../../data/activity_repository.dart';
+import '../../../services/app_telemetry.dart';
 
 import '../models/chat_message.dart';
 import '../models/chat_session.dart';
@@ -17,6 +19,14 @@ class ChatProvider extends ChangeNotifier {
   late ChatApiService _apiService;
   final PersonalPreferences _storage;
   final LearningProfileProvider? profile;
+  final ActivityRepository? historyRepository;
+  final AppTelemetry? telemetry;
+  late final Future<void> historyReady;
+  String? historyError;
+  bool _cloudLoaded = false;
+  bool _disposed = false;
+  Future<void> _cloudWrites = Future.value();
+  final Map<String, String> _synced = {};
 
   final List<ChatMessage> _messages = [];
   final Map<String, List<ChatMessage>> _scopeMessages = {};
@@ -42,6 +52,7 @@ class ChatProvider extends ChangeNotifier {
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
+  bool get historyAvailable => historyRepository == null || _cloudLoaded;
   bool? get isServerOnline => _isServerOnline;
   String get baseUrl => _baseUrl;
   String? get lastError => _lastError;
@@ -158,11 +169,13 @@ class ChatProvider extends ChangeNotifier {
   ChatProvider({
     ChatApiService? apiService,
     this.profile,
+    this.historyRepository,
+    this.telemetry,
     PersonalPreferences? storage,
   }) : _storage = storage ?? PersonalPreferences() {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
-    unawaited(_loadHistory());
+    historyReady = _loadHistory();
     checkServerHealth();
   }
 
@@ -182,6 +195,29 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> _loadHistory() async {
     try {
+      if (historyRepository != null) {
+        final saved = await historyRepository!.loadSessions();
+        if (_disposed) return;
+        for (final session in saved) {
+          final key = '${session.scope}:${session.scopeId}';
+          _activeSessionIds.putIfAbsent(key, () => session.id);
+          if (_activeSessionIds[key] == session.id) {
+            _scopeMessages[key] = List.of(session.messages);
+          } else {
+            _archivedSessions.add(session);
+          }
+          _synced[session.id] = jsonEncode(session.toJson());
+        }
+        if (_scopeMessages.containsKey(_scopeKey)) {
+          _messages
+            ..clear()
+            ..addAll(_scopeMessages[_scopeKey]!);
+        }
+        _cloudLoaded = true;
+        historyError = null;
+        notifyListeners();
+        return;
+      }
       final prefs = await _storage.open();
       final raw = prefs.getString(_historyKey);
       if (raw != null) {
@@ -213,7 +249,10 @@ class ChatProvider extends ChangeNotifier {
         notifyListeners();
       }
     } catch (error) {
-      debugPrint('[ChatProvider] Failed to load history: $error');
+      historyError =
+          'Chưa tải được lịch sử. Kiểm tra mạng và thử lại trước khi chat.';
+      if (!_disposed) notifyListeners();
+      debugPrint('[ChatProvider] History load: ${error.runtimeType}');
     }
   }
 
@@ -222,6 +261,27 @@ class ChatProvider extends ChangeNotifier {
       _scopeMessages[_scopeKey] = _messages
           .where((message) => message.status != MessageStatus.sending)
           .toList();
+      if (historyRepository != null) {
+        if (!_cloudLoaded || _disposed) return;
+        final snapshot = sessions
+            .where((s) => s.messages.any((m) => m.sender == ChatSender.user))
+            .toList();
+        final write = _cloudWrites.then((_) async {
+          if (_disposed) return;
+          for (final session in snapshot) {
+            if (_disposed) return;
+            final signature = jsonEncode(session.toJson());
+            if (_synced[session.id] == signature) continue;
+            await historyRepository!.saveSession(session);
+            _synced[session.id] = signature;
+          }
+        });
+        _cloudWrites = write.catchError((Object _) {});
+        await write;
+        historyError = null;
+        if (!_disposed) notifyListeners();
+        return;
+      }
       final encoded = jsonEncode(
         _scopeMessages.map(
           (scope, messages) => MapEntry(
@@ -247,7 +307,9 @@ class ChatProvider extends ChangeNotifier {
         }),
       );
     } catch (error) {
-      debugPrint('[ChatProvider] Failed to save history: $error');
+      historyError = 'Chưa đồng bộ lịch sử. Tin nhắn vẫn còn trong phiên; thử đồng bộ lại.';
+      if (!_disposed) notifyListeners();
+      debugPrint('[ChatProvider] History save: ${error.runtimeType}');
     }
   }
 
@@ -295,6 +357,8 @@ class ChatProvider extends ChangeNotifier {
   }) async {
     final prompt = text.trim();
     if (prompt.isEmpty || _isLoading) return;
+    await historyReady;
+    if (_disposed || (historyRepository != null && !_cloudLoaded)) return;
     if (profile != null && !profile!.isLoaded) await profile!.load();
 
     final activeScope = scope ?? _currentScope;
@@ -334,6 +398,13 @@ class ChatProvider extends ChangeNotifier {
     }
 
     _isLoading = true;
+    unawaited(
+      telemetry?.event('advising_request', {
+            'scope': activeScope,
+            'has_profile': profile?.chatContext.isNotEmpty == true ? 1 : 0,
+          }) ??
+          Future.value(),
+    );
     _lastError = null;
     notifyListeners();
 
@@ -362,6 +433,7 @@ class ChatProvider extends ChangeNotifier {
           )
           .toList(),
     );
+    if (_disposed) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,
@@ -422,6 +494,8 @@ class ChatProvider extends ChangeNotifier {
   }) async {
     final prompt = text.trim();
     if (prompt.isEmpty || images.isEmpty || _isLoading) return;
+    await historyReady;
+    if (_disposed || (historyRepository != null && !_cloudLoaded)) return;
 
     final activeScope = scope ?? _currentScope;
     final activeId = id ?? _currentScopeId;
@@ -468,6 +542,7 @@ class ChatProvider extends ChangeNotifier {
       id: activeId,
       courseCode: activeScope == 'subject' ? activeId : null,
     );
+    if (_disposed) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,
@@ -508,11 +583,49 @@ class ChatProvider extends ChangeNotifier {
     unawaited(_persistHistory());
   }
 
-  void clearHistory() {
+  Future<void> clearHistory() async {
+    if (_isLoading) return;
+    await historyReady;
+    if (historyRepository != null && !_cloudLoaded) return;
+    final previousId = _activeSessionIds[_scopeKey];
+    if (historyRepository != null && previousId != null) {
+      try {
+        await _cloudWrites;
+        if (_disposed) return;
+        await historyRepository!.deleteSession(previousId);
+      } catch (_) {
+        historyError = 'Chưa xóa được lịch sử trên cloud. Vui lòng thử lại.';
+        notifyListeners();
+        return;
+      }
+      _synced.remove(previousId);
+      _activeSessionIds[_scopeKey] = _newSessionId();
+    }
+    if (_disposed) return;
     _messages.clear();
     _initWelcomeMessage();
     _scopeMessages.remove(_scopeKey);
     notifyListeners();
     unawaited(_persistHistory());
+  }
+
+  Future<void> retryHistorySync() async {
+    if (!_cloudLoaded && historyRepository != null) {
+      await _loadHistory();
+    } else {
+      await _persistHistory();
+    }
+  }
+
+  void _notify() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
+  void notifyListeners() => _notify();
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
   }
 }

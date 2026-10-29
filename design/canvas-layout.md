@@ -1,5 +1,9 @@
 # Bố cục canvas Figma — 27/10/2026
 
+## Bổ sung 29/10/2026
+
+Khu Lab 3 nằm từ x=6200: AUTH tại y=0; S08 danh sách/tổng quan y=940; dialog sửa điểm y=1880; tư vấn/lỗi/ready/expanded Home ở y=2500–4244; S08 360/412 tại y=4800 và desktop 1280 tại y=6000. Source action nhãn cố định ở `04C`, x=8000. S06/S07 giữ ID/vị trí cũ; nội dung trước sửa ở archive x=0,y=5000. [Node IDs, ảnh và phạm vi kiểm chứng](../docs/figma-lab3-sync-2026-10-29.md). Chưa xác minh sync cloud hoặc Present walkthrough. Phần bên dưới là bố cục gốc ngày 27/10.
+
 Đã sắp lại page `03 Final UI` của [file FLM](https://www.figma.com/design/N3LyPn9HWDC0M34lVR5jCC/PRM323-Lab-2---FLM-Student-Assistant?node-id=2-2470).
 
 | Khu | Vị trí | Nội dung |
