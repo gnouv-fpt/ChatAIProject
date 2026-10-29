@@ -53,7 +53,11 @@ class FirebaseAuthService implements AuthService {
     } on GoogleSignInException catch (error) {
       debugPrint('[AuthService] Google sign-in failed: ${error.code.name}');
       if (error.code == GoogleSignInExceptionCode.canceled) {
-        throw const AuthFailure('Bạn đã hủy đăng nhập.');
+        // Android also reports canceled when the device has no Google account.
+        throw const AuthFailure(
+          'Đăng nhập đã bị hủy. Nếu máy chưa có tài khoản Google, '
+          'hãy thêm tài khoản trong Cài đặt rồi thử lại.',
+        );
       }
       throw const AuthFailure('Không thể đăng nhập Google. Vui lòng thử lại.');
     } on FirebaseAuthException catch (error) {
