@@ -51,11 +51,15 @@ class FirebaseAuthService implements AuthService {
         );
       }
     } on GoogleSignInException catch (error) {
+      debugPrint('[AuthService] Google sign-in failed: ${error.code.name}');
       if (error.code == GoogleSignInExceptionCode.canceled) {
         throw const AuthFailure('Bạn đã hủy đăng nhập.');
       }
       throw const AuthFailure('Không thể đăng nhập Google. Vui lòng thử lại.');
     } on FirebaseAuthException catch (error) {
+      // Codes only: Firebase messages may echo account details.
+      debugPrint('[AuthService] Firebase sign-in failed: ${error.code}');
+      if (kDebugMode) debugPrint('[AuthService] detail: ${error.message}');
       throw AuthFailure(switch (error.code) {
         'popup-closed-by-user' ||
         'cancelled-popup-request' => 'Bạn đã hủy đăng nhập.',

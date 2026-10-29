@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "913094498381-mjbvi3idphd8o46kfi599e7ejdn1bd6c.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.flm_courses",
+            "certificate_hash": "14e04199b0c43999c635cda8f5b368b08cabe5ea"
+          }
+        },
+        {
           "client_id": "913094498381-nt314lfrc5loqbu0j4o36pc3hssls1io.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
