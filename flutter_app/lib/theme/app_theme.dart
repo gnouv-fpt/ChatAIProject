@@ -148,8 +148,14 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(targetSize, targetSize),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          textStyle: const TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(radiusMd),
+            borderRadius: BorderRadius.circular(radiusLg),
           ),
         ),
       ),
@@ -158,25 +164,42 @@ class AppTheme {
           minimumSize: const Size(targetSize, targetSize),
         ),
       ),
-      navigationBarTheme: const NavigationBarThemeData(
+      navigationBarTheme: NavigationBarThemeData(
         backgroundColor: Colors.white,
         indicatorColor: primaryLight,
-        labelTextStyle: WidgetStatePropertyAll(
-          TextStyle(
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        height: 72,
+        iconTheme: WidgetStateProperty.resolveWith(
+          (states) => IconThemeData(
+            color: states.contains(WidgetState.selected)
+                ? primaryBlue
+                : slate600,
+          ),
+        ),
+        labelTextStyle: WidgetStateProperty.resolveWith(
+          (states) => TextStyle(
             fontFamily: 'Roboto',
             fontSize: 12,
-            fontWeight: FontWeight.w500,
+            fontWeight: states.contains(WidgetState.selected)
+                ? FontWeight.w700
+                : FontWeight.w500,
+            color: states.contains(WidgetState.selected)
+                ? primaryDark
+                : slate600,
           ),
         ),
       ),
       appBarTheme: const AppBarTheme(
         elevation: 0,
-        backgroundColor: Colors.white,
+        scrolledUnderElevation: 0,
+        surfaceTintColor: Colors.transparent,
+        backgroundColor: slate50,
         foregroundColor: slate900,
         centerTitle: false,
         titleTextStyle: TextStyle(
           fontFamily: 'Roboto',
-          fontSize: 18,
+          fontSize: 20,
           fontWeight: FontWeight.w700,
           color: slate900,
         ),
@@ -185,8 +208,8 @@ class AppTheme {
         elevation: 0,
         color: Colors.white,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(radiusLg),
-          side: const BorderSide(color: slate200, width: 1.2),
+          borderRadius: BorderRadius.circular(16),
+          side: const BorderSide(color: Color(0xFFE6EBF1)),
         ),
         margin: EdgeInsets.zero,
       ),
@@ -210,24 +233,32 @@ class AppTheme {
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(0, targetSize)),
           backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
             if (states.contains(WidgetState.selected)) {
-              return primaryLight;
+              return primaryBlue;
             }
             return Colors.white;
           }),
           foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
             if (states.contains(WidgetState.selected)) {
-              return primaryDark;
+              return Colors.white;
             }
             return slate700;
           }),
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              fontFamily: 'Roboto',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
           side: WidgetStateProperty.all(
-            const BorderSide(color: Color(0xFFCBD5E1), width: 1.0),
+            const BorderSide(color: Color(0xFFD5DEE8), width: 1.0),
           ),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(radiusSm),
+              borderRadius: BorderRadius.circular(radiusLg),
             ),
           ),
         ),
@@ -237,20 +268,20 @@ class AppTheme {
         fillColor: Colors.white,
         hintStyle: const TextStyle(fontSize: 14, color: slate600),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: Color(0xFFD5DEE8)),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
-          borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+          borderRadius: BorderRadius.circular(radiusLg),
+          borderSide: const BorderSide(color: Color(0xFFD5DEE8)),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(radiusMd),
+          borderRadius: BorderRadius.circular(radiusLg),
           borderSide: const BorderSide(color: primaryBlue, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 14,
-          vertical: 12,
+          horizontal: 16,
+          vertical: 14,
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
