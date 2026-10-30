@@ -15,6 +15,17 @@ public class GrpcInferenceService(
     ILogger<GrpcInferenceService> logger,
     BusinessLogic.Infrastructure.Settings.ChatSettings settings) : IGrpcInferenceService
 {
+    public async Task DeactivateDocumentAsync(string documentNumber, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var result = await grpcClient.DeactivateDocumentAsync(new DeactivateDocumentRequest { DocumentNumber = documentNumber },
+                deadline: DateTime.UtcNow.AddSeconds(settings.InferenceTimeoutSeconds), cancellationToken: cancellationToken);
+            if (!result.Success) throw new BusinessLogic.Exceptions.ServiceUnavailableException("Chưa thu hồi được dữ liệu vector.");
+        }
+        catch (RpcException) when (cancellationToken.IsCancellationRequested) { throw new OperationCanceledException(cancellationToken); }
+        catch (RpcException) { throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ vector chưa sẵn sàng để thu hồi văn bản."); }
+    }
     public Task<ChatInferenceResultDto> ProcessChatMessageAsync(string userId, string sessionId,
         string prompt, CancellationToken cancellationToken = default) =>
         ProcessTurnAsync(new(Guid.Parse(userId), Guid.Parse(sessionId), Guid.NewGuid(), prompt, [], [], 4096), cancellationToken);
@@ -128,7 +139,7 @@ public class GrpcInferenceService(
         var request = new IndexDocumentRequest();
         request.Chunks.AddRange(chunkList.Select(c => new DocumentChunkItem
         {
-            Point = c.Point, ContentHash = c.ContentHash, DocumentId = c.DocumentId,
+            Point = c.Point, ContentHash = c.ContentHash, DocumentId = c.DocumentId, DocumentVersion = c.DocumentVersion,
             ChunkId = c.ChunkId,
             DocumentTitle = c.DocumentTitle,
             DocumentNumber = c.DocumentNumber,

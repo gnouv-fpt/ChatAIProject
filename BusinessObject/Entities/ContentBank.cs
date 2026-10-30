@@ -28,18 +28,20 @@ public sealed record BankQuestion
     public Guid Id { get; init; }
     public int Number { get; init; }
     public string Topic { get; init; } = "";
+    public string CategoryType { get; init; } = "";
     public string Text { get; init; } = "";
     public string Explanation { get; init; } = "";
+    public string? ExplanationAnimationUrl { get; init; }
     public string SourceUrl { get; init; } = "";
     public bool IsCritical { get; init; }
     // Explicit opt-in; referenced option labels/images must never be shuffled implicitly.
     public bool AllowOptionShuffle { get; init; }
-    public List<QuestionOption> Options { get; init; } = [];
+    public List<ContentQuestionOption> Options { get; init; } = [];
     public List<string> CorrectOptionIds { get; init; } = [];
     public List<QuestionAsset> Assets { get; init; } = [];
 }
 
-public sealed record QuestionOption(string Id, string Text);
+public sealed record ContentQuestionOption(string Id, string Text);
 public sealed record QuestionAsset(string Id, string Url, string Sha256, string MimeType, string AltText);
 
 public sealed record QuestionBankPackage(ContentBank Bank, string Hash, DateTime ImportedAt,

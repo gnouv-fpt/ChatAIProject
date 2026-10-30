@@ -1,3 +1,5 @@
+import base64
+import functools
 import os
 import sys
 from concurrent import futures
@@ -30,6 +32,20 @@ except ImportError:
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger("TrafficRagGrpcServer")
 
+def rpc_errors(method):
+    @functools.wraps(method)
+    def wrapped(self, request, context):
+        try:
+            if not context.is_active():
+                context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
+            return method(self, request, context)
+        except grpc.RpcError:
+            raise
+        except Exception:
+            logger.exception("Inference RPC failed: %s", method.__name__)
+            context.abort(grpc.StatusCode.UNAVAILABLE, "Inference dependency unavailable")
+    return wrapped
+
 class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceServicer):
     """
     gRPC Servicer implementing Vietnam Traffic Law Moderation & Advanced RAG.
@@ -46,161 +62,59 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         self.rag_generator = TrafficRagGenerator()
         self.vision_engine = TrafficVisionEngine()
 
-        # Seed initial authentic traffic law data if needed
-        self._seed_initial_data()
         logger.info("All components initialized successfully.")
 
-    def _seed_initial_data(self):
-        try:
-            if self.vector_store._client is not None:
-                current_count = self.vector_store._client.count(
-                    collection_name=self.vector_store.COLLECTION_NAME
-                ).count
-                if current_count > 0:
-                    logger.info(
-                        f"Collection '{self.vector_store.COLLECTION_NAME}' already has "
-                        f"{current_count} points. Skipping seed to avoid duplicates."
-                    )
-                    return
-        except Exception as e:
-            logger.warning(f"Could not check collection count before seeding: {e}. Proceeding with seed.")
+    @staticmethod
+    def _response(text, citations=(), tokens=0, status="NoMatch", images=False):
+        response = chat_inference_pb2.ChatInferenceResponse(
+            response_text=text, citations=[chat_inference_pb2.CitationDto(**c) for c in citations],
+            data_verified=status == "Answered", is_violation=status == "Blocked",
+            requires_clarification=status == "NeedsClarification", result_status=status,
+            contract_version=2, images_processed=images)
+        if tokens is not None and tokens >= 0:
+            response.tokens_used = tokens
+        return response
 
-        seed_chunks = get_seed_traffic_law_chunks()
-        logger.info(f"Seeding {len(seed_chunks)} authentic traffic law chunks (NĐ 100/2019, NĐ 123/2021)...")
-        count = self.vector_store.upsert_chunks(seed_chunks)
-        logger.info(f"Successfully indexed {count} legal chunks into Vector Store.")
-
+    @rpc_errors
     def ProcessChatMessage(self, request, context):
-        user_id = request.user_id
-        session_id = request.session_id
         prompt = request.prompt.strip()
-
-        logger.info(f"[ProcessChatMessage] User: {user_id}, Session: {session_id}, Prompt: '{prompt}'")
-
-        # 1. Moderation & Toxicity Check
-        is_violation, violation_keywords, warn_msg = self.moderation_engine.check(prompt)
+        is_violation, keywords, warning = self.moderation_engine.check(prompt)
         if is_violation:
-            logger.warning(f"[Moderation VIOLATION] Detected keywords: {violation_keywords}")
-            return chat_inference_pb2.ChatInferenceResponse(
-                response_text=warn_msg,
-                tokens_used=15,
-                is_violation=True,
-                violation_keywords=violation_keywords,
-                citations=[],
-                data_verified=False,
-                requires_clarification=False
-            )
+            response = self._response(warning, status="Blocked", images=bool(request.images))
+            response.violation_keywords.extend(keywords)
+            return response
+        vision_tokens = 0
+        observations = []
+        for image in request.images:
+            if not context.is_active():
+                context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
+            observation, clarify, query = self.vision_engine.analyze_traffic_image(
+                base64.b64encode(image.content).decode(), image.mime_type, prompt)
+            usage = getattr(self.vision_engine, "last_tokens", None)
+            vision_tokens = -1 if usage is None or vision_tokens < 0 else vision_tokens + usage
+            if clarify:
+                return self._response(observation, tokens=vision_tokens, status="NeedsClarification", images=True)
+            observations.append(observation + " " + query)
+        history = "\n".join(f"{h.role}: {h.content}" for h in request.history[-10:])
+        query = "\n".join([history, *observations, prompt]).strip()
+        chunks = self.vector_store.search_verified_chunks(query, top_k=3, score_threshold=0.20)
+        text, citations, tokens, verified = self.rag_generator.generate(query, chunks)
+        if not context.is_active():
+            context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
+        allowed = {"document_title", "article_number", "clause_number", "source_url", "excerpt",
+            "chunk_id", "content_hash", "point_number", "document_version"}
+        citations = [{k: str(v) for k, v in c.items() if k in allowed} for c in citations]
+        total = tokens + vision_tokens if tokens >= 0 and vision_tokens >= 0 else -1
+        return self._response(text, citations, total, "Answered" if verified else "NoMatch", bool(request.images))
 
-        # 2. Advanced RAG Retrieval with Strict Verification Filter
-        matched_chunks = self.vector_store.search_verified_chunks(prompt, top_k=3, score_threshold=0.20)
-        logger.info(f"Retrieved {len(matched_chunks)} verified legal chunks from Vector Store.")
-
-        # 3. Answer Generation & Citation Extraction
-        response_text, citations_data, tokens_used, data_verified = self.rag_generator.generate(
-            prompt, matched_chunks
-        )
-
-        # 4. Map Citations to Protobuf CitationDto
-        citation_dtos = []
-        for c in citations_data:
-            dto = chat_inference_pb2.CitationDto(
-                document_title=c.get("document_title", ""),
-                article_number=c.get("article_number", ""),
-                clause_number=c.get("clause_number", ""),
-                source_url=c.get("source_url", ""),
-                excerpt=c.get("excerpt", ""),
-                chunk_id=c.get("chunk_id", ""),
-                point_number=c.get("point_number", ""),
-                document_version=c.get("document_version", "1.0")
-            )
-            citation_dtos.append(dto)
-
-        logger.info(f"[Response Generated] Tokens used: {tokens_used}, Citations: {len(citation_dtos)}, Data Verified: {data_verified}")
-
-        return chat_inference_pb2.ChatInferenceResponse(
-            response_text=response_text,
-            tokens_used=tokens_used,
-            is_violation=False,
-            violation_keywords=[],
-            citations=citation_dtos,
-            data_verified=data_verified,
-            requires_clarification=False
-        )
-
+    @rpc_errors
     def ProcessImageChatMessage(self, request, context):
-        user_id = request.user_id
-        session_id = request.session_id
-        prompt = request.prompt.strip()
-        img_b64 = request.image_base64
-        mime_type = request.mime_type or "image/jpeg"
+        image = chat_inference_pb2.ChatImage(mime_type=request.mime_type,
+            content=base64.b64decode(request.image_base64, validate=True))
+        return self.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(user_id=request.user_id,
+            session_id=request.session_id, prompt=request.prompt, images=[image]), context)
 
-        logger.info(f"[ProcessImageChatMessage] User: {user_id}, Session: {session_id}, Prompt: '{prompt}'")
-
-        # 1. Moderation Check on text prompt
-        if prompt:
-            is_violation, violation_keywords, warn_msg = self.moderation_engine.check(prompt)
-            if is_violation:
-                return chat_inference_pb2.ChatInferenceResponse(
-                    response_text=warn_msg,
-                    tokens_used=15,
-                    is_violation=True,
-                    violation_keywords=violation_keywords,
-                    citations=[],
-                    data_verified=False,
-                    requires_clarification=False
-                )
-
-        # 2. Vision analysis
-        observations, requires_clarification, search_query = self.vision_engine.analyze_traffic_image(
-            img_b64, mime_type, prompt
-        )
-
-        if requires_clarification:
-            logger.info("[ProcessImageChatMessage] Image lacks clarity/evidence. Requesting clarification.")
-            return chat_inference_pb2.ChatInferenceResponse(
-                response_text=observations,
-                tokens_used=20,
-                is_violation=False,
-                violation_keywords=[],
-                citations=[],
-                data_verified=False,
-                requires_clarification=True
-            )
-
-        # 3. Use visual observations + search query to retrieve legal chunks
-        effective_query = f"{search_query} {observations}".strip()
-        matched_chunks = self.vector_store.search_verified_chunks(effective_query, top_k=3, score_threshold=0.20)
-
-        # 4. Synthesize legal answer based on image observations + verified traffic laws
-        prompt_with_obs = f"Quan sát từ hình ảnh: {observations}\nCâu hỏi: {prompt or 'Hành vi hoặc biển báo trong ảnh bị xử lý như thế nào?'}"
-        response_text, citations_data, tokens_used, data_verified = self.rag_generator.generate(
-            prompt_with_obs, matched_chunks
-        )
-
-        citation_dtos = [
-            chat_inference_pb2.CitationDto(
-                document_title=c.get("document_title", ""),
-                article_number=c.get("article_number", ""),
-                clause_number=c.get("clause_number", ""),
-                source_url=c.get("source_url", ""),
-                excerpt=c.get("excerpt", ""),
-                chunk_id=c.get("chunk_id", ""),
-                point_number=c.get("point_number", ""),
-                document_version=c.get("document_version", "1.0")
-            )
-            for c in citations_data
-        ]
-
-        return chat_inference_pb2.ChatInferenceResponse(
-            response_text=response_text,
-            tokens_used=tokens_used,
-            is_violation=False,
-            violation_keywords=[],
-            citations=citation_dtos,
-            data_verified=data_verified,
-            requires_clarification=False
-        )
-
+    @rpc_errors
     def VerifyLegalDocument(self, request, context):
         doc_title = request.document_title
         doc_number = request.document_number
@@ -219,6 +133,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             notes=res["notes"]
         )
 
+    @rpc_errors
     def IndexDocument(self, request, context):
         logger.info(f"[IndexDocument] Received {len(request.chunks)} chunks to index.")
         chunks_to_index = []
@@ -233,6 +148,8 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
                 "point": ch.point,
                 "document_version": ch.document_version or "1.0",
                 "content": ch.content,
+                "content_hash": ch.content_hash,
+                "document_id": ch.document_id,
                 "source_url": ch.source_url,
                 "is_verified": ch.is_verified,
                 "is_active": ch.is_active
@@ -246,6 +163,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             message=f"Successfully indexed {count} chunks into Qdrant."
         )
 
+    @rpc_errors
     def DeactivateDocument(self, request, context):
         doc_number = request.document_number
         chunk_ids = list(request.chunk_ids)
@@ -258,6 +176,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             message=f"Deactivated document/chunks from active RAG retrieval."
         )
 
+    @rpc_errors
     def ExplainQuestion(self, request, context):
         """
         Explains practice/exam questions combining official answer key with verified legal grounds.

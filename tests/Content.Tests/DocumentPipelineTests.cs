@@ -16,7 +16,7 @@ namespace Content.Tests;
 
 public sealed class DocumentPipelineTests
 {
-    private static ChatAIWebDbContext Database() => new(new DbContextOptionsBuilder<ChatAIWebDbContext>()
+    private static ContentDbContext Database() => new(new DbContextOptionsBuilder<ContentDbContext>()
         .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
 
     [Fact]
@@ -85,6 +85,7 @@ public sealed class DocumentPipelineTests
     }
     private sealed class Inference(bool valid, string status, bool success, int count) : IGrpcInferenceService
     {
+        public Task<ChatInferenceResultDto> ProcessTurnAsync(ChatInferenceInputDto input, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<ChatInferenceResultDto> ProcessChatMessageAsync(string userId, string sessionId, string prompt, CancellationToken cancellationToken = default) => throw new NotSupportedException();
         public Task<VerificationResultDto> VerifyLegalDocumentAsync(string documentTitle, string documentNumber, string content, CancellationToken cancellationToken = default) => Task.FromResult(new VerificationResultDto { IsValid = valid, Status = status });
         public Task<IndexDocumentResultDto> IndexDocumentAsync(IEnumerable<DocumentChunkInputDto> chunks, CancellationToken cancellationToken = default) => Task.FromResult(new IndexDocumentResultDto { Success = success, IndexedCount = count });

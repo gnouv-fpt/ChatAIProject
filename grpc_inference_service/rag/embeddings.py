@@ -1,110 +1,36 @@
+import json
+import math
 import os
-import hashlib
-import logging
-import numpy as np
-from typing import List
+from urllib.request import Request, urlopen
 
-logger = logging.getLogger("EmbeddingEngine")
 
 class EmbeddingEngine:
-    """
-    Embedding Engine for Vietnamese Traffic Law RAG.
-    Ensures uniform vector dimension across query and indexing.
-    Default dimension is 384 for fast, deterministic performance and compatibility with Qdrant.
-    """
+    """OpenAI-compatible embedding HTTP API. Configuration is explicit; no local fallback."""
 
-    DIMENSION = 384
+    def __init__(self, model_name="auto", api_key=None):
+        self.url = os.environ.get("EMBEDDING_API_URL", "")
+        self.api_key = api_key or os.environ.get("EMBEDDING_API_KEY", "")
+        self.model = os.environ.get("EMBEDDING_MODEL", "")
+        self.DIMENSION = int(os.environ.get("EMBEDDING_DIMENSION", "0"))
+        self.provider = "api"
+        if not self.url.startswith("https://") or not self.api_key or not self.model or self.DIMENSION < 1:
+            raise RuntimeError("Configure HTTPS EMBEDDING_API_URL, EMBEDDING_API_KEY, EMBEDDING_MODEL and EMBEDDING_DIMENSION")
 
-    def __init__(self, model_name: str = "auto", api_key: str = None):
-        self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
-        self.provider = "builtin"
-        self._gemini_client = None
-        self._st_model = None
-
-        configured_dim = os.getenv("EMBEDDING_DIMENSION")
-        if configured_dim:
-            self.DIMENSION = int(configured_dim)
-
-        # Check for sentence-transformers
-        try:
-            from sentence_transformers import SentenceTransformer
-            self._st_model = SentenceTransformer("paraphrase-multilingual-MiniLM-L12-v2")
-            self.provider = "sentence-transformers"
-            self.DIMENSION = 384
-            logger.info(f"[EmbeddingEngine] Using SentenceTransformers paraphrase-multilingual-MiniLM-L12-v2 ({self.DIMENSION}d)")
-            return
-        except Exception:
-            pass
-
-        # Check for Gemini if explicitly configured with 768d
-        if self.api_key and os.getenv("USE_GEMINI_EMBEDDING", "false").lower() == "true":
-            try:
-                import google.generativeai as genai
-                genai.configure(api_key=self.api_key)
-                self._gemini_client = genai
-                self.provider = "gemini"
-                self.DIMENSION = 768
-                logger.info(f"[EmbeddingEngine] Using Google Gemini Embedding ({self.DIMENSION}d)")
-                return
-            except Exception as e:
-                logger.warning(f"[EmbeddingEngine] Gemini embedding init failed: {e}. Falling back.")
-
-        logger.info(f"[EmbeddingEngine] Using Built-in Semantic Hashing Embedding ({self.DIMENSION}d)")
-        self.provider = "builtin"
-
-    def embed_query(self, text: str) -> List[float]:
+    def embed_query(self, text):
         return self.embed_documents([text])[0]
 
-    def embed_documents(self, texts: List[str]) -> List[List[float]]:
-        if self.provider == "gemini" and self._gemini_client:
-            try:
-                embeddings = []
-                for t in texts:
-                    res = self._gemini_client.embed_content(
-                        model="models/text-embedding-004",
-                        content=t,
-                        task_type="retrieval_document"
-                    )
-                    embeddings.append(res['embedding'])
-                return embeddings
-            except Exception as e:
-                logger.warning(f"[EmbeddingEngine] Gemini embed failed: {e}, falling back to builtin.")
-
-        if self.provider == "sentence-transformers" and self._st_model:
-            try:
-                vecs = self._st_model.encode(texts, normalize_embeddings=True)
-                return vecs.tolist()
-            except Exception as e:
-                logger.warning(f"[EmbeddingEngine] ST embed failed: {e}, falling back to builtin.")
-
-        # Built-in deterministic semantic hashing vectorizer
-        return [self._builtin_embed(t) for t in texts]
-
-    def _builtin_embed(self, text: str) -> List[float]:
-        """
-        Generates a normalized 384-dimensional vector using bag-of-ngrams
-        and feature hashing with Vietnamese tokenization support.
-        """
-        vec = np.zeros(self.DIMENSION, dtype=np.float32)
-        if not text:
-            return vec.tolist()
-
-        tokens = text.lower().split()
-        terms = list(tokens)
-        for i in range(len(tokens) - 1):
-            terms.append(f"{tokens[i]}_{tokens[i+1]}")
-        cleaned = text.lower().replace(" ", "")
-        for i in range(len(cleaned) - 2):
-            terms.append(cleaned[i:i+3])
-
-        for term in terms:
-            h = int(hashlib.md5(term.encode('utf-8')).hexdigest(), 16)
-            idx = h % self.DIMENSION
-            sign = 1.0 if ((h >> 8) & 1) else -1.0
-            vec[idx] += sign
-
-        norm = np.linalg.norm(vec)
-        if norm > 0:
-            vec = vec / norm
-
-        return vec.tolist()
+    def embed_documents(self, texts):
+        if not texts:
+            return []
+        request = Request(self.url, data=json.dumps({"model": self.model, "input": texts,
+            "dimensions": self.DIMENSION}).encode(), headers={"Authorization": "Bearer " + self.api_key,
+            "Content-Type": "application/json"})
+        with urlopen(request, timeout=15) as response:
+            payload = json.load(response)
+        data = sorted(payload["data"], key=lambda row: row["index"])
+        if [row["index"] for row in data] != list(range(len(texts))):
+            raise RuntimeError("Embedding API returned an incomplete batch")
+        vectors = [row["embedding"] for row in data]
+        if any(len(v) != self.DIMENSION or not all(isinstance(x, (int, float)) and math.isfinite(x) for x in v) for v in vectors):
+            raise RuntimeError("Embedding API returned invalid dimensions or non-finite values")
+        return vectors

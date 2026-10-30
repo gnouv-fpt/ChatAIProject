@@ -1,3 +1,7 @@
+using Presentation.Extensions;
+using BusinessLogic.Exams;
+using Presentation.Exams;
+using BusinessLogic.Extensions;
 using System.Text;
 using System.Text.Json.Serialization;
 using BusinessLogic.Infrastructure;
@@ -92,8 +96,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
         options.Events = JwtProblemDetailsEvents.Create();
     });
-builder.Services.AddAuthorization(options => options.AddPolicy("ContentRead", policy =>
-    policy.AddAuthenticationSchemes("ContentService").RequireAuthenticatedUser().RequireClaim("scope", "content.read")));
+builder.Services.AddAuthentication().AddJwtBearer("ExamService", options =>
+{
+    options.MapInboundClaims = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true, ValidIssuer = jwtSettings.Issuer,
+        ValidateAudience = true, ValidAudience = jwtSettings.Audience + ".ExamService",
+        ValidateIssuerSigningKey = true, IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.SecretKey)),
+        ValidateLifetime = true, ClockSkew = TimeSpan.FromSeconds(5),
+        ValidTypes = ["service+jwt"], ValidAlgorithms = [SecurityAlgorithms.HmacSha256]
+    };
+    options.Events = JwtProblemDetailsEvents.Create();
+});
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ContentRead", policy => policy.AddAuthenticationSchemes("ContentService")
+        .RequireAuthenticatedUser().RequireClaim("scope", "content.read"));
+    options.AddPolicy("ContentMaintenance", policy => policy.AddAuthenticationSchemes("ContentService")
+        .RequireAuthenticatedUser().RequireClaim("scope", "content.maintain"));
+    options.AddPolicy("ExamWrite", policy => policy.AddAuthenticationSchemes("ExamService")
+        .RequireAuthenticatedUser().RequireClaim("scope", "exams.write"));
+});
 
 // ==================== Swagger ====================
 builder.Services.AddEndpointsApiExplorer();
@@ -144,6 +168,9 @@ if (module == "User")
     builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
     builder.Services.AddScoped<IChatTurnRepository, ChatTurnRepository>();
     builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
+    builder.Services.AddScoped<ExamResultService>();
+    builder.Services.AddC2AccountLearningModule();
+    builder.Services.AddCustomExamModule(builder.Configuration);
     builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
     builder.Services.AddScoped<IAuthService, AuthService>();
     builder.Services.AddScoped<IAdminSeeder, AdminSeeder>();
@@ -160,6 +187,9 @@ else
     builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
     builder.Services.AddScoped<IContentChunkRepository, ContentChunkRepository>();
     builder.Services.AddScoped<IQuestionCatalogRepository, QuestionCatalogRepository>();
+    builder.Services.AddContentModule(builder.Configuration, builder.Environment);
+    builder.Services.AddScoped<ExamIntegrationService>();
+    builder.Services.AddScoped<LearningCatalogService>();
     builder.Services.AddScoped<IContentChunkService, ContentChunkService>();
     builder.Services.AddScoped<IDocumentService, DocumentService>();
     builder.Services.AddHttpClient<ICrawlerService, CrawlerService>(client =>
@@ -199,6 +229,8 @@ app.UseStatusCodePages();
 app.UseSwagger();
 app.UseSwaggerUI();
 
+app.UseDefaultFiles();
+app.UseStaticFiles();
 app.UseAuthentication();
 app.UseAuthorization();
 

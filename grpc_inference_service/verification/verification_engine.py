@@ -110,16 +110,9 @@ class DataVerificationEngine:
         # 2. Check known registry
         matched_info = None
         for key, info in self.LEGAL_REGISTRY.items():
-            if key in norm_number or norm_number in key:
+            if norm_number and key == norm_number:
                 matched_info = info
                 break
-
-        if not matched_info and document_title:
-            title_upper = document_title.upper()
-            for key, info in self.LEGAL_REGISTRY.items():
-                if info["title"].upper() in title_upper or key in title_upper:
-                    matched_info = info
-                    break
 
         if matched_info:
             return {

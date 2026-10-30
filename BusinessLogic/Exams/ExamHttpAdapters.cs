@@ -1,3 +1,5 @@
+using BusinessLogic.Infrastructure.Interfaces;
+using System.Net.Http.Headers;
 using System.Net;
 using System.Net.Http.Json;
 using BusinessLogic.Exams;
@@ -6,16 +8,17 @@ using Microsoft.Extensions.Configuration;
 
 namespace BusinessLogic.Exams;
 
-public sealed class ContentQuestionClient(HttpClient client, IConfiguration configuration) : IExamQuestionSource
+public sealed class ContentQuestionClient(HttpClient client, IConfiguration configuration, IJwtTokenService? tokens = null) : IExamQuestionSource
 {
     public async Task<IReadOnlyList<BankQuestion>> GetQuestionsAsync(string categoryId, string bankVersion,
         int count, CancellationToken cancellationToken)
     {
         var path = configuration["Exams:ContentQuestionsPath"]
-            ?? throw new InvalidOperationException("Exams:ContentQuestionsPath is required.");
+            ?? "internal/content/exam-questions";
         var uri = $"{path}?categoryId={Uri.EscapeDataString(categoryId)}&bankVersion={Uri.EscapeDataString(bankVersion)}&count={count}";
         using var request = new HttpRequestMessage(HttpMethod.Get, uri);
-        ExamHttpAuth.AddInternalKey(request, configuration);
+        if (tokens is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.CreateContentServiceToken());
+        else ExamHttpAuth.AddInternalKey(request, configuration);
         using var response = await client.SendAsync(request, cancellationToken);
         if (response.StatusCode == HttpStatusCode.NotFound)
             throw new BadRequestException("Không tìm thấy ngân hàng câu hỏi đã chọn.");
@@ -24,17 +27,18 @@ public sealed class ContentQuestionClient(HttpClient client, IConfiguration conf
     }
 }
 
-public sealed class UserExamResultClient(HttpClient client, IConfiguration configuration) : IExamResultSink
+public sealed class UserExamResultClient(HttpClient client, IConfiguration configuration, IJwtTokenService? tokens = null) : IExamResultSink
 {
     public async Task SaveAsync(SaveExamResult result, CancellationToken cancellationToken)
     {
         var path = configuration["Exams:SaveResultPath"]
-            ?? throw new InvalidOperationException("Exams:SaveResultPath is required.");
+            ?? "internal/user/exam-results";
         using var request = new HttpRequestMessage(HttpMethod.Post, path)
         {
             Content = JsonContent.Create(result)
         };
-        ExamHttpAuth.AddInternalKey(request, configuration);
+        if (tokens is not null) request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.CreateExamServiceToken());
+        else ExamHttpAuth.AddInternalKey(request, configuration);
         using var response = await client.SendAsync(request, cancellationToken);
         if (response.StatusCode == HttpStatusCode.Conflict)
             throw new ConflictException("Lượt thi đã được lưu với nội dung khác.");

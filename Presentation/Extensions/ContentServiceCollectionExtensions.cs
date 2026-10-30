@@ -12,7 +12,7 @@ public static class ContentServiceCollectionExtensions
     public static IServiceCollection AddContentModule(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
     {
         var path = configuration["Content:CrawlJobStoragePath"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "crawl-jobs");
-        services.AddScoped<IContentBankRepository, PendingSqlQuestionBankRepository>();
+        services.AddScoped<IContentBankRepository, SqlContentBankRepository>();
         services.AddSingleton<ICrawlJobRepository>(new FileCrawlJobRepository(path));
         services.AddScoped<ICrawlJobService, CrawlJobService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();

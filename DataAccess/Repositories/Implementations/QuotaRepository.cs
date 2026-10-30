@@ -8,9 +8,9 @@ namespace DataAccess.Repositories.Implementations;
 
 public class QuotaRepository : IQuotaRepository
 {
-    private readonly ChatAIWebDbContext _context;
+    private readonly DbContext _context;
 
-    public QuotaRepository(ChatAIWebDbContext context)
+    public QuotaRepository(DbContext context)
     {
         _context = context;
     }
@@ -27,10 +27,10 @@ public class QuotaRepository : IQuotaRepository
             // UPDLOCK is held until commit, so reserve/settle/release of one user run one at a time,
             // while the AI call itself happens outside any transaction.
             var user = _context.Database.IsSqlServer()
-                ? await _context.Users
+                ? await _context.Set<User>()
                     .FromSqlInterpolated($"SELECT * FROM [Users] WITH (UPDLOCK, ROWLOCK) WHERE [Id] = {userId}")
                     .SingleOrDefaultAsync(cancellationToken)
-                : await _context.Users.SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
+                : await _context.Set<User>().SingleOrDefaultAsync(u => u.Id == userId, cancellationToken);
             var result = await operation(user);
             await _context.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
@@ -44,7 +44,7 @@ public class QuotaRepository : IQuotaRepository
         DateTime utcNow,
         CancellationToken cancellationToken = default)
     {
-        return await _context.ChatMessages
+        return await _context.Set<ChatMessage>()
             .Where(m => m.Session.UserId == userId
                 && m.Id != excludeMessageId
                 && m.QuotaSettledAt == null
@@ -56,12 +56,12 @@ public class QuotaRepository : IQuotaRepository
 
     public Task<ChatMessage?> GetTurnAsync(Guid messageId, CancellationToken cancellationToken = default)
     {
-        return _context.ChatMessages.FirstOrDefaultAsync(m => m.Id == messageId, cancellationToken);
+        return _context.Set<ChatMessage>().FirstOrDefaultAsync(m => m.Id == messageId, cancellationToken);
     }
 
     public async Task<Guid?> GetTurnOwnerIdAsync(Guid messageId, CancellationToken cancellationToken = default)
     {
-        return await _context.ChatMessages
+        return await _context.Set<ChatMessage>()
             .Where(m => m.Id == messageId && m.SenderRole == SenderRole.Assistant)
             .Select(m => (Guid?)m.Session.UserId)
             .FirstOrDefaultAsync(cancellationToken);
@@ -72,7 +72,7 @@ public class QuotaRepository : IQuotaRepository
         int take,
         CancellationToken cancellationToken = default)
     {
-        return await _context.ChatMessages
+        return await _context.Set<ChatMessage>()
             .Where(m => m.TurnState == ChatTurnStates.Processing
                 && m.QuotaSettledAt == null
                 && m.LeaseExpiresAt != null
@@ -88,7 +88,7 @@ public class QuotaRepository : IQuotaRepository
         int take,
         CancellationToken cancellationToken = default)
     {
-        return await _context.ChatMessages
+        return await _context.Set<ChatMessage>()
             .Where(m => m.TurnState == ChatTurnStates.Completed
                 && m.QuotaSettledAt == null
                 && m.CreatedAt < completedBefore)

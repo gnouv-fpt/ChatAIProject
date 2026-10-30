@@ -9,7 +9,7 @@ namespace BusinessLogic.Services.Implementations;
 // Pure preflight; no database, filesystem mutation, network fetch or publication.
 public sealed class ContentManifestService(AnimationSettings settings) : IContentManifestService
 {
-    public ContentCapabilitiesDto GetCapabilities() => new(true, true, false, "PendingSqlContract", settings.AllowedHosts);
+    public ContentCapabilitiesDto GetCapabilities() => new(true, true, true, "SqlContentAdapter", settings.AllowedHosts);
 
     public ContentManifestPreviewDto Preview(ContentManifestRequestDto request)
     {
@@ -18,6 +18,10 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
             return new(null, 0, 0, [new("bank", "Thiếu ngân hàng câu hỏi.")]);
         issues.AddRange(QuestionBankService.Validate(request.Bank).Select(message => new ContentValidationIssueDto("bank", message)));
         var questions = request.Bank.Questions;
+        if (questions is not null)
+            foreach (var question in questions.Where(q => q is not null && q.ExplanationAnimationUrl is not null))
+                if (!IsAllowedAnimationUrl(question.ExplanationAnimationUrl, settings.AllowedHosts))
+                    issues.Add(new("bank.questions", "Animation cần URL HTTPS trên host được cấu hình."));
         var ids = questions?.Where(q => q is not null).Select(q => q.Id).ToHashSet() ?? [];
         var animations = request.Animations;
         if (animations is null)

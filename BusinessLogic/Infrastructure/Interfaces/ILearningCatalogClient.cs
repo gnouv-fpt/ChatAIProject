@@ -7,7 +7,7 @@ namespace BusinessLogic.Infrastructure.Interfaces;
 /// The User module must not query Content tables directly; swap the adapter for an HTTP client
 /// once the Content API contract is published. Answer keys are never part of this view.
 /// </summary>
-public interface IContentCatalogClient
+public interface ILearningCatalogClient
 {
     Task<IReadOnlyList<CatalogBank>> GetPublishedBanksAsync(CancellationToken cancellationToken = default);
 

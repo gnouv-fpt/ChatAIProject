@@ -1,3 +1,8 @@
+using BusinessLogic.Services.Implementations;
+using BusinessLogic.Services.Interfaces;
+using BusinessLogic.Infrastructure.Implementations;
+using BusinessLogic.Infrastructure.Interfaces;
+using BusinessLogic.Infrastructure.Settings;
 using Confluent.Kafka;
 using BusinessLogic.Exams;
 using StackExchange.Redis;
@@ -5,6 +10,10 @@ using WorkerService;
 
 var builder = Host.CreateApplicationBuilder(args);
 var config = builder.Configuration;
+var jwt = config.GetSection("Jwt").Get<JwtSettings>() ?? new();
+jwt.EnsureValid();
+builder.Services.AddSingleton(jwt);
+builder.Services.AddSingleton<IJwtTokenService, JwtTokenService>();
 var bootstrap = config["Exams:Kafka:BootstrapServers"]
     ?? throw new InvalidOperationException("Exams:Kafka:BootstrapServers is required.");
 builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect(
@@ -34,6 +43,12 @@ builder.Services.AddSingleton<IProducer<string, string>>(_ =>
     }).Build());
 builder.Services.AddSingleton<RedisNotificationInbox>();
 builder.Services.AddSingleton<IExamEventPublisher, KafkaExamEventPublisher>();
+builder.Services.AddHttpClient<IContentMaintenanceService, ContentMaintenanceHttpClient>(client =>
+{
+    client.BaseAddress = new Uri(config["ContentService:Address"] ?? "http://localhost:5040/");
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddHostedService<ContentMaintenanceWorker>();
 builder.Services.AddHostedService<ExamNotificationWorker>();
 builder.Services.AddHostedService<CustomExamDeadlineWorker>();
 

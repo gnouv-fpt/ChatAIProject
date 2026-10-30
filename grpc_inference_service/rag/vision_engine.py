@@ -43,6 +43,7 @@ class TrafficVisionEngine:
             requires_clarification (bool): True if image is unclear or truncated.
             query_for_rag (str): Refined legal search query based on observations.
         """
+        self.last_tokens = None
         if not image_base64:
             return "Không tìm thấy dữ liệu hình ảnh.", True, ""
 
@@ -69,7 +70,8 @@ class TrafficVisionEngine:
                     {"inline_data": {"mime_type": mime_type, "data": image_base64}}
                 ]
                 
-                resp = self._gemini_model.generate_content(content_parts)
+                resp = self._gemini_model.generate_content(content_parts, request_options={"timeout": 15})
+                self.last_tokens = getattr(getattr(resp, "usage_metadata", None), "total_token_count", None)
                 if resp and resp.text:
                     raw = resp.text.strip()
                     if "REQUIRES_CLARIFICATION" in raw:
@@ -91,12 +93,4 @@ class TrafficVisionEngine:
             except Exception as e:
                 logger.error(f"[VisionEngine] Inference failed: {e}")
 
-        # Deterministic simulation/fallback for testing when no cloud key is provided
-        if "mo" in user_prompt.lower() or "khong ro" in user_prompt.lower() or len(image_base64) < 50:
-            return self.CLARIFICATION_PROMPT, True, ""
-
-        simulated_obs = (
-            "Hình ảnh ghi nhận phương tiện giao thông (xe máy/ô tô) và biển báo hiệu đường bộ tại hiện trường. "
-            f"Chi tiết người dùng quan sát: {user_prompt}"
-        )
-        return simulated_obs, False, user_prompt
+        raise RuntimeError("Vision API unavailable; image observations were not produced")

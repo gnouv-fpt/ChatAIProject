@@ -9,14 +9,15 @@ using DataAccess.Repositories.Interfaces;
 
 namespace BusinessLogic.Services.Implementations;
 
-public sealed class QuestionBankService(IContentBankRepository repository) : IQuestionBankService
+public sealed class QuestionBankService(IContentBankRepository repository, BusinessLogic.Infrastructure.Settings.AnimationSettings? animationSettings = null) : IQuestionBankService
 {
     public static IReadOnlyList<string> Validate(ContentBank bank)
     {
         var errors = new List<string>();
         void Require(bool condition, string message) { if (!condition) errors.Add(message); }
         Require(bank.Id != Guid.Empty, "Thiếu ID ngân hàng.");
-        Require(ValidVersion(bank.Version), "Version chỉ gồm chữ ASCII, số, dấu chấm, gạch ngang/gạch dưới; tối đa 64 ký tự.");
+        Require(int.TryParse(bank.Version, out var revision) && revision > 0 && revision.ToString() == bank.Version,
+            "C2 cần version nội bộ là số nguyên dương; giữ version nguồn trong mô tả nguồn.");
         Require(!string.IsNullOrWhiteSpace(bank.Title) && bank.Title.Length <= 500, "Tên ngân hàng không hợp lệ.");
         Require(Https(bank.SourceUrl) && !string.IsNullOrWhiteSpace(bank.SourceDescription), "Cần URL HTTPS và mô tả nguồn; không tự khẳng định nguồn chính thức.");
         var profile = bank.Profile;
@@ -39,11 +40,12 @@ public sealed class QuestionBankService(IContentBankRepository repository) : IQu
         {
             var prefix = $"Câu {q.Number}: ";
             Require(!string.IsNullOrWhiteSpace(q.Text) && q.Text.Length <= 20000 &&
-                !string.IsNullOrWhiteSpace(q.Topic) && !string.IsNullOrWhiteSpace(q.Explanation) && Https(q.SourceUrl), prefix + "thiếu nội dung/chủ đề/giải thích/nguồn.");
+                !string.IsNullOrWhiteSpace(q.Topic) && q.Topic.Length <= 255 && !string.IsNullOrWhiteSpace(q.Explanation) && Https(q.SourceUrl), prefix + "thiếu nội dung/chủ đề/giải thích/nguồn.");
+            Require(q.CategoryType is "SIGN" or "SCENARIO", prefix + "CategoryType phải là SIGN hoặc SCENARIO theo nguồn.");
             Require(q.Options is { Count: >= 2 and <= 10 } && q.Options.All(o => o is not null &&
-                !string.IsNullOrWhiteSpace(o.Id) && !string.IsNullOrWhiteSpace(o.Text)) &&
+                !string.IsNullOrWhiteSpace(o.Id) && o.Id.Length <= 30 && !string.IsNullOrWhiteSpace(o.Text)) &&
                 q.Options.Select(o => o.Id).Distinct(StringComparer.Ordinal).Count() == q.Options.Count, prefix + "phương án thiếu hoặc trùng ID.");
-            Require(q.CorrectOptionIds is { Count: > 0 } && q.CorrectOptionIds.Distinct().Count() == q.CorrectOptionIds.Count &&
+            Require(q.CorrectOptionIds is { Count: 1 } && q.CorrectOptionIds.Distinct().Count() == q.CorrectOptionIds.Count &&
                 q.CorrectOptionIds.All(key => q.Options?.Any(o => o is not null && o.Id == key) == true), prefix + "đáp án không thuộc phương án hoặc bị trùng.");
             Require(q.Assets is not null && q.Assets.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Id) &&
                 Https(a.Url) && Regex.IsMatch(a.Sha256 ?? "", "^[A-Fa-f0-9]{64}$") &&
@@ -60,12 +62,16 @@ public sealed class QuestionBankService(IContentBankRepository repository) : IQu
     {
         var errors = Validate(bank);
         if (errors.Count > 0) throw new BadRequestException(string.Join(" ", errors.Take(30)));
+        var questions = bank.Questions ?? throw new BadRequestException("Thiếu danh sách câu hỏi.");
+        if (questions.Any(q => q.ExplanationAnimationUrl is not null &&
+            !ContentManifestService.IsAllowedAnimationUrl(q.ExplanationAnimationUrl, animationSettings?.AllowedHosts ?? [])))
+            throw new BadRequestException("Animation cần URL HTTPS trên host được cấu hình.");
         var hash = Hash(bank);
         var package = new QuestionBankPackage(bank, hash, DateTime.UtcNow, adminId);
         if (!await repository.AddAsync(package, cancellationToken))
         {
             var existing = await repository.GetAsync(bank.Id, bank.Version, cancellationToken);
-            if (existing?.Hash != hash) throw new ConflictException("Version đã tồn tại với nội dung khác. Hãy tạo version mới.");
+            if (existing?.Hash != hash) throw new ConflictException("Version hoặc ID câu hỏi đã tồn tại với nội dung khác. Hãy tạo version và ID câu hỏi mới.");
             package = existing;
         }
         return new(Summary(package), package.Bank, errors);

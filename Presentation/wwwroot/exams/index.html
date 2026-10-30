@@ -5,13 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Luyện thi luật giao thông</title>
   <style>
-    body { font: 16px/1.5 system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #17233b; }
+    body { font: 16px/1.5 system-ui, sans-serif; margin: 0; background: #f9faf7; color: #243b35; }
     main { max-width: 800px; margin: 32px auto; padding: 0 16px; }
     header, section, article { background: white; border-radius: 12px; padding: 20px; margin-bottom: 16px; box-shadow: 0 2px 12px #13214212; }
     h1, h2 { margin-top: 0; }
     label { display: block; margin: 10px 0; }
-    input { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #a7b2c4; border-radius: 6px; }
-    button { border: 0; border-radius: 6px; padding: 10px 16px; background: #174ea6; color: white; cursor: pointer; }
+    input, select { box-sizing: border-box; width: 100%; padding: 10px; border: 1px solid #a7b2c4; border-radius: 6px; }
+    button { border: 0; border-radius: 6px; padding: 10px 16px; background: #1e5547; color: white; cursor: pointer; }
     button:disabled { opacity: .5; cursor: default; }
     fieldset { border: 0; padding: 0; }
     fieldset label { display: flex; gap: 8px; align-items: flex-start; }
@@ -25,9 +25,9 @@
   <header><h1>Luyện thi luật giao thông</h1><p>Đề được lưu tự động. Đồng hồ tính theo hạn nộp trên máy chủ.</p></header>
   <section id="setup">
     <h2>Tạo đề</h2>
-    <label>Access token <input id="token" type="password" autocomplete="off"></label>
-    <label>Mã chủ đề <input id="category" required></label>
-    <label>Phiên bản ngân hàng <input id="version" required></label>
+    <p id="authNotice">Mở trang <a href="/thi" target="_top">luyện thi trong ứng dụng</a> và đăng nhập để tiếp tục.</p>
+    <label>Ngân hàng câu hỏi<select id="bankChoice"><option value="">Chọn ngân hàng</option></select></label>
+    <input id="category" type="hidden"><input id="version" type="hidden">
     <label>Số câu <input id="count" type="number" min="1" max="100" value="10"></label>
     <label>Thời gian (phút) <input id="minutes" type="number" min="1" max="180" value="30"></label>
     <button id="create">Bắt đầu</button>
@@ -48,18 +48,56 @@
 <script>
 const $ = id => document.getElementById(id);
 let exam = null, busy = false, submitting = false;
-const token = () => $('token').value.trim();
+const query = new URLSearchParams(location.search);
+let ready = false;
+const pending = new Map();
 const notice = message => { $('message').textContent = message; };
-async function api(path, method = 'GET', data) {
-  const response = await fetch('/api/custom-exams' + path, {
-    method,
-    headers: { Authorization: 'Bearer ' + token(), ...(data ? { 'Content-Type': 'application/json' } : {}) },
-    body: data ? JSON.stringify(data) : undefined
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || event.source !== parent) return;
+  if (event.data?.type === 'exam-ready') {
+    ready = true; $('authNotice').hidden = true; loadBanks();
+  } else if (event.data?.type === 'exam-response') {
+    const item = pending.get(event.data.id);
+    if (!item) return;
+    clearTimeout(item.timer); pending.delete(event.data.id);
+    if (event.data.error) item.reject(new Error(event.data.error)); else item.resolve(event.data.body);
+  }
+});
+function request(path, method = 'GET', data) {
+  if (!ready) return Promise.reject(new Error('Hãy mở trang luyện thi trong ứng dụng và đăng nhập.'));
+  return new Promise((resolve, reject) => {
+    const id = crypto.randomUUID();
+    const timer = setTimeout(() => { pending.delete(id); reject(new Error('Máy chủ phản hồi quá chậm. Vui lòng thử lại.')); }, 30000);
+    pending.set(id, { resolve, reject, timer });
+    parent.postMessage({ type: 'exam-request', id, path, method, data }, location.origin);
   });
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.detail || 'Không thể kết nối. Vui lòng thử lại.');
-  return body;
 }
+const api = (path, method, data) => request('/api/custom-exams' + path, method, data);
+async function loadBanks() {
+  try {
+    const banks = await request('/api/question-banks');
+    const selected = query.get('bank') + '/' + query.get('version');
+    $('bankChoice').replaceChildren(new Option('Chọn ngân hàng', ''));
+    banks.forEach(bank => {
+      const option = new Option(`${bank.title} · ${bank.version}`, bank.id + '/' + bank.version);
+      option.dataset.profile = JSON.stringify(bank.profile); $('bankChoice').append(option);
+    });
+    $('bankChoice').value = selected;
+    $('bankChoice').dispatchEvent(new Event('change'));
+    if (query.has('count')) $('count').value = query.get('count');
+    if (!banks.length) notice('Chưa có ngân hàng câu hỏi đã xuất bản.');
+  } catch (error) { notice(error.message); }
+}
+$('bankChoice').onchange = () => {
+  const [id, version] = $('bankChoice').value.split('/');
+  $('category').value = id || ''; $('version').value = version || '';
+  const option = $('bankChoice').selectedOptions[0];
+  if (option?.dataset.profile) {
+    const profile = JSON.parse(option.dataset.profile);
+    $('count').value = profile.questionCount;
+    $('minutes').value = Math.max(1, Math.ceil(profile.durationSeconds / 60));
+  }
+};
 function render(data) {
   exam = data;
   $('setup').hidden = true; $('exam').hidden = false;
@@ -78,7 +116,13 @@ function render(data) {
       radio.onchange = () => save(question.id, option.id);
       label.append(radio, document.createTextNode(option.text)); group.append(label);
     });
-    article.append(title, group); container.append(article);
+    article.append(title);
+    (question.assets || []).forEach(asset => {
+      const image = document.createElement('img'); image.src = asset.url; image.alt = asset.altText;
+      image.referrerPolicy = 'no-referrer'; image.style.maxWidth = '100%'; image.style.maxHeight = '350px';
+      article.append(image);
+    });
+    article.append(group); container.append(article);
   });
   $('submit').disabled = data.status === 'Submitted';
   tick();
@@ -107,13 +151,9 @@ async function submit() {
   finally { submitting = false; }
 }
 async function loadNotifications() {
-  if (!token()) return;
+  if (!ready) return;
   try {
-    const response = await fetch('/api/exam-notifications', {
-      headers: { Authorization: 'Bearer ' + token() }
-    });
-    if (!response.ok) return;
-    const items = await response.json();
+    const items = await request('/api/exam-notifications');
     $('notifications').hidden = items.length === 0;
     const list = $('notificationList'); list.replaceChildren();
     items.forEach(item => {

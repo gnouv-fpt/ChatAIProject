@@ -50,8 +50,8 @@ public sealed class CustomExamService
         var exam = new StoredExam(Guid.NewGuid(), Guid.NewGuid(), userId, request.BankVersion,
             now, now.AddMinutes(request.DurationMinutes), 0, "Active", null,
             selected.Select(q => new StoredQuestion(q.Id, q.Version, q.Text,
-                q.CanShuffleOptions ? Shuffle(q.Options) : q.Options.ToArray(), q.CorrectOptionId)).ToArray(),
-            new Dictionary<string, string>());
+                q.CanShuffleOptions ? Shuffle(q.Options) : q.Options.ToArray(), q.CorrectOptionId, q.IsCritical, q.Assets, q.Explanation, q.ExplanationAnimationUrl)).ToArray(),
+            new Dictionary<string, string>(), selected[0].BankId, selected[0].PassingScore, selected[0].FailOnCriticalWrong);
 
         // The extra seven days let an in-flight submit retry after the deadline.
         if (!await _store.CreateAsync(exam, TimeSpan.FromMinutes(request.DurationMinutes).Add(TimeSpan.FromDays(7)),
@@ -107,10 +107,11 @@ public sealed class CustomExamService
         var submittedAt = exam.SubmittedAtUtc
             ?? throw new ConflictException("Trạng thái đề thi không hợp lệ.");
         var graded = exam.Questions.Select(q => new GradedQuestion(q.Id, q.Version, q.Text,
-            q.Options, q.CorrectOptionId, exam.Answers.GetValueOrDefault(q.Id))).ToArray();
+            q.Options, q.CorrectOptionId, exam.Answers.GetValueOrDefault(q.Id), q.IsCritical, q.Assets, q.Explanation, q.ExplanationAnimationUrl)).ToArray();
         var correct = graded.Count(q => q.SelectedOptionId == q.CorrectOptionId);
         var result = new SaveExamResult(exam.AttemptId, exam.ExamId, userId, exam.BankVersion,
-            submittedAt, correct, graded.Length, graded);
+            submittedAt, correct, graded.Length, graded, exam.BankId, exam.CreatedAtUtc, exam.DeadlineUtc,
+            exam.PassingScore, exam.FailOnCriticalWrong);
         if (exam.Status == "Submitted")
             return new ExamScore(exam.AttemptId, exam.ExamId, correct, graded.Length, submittedAt);
         if (exam.Status != "Submitting")
@@ -135,7 +136,7 @@ public sealed class CustomExamService
 
     private static CustomExamView ToView(StoredExam exam) => new(
         exam.ExamId, exam.BankVersion, exam.DeadlineUtc, exam.Revision, exam.Status,
-        exam.Questions.Select(q => new ExamQuestion(q.Id, q.Text, q.Options)).ToArray(), exam.Answers);
+        exam.Questions.Select(q => new ExamQuestion(q.Id, q.Text, q.Options, q.Assets)).ToArray(), exam.Answers);
 
     private static IReadOnlyList<ExamOption> Shuffle(IReadOnlyList<ExamOption> options)
     {

@@ -14,10 +14,10 @@ public sealed class QuestionBankTests : IDisposable
     private QuestionBankService Service() => new(new FileQuestionBankRepository(_directory));
     public static ContentBank Fixture() => new()
     {
-        Id = Guid.NewGuid(), Version = "fixture-1", Title = "TEST FIXTURE - không dùng demo",
+        Id = Guid.NewGuid(), Version = "1", Title = "TEST FIXTURE - không dùng demo",
         SourceUrl = "https://example.org/bank", SourceDescription = "Dữ liệu kiểm thử tổng hợp, không phải nguồn chính thức",
         Profile = new() { Id = "test", Version = "1", SourceUrl = "https://example.org/profile", QuestionCount = 1, DurationSeconds = 30, PassCount = 1 },
-        Questions = [new() { Id = Guid.NewGuid(), Number = 1, Topic = "test", Text = "Câu thử?", Explanation = "Giải thích bí mật",
+        Questions = [new() { Id = Guid.NewGuid(), Number = 1, Topic = "test", CategoryType = "SCENARIO", Text = "Câu thử?", Explanation = "Giải thích bí mật",
             SourceUrl = "https://example.org/question", Options = [new("a", "Một"), new("b", "Hai")], CorrectOptionIds = ["a"] }]
     };
 

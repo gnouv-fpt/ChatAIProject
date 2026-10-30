@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bank, ContentApi, Page, Question, bankPath } from './content-api';
+import { type Bank, type ContentApi, type Page, type Question, bankPath } from './content-api';
 
 export function QuestionLibrary({ api, onStartPractice }: { api: ContentApi;
   onStartPractice?: (selection: { bankId: string; bankVersion: string; count: number; topic?: string; from?: number; to?: number }) => Promise<void> }) {

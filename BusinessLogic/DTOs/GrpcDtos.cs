@@ -39,6 +39,7 @@ public class VerificationResultDto
 
 public class DocumentChunkInputDto
 {
+    public string DocumentVersion { get; set; } = string.Empty;
     public string Point { get; set; } = string.Empty;
     public string ContentHash { get; set; } = string.Empty;
     public string DocumentId { get; set; } = string.Empty;

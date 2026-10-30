@@ -47,7 +47,7 @@ app.Use(async (context, next) =>
 {
     context.Response.Headers.XContentTypeOptions = "nosniff";
     context.Response.Headers["Referrer-Policy"] = "no-referrer";
-    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
     await next();
 });
 app.MapGet("/health/live", () => Results.Ok(new { status = "alive" }));

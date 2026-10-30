@@ -1,3 +1,4 @@
+using Presentation.Infrastructure;
 using BusinessLogic.DTOs;
 using BusinessLogic.Services.Interfaces;
 using BusinessObject.Entities;
@@ -9,6 +10,7 @@ using Presentation.Extensions;
 namespace Presentation.Controllers;
 
 [ApiController, Route("api/admin/question-banks"), Authorize(Roles = nameof(UserRole.Admin))]
+[ServiceModule("Content")]
 public sealed class AdminQuestionBanksController(IQuestionBankService service) : ControllerBase
 {
     [HttpGet]

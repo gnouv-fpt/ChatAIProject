@@ -34,7 +34,7 @@ public static class ExamModuleRegistration
         services.AddSingleton<IExamEventPublisher, KafkaExamEventPublisher>();
         services.AddHttpClient<IExamQuestionSource, ContentQuestionClient>(client =>
         {
-            var baseUrl = config["Exams:ContentBaseUrl"];
+            var baseUrl = config["Exams:ContentBaseUrl"] ?? config["ContentService:Address"] ?? "http://localhost:5040/";
             if (!string.IsNullOrWhiteSpace(baseUrl)) client.BaseAddress = new Uri(baseUrl);
         });
         services.AddHttpClient<IExamResultSink, UserExamResultClient>(client =>
@@ -42,6 +42,7 @@ public static class ExamModuleRegistration
             var baseUrl = config["Exams:UserBaseUrl"];
             if (!string.IsNullOrWhiteSpace(baseUrl)) client.BaseAddress = new Uri(baseUrl);
         });
+        services.AddScoped<IExamResultSink>(sp => sp.GetRequiredService<ExamResultService>());
         return services;
     }
 }

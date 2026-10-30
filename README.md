@@ -1,4 +1,6 @@
-﻿# ChatAIWeb
+Bản ghép C2 local ngày 30/10: [phạm vi, kiểm thử và cách chạy](docs/C2-INTEGRATION-LOCAL-2026-10-30.md). Setup single-DB cũ không thay thế cấu hình hai DB trong contract C2.
+
+# ChatAIWeb
 
 Current project (27/10/2026): Vietnam Traffic Law RAG and practice exams. Two SQL databases (User and Content/Exam), Qdrant, Redis custom exams, Kafka service notifications, and API Gateway. ASP.NET Core Web API with React clients; no Razor Pages.
 

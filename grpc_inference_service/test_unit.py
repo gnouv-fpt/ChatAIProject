@@ -1,6 +1,10 @@
 import pytest
 import os
 import sys
+import json
+from types import SimpleNamespace
+from unittest.mock import Mock
+from qdrant_client import QdrantClient
 
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 if CURRENT_DIR not in sys.path:
@@ -13,6 +17,20 @@ from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
 from data.seed_traffic_law import get_seed_traffic_law_chunks
+
+@pytest.fixture(autouse=True)
+def no_live_provider_calls(monkeypatch):
+    for name in ("GROQ_API_KEY", "GOOGLE_API_KEY", "GEMINI_API_KEY", "EMBEDDING_API_KEY"):
+        monkeypatch.delenv(name, raising=False)
+
+
+class FixtureEmbedding:
+    DIMENSION = 3
+    def embed_documents(self, texts):
+        return [[1.0, 0.0, 0.0] for _ in texts]
+    def embed_query(self, text):
+        return self.embed_documents([text])[0]
+
 
 # ==============================================================================
 # 1. TEST MODERATION ENGINE
@@ -56,8 +74,8 @@ def test_verification_valid_and_outdated_documents():
 # 3. TEST EMBEDDINGS & VECTOR STORE (QDRANT IN-MEMORY)
 # ==============================================================================
 def test_vector_store_indexing_and_search():
-    embedding = EmbeddingEngine()
-    store = QdrantTrafficStore(embedding_engine=embedding)
+    embedding = FixtureEmbedding()
+    store = QdrantTrafficStore(embedding_engine=embedding, client=QdrantClient(":memory:"))
     
     # Test deterministic point_id hashing
     chunk_id = "chunk-test-123"
@@ -89,6 +107,9 @@ def test_vector_store_indexing_and_search():
 # ==============================================================================
 def test_rag_generator_zero_hallucination():
     generator = TrafficRagGenerator()
+    completion = SimpleNamespace(choices=[SimpleNamespace(message=SimpleNamespace(content="Fixture answer: Điều 6"))],
+        usage=SimpleNamespace(total_tokens=42))
+    generator._groq_client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=Mock(return_value=completion))))
 
     # Empty verified chunks -> strictly return NO_MATCH_RESPONSE
     ans, citations, tokens, verified = generator.generate("Kinh doanh trà sữa", [])
@@ -120,6 +141,10 @@ def test_rag_generator_zero_hallucination():
 # ==============================================================================
 def test_vision_engine_clarification():
     vision = TrafficVisionEngine()
+    vision._gemini_model = SimpleNamespace(generate_content=Mock(side_effect=[
+        SimpleNamespace(text=json.dumps({"is_clear": False}), usage_metadata=SimpleNamespace(total_token_count=7)),
+        SimpleNamespace(text=json.dumps({"is_clear": True, "observations": "Synthetic scene", "search_query": "fixture"}),
+            usage_metadata=SimpleNamespace(total_token_count=9))]))
     
     # Blurry / unclear prompt -> requires_clarification = True
     obs, req_clar, _ = vision.analyze_traffic_image(
@@ -139,3 +164,63 @@ def test_vision_engine_clarification():
     )
     assert req_clar2 is False
     assert len(obs2) > 0
+
+
+def test_embedding_requires_explicit_api_configuration(monkeypatch):
+    monkeypatch.delenv("EMBEDDING_API_URL", raising=False)
+    with pytest.raises(RuntimeError, match="Configure HTTPS"):
+        EmbeddingEngine()
+
+
+def test_embedding_api_validates_batch_dimensions_and_order(monkeypatch):
+    import io
+    import rag.embeddings as module
+    for key, value in {"EMBEDDING_API_URL": "https://embeddings.example.org/v1/embeddings",
+            "EMBEDDING_API_KEY": "fixture", "EMBEDDING_MODEL": "fixture-model", "EMBEDDING_DIMENSION": "3"}.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(module, "urlopen", lambda *args, **kwargs: io.StringIO(json.dumps({"data": [
+        {"index": 1, "embedding": [0, 1, 0]}, {"index": 0, "embedding": [1, 0, 0]}]})))
+    assert EmbeddingEngine().embed_documents(["first", "second"]) == [[1, 0, 0], [0, 1, 0]]
+    monkeypatch.setattr(module, "urlopen", lambda *args, **kwargs: io.StringIO('{"data":[{"index":0,"embedding":[1]}]}'))
+    with pytest.raises(RuntimeError, match="dimensions"):
+        EmbeddingEngine().embed_query("bad")
+
+
+def test_no_synthetic_provider_or_vector_fallback(monkeypatch):
+    import rag.vector_store as module
+    monkeypatch.setattr(module, "QdrantClient", Mock(side_effect=ConnectionError("Qdrant down")))
+    with pytest.raises(ConnectionError):
+        QdrantTrafficStore(FixtureEmbedding())
+    with pytest.raises(RuntimeError, match="Generation API unavailable"):
+        TrafficRagGenerator().generate("question", [{"chunk_id": "fixture", "content": "fixture"}])
+    with pytest.raises(RuntimeError, match="Vision API unavailable"):
+        TrafficVisionEngine().analyze_traffic_image("aW1hZ2U=", "image/png", "fixture")
+
+
+def test_chat_v2_preserves_wire_tags_and_unknown_usage():
+    from server import TrafficRagInferenceServicer
+    import chat_inference_pb2 as proto
+    assert proto.CitationDto.DESCRIPTOR.fields_by_name["content_hash"].number == 7
+    assert proto.CitationDto.DESCRIPTOR.fields_by_name["point_number"].number == 8
+    assert proto.ChatInferenceResponse.DESCRIPTOR.fields_by_name["result_status"].number == 7
+    assert not TrafficRagInferenceServicer._response("fixture", tokens=-1).HasField("tokens_used")
+    response = TrafficRagInferenceServicer._response("fixture", tokens=0, status="Blocked")
+    assert response.contract_version == 2 and response.result_status == "Blocked"
+    assert response.HasField("tokens_used") and response.tokens_used == 0
+
+
+def test_chat_v2_processes_history_and_images_with_citation_hash():
+    from server import TrafficRagInferenceServicer
+    import chat_inference_pb2 as proto
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.vision_engine = SimpleNamespace(last_tokens=5, analyze_traffic_image=lambda *args: ("Scene", False, "fixture query"))
+    service.vector_store = SimpleNamespace(search_verified_chunks=Mock(return_value=[{"content": "fixture"}]))
+    service.rag_generator = SimpleNamespace(generate=lambda *args: ("Fixture answer", [{"chunk_id": "fixture-id",
+        "content_hash": "a" * 64, "point_number": "a"}], 10, True))
+    request = proto.ChatInferenceRequest(prompt="fixture", images=[proto.ChatImage(content=b"fixture", mime_type="image/png")],
+        history=[proto.HistoryItem(role="user", content="previous")])
+    response = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert response.contract_version == 2 and response.images_processed
+    assert response.tokens_used == 15 and response.citations[0].content_hash == "a" * 64
+    assert "previous" in service.vector_store.search_verified_chunks.call_args.args[0]

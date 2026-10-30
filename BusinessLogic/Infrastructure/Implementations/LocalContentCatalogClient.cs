@@ -9,7 +9,7 @@ namespace BusinessLogic.Infrastructure.Implementations;
 /// Transitional adapter: reads the question-bank tables that still live in the single legacy database.
 /// Replace with an HTTP client to the Content/Exam service once the two databases are split (C2 27/10).
 /// </summary>
-public sealed class LocalContentCatalogClient : IContentCatalogClient
+public sealed class LocalContentCatalogClient : ILearningCatalogClient
 {
     private readonly IQuestionBankRepository _questionBankRepository;
     private readonly IGenericRepository<Question> _questionRepository;

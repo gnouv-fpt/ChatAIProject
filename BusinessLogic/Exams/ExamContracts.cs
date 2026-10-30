@@ -2,6 +2,7 @@ namespace BusinessLogic.Exams;
 
 // IDs remain opaque until the shared P0 schema contract fixes their physical types.
 public sealed record ExamOption(string Id, string Text);
+public sealed record ExamAsset(string Id, string Url, string AltText, string Sha256, string MimeType);
 
 public sealed record BankQuestion(
     string Id,
@@ -9,11 +10,13 @@ public sealed record BankQuestion(
     string Text,
     IReadOnlyList<ExamOption> Options,
     string CorrectOptionId,
-    bool CanShuffleOptions = false);
+    bool CanShuffleOptions = false, Guid BankId = default, bool IsCritical = false,
+    int PassingScore = 0, bool FailOnCriticalWrong = false, IReadOnlyList<ExamAsset>? Assets = null,
+    string? Explanation = null, string? ExplanationAnimationUrl = null);
 
 public sealed record CreateCustomExam(string CategoryId, string BankVersion, int QuestionCount, int DurationMinutes);
 
-public sealed record ExamQuestion(string Id, string Text, IReadOnlyList<ExamOption> Options);
+public sealed record ExamQuestion(string Id, string Text, IReadOnlyList<ExamOption> Options, IReadOnlyList<ExamAsset>? Assets = null);
 
 public sealed record CustomExamView(
     Guid ExamId,
@@ -22,7 +25,7 @@ public sealed record CustomExamView(
     long Revision,
     string Status,
     IReadOnlyList<ExamQuestion> Questions,
-    IReadOnlyDictionary<string, string> Answers);
+    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false);
 
 public sealed record ExamScore(Guid AttemptId, Guid ExamId, int Correct, int Total, DateTimeOffset SubmittedAtUtc);
 
@@ -34,7 +37,8 @@ public sealed record SaveExamResult(
     DateTimeOffset SubmittedAtUtc,
     int Correct,
     int Total,
-    IReadOnlyList<GradedQuestion> Questions);
+    IReadOnlyList<GradedQuestion> Questions, Guid BankId = default, DateTimeOffset? StartedAtUtc = null,
+    DateTimeOffset? DeadlineUtc = null, int PassingScore = 0, bool FailOnCriticalWrong = false);
 
 public sealed record GradedQuestion(
     string QuestionId,
@@ -42,7 +46,8 @@ public sealed record GradedQuestion(
     string Text,
     IReadOnlyList<ExamOption> Options,
     string CorrectOptionId,
-    string? SelectedOptionId);
+    string? SelectedOptionId, bool IsCritical = false, IReadOnlyList<ExamAsset>? Assets = null,
+    string? Explanation = null, string? ExplanationAnimationUrl = null);
 
 // Content service must return server-only keys. Never expose BankQuestion to the exam client.
 public interface IExamQuestionSource
@@ -90,7 +95,8 @@ public interface IExamDeadlineQueue
 }
 
 public sealed record StoredQuestion(
-    string Id, string Version, string Text, IReadOnlyList<ExamOption> Options, string CorrectOptionId);
+    string Id, string Version, string Text, IReadOnlyList<ExamOption> Options, string CorrectOptionId, bool IsCritical = false, IReadOnlyList<ExamAsset>? Assets = null,
+    string? Explanation = null, string? ExplanationAnimationUrl = null);
 
 public sealed record StoredExam(
     Guid ExamId,
@@ -103,4 +109,4 @@ public sealed record StoredExam(
     string Status,
     DateTimeOffset? SubmittedAtUtc,
     IReadOnlyList<StoredQuestion> Questions,
-    IReadOnlyDictionary<string, string> Answers);
+    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false);

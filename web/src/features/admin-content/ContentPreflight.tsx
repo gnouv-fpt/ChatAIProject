@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ContentApi } from '../questions/content-api';
+import { type ContentApi } from '../questions/content-api';
 
 type ManifestPreview = { manifestHash: string | null; questionCount: number; animationCount: number;
   canImport: boolean; issues: { path: string; message: string }[] };
@@ -12,6 +12,7 @@ export function ContentPreflight({ api }: { api: ContentApi }) {
   const [capabilities, setCapabilities] = useState<Capabilities>();
   const [preview, setPreview] = useState<ManifestPreview>(); const [manifest, setManifest] = useState<unknown>();
   const [source, setSource] = useState(''); const [evidence, setEvidence] = useState<Evidence>();
+  const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
   useEffect(() => { const controller = new AbortController();
     api<Capabilities>('/api/admin/content-previews/capabilities', { signal: controller.signal }).then(setCapabilities)
@@ -25,7 +26,7 @@ export function ContentPreflight({ api }: { api: ContentApi }) {
   }
   async function check(file?: File) {
     if (!file) return;
-    setPreview(undefined); setManifest(undefined);
+    setPreview(undefined); setManifest(undefined); setSaved(false);
     await run(async () => {
       if (file.size > 10 * 1024 * 1024) throw new Error('Gói JSON phải nhỏ hơn 10 MB.');
       const json: unknown = JSON.parse(await file.text());
@@ -50,7 +51,15 @@ export function ContentPreflight({ api }: { api: ContentApi }) {
         {preview.manifestHash && <p>Hash bản kiểm tra: <code>{preview.manifestHash}</code></p>}
         <ul>{preview.issues.map((issue, i) => <li key={i}><code>{issue.path}</code>: {issue.message}</li>)}</ul>
         <details><summary>Xem gói đầy đủ (gồm đáp án, chỉ Admin)</summary><pre>{JSON.stringify(manifest, null, 2)}</pre></details>
-        <button disabled title="Chờ schema và repository SQL của module nội dung">Lưu bản nháp vào SQL — chờ tích hợp</button></>}
+        <button disabled={busy || saved || !preview.canImport || !capabilities?.canPersistBank} onClick={() => void run(async () => {
+          const body = manifest as { bank: { questions: { id: string }[] }; animations: { questionId: string; explanationAnimationUrl: string }[] };
+          const bank = { ...body.bank, questions: body.bank.questions.map(q => {
+            const animation = body.animations.find(a => a.questionId === q.id);
+            return animation ? { ...q, explanationAnimationUrl: animation.explanationAnimationUrl } : q;
+          }) };
+          await api('/api/admin/question-banks/import', { method: 'POST', body: JSON.stringify({ bank }) });
+          setSaved(true);
+        })}>{saved ? 'Đã lưu bản nháp' : 'Lưu bản nháp'}</button></>}
     </article>
     <article><h2>Nguồn văn bản luật</h2><form onSubmit={e => { e.preventDefault(); void inspectSource(); }}>
       <label>URL Thư viện Pháp luật<input type="url" required value={source} disabled={busy} onChange={e => setSource(e.target.value)}/></label>

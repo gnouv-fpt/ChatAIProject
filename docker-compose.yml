@@ -49,7 +49,7 @@ services:
     entrypoint: [/bin/sh, -ec]
     command:
       - |
-        for topic in service-notifications service-notifications-dlq; do
+        for topic in exam-submitted-events exam-submitted-events-dlq; do
           /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic "$$topic" --partitions 3 --replication-factor 1
         done
     networks: [backend]
@@ -69,6 +69,10 @@ services:
       GRPC_PORT: 50051
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      EMBEDDING_API_URL: ${EMBEDDING_API_URL:-}
+      EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-0}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     depends_on: [qdrant]
     healthcheck:
@@ -87,6 +91,10 @@ services:
       Service__Module: User
       ConnectionStrings__UserConnection: Server=sqlserver;Database=TrafficUserDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=true;Encrypt=true;
       ContentService__Address: http://content-service:8080/
+      Exams__ContentBaseUrl: http://content-service:8080/
+      Exams__ContentQuestionsPath: internal/content/exam-questions
+      Exams__Kafka__BootstrapServers: kafka:9092
+      Exams__Kafka__Topic: exam-submitted-events
       ConnectionStrings__Redis: redis:6379
       GrpcService__Address: http://grpc-inference-service:50051
       Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
@@ -138,17 +146,24 @@ services:
     build: {context: ./web}
     networks: [backend]
     restart: unless-stopped
-  # Supplied by Khanh. Explicit profile avoids pretending a placeholder is a functioning Worker.
+  # Exam notification/deadline Worker; enable with --profile worker.
   worker-service:
     profiles: [worker]
-    image: ${WORKER_IMAGE:-traffic-rag-worker:handoff}
+    build: {context: ., dockerfile: WorkerService/Dockerfile}
+    image: traffic-rag-exam-worker:local
     environment:
       UserService__Address: http://user-service:8080/
       ContentService__Address: http://content-service:8080/
+      Exams__ContentBaseUrl: http://content-service:8080/
+      Exams__ContentQuestionsPath: internal/content/exam-questions
       ConnectionStrings__Redis: redis:6379
-      Kafka__BootstrapServers: kafka:9092
-      Kafka__GroupId: traffic-rag-worker-v1
-      Kafka__NotificationTopic: service-notifications
+      Exams__Kafka__BootstrapServers: kafka:9092
+      Exams__Kafka__GroupId: exam-notification-worker-v1
+      Exams__Kafka__Topic: exam-submitted-events
+      Exams__Kafka__DeadLetterTopic: exam-submitted-events-dlq
+      Exams__UserBaseUrl: http://user-service:8080/
+      Exams__SaveResultPath: internal/user/exam-results
+      Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
     depends_on:
       sqlserver: {condition: service_healthy}

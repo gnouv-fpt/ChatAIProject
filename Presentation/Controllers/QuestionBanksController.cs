@@ -1,3 +1,4 @@
+using Presentation.Infrastructure;
 using BusinessLogic.DTOs;
 using BusinessLogic.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -6,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Presentation.Controllers;
 
 [ApiController, Route("api/question-banks"), Authorize]
+[ServiceModule("Content")]
 public sealed class QuestionBanksController(IQuestionBankService service) : ControllerBase
 {
     [HttpGet]

@@ -34,6 +34,8 @@ public sealed class DocumentIndexService(IDocumentRepository documents, IGeneric
         if (!verification.IsValid || verification.Status != nameof(VerificationStatus.Verified))
             throw new ConflictException("Dịch vụ chưa xác minh được hiệu lực văn bản. Giữ trạng thái chờ kiểm tra.");
         var result = await inference.IndexDocumentAsync(content.Select(c => new DocumentChunkInputDto {
+            DocumentId = document.Id.ToString(), DocumentVersion = document.Version.ToString(), Point = c.Point ?? "",
+            ContentHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(c.Content))).ToLowerInvariant(),
             ChunkId = c.Id.ToString(), DocumentTitle = document.Title, DocumentNumber = document.DocumentNumber,
             Article = c.Article ?? "", Clause = c.Clause ?? "", Chapter = c.Chapter ?? "", Content = c.Content,
             SourceUrl = document.SourceUrl!, IsVerified = true, IsActive = true }), cancellationToken);
@@ -45,6 +47,7 @@ public sealed class DocumentIndexService(IDocumentRepository documents, IGeneric
         document.LastVerifiedAt = now;
         document.EffectiveDate = request.EffectiveDate;
         document.ExpirationDate = request.ExpirationDate;
+        documents.Update(document);
         foreach (var chunk in content) { chunk.IsVerified = true; chunk.VectorId = chunk.Id.ToString(); chunks.Update(chunk); }
         await documents.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Document {DocumentId} reviewed and indexed: {ChunkCount} chunks, evidence {EvidenceUrl}", id, content.Count, request.EvidenceUrl);

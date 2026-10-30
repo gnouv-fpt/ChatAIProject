@@ -1,5 +1,9 @@
 <Solution>
   <Project Path="tests/ChatAIWeb.Tests/ChatAIWeb.Tests.csproj" />
+  <Folder Name="/tests/">
+    <Project Path="tests/C2.Integration.Tests/C2.Integration.Tests.csproj" />
+    <Project Path="tests/Content.Tests/Content.Tests.csproj" />
+  </Folder>
   <Project Path="ApiGateway/ApiGateway.csproj" />
   <Project Path="BusinessLogic/BusinessLogic.csproj" />
   <Project Path="BusinessLogic.Tests/BusinessLogic.Tests.csproj" />

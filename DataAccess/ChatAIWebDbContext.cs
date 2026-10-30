@@ -234,8 +234,22 @@ public class ChatAIWebDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Ignore<ExamTemplateItem>();
+        modelBuilder.Ignore<TrafficQuestion>();
+        modelBuilder.Ignore<TrafficQuestionCategory>();
         modelBuilder.Entity<ExamTemplate>(entity =>
         {
+            entity.Ignore(t => t.ExamCode);
+            entity.Ignore(t => t.Version);
+            entity.Ignore(t => t.Title);
+            entity.Ignore(t => t.IsPublished);
+            entity.Ignore(t => t.Items);
+            entity.Property(t => t.BankId);
+            entity.Property(t => t.QuestionCount);
+            entity.Property(t => t.FailOnCriticalWrong);
+            entity.Property(t => t.TopicDistribution);
+            entity.Property(t => t.IsActive);
+            entity.Property(t => t.FixedQuestionIds);
             entity.Property(t => t.Code).HasMaxLength(50);
             entity.Property(t => t.Name).HasMaxLength(255);
             entity.Property(t => t.SourceName).HasMaxLength(255);

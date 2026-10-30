@@ -6,9 +6,9 @@ namespace DataAccess.Repositories.Implementations;
 
 public class UnitOfWork : IUnitOfWork
 {
-    private readonly ChatAIWebDbContext _context;
+    private readonly DbContext _context;
 
-    public UnitOfWork(ChatAIWebDbContext context)
+    public UnitOfWork(DbContext context)
     {
         _context = context;
     }

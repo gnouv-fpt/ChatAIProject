@@ -1,3 +1,5 @@
+using DataAccess;
+using Microsoft.EntityFrameworkCore;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -21,12 +23,18 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
 
     public AccountApiTests(SqlServerDatabase database) => this.database = database;
 
-    public Task InitializeAsync()
+    private string ApiConnection => database.ConnectionString + "_C2Api";
+    private UserDbContext ApiDb() => new(new DbContextOptionsBuilder<UserDbContext>().UseSqlServer(ApiConnection).Options);
+
+    public async Task InitializeAsync()
     {
         // Program reads these while building the host, so they are passed as environment variables.
-        SetEnvironment("ConnectionStrings__DefaultConnection", database.ConnectionString);
+        await using (var db = ApiDb()) await db.Database.MigrateAsync();
+        SetEnvironment("ConnectionStrings__UserConnection", ApiConnection);
+        SetEnvironment("Service__Module", "User");
         SetEnvironment("Jwt__SecretKey", Convert.ToBase64String(RandomNumberGenerator.GetBytes(48)));
-        SetEnvironment("Database__MigrateOnStartup", "true");
+        SetEnvironment("Database__MigrateOnStartup", "false");
+        SetEnvironment("Auth__SeedAdminOnStartup", "true");
         // Each test builds its own host on the shared database, so each seeds a distinct admin.
         SetEnvironment("Auth__SeedAdmin__Username", "admin" + Guid.NewGuid().ToString("N")[..10]);
         SetEnvironment("Auth__SeedAdmin__Email", adminEmail);
@@ -36,12 +44,12 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
         SetEnvironment("Chat__AttachmentRoot", Path.Combine(tempRoot, "attachments"));
         SetEnvironment("Logging__FilePath", Path.Combine(tempRoot, "rest-api.jsonl"));
         factory = new WebApplicationFactory<Program>();
-        return Task.CompletedTask;
     }
 
     public async Task DisposeAsync()
     {
         await factory.DisposeAsync();
+        await using (var db = ApiDb()) await db.Database.EnsureDeletedAsync();
         foreach (var (name, value) in previousEnvironment)
         {
             Environment.SetEnvironmentVariable(name, value);
@@ -99,7 +107,7 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
         var rotated = await client.PostAsJsonAsync("/api/auth/refresh-token", new { refreshToken = oldRefresh });
         Assert.Equal(HttpStatusCode.OK, rotated.StatusCode);
         var newRefresh = (await rotated.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("refreshToken").GetString();
-        Assert.NotEqual(oldRefresh, newRefresh);
+        Assert.Equal(oldRefresh, newRefresh); // C2 refresh preserves the signed token and its absolute expiry.
 
         // Token types are not interchangeable: an access token is not a refresh token and vice versa.
         Assert.Equal(HttpStatusCode.Unauthorized,
@@ -145,37 +153,18 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
     }
 
     [Fact]
-    public async Task ProgressQuotaAndReportsOverHttp()
+    public async Task QuotaAndReportsOverHttpOnC2UserDatabase()
     {
         var client = factory.CreateClient();
         var user = await RegisterAsync(client);
         var userId = Guid.Parse(user.GetProperty("user").GetProperty("id").GetString()!);
-        var seed = new LearningSeed();
-        await using (var db = database.CreateContext())
-        {
-            await seed.AddBanksAsync(db);
-            await seed.AddAttemptsAsync(db, userId);
-        }
-
-        var overview = await (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/progress", user)))
-            .Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Contains(overview.EnumerateArray(), b => b.GetProperty("bankId").GetGuid() == seed.BankId);
-        Assert.DoesNotContain(overview.EnumerateArray(), b => b.GetProperty("bankId").GetGuid() == seed.DraftBankId);
-
-        var detail = await (await client.SendAsync(Authorized(HttpMethod.Get, $"/api/learning/progress/{seed.BankId}", user)))
-            .Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(3, detail.GetProperty("answeredQuestions").GetInt32());
-        Assert.Equal(1, detail.GetProperty("unseenQuestions").GetInt32());
-
-        var bookmark = await client.SendAsync(Authorized(HttpMethod.Put, $"/api/learning/bookmarks/{seed.Questions[2]}", user));
-        Assert.Equal(HttpStatusCode.NoContent, bookmark.StatusCode);
-        var bookmarks = await (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/bookmarks", user)))
-            .Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(1, bookmarks.GetProperty("totalCount").GetInt32());
-
+        // The complete Content -> Redis -> User history/progress flow is covered by C2.Integration.Tests.
+        // Legacy bank/bookmark tables are intentionally absent from this host.
+        Assert.Equal(HttpStatusCode.NotImplemented,
+            (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/bookmarks", user))).StatusCode);
         var history = await (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/history?mode=Exam", user)))
             .Content.ReadFromJsonAsync<JsonElement>();
-        Assert.Equal(2, history.GetProperty("totalCount").GetInt32());
+        Assert.Equal(0, history.GetProperty("totalCount").GetInt32());
 
         var quota = await (await client.SendAsync(Authorized(HttpMethod.Get, "/api/account/quota", user)))
             .Content.ReadFromJsonAsync<JsonElement>();

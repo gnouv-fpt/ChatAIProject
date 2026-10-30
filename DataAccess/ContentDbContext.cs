@@ -18,6 +18,8 @@ public sealed class ContentDbContext(DbContextOptions<ContentDbContext> options)
         model.Entity<LegalDocument>(e =>
         {
             e.ToTable("LegalDocuments");
+            e.Ignore(d => d.EventPayload);
+            e.Ignore(d => d.EventPublishedAt);
             e.Property(d => d.DocumentNumber).HasMaxLength(100);
             e.Property(d => d.Title).HasMaxLength(500);
             e.Property(d => d.IssuingAuthority).HasMaxLength(255);

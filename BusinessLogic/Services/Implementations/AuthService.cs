@@ -93,6 +93,8 @@ public sealed class AuthService : IAuthService
             ?? throw new UnauthorizedException(InvalidRefreshTokenMessage);
         var user = await _userRepository.GetByIdAsync(refresh.UserId, cancellationToken)
             ?? throw new UnauthorizedException(InvalidRefreshTokenMessage);
+        if (refresh.SecurityStamp != _jwtTokenService.ComputeSecurityStamp(user))
+            throw new UnauthorizedException(InvalidRefreshTokenMessage);
         var (accessToken, accessExpires) = _jwtTokenService.CreateAccessToken(user);
         // Same signed client-held token and absolute expiry; refreshing does not extend its lifetime.
         return new(accessToken, accessExpires, request.RefreshToken, refresh.ExpiresAt, MapProfile(user));

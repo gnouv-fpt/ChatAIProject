@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ContentApi, Page } from './content-api';
+import { type ContentApi, type Page } from './content-api';
 
 type Document = { id: string; title: string; documentNumber: string; sourceUrl?: string;
   verificationStatus: string; isActive: boolean; effectiveDate?: string; expirationDate?: string };

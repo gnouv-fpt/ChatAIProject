@@ -27,8 +27,6 @@ public class LegalDocument
     public string? SourceUrl { get; set; }
 
     public DateTime CreatedAt { get; set; }
-    public int Version { get; set; } = 1;
-    public string? ContentHash { get; set; }
 
     // Incremented whenever verified content changes; citations and index jobs carry it.
     public int Version { get; set; } = 1;

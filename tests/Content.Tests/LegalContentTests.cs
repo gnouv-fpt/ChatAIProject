@@ -35,7 +35,7 @@ public sealed class LegalContentTests
     [Fact]
     public async Task ExpiryIsIdempotentAndPreservesChatHistory()
     {
-        await using var db = new ChatAIWebDbContext(new DbContextOptionsBuilder<ChatAIWebDbContext>()
+        await using var db = new ContentDbContext(new DbContextOptionsBuilder<ContentDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString()).Options);
         var id = Guid.NewGuid();
         db.LegalDocuments.Add(new() { Id = id, DocumentNumber = "test", Title = "test", IsActive = true,

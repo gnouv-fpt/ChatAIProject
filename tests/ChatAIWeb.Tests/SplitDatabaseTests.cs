@@ -136,7 +136,7 @@ public sealed class SplitDatabaseTests
         var tokens = new JwtTokenService(Jwt);
         var user = NewUser();
         var refresh = tokens.CreateRefreshToken(user);
-        Assert.Equal(user.Id, (await tokens.ValidateRefreshTokenAsync(refresh.Token))!.Value.UserId);
+        Assert.Equal(user.Id, (await tokens.ValidateRefreshTokenAsync(refresh.Token))!.UserId);
         Assert.Null(await tokens.ValidateRefreshTokenAsync(tokens.CreateAccessToken(user).Token));
         Assert.Null(await tokens.ValidateRefreshTokenAsync(tokens.CreateContentServiceToken()));
         Assert.Null(await tokens.ValidateRefreshTokenAsync(refresh.Token + "tamper"));

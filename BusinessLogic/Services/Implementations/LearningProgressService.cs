@@ -17,15 +17,15 @@ public sealed class LearningProgressService : ILearningProgressService
     private const string UnknownBankName = "Bộ câu hỏi không còn tồn tại";
 
     private readonly ILearningProgressRepository _progressRepository;
-    private readonly IContentCatalogClient _contentCatalog;
-    private readonly IQuestionBookmarkRepository _bookmarkRepository;
+    private readonly ILearningCatalogClient _contentCatalog;
+    private readonly IQuestionBookmarkRepository? _bookmarkRepository;
 
-    // Bank/question data comes from the Content service through IContentCatalogClient; this
+    // Bank/question data comes from the Content service through ILearningCatalogClient; this
     // service only queries User-owned data (attempts, answers, bookmarks).
     public LearningProgressService(
         ILearningProgressRepository progressRepository,
-        IContentCatalogClient contentCatalog,
-        IQuestionBookmarkRepository bookmarkRepository)
+        ILearningCatalogClient contentCatalog,
+        IQuestionBookmarkRepository? bookmarkRepository = null)
     {
         _progressRepository = progressRepository;
         _contentCatalog = contentCatalog;
@@ -147,6 +147,7 @@ public sealed class LearningProgressService : ILearningProgressService
         int pageSize,
         CancellationToken cancellationToken = default)
     {
+        if (_bookmarkRepository is null) throw new AppException(501, "Bookmark chưa thuộc schema C2 hiện hành.");
         (pageIndex, pageSize) = NormalizePage(pageIndex, pageSize);
         IReadOnlyCollection<Guid>? bankQuestionIds = null;
         if (bankId is { } id)
@@ -187,6 +188,7 @@ public sealed class LearningProgressService : ILearningProgressService
             ?? throw new NotFoundException("Không tìm thấy câu hỏi.");
         await RequireVisibleBankAsync(question.BankId, cancellationToken);
 
+        if (_bookmarkRepository is null) throw new AppException(501, "Bookmark chưa thuộc schema C2 hiện hành.");
         if (await _bookmarkRepository.GetAsync(userId, questionId, cancellationToken) is not null)
         {
             return;
@@ -216,6 +218,7 @@ public sealed class LearningProgressService : ILearningProgressService
 
     public async Task RemoveBookmarkAsync(Guid userId, Guid questionId, CancellationToken cancellationToken = default)
     {
+        if (_bookmarkRepository is null) throw new AppException(501, "Bookmark chưa thuộc schema C2 hiện hành.");
         var bookmark = await _bookmarkRepository.GetAsync(userId, questionId, cancellationToken);
         if (bookmark is null)
         {
@@ -235,7 +238,7 @@ public sealed class LearningProgressService : ILearningProgressService
         var questions = await _contentCatalog.GetQuestionsAsync(bank.Id, cancellationToken);
         var history = await _progressRepository.GetAnswerHistoryAsync(userId, bank.Id, cancellationToken);
         var attempts = await _progressRepository.GetAttemptSummariesAsync(userId, bank.Id, cancellationToken);
-        var bookmarkedIds = (await _bookmarkRepository.GetQuestionIdsAsync(userId, cancellationToken)).ToHashSet();
+        var bookmarkedIds = (await (_bookmarkRepository?.GetQuestionIdsAsync(userId, cancellationToken) ?? Task.FromResult<IReadOnlyList<Guid>>([]))).ToHashSet();
         var bookmarkCount = questions.Count(q => bookmarkedIds.Contains(q.Id));
 
         var graded = history.Where(IsGraded).ToList();

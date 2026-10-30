@@ -44,7 +44,7 @@ public class LearningAttemptRepository : GenericRepository<LearningAttempt>, ILe
         Guid questionId,
         CancellationToken cancellationToken = default)
     {
-        return Context.AttemptAnswers.FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.QuestionId == questionId, cancellationToken);
+        return Context.Set<AttemptAnswer>().FirstOrDefaultAsync(a => a.AttemptId == attemptId && a.QuestionId == questionId, cancellationToken);
     }
 
     public async Task<IReadOnlyList<Guid>> GetExpiredExamIdsAsync(

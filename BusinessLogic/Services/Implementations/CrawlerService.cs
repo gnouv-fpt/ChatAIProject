@@ -37,7 +37,7 @@ public sealed class CrawlerService(HttpClient httpClient, IDocumentRepository do
             await documents.AddAsync(document, cancellationToken);
             foreach (var chunk in contentChunks)
                 await chunks.AddAsync(new DocumentChunk { Id = Guid.NewGuid(), DocumentId = document.Id,
-                    Article = chunk.Article, Clause = chunk.Clause, Content = chunk.Content,
+                    Article = chunk.Article, Clause = chunk.Clause, Point = chunk.Point, Content = chunk.Content,
                     IsVerified = false, TokenCount = 0 }, cancellationToken);
             await documents.SaveChangesAsync(cancellationToken);
             added++;

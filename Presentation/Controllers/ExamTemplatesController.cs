@@ -1,3 +1,4 @@
+using Presentation.Infrastructure;
 using BusinessLogic.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -5,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Presentation.Controllers;
 
 [ApiController, Route("api/exam-templates"), Authorize]
+[ServiceModule("Content")]
 public sealed class ExamTemplatesController(IQuestionBankService service) : ControllerBase
 {
     [HttpGet]

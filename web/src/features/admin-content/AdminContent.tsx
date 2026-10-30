@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bank, ContentApi, Preview } from '../questions/content-api';
+import { type Bank, type ContentApi, type Preview } from '../questions/content-api';
 
 export function AdminContent({ api }: { api: ContentApi }) {
   const [banks, setBanks] = useState<Bank[]>([]); const [preview, setPreview] = useState<Preview>();

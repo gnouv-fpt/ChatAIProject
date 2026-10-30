@@ -1,3 +1,4 @@
+using Presentation.Infrastructure;
 using BusinessLogic.DTOs;
 using BusinessLogic.Services.Interfaces;
 using BusinessObject.Enums;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Presentation.Controllers;
 
 [ApiController, Route("api/documents"), Authorize(Roles = nameof(UserRole.Admin))]
+[ServiceModule("Content")]
 public sealed class DocumentIndexController(IDocumentIndexService service) : ControllerBase
 {
     [HttpPost("{id:guid}/verify-and-index")]

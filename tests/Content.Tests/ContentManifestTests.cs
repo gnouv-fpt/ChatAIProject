@@ -65,6 +65,7 @@ public sealed class ContentManifestTests
         Assert.Contains(invalid.Issues, i => i.Path == "bank");
         Assert.False(_service.Preview(new() { Bank = null! }).CanImport);
         Assert.False(_service.Preview(new() { Bank = bank, Animations = null! }).CanImport);
-        Assert.False(_service.GetCapabilities().CanPersistBank);
+        Assert.True(_service.GetCapabilities().CanPersistBank);
+        Assert.Equal("SqlContentAdapter", _service.GetCapabilities().PersistenceStatus);
     }
 }

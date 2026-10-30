@@ -40,7 +40,7 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
         QuestionQuery query,
         CancellationToken cancellationToken = default)
     {
-        var questions = Context.Questions.AsNoTracking().Where(q => q.BankId == query.BankId);
+        var questions = Context.Set<Question>().AsNoTracking().Where(q => q.BankId == query.BankId);
 
         if (!string.IsNullOrWhiteSpace(query.Topic))
         {
@@ -90,7 +90,7 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
         IReadOnlyCollection<Guid> questionIds,
         CancellationToken cancellationToken = default)
     {
-        return await Context.Questions.AsNoTracking()
+        return await Context.Set<Question>().AsNoTracking()
             .Where(q => q.BankId == bankId && questionIds.Contains(q.Id))
             .ToListAsync(cancellationToken);
     }
@@ -102,7 +102,7 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
         int? toNumber = null,
         CancellationToken cancellationToken = default)
     {
-        var questions = Context.Questions.AsNoTracking().Where(q => q.BankId == bankId);
+        var questions = Context.Set<Question>().AsNoTracking().Where(q => q.BankId == bankId);
 
         if (!string.IsNullOrWhiteSpace(topic))
         {
@@ -127,7 +127,7 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
 
     public async Task<IReadOnlyList<TopicCountRow>> GetTopicCountsAsync(Guid bankId, CancellationToken cancellationToken = default)
     {
-        return await Context.Questions.AsNoTracking()
+        return await Context.Set<Question>().AsNoTracking()
             .Where(q => q.BankId == bankId)
             .GroupBy(q => q.Topic)
             .Select(g => new TopicCountRow(g.Key, g.Count()))
@@ -140,7 +140,7 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
         bool activeOnly = true,
         CancellationToken cancellationToken = default)
     {
-        var templates = Context.ExamTemplates.AsNoTracking().Where(t => t.BankId == bankId);
+        var templates = Context.Set<ExamTemplate>().AsNoTracking().Where(t => t.BankId == bankId);
         if (activeOnly)
         {
             templates = templates.Where(t => t.IsActive);
@@ -151,6 +151,6 @@ public class QuestionBankRepository : GenericRepository<QuestionBank>, IQuestion
 
     public Task<ExamTemplate?> GetExamTemplateAsync(Guid templateId, CancellationToken cancellationToken = default)
     {
-        return Context.ExamTemplates.AsNoTracking().FirstOrDefaultAsync(t => t.Id == templateId, cancellationToken);
+        return Context.Set<ExamTemplate>().AsNoTracking().FirstOrDefaultAsync(t => t.Id == templateId, cancellationToken);
     }
 }

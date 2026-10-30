@@ -4,6 +4,8 @@ namespace BusinessLogic.Services.Interfaces;
 
 public interface IGrpcInferenceService
 {
+    Task DeactivateDocumentAsync(string documentNumber, CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Inference adapter does not support deactivation.");
     Task<ChatInferenceResultDto> ProcessTurnAsync(ChatInferenceInputDto input, CancellationToken cancellationToken = default);
     Task<ChatInferenceResultDto> ProcessChatMessageAsync(
         string userId,

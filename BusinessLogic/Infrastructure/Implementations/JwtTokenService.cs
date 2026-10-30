@@ -59,13 +59,15 @@ public sealed class JwtTokenService : IJwtTokenService
             Claims = new Dictionary<string, object>
             {
                 [AppClaimTypes.UserId] = user.Id.ToString(),
+                [AppClaimTypes.SecurityStamp] = ComputeSecurityStamp(user),
                 [JwtRegisteredClaimNames.Jti] = Guid.NewGuid().ToString()
             }
         }), expires);
     }
 
-    public async Task<(Guid UserId, DateTime ExpiresAt)?> ValidateRefreshTokenAsync(string token)
+    public async Task<RefreshTokenClaims?> ValidateRefreshTokenAsync(string token)
     {
+        if (string.IsNullOrWhiteSpace(token)) return null;
         var result = await _tokenHandler.ValidateTokenAsync(token, new TokenValidationParameters
         {
             ValidateIssuer = true, ValidIssuer = _settings.Issuer,
@@ -76,8 +78,20 @@ public sealed class JwtTokenService : IJwtTokenService
         });
         if (!result.IsValid || result.SecurityToken is not JsonWebToken jwt ||
             !Guid.TryParse(jwt.Subject, out var id)) return null;
-        return (id, jwt.ValidTo);
+        if (!jwt.TryGetClaim(AppClaimTypes.SecurityStamp, out var stamp)) return null;
+        return new(id, jwt.ValidTo, stamp.Value);
     }
+
+    public string ComputeSecurityStamp(User user) => Convert.ToHexString(HMACSHA256.HashData(
+        Encoding.UTF8.GetBytes(_settings.SecretKey), Encoding.UTF8.GetBytes(user.PasswordHash)));
+
+    public string CreateExamServiceToken() => _tokenHandler.CreateToken(new SecurityTokenDescriptor
+    {
+        Issuer = _settings.Issuer, Audience = _settings.Audience + ".ExamService",
+        TokenType = "service+jwt", Expires = DateTime.UtcNow.AddMinutes(1),
+        SigningCredentials = _signingCredentials,
+        Claims = new Dictionary<string, object> { ["scope"] = "exams.write" }
+    });
 
     public string CreateContentServiceToken() => _tokenHandler.CreateToken(new SecurityTokenDescriptor
     {
@@ -85,5 +99,13 @@ public sealed class JwtTokenService : IJwtTokenService
         TokenType = "service+jwt", Expires = DateTime.UtcNow.AddMinutes(1),
         SigningCredentials = _signingCredentials,
         Claims = new Dictionary<string, object> { ["scope"] = "content.read" }
+    });
+
+    public string CreateContentMaintenanceToken() => _tokenHandler.CreateToken(new SecurityTokenDescriptor
+    {
+        Issuer = _settings.Issuer, Audience = _settings.Audience + ".ContentService",
+        TokenType = "service+jwt", Expires = DateTime.UtcNow.AddMinutes(1),
+        SigningCredentials = _signingCredentials,
+        Claims = new Dictionary<string, object> { ["scope"] = "content.maintain" }
     });
 }

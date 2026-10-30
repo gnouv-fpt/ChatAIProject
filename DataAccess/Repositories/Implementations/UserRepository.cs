@@ -6,7 +6,7 @@ namespace DataAccess.Repositories.Implementations;
 
 public class UserRepository : GenericRepository<User>, IUserRepository
 {
-    public UserRepository(UserDbContext context)
+    public UserRepository(DbContext context)
         : base(context)
     {
     }

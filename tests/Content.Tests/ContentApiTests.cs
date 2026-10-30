@@ -29,7 +29,7 @@ public sealed class ContentApiTests
         Assert.Equal(HttpStatusCode.Forbidden, (await client.PostAsJsonAsync("/api/admin/content-previews/question-banks", new { bank = QuestionBankTests.Fixture() })).StatusCode);
         client.DefaultRequestHeaders.Remove("TestRole"); client.DefaultRequestHeaders.Add("TestRole", "Admin");
         var status = await client.GetFromJsonAsync<ContentCapabilitiesDto>("/api/admin/content-previews/capabilities");
-        Assert.False(status!.CanPersistBank); Assert.Equal("PendingSqlContract", status.PersistenceStatus);
+        Assert.True(status!.CanPersistBank); Assert.Equal("SqlContentAdapter", status.PersistenceStatus);
         var bank = QuestionBankTests.Fixture();
         var response = await client.PostAsJsonAsync("/api/admin/content-previews/question-banks", new { bank, animations = Array.Empty<object>() });
         response.EnsureSuccessStatusCode();
@@ -71,7 +71,7 @@ public sealed class ContentApiTests
         protected override IHost CreateHost(IHostBuilder builder)
         {
             builder.ConfigureHostConfiguration(config => config.AddInMemoryCollection(new Dictionary<string, string?> {
-                ["Database:MigrateOnStartup"] = "false", ["Jwt:SecretKey"] = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
+                ["Service:Module"] = "Content", ["Database:MigrateOnStartup"] = "false", ["Jwt:SecretKey"] = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
                 ["Content:BankStoragePath"] = _root }));
             return base.CreateHost(builder);
         }
@@ -80,6 +80,7 @@ public sealed class ContentApiTests
             builder.ConfigureTestServices(services => {
                 // File adapter is an explicit test fixture, never the production C2 bank source.
                 if (useFileFixture) services.AddSingleton<IContentBankRepository>(new FileQuestionBankRepository(_root));
+                else services.AddScoped<IContentBankRepository, BusinessLogic.Infrastructure.Implementations.PendingSqlQuestionBankRepository>();
                 var job = services.FirstOrDefault(s => s.ServiceType == typeof(IHostedService) && s.ImplementationType == typeof(MidnightCleanupJob));
                 if (job is not null) services.Remove(job);
                 services.AddAuthentication(options => { options.DefaultAuthenticateScheme = "Test"; options.DefaultChallengeScheme = "Test"; options.DefaultForbidScheme = "Test"; })

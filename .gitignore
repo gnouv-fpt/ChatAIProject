@@ -379,3 +379,7 @@ web/test-results/
 .playwright-cli/
 *.tsbuildinfo
 artifacts/
+
+Presentation/App_Data/
+grpc_inference_service/chat_inference_pb2*.py
+.pytest_cache/

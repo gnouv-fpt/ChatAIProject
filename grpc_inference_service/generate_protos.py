@@ -37,4 +37,4 @@ def compile_proto():
     return True
 
 if __name__ == "__main__":
-    compile_proto()
+    sys.exit(0 if compile_proto() else 1)

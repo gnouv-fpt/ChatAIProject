@@ -9,9 +9,9 @@ namespace DataAccess.Repositories.Implementations;
 
 public class UsageReportRepository : IUsageReportRepository
 {
-    private readonly ChatAIWebDbContext _context;
+    private readonly DbContext _context;
 
-    public UsageReportRepository(ChatAIWebDbContext context)
+    public UsageReportRepository(DbContext context)
     {
         _context = context;
     }
@@ -87,7 +87,7 @@ public class UsageReportRepository : IUsageReportRepository
             .ToListAsync(cancellationToken);
 
         var userIds = rows.Select(r => r.UserId).ToList();
-        var names = await _context.Users
+        var names = await _context.Set<User>()
             .Where(u => userIds.Contains(u.Id))
             .ToDictionaryAsync(u => u.Id, u => u.Username, cancellationToken);
 
@@ -99,7 +99,7 @@ public class UsageReportRepository : IUsageReportRepository
     // A turn is one assistant message; counting it instead of user prompts avoids double counting.
     private IQueryable<ChatMessage> Turns(Guid? userId, DateTime fromUtc, DateTime toUtc)
     {
-        var query = _context.ChatMessages.AsNoTracking()
+        var query = _context.Set<ChatMessage>().AsNoTracking()
             .Where(m => m.SenderRole == SenderRole.Assistant && m.CreatedAt >= fromUtc && m.CreatedAt < toUtc);
 
         return userId is null ? query : query.Where(m => m.Session.UserId == userId);

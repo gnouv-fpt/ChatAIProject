@@ -45,7 +45,7 @@ class TrafficRagGenerator:
                 logger.warning(f"[RAGGenerator] Failed to initialize Gemini client: {e}")
 
         if not self._groq_client and not self._gemini_client:
-            logger.info("[RAGGenerator] No cloud LLM keys found. Will operate in structured deterministic synthesis mode.")
+            logger.info("[RAGGenerator] No generation API configured; grounded generation will return an upstream error.")
 
     def generate(
         self, prompt: str, verified_chunks: List[Dict[str, Any]]
@@ -61,14 +61,14 @@ class TrafficRagGenerator:
         """
         # If no verified chunks found, strictly return requirement fallback response
         if not verified_chunks:
-            tokens = len(prompt.split()) + len(self.NO_MATCH_RESPONSE.split())
-            return self.NO_MATCH_RESPONSE, [], max(tokens, 15), False
+            return self.NO_MATCH_RESPONSE, [], 0, False
 
         # Extract citations with Điểm, chunk_id, document_version
         citations = []
         for c in verified_chunks:
             citation = {
                 "chunk_id": str(c.get("chunk_id", "")),
+                "content_hash": c.get("content_hash", ""),
                 "document_title": c.get("document_title", ""),
                 "article_number": c.get("article", ""),
                 "clause_number": c.get("clause", ""),
@@ -137,16 +137,13 @@ class TrafficRagGenerator:
                 if res and res.text:
                     answer = res.text.strip()
                     # Gemini does not always provide exact token count in simple response -> report calculated or unknown
-                    tokens_used = len(full_prompt.split()) + len(answer.split())
-                    return answer, citations, max(tokens_used, 50), True
+                    usage = getattr(res, "usage_metadata", None)
+                    tokens_used = getattr(usage, "total_token_count", None)
+                    return answer, citations, tokens_used if tokens_used is not None else -1, True
             except Exception as e:
                 logger.error(f"[RAGGenerator] Gemini API call failed: {e}")
 
-        # 3. Deterministic synthesis for test & offline environments
-        logger.info("[RAGGenerator] Synthesizing authoritative legal response directly from verified chunks.")
-        response_text = self._synthesize_local_response(prompt, verified_chunks)
-        tokens_est = int((len(prompt) + len(response_text) + len(context_str)) / 3.5)
-        return response_text, citations, max(tokens_est, 60), True
+        raise RuntimeError("Generation API unavailable; no local synthesis fallback")
 
     def _synthesize_local_response(self, prompt: str, chunks: List[Dict[str, Any]]) -> str:
         primary = chunks[0]

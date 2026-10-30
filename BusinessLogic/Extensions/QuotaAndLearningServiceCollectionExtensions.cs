@@ -24,7 +24,7 @@ public static class QuotaAndLearningServiceCollectionExtensions
         services.AddScoped<IQuestionBankRepository, QuestionBankRepository>();
         services.AddScoped<ILearningAttemptRepository, LearningAttemptRepository>();
         services.AddScoped<ILearningProgressRepository, LearningProgressRepository>();
-        services.AddScoped<IContentCatalogClient, LocalContentCatalogClient>();
+        services.AddScoped<ILearningCatalogClient, LocalContentCatalogClient>();
         services.AddScoped<IQuestionBookmarkRepository, QuestionBookmarkRepository>();
         services.AddScoped<IChatAttachmentRepository, ChatAttachmentRepository>();
 
