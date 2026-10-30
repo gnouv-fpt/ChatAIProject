@@ -1,0 +1,39 @@
+.progress-page{flex:1;min-width:0;overflow-y:auto;padding:48px 56px;background:#fffefa}
+.progress-page h1{font-size:28px;font-weight:500;letter-spacing:-1px;margin:16px 0 8px}
+.progress-loading{display:flex;align-items:center;gap:8px;margin-top:24px}
+.progress-empty{display:grid;justify-items:start;gap:8px;margin-top:28px;padding:24px;border:1px dashed #d6dfcf;border-radius:12px;color:#5f7d48;max-width:520px}
+.progress-empty span{color:#8b9881;font-size:12px;line-height:1.7}
+.bank-list{display:grid;gap:12px;margin-top:28px;max-width:860px}
+.bank-card{position:relative;display:grid;gap:12px;text-align:left;background:#fff;border:1px solid #e4e9dd;border-radius:12px;padding:20px 48px 20px 22px;color:inherit}
+.bank-card:hover{border-color:#bbc9ac;background:#fbfcf8}
+.bank-title strong{display:block;font-size:14px}.bank-title small{color:#8b9881;font-size:10px}
+.bank-numbers{display:flex;flex-wrap:wrap;gap:18px;font-size:11px;color:#6c7b62}.bank-numbers b{color:#243b35}
+.bank-chevron{position:absolute;right:18px;top:50%;transform:translateY(-50%);color:#9aa598}
+.progress-bar{display:flex;height:8px;border-radius:5px;background:#edf1e8;overflow:hidden;min-width:80px}
+.progress-bar .is-correct{background:#2f6b52}.progress-bar .is-wrong{background:#d08a5b}
+.progress-back{display:flex;align-items:center;gap:6px;padding:0 0 18px}
+.progress-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:12px;margin:24px 0;max-width:960px}
+.progress-stat{background:#f5f7f1;border-radius:10px;padding:14px 16px}.progress-stat span{font-size:10px;color:#7c8b74}
+.progress-stat strong{display:block;font-size:20px;font-weight:600;margin-top:6px}.progress-stat small{display:block;color:#93a08a;font-size:10px;margin-top:4px}
+.topic-section{max-width:960px;border:1px solid #e4e9dd;border-radius:12px;padding:20px 22px;background:#fff}
+.topic-section h2{font-size:13px;font-weight:600;margin:0 0 14px}
+.topic-row{display:grid;grid-template-columns:minmax(110px,200px) 1fr 60px;align-items:center;gap:14px;font-size:12px;padding:7px 0}
+.topic-row small{text-align:right;color:#8b9881}
+.progress-legend{list-style:none;display:flex;gap:14px;padding:0;margin:12px 0 0;font-size:10px;color:#7c8b74}
+.progress-legend li{display:flex;align-items:center;gap:6px}.progress-legend i{width:9px;height:9px;border-radius:3px;background:#edf1e8}
+.progress-legend i.is-correct{background:#2f6b52}.progress-legend i.is-wrong{background:#d08a5b}
+.progress-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:26px 0 12px;border-bottom:1px solid #e4e9dd;max-width:960px}
+.progress-tabs button{display:flex;align-items:center;gap:6px;background:transparent;padding:10px 12px;font-size:12px;color:#78867b;border-bottom:2px solid transparent;margin-bottom:-1px}
+.progress-tabs button.active{color:#1e5547;font-weight:600;border-bottom-color:#1e5547}
+.progress-list{list-style:none;padding:0;margin:0;max-width:960px}
+.progress-list li{display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid #f0f3ec;font-size:12px}
+.progress-list li>div{flex:1;min-width:0}.progress-list strong{display:block;font-weight:500;line-height:1.6;overflow-wrap:anywhere}
+.progress-list small{display:block;color:#8b9881;font-size:10px;margin-top:3px}
+.question-number{flex-shrink:0;width:34px;height:34px;display:grid;place-items:center;border-radius:8px;background:#eef3e8;font-weight:600;font-size:11px;color:#2f4d40}
+.mode-chip{flex-shrink:0;font-size:10px;padding:4px 8px;border-radius:6px;background:#eef3e8;color:#2f4d40}.mode-chip.exam{background:#f6ecdc;color:#87581c}
+.attempt-result{flex-shrink:0;text-align:right;font-weight:600}.attempt-result em{display:block;font-style:normal;font-size:10px;font-weight:500}
+.attempt-result .passed{color:#2f6b52}.attempt-result .failed{color:#b3562a}
+.progress-none{margin:18px 4px}
+.progress-pager{display:flex;align-items:center;gap:16px;font-size:12px;margin-top:8px}
+@media(max-width:800px){.progress-page{padding:28px 22px}.topic-row{grid-template-columns:1fr 50px}.topic-row .progress-bar{grid-column:1/-1;grid-row:2}}
+@media(max-width:600px){.progress-page{padding:20px 14px}.progress-stats{grid-template-columns:1fr 1fr}.progress-page h1{font-size:22px}.bank-card{padding:16px 40px 16px 16px}}

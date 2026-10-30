@@ -1,5 +1,16 @@
 # Tiến độ - Bảo (Database & Auth REST API)
 
+## Cập nhật 25/10/2026 — B01–B06
+
+Chi tiết quyết định, ERD, API và bàn giao: [docs/BAO-DATA-DESIGN.md](../docs/BAO-DATA-DESIGN.md). Nhánh `PRN-BAO-dev` dựng trên `PRN-VUONG-dev` (`c96ae9e`) để nối tiếp chuỗi migration.
+
+- [x] **B01** Migration `CoreStateConstraints`: CHECK cho balance/quota/tokens/TurnState/RequestHash, `LegalDocuments.Version/ContentHash/EventPayload/EventPublishedAt`, index outbox + reservation, `IUnitOfWork`. Không pending model changes; up/down/up chạy được trên SQL Server.
+- [x] **B02** ERD + decision log trước migration; migration `LearningAndAttachments` (7 bảng mở rộng, revert độc lập được); repository contracts cho Phúc/Khánh/Vương.
+- [x] **B03** `QuotaService` reserve/release/settle/recovery + `QuotaRecoveryJob`; không giữ transaction lúc gọi AI; settle exactly-once kể cả đồng thời.
+- [x] **B04** `/api/learning/progress`, wrong/unseen, history, bookmarks.
+- [x] **B05** `GET /api/reports/usage` (User chỉ xem mình, Admin toàn hệ thống/theo user), `GET /api/account/quota`.
+- [x] **B06** 16 test SQL Server thật (quota, progress, report, auth/refresh/logout/ownership qua HTTP); UI `web/src/features/account`, `web/src/features/progress` kiểm trên trình duyệt với API thật.
+
 Nhánh: `feature/bao-db-auth` (dựa trên `PRN-dev`)
 
 ## 1. Database & Architecture
