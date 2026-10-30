@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+
 import '../../models/chat_message.dart';
 import 'markdown_formatted_text.dart';
 
@@ -17,8 +18,9 @@ class ChatBubble extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
       child: Row(
-        mainAxisAlignment:
-            isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
@@ -44,8 +46,8 @@ class ChatBubble extends StatelessWidget {
                 color: isUser
                     ? const Color(0xFF1976D2)
                     : (message.status == MessageStatus.offlineFallback
-                        ? Colors.amber.shade50
-                        : Colors.white),
+                          ? Colors.amber.shade50
+                          : Colors.white),
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -75,7 +77,9 @@ class ChatBubble extends StatelessWidget {
                   if (message.status == MessageStatus.offlineFallback) ...[
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
                         color: Colors.amber.shade200,
@@ -86,12 +90,14 @@ class ChatBubble extends StatelessWidget {
                         children: [
                           Icon(Icons.wifi_off, size: 14, color: Colors.brown),
                           SizedBox(width: 6),
-                          Text(
-                            'Phản hồi Ngoại tuyến (Resilience Mode)',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.brown,
+                          Flexible(
+                            child: Text(
+                              'Phản hồi ngoại tuyến',
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.brown,
+                              ),
                             ),
                           ),
                         ],
@@ -113,21 +119,20 @@ class ChatBubble extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 8),
-                        Text(
-                          'Đang kết nối & tra cứu dữ liệu FLM...',
-                          style: TextStyle(
-                            fontStyle: FontStyle.italic,
-                            color: Colors.grey,
-                            fontSize: 13,
+                        Flexible(
+                          child: Text(
+                            'Đang tra cứu dữ liệu…',
+                            style: TextStyle(
+                              fontStyle: FontStyle.italic,
+                              color: Color(0xFF475569),
+                              fontSize: 14,
+                            ),
                           ),
                         ),
                       ],
                     )
                   else
-                    MarkdownFormattedText(
-                      text: message.text,
-                      isUser: isUser,
-                    ),
+                    MarkdownFormattedText(text: message.text, isUser: isUser),
 
                   // Sources Section (If AI message has sources)
                   if (message.sources != null &&
@@ -142,15 +147,17 @@ class ChatBubble extends StatelessWidget {
                         const Text(
                           'Nguồn:',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: Colors.grey,
+                            color: Color(0xFF475569),
                           ),
                         ),
                         ...message.sources!.map(
                           (src) => Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: isUser
                                   ? Colors.blue.shade800
@@ -165,7 +172,7 @@ class ChatBubble extends StatelessWidget {
                             child: Text(
                               src,
                               style: TextStyle(
-                                fontSize: 10.5,
+                                fontSize: 14,
                                 color: isUser
                                     ? Colors.white
                                     : Colors.blue.shade800,
@@ -185,15 +192,15 @@ class ChatBubble extends StatelessWidget {
                       Text(
                         timeStr,
                         style: TextStyle(
-                          fontSize: 10.5,
-                          color: isUser ? Colors.white70 : Colors.grey.shade600,
+                          fontSize: 12,
+                          color: isUser ? Colors.white : Colors.grey.shade700,
                         ),
                       ),
                       const SizedBox(width: 6),
-                      InkWell(
-                        onTap: () {
-                          Clipboard.setData(
-                              ClipboardData(text: message.text));
+                      IconButton(
+                        tooltip: 'Sao chép tin nhắn',
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: message.text));
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Đã sao chép nội dung tin nhắn!'),
@@ -201,10 +208,10 @@ class ChatBubble extends StatelessWidget {
                             ),
                           );
                         },
-                        child: Icon(
+                        icon: Icon(
                           Icons.copy,
-                          size: 13,
-                          color: isUser ? Colors.white70 : Colors.grey.shade600,
+                          size: 20,
+                          color: isUser ? Colors.white : Colors.grey.shade700,
                         ),
                       ),
                     ],

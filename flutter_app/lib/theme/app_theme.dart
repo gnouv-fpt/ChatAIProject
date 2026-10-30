@@ -24,7 +24,7 @@ class AppTheme {
 
   // Status & Badge colors
   static const Color peBadgeBg = Color(0xFFFFF3E0);
-  static const Color peBadgeText = Color(0xFFE65100);
+  static const Color peBadgeText = accentOrange;
   static const Color gpaBadgeBg = Color(0xFFE8F5E9);
   static const Color gpaBadgeText = Color(0xFF2E7D32);
   static const Color nonGpaBadgeBg = Color(0xFFECEFF1);
@@ -195,6 +195,7 @@ class AppTheme {
         selectedColor: primaryLight,
         disabledColor: slate200,
         labelStyle: const TextStyle(
+          fontFamily: 'Roboto',
           fontSize: 14,
           fontWeight: FontWeight.w600,
           color: slate800,

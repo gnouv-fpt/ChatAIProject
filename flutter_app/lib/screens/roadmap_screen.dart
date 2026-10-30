@@ -81,25 +81,23 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Lộ trình học tập')),
       body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Row(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Text('Theo học kỳ'),
-                    selected: !_showGraph,
-                    onSelected: (_) => setState(() => _showGraph = false),
-                  ),
+                ChoiceChip(
+                  label: const Text('Theo học kỳ'),
+                  selected: !_showGraph,
+                  onSelected: (_) => setState(() => _showGraph = false),
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ChoiceChip(
-                    label: const Text('Sơ đồ'),
-                    selected: _showGraph,
-                    onSelected: (_) => setState(() => _showGraph = true),
-                  ),
+                ChoiceChip(
+                  label: const Text('Sơ đồ'),
+                  selected: _showGraph,
+                  onSelected: (_) => setState(() => _showGraph = true),
                 ),
               ],
             ),
@@ -107,95 +105,108 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
           Expanded(
             child: _showGraph
                 ? GraphViewScreen(onOpenDetail: _openCourse)
-                : Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: TextField(
-                          decoration: const InputDecoration(
-                            prefixIcon: Icon(Icons.search),
-                            hintText: 'Tìm mã hoặc tên môn học',
-                          ),
-                          onChanged: (value) => setState(() => _query = value),
-                        ),
-                      ),
-                      if (!transcript.hasTranscript)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
-                          ),
-                          child: Text(
-                            'Chưa có bảng điểm: điều kiện học dưới đây chỉ là thông tin chương trình, chưa xác nhận bạn đủ điều kiện.',
-                          ),
-                        ),
-                      SizedBox(
-                        height: 56,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 7,
-                          ),
+                : CustomScrollView(
+                    keyboardDismissBehavior:
+                        ScrollViewKeyboardDismissBehavior.onDrag,
+                    slivers: [
+                      SliverToBoxAdapter(
+                        child: Column(
                           children: [
-                            if (progress.nextSemester != null) ...[
-                              ChoiceChip(
-                                label: Text(
-                                  'Kỳ tới · HK${progress.nextSemester}',
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Tìm môn học',
+                                  prefixIcon: Icon(Icons.search),
+                                  hintText: 'Tìm mã hoặc tên môn học',
                                 ),
-                                selected: _nextOnly,
-                                onSelected: (_) =>
-                                    setState(() => _nextOnly = true),
+                                onChanged: (value) =>
+                                    setState(() => _query = value),
                               ),
-                              const SizedBox(width: 8),
-                            ],
-                            ChoiceChip(
-                              label: const Text('Tất cả'),
-                              selected: !_nextOnly && _semester == null,
-                              onSelected: (_) => setState(() {
-                                _nextOnly = false;
-                                _semester = null;
-                              }),
                             ),
-                            for (final semester in semesters) ...[
-                              const SizedBox(width: 8),
-                              ChoiceChip(
-                                label: Text('HK $semester'),
-                                selected: !_nextOnly && _semester == semester,
-                                onSelected: (_) => setState(() {
-                                  _nextOnly = false;
-                                  _semester = semester;
-                                }),
+                            if (!transcript.hasTranscript)
+                              const Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 6,
+                                ),
+                                child: Text(
+                                  'Chưa có bảng điểm: điều kiện học dưới đây chỉ là thông tin chương trình, chưa xác nhận bạn đủ điều kiện.',
+                                ),
                               ),
-                            ],
+                            SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (progress.nextSemester != null) ...[
+                                    ChoiceChip(
+                                      label: Text(
+                                        'Kỳ tới · HK${progress.nextSemester}',
+                                      ),
+                                      selected: _nextOnly,
+                                      onSelected: (_) =>
+                                          setState(() => _nextOnly = true),
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  ChoiceChip(
+                                    label: const Text('Tất cả'),
+                                    selected: !_nextOnly && _semester == null,
+                                    onSelected: (_) => setState(() {
+                                      _nextOnly = false;
+                                      _semester = null;
+                                    }),
+                                  ),
+                                  for (final semester in semesters) ...[
+                                    const SizedBox(width: 8),
+                                    ChoiceChip(
+                                      label: Text('HK $semester'),
+                                      selected:
+                                          !_nextOnly && _semester == semester,
+                                      onSelected: (_) => setState(() {
+                                        _nextOnly = false;
+                                        _semester = semester;
+                                      }),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Expanded(
-                        child: visible.isEmpty
-                            ? Center(
-                                child: Text(
-                                  _nextOnly
-                                      ? 'Không có môn ở kỳ kế tiếp trong chương trình hiện tại.'
-                                      : 'Không tìm thấy môn học.',
-                                ),
-                              )
-                            : ListView.builder(
-                                padding: const EdgeInsets.fromLTRB(
-                                  16,
-                                  0,
-                                  16,
-                                  24,
-                                ),
-                                itemCount: visible.length,
-                                itemBuilder: (context, index) => _CourseTile(
-                                  course: visible[index],
-                                  progress: progress.status(visible[index]),
-                                  hasTranscript: transcript.hasTranscript,
-                                  onTap: () => _openCourse(visible[index].code),
-                                ),
-                              ),
-                      ),
+                      if (visible.isEmpty)
+                        SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: Center(
+                            child: Text(
+                              _nextOnly
+                                  ? 'Không có môn ở kỳ kế tiếp trong chương trình hiện tại.'
+                                  : 'Không tìm thấy môn học.',
+                            ),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                          sliver: SliverList.separated(
+                            itemCount: visible.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: 8),
+                            itemBuilder: (context, index) => _CourseTile(
+                              course: visible[index],
+                              progress: progress.status(visible[index]),
+                              hasTranscript: transcript.hasTranscript,
+                              onTap: () => _openCourse(visible[index].code),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
           ),

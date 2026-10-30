@@ -81,6 +81,10 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (_scrollController.hasClients) {
+        if (MediaQuery.disableAnimationsOf(context)) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          return;
+        }
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -211,6 +215,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<ChatProvider>();
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     return Container(
       decoration: const BoxDecoration(
@@ -282,7 +287,34 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                 IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   tooltip: 'Xóa hội thoại',
-                  onPressed: () => provider.clearHistory(),
+                  onPressed: provider.isLoading
+                      ? null
+                      : () async {
+                          final confirmed = await showDialog<bool>(
+                            context: context,
+                            builder: (dialogContext) => AlertDialog(
+                              title: const Text('Xóa hội thoại này?'),
+                              content: const Text(
+                                'Các tin nhắn trong hội thoại hiện tại sẽ bị xóa. Bạn không thể hoàn tác thao tác này.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dialogContext, false),
+                                  child: const Text('Hủy'),
+                                ),
+                                FilledButton(
+                                  onPressed: () =>
+                                      Navigator.pop(dialogContext, true),
+                                  child: const Text('Xóa hội thoại'),
+                                ),
+                              ],
+                            ),
+                          );
+                          if (confirmed == true && mounted) {
+                            provider.clearHistory();
+                          }
+                        },
                 ),
                 if (widget.onClose != null)
                   IconButton(
@@ -351,19 +383,17 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       Positioned(
                         right: 0,
                         top: 0,
-                        child: GestureDetector(
-                          onTap: () =>
+                        child: IconButton.filled(
+                          tooltip: 'Bỏ ảnh ${index + 1}',
+                          onPressed: () =>
                               setState(() => _pendingImages.removeAt(index)),
-                          child: Container(
-                            decoration: const BoxDecoration(
-                              color: Colors.black54,
-                              shape: BoxShape.circle,
-                            ),
-                            child: const Icon(
-                              Icons.close,
-                              size: 16,
-                              color: Colors.white,
-                            ),
+                          style: IconButton.styleFrom(
+                            backgroundColor: Colors.black87,
+                          ),
+                          icon: const Icon(
+                            Icons.close,
+                            size: 20,
+                            color: Colors.white,
                           ),
                         ),
                       ),
@@ -372,36 +402,36 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                 },
               ),
             ),
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-            color: AppTheme.slate50,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: _defaultSuggestions.map((promptText) {
-                  return Padding(
-                    padding: const EdgeInsets.only(right: 6),
-                    child: ActionChip(
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      visualDensity: VisualDensity.compact,
-                      label: Text(promptText),
-                      labelStyle: Theme.of(context).textTheme.bodyMedium
-                          ?.copyWith(color: AppTheme.primaryBlue),
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(color: AppTheme.slate200),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+          if (!keyboardVisible)
+            Container(
+              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+              color: AppTheme.slate50,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: _defaultSuggestions.map((promptText) {
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: ActionChip(
+                        materialTapTargetSize: MaterialTapTargetSize.padded,
+                        label: Text(promptText),
+                        labelStyle: Theme.of(context).textTheme.bodyMedium
+                            ?.copyWith(color: AppTheme.primaryBlue),
+                        backgroundColor: Colors.white,
+                        side: const BorderSide(color: AppTheme.slate200),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        onPressed: provider.isLoading
+                            ? null
+                            : () => _handleSend(provider, promptText),
                       ),
-                      onPressed: provider.isLoading
-                          ? null
-                          : () => _handleSend(provider, promptText),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
-          ),
 
           // Input Bar
           Container(
@@ -415,7 +445,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             child: Row(
               children: [
                 IconButton(
-                  tooltip: 'Đính kèm ảnh vào prompt',
+                  tooltip: 'Đính kèm ảnh vào câu hỏi',
                   onPressed: provider.isLoading || _isPickingImages
                       ? null
                       : _pickImages,
@@ -436,24 +466,26 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                     maxLines: 1,
                     textInputAction: TextInputAction.send,
                     decoration: InputDecoration(
+                      labelText: 'Câu hỏi của bạn',
                       hintText: widget.scope == 'subject'
                           ? 'Hỏi về môn ${widget.scopeId}...'
                           : 'Hỏi về chương trình ${widget.scopeId}...',
-                      hintStyle: TextStyle(
+                      hintStyle: const TextStyle(
                         fontSize: 14,
-                        color: AppTheme.slate600.withValues(alpha: 0.7),
+                        color: AppTheme.slate600,
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,
                       ),
-                      isDense: true,
+                      constraints: const BoxConstraints(minHeight: 48),
                     ),
                     onSubmitted: (text) => _handleSend(provider, text),
                   ),
                 ),
                 const SizedBox(width: 8),
                 IconButton.filled(
+                  tooltip: provider.isLoading ? 'Đang trả lời' : 'Gửi câu hỏi',
                   style: IconButton.styleFrom(
                     backgroundColor: AppTheme.primaryBlue,
                     foregroundColor: Colors.white,

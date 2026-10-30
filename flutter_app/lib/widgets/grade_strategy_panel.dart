@@ -504,6 +504,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
       child: Container(
+        constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
           color: AppTheme.slate100,
@@ -536,7 +537,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
     widget.onAdvisorPrompt?.call(prompt);
     ScaffoldMessenger.of(ctx).showSnackBar(
       SnackBar(
-        content: const Text('Đã đưa yêu cầu phân tích vào Chat AI bên phải.'),
+        content: const Text('Đã mở trợ lý với yêu cầu phân tích của bạn.'),
         duration: const Duration(seconds: 5),
         action: SnackBarAction(label: 'OK', onPressed: () {}),
       ),

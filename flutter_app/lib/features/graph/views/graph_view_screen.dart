@@ -162,6 +162,10 @@ class _GraphViewScreenState extends State<GraphViewScreen>
   }
 
   void _startSimulation() {
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _arrangeBySemester();
+      return;
+    }
     _frames = 0;
     _ticker.repeat();
     setState(() {});
@@ -196,7 +200,9 @@ class _GraphViewScreenState extends State<GraphViewScreen>
       if (node.course.code == _dragging) continue;
       final toCenter = const Offset(800, 550) - node.position;
       node.velocity =
-          (node.velocity + forces[node.course.code]! + toCenter * _centerForce) *
+          (node.velocity +
+              forces[node.course.code]! +
+              toCenter * _centerForce) *
           0.83;
       node.position = Offset(
         (node.position.dx + node.velocity.dx).clamp(60, 1540),
@@ -325,6 +331,59 @@ class _GraphViewScreenState extends State<GraphViewScreen>
     return result;
   }
 
+  Future<void> _showCourseList(Set<String> visible) async {
+    final codes = visible.toList()..sort();
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (sheetContext) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * 0.75,
+          child: Column(
+            children: [
+              ListTile(
+                title: const Text('Môn học trong sơ đồ'),
+                trailing: IconButton(
+                  tooltip: 'Đóng danh sách',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(sheetContext),
+                ),
+              ),
+              Expanded(
+                child: codes.isEmpty
+                    ? const Center(child: Text('Không có môn phù hợp bộ lọc.'))
+                    : ListView.builder(
+                        itemCount: codes.length,
+                        itemBuilder: (_, index) {
+                          final course = _nodes[codes[index]]!.course;
+                          final prerequisites = _edges
+                              .where((edge) => edge.to == course.code)
+                              .map((edge) => edge.from);
+                          return ListTile(
+                            title: Text(
+                              '${course.code} · ${course.nameVi.isEmpty ? course.name : course.nameVi}',
+                            ),
+                            subtitle: Text(
+                              'Tiên quyết: ${prerequisites.isEmpty ? "Không có" : prerequisites.join(", ")}',
+                            ),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () =>
+                                Navigator.pop(sheetContext, course.code),
+                          );
+                        },
+                      ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (mounted && selected != null && _nodes.containsKey(selected)) {
+      _showCourse(_nodes[selected]!);
+    }
+  }
+
   void _showCourse(_GraphNode node) {
     setState(() => _selected = node.course.code);
     widget.onNodeSelected?.call(node.course.code);
@@ -339,13 +398,22 @@ class _GraphViewScreenState extends State<GraphViewScreen>
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (sheetContext) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(22),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Align(
+                alignment: Alignment.centerRight,
+                child: IconButton(
+                  tooltip: 'Đóng thông tin môn',
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(sheetContext),
+                ),
+              ),
               Text(
                 '${node.course.code} · ${node.course.credits} tín chỉ',
                 style: Theme.of(context).textTheme.titleLarge,
@@ -384,17 +452,21 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                     child: const Text('Chuỗi tiên quyết'),
                   ),
                   OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      widget.onAdvisorRequested?.call(node.course.code);
-                    },
+                    onPressed: widget.onAdvisorRequested == null
+                        ? null
+                        : () {
+                            Navigator.pop(sheetContext);
+                            widget.onAdvisorRequested?.call(node.course.code);
+                          },
                     child: const Text('Tư vấn môn này'),
                   ),
                   FilledButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      widget.onOpenDetail?.call(node.course.code);
-                    },
+                    onPressed: widget.onOpenDetail == null
+                        ? null
+                        : () {
+                            Navigator.pop(sheetContext);
+                            widget.onOpenDetail?.call(node.course.code);
+                          },
                     child: const Text('Xem chi tiết'),
                   ),
                 ],
@@ -541,6 +613,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                       Expanded(
                         child: TextField(
                           decoration: const InputDecoration(
+                            labelText: 'Tìm môn',
                             prefixIcon: Icon(Icons.search),
                             hintText: 'Tìm môn theo mã hoặc tên',
                             isDense: true,
@@ -571,7 +644,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                         icon: const Icon(Icons.fit_screen),
                       ),
                       IconButton(
-                        tooltip: 'Reset',
+                        tooltip: 'Đặt lại sơ đồ',
                         onPressed: _reset,
                         icon: const Icon(Icons.restart_alt),
                       ),
@@ -841,8 +914,14 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      InkWell(
-                        onTap: () => setState(() => _showLegend = !_showLegend),
+                      TextButton.icon(
+                        onPressed: () => _showCourseList(visible),
+                        icon: const Icon(Icons.list_alt),
+                        label: const Text('Danh sách môn'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            setState(() => _showLegend = !_showLegend),
                         child: Text(
                           'Chú giải màu ${_showLegend ? "▾" : "▸"}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
@@ -860,30 +939,41 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                   style: TextStyle(fontSize: 10),
                                 )
                               else
-                                for (final sem in _nodes.values
-                                  .map((n) => n.course.semester)
-                                  .toSet()
-                                  .toList()
-                                ..sort())
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.circle,
+                                for (final sem
+                                    in _nodes.values
+                                        .map((n) => n.course.semester)
+                                        .toSet()
+                                        .toList()
+                                      ..sort())
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.circle,
                                         color: _semesterColors[sem.clamp(0, 9)],
-                                        size: 9),
-                                    Text(' HK$sem',
-                                        style: const TextStyle(fontSize: 10)),
-                                  ],
-                                ),
+                                        size: 9,
+                                      ),
+                                      Text(
+                                        ' HK$sem',
+                                        style: const TextStyle(fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
                               if (focus != null) ...[
-                                const Text('Lục: tiên quyết',
-                                    style: TextStyle(
-                                        color: Color(0xFF16A34A),
-                                        fontSize: 10)),
-                                const Text('Cam: phụ thuộc',
-                                    style: TextStyle(
-                                        color: Color(0xFFEA580C),
-                                        fontSize: 10)),
+                                const Text(
+                                  'Lục: tiên quyết',
+                                  style: TextStyle(
+                                    color: Color(0xFF166534),
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                const Text(
+                                  'Cam: phụ thuộc',
+                                  style: TextStyle(
+                                    color: Color(0xFF9A3412),
+                                    fontSize: 10,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
@@ -946,18 +1036,13 @@ class _GraphControlSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          SizedBox(width: 100, child: Text(label)),
-          Expanded(
-            child: Slider(
-              value: value,
-              min: min,
-              max: max,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      );
+    children: [
+      SizedBox(width: 100, child: Text(label)),
+      Expanded(
+        child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+      ),
+    ],
+  );
 }
 
 class _GraphPainter extends CustomPainter {
@@ -1028,12 +1113,14 @@ class _GraphPainter extends CustomPainter {
           text: TextSpan(
             text: 'HK${entry.key}',
             style: const TextStyle(
-                color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 17,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           textDirection: TextDirection.ltr,
         )..layout();
-        title.paint(canvas,
-            center - Offset(title.width / 2, title.height / 2));
+        title.paint(canvas, center - Offset(title.width / 2, title.height / 2));
       }
     }
     for (final edge in edges) {
@@ -1044,8 +1131,8 @@ class _GraphPainter extends CustomPainter {
       final dim = focus != null && !active;
       final color = active
           ? edge.to == focus
-              ? const Color(0xFF16A34A)
-              : const Color(0xFFEA580C)
+                ? const Color(0xFF16A34A)
+                : const Color(0xFFEA580C)
           : const Color(0xFF94A3B8).withValues(alpha: dim ? 0.09 : 0.48);
       canvas.drawLine(
         from.position,
@@ -1117,8 +1204,7 @@ class _GraphPainter extends CustomPainter {
             ..strokeWidth = 3,
         );
       }
-      if (labels &&
-          (scale > 0.65 || radius >= 20 || related.contains(id))) {
+      if (labels && (scale > 0.65 || radius >= 20 || related.contains(id))) {
         final painter = TextPainter(
           text: TextSpan(
             text: id,

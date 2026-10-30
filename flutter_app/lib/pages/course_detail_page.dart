@@ -34,17 +34,24 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      builder: (_) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.85,
-        child: ContextualChatPanel(
-          scope: 'subject',
-          scopeId: course.code,
-          title: 'Trợ lý Môn ${course.code}',
-          subtitle: course.nameVi.isNotEmpty ? course.nameVi : course.name,
-          suggestedQuestions: [
-            'Tư vấn cách học môn ${course.code} theo mục tiêu của tôi và dữ liệu FLM.',
-            'Tôi còn thiếu điều kiện gì để học ${course.code}?',
-          ],
+      useSafeArea: true,
+      builder: (sheetContext) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
+        ),
+        child: SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * 0.85,
+          child: ContextualChatPanel(
+            scope: 'subject',
+            scopeId: course.code,
+            title: 'Trợ lý Môn ${course.code}',
+            subtitle: course.nameVi.isNotEmpty ? course.nameVi : course.name,
+            onClose: () => Navigator.pop(sheetContext),
+            suggestedQuestions: [
+              'Tư vấn cách học môn ${course.code} theo mục tiêu của tôi và dữ liệu FLM.',
+              'Tôi còn thiếu điều kiện gì để học ${course.code}?',
+            ],
+          ),
         ),
       ),
     );

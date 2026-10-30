@@ -53,7 +53,9 @@ class BreadcrumbNav extends StatelessWidget {
       child: InkWell(
         onTap: hasAction ? item.onTap : null,
         borderRadius: BorderRadius.circular(4),
-        child: Padding(
+        child: Container(
+          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+          alignment: Alignment.center,
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           child: Row(
             mainAxisSize: MainAxisSize.min,

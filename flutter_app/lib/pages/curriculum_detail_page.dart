@@ -516,6 +516,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
+                          labelText: 'Tìm môn học',
                           hintText: 'Tìm mã hoặc tên môn học',
                           hintStyle: const TextStyle(
                             fontSize: 14,
@@ -785,8 +786,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            Wrap(
+              spacing: 12,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(

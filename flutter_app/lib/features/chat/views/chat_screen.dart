@@ -77,7 +77,12 @@ class _ChatScreenState extends State<ChatScreen> {
 
   void _scrollToBottom() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       if (_scrollController.hasClients) {
+        if (MediaQuery.disableAnimationsOf(context)) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+          return;
+        }
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
@@ -331,11 +336,11 @@ class _ChatScreenState extends State<ChatScreen> {
                           textInputAction: TextInputAction.send,
                           onSubmitted: (text) => _handleSend(provider, text),
                           decoration: InputDecoration(
-                            hintText:
-                                'Hỏi về môn học, thi PE, LOs, tín chỉ, HK...',
+                            labelText: 'Câu hỏi của bạn',
+                            hintText: 'Nhập câu hỏi về môn học',
                             hintStyle: TextStyle(
                               fontSize: 13.5,
-                              color: Colors.grey.shade500,
+                              color: Colors.grey.shade700,
                             ),
                             contentPadding: const EdgeInsets.symmetric(
                               horizontal: 16,
@@ -352,11 +357,14 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       const SizedBox(width: 8),
                       CircleAvatar(
-                        radius: 22,
+                        radius: 24,
                         backgroundColor: provider.isLoading
                             ? Colors.grey
                             : const Color(0xFF1976D2),
                         child: IconButton(
+                          tooltip: provider.isLoading
+                              ? 'Đang trả lời'
+                              : 'Gửi câu hỏi',
                           icon: provider.isLoading
                               ? const SizedBox(
                                   width: 18,
