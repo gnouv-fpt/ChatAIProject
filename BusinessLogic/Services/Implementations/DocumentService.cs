@@ -1,4 +1,5 @@
 using BusinessLogic.DTOs;
+using BusinessLogic.Exceptions;
 using BusinessLogic.Services.Interfaces;
 using DataAccess.Repositories.Interfaces;
 
@@ -38,7 +39,7 @@ public sealed class DocumentService : IDocumentService
     public async Task<DocumentDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var document = await _documentRepository.GetByIdAsync(id, cancellationToken);
-        return document is null ? null : Map(document);
+        return document is null ? throw new NotFoundException("Không tìm thấy văn bản.") : Map(document);
     }
 
     private static DocumentDto Map(BusinessObject.Entities.LegalDocument document) => new()

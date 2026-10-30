@@ -1,0 +1,13 @@
+{
+  "isFixture": true,
+  "questionId": "4149c32b-c701-4f80-a6ae-c70f3b93d272",
+  "bankVersion": "fixture-1",
+  "title": "FIXTURE — Kiểm tra chuyển động trên sơ đồ",
+  "description": "Dữ liệu kiểm thử renderer. Chưa gắn với câu hỏi hay đáp án giao thông chính thức.",
+  "sourceUrl": "https://example.org/test-fixture",
+  "steps": [
+    { "caption": "Bước kiểm thử 1: đặt xe ở vị trí ban đầu.", "x": 70, "y": 200, "rotation": 0 },
+    { "caption": "Bước kiểm thử 2: chuyển xe tới giữa sơ đồ.", "x": 320, "y": 200, "rotation": 0 },
+    { "caption": "Bước kiểm thử 3: kiểm tra xoay và chuyển vị trí.", "x": 320, "y": 65, "rotation": -90 }
+  ]
+}
