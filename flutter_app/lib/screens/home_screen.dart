@@ -50,37 +50,11 @@ class HomeScreen extends StatelessWidget {
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  Card(
-                    color: AppTheme.primaryBlue,
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'Chào mừng bạn đến FLM',
-                            style: TextStyle(color: Colors.white70),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Học tập theo lộ trình của bạn',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 22,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            catalog.curriculum?.nameVi ??
-                                'Chương trình đào tạo',
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
+                  Text(
+                    catalog.curriculum?.nameVi ?? 'Chương trình đào tạo',
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   if (transcript.status == LoadStatus.loading ||
                       transcript.status == LoadStatus.error)
                     DataStateView(
@@ -98,6 +72,25 @@ class HomeScreen extends StatelessWidget {
                           onNavigate(transcript.hasTranscript ? 1 : 3),
                     ),
                   const SizedBox(height: 16),
+                  Card(
+                    child: ListTile(
+                      leading: const Icon(
+                        Icons.arrow_forward,
+                        color: AppTheme.primaryBlue,
+                      ),
+                      title: const Text('Bước tiếp theo'),
+                      subtitle: Text(
+                        !transcript.hasTranscript
+                            ? 'Nhập bảng điểm để xem tiến độ của bạn'
+                            : readyNext.isNotEmpty
+                            ? 'Xem ${readyNext.length} môn kỳ tới đủ điều kiện học'
+                            : 'Xem lộ trình và điều kiện môn học',
+                      ),
+                      trailing: const Icon(Icons.chevron_right),
+                      onTap: () => onNavigate(transcript.hasTranscript ? 1 : 3),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       Expanded(
@@ -234,7 +227,7 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Tiếp tục học',
+                    'Khám phá thêm',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),

@@ -126,6 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
     final transcript = context.watch<TranscriptProvider>();
     final chat = context.watch<ChatProvider>();
+    final curriculum = context.watch<CourseCatalog>().curriculum;
     return Scaffold(
       appBar: AppBar(title: const Text('Cài đặt')),
       body: ListView(
@@ -154,6 +155,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
+          if (curriculum != null)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(
+                  context,
+                  '/curricula/${Uri.encodeComponent(curriculum.id)}',
+                ),
+                icon: const Icon(Icons.account_tree_outlined),
+                label: const Text('Xem chương trình'),
+              ),
+            ),
           Text(
             'Mục tiêu học tập',
             style: Theme.of(context).textTheme.titleLarge,
@@ -165,7 +178,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)}',
+                    'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)} / 10',
                   ),
                   if (transcript.saveError != null) Text(transcript.saveError!),
                   Slider(

@@ -182,8 +182,6 @@ void main() {
         ),
       ]);
       await openCurriculum(tester, width: 412, transcript: transcript);
-      await tester.tap(find.text('Học kỳ 1'));
-      await tester.pumpAndSettle();
       expect(find.text('Chưa đạt / học lại'), findsNothing);
       expect(find.widgetWithText(Chip, 'Đã đạt'), findsOneWidget);
       await tester.tap(find.text('Mọi trạng thái'));
@@ -255,8 +253,6 @@ void main() {
       'F02 mobile advisor opens, closes and keeps course context at $width',
       (tester) async {
         await openCurriculum(tester, width: width);
-        await tester.tap(find.text('Học kỳ 1'));
-        await tester.pumpAndSettle();
         await tester.tap(find.byTooltip('Hỏi Trợ lý AI'));
         await tester.pumpAndSettle();
         expect(find.byType(ContextualChatPanel), findsOneWidget);

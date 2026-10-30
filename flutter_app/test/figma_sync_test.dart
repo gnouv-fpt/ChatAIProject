@@ -133,7 +133,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Chương trình học'), findsOneWidget);
       expect(find.text('TEST'), findsOneWidget);
-      for (final label in ['Tổng quan', 'Danh sách môn', 'Sơ đồ môn học']) {
+      for (final label in ['Tổng quan', 'Môn học', 'Sơ đồ']) {
         expect(find.text(label).hitTestable(), findsOneWidget);
       }
       await _capture(tester, 'curriculum-${width.toInt()}');

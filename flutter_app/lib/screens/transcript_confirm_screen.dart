@@ -226,7 +226,9 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         context: context,
         builder: (dialogContext) => AlertDialog(
           title: const Text('Xóa toàn bộ bảng điểm?'),
-          content: const Text('Bảng điểm đã lưu sẽ bị xóa. Bạn có muốn tiếp tục?'),
+          content: const Text(
+            'Bảng điểm đã lưu sẽ bị xóa. Bạn có muốn tiếp tục?',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext, false),
@@ -293,13 +295,23 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            tooltip: 'Lưu bảng điểm',
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Tooltip(
+          message: 'Lưu bảng điểm',
+          child: FilledButton.icon(
             onPressed: _saving ? null : _save,
+            icon: _saving
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.save_outlined),
+            label: Text(_saving ? 'Đang lưu...' : 'Lưu bảng điểm'),
           ),
-        ],
+        ),
       ),
       body: Column(
         children: [

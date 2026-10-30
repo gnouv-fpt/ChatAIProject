@@ -59,7 +59,7 @@
                     </span>
                     <div>
                         <h1 class="h5 fw-bold mb-0" style="font-family:'Be Vietnam Pro',sans-serif">Gia sư AI</h1>
-                        <div class="small text-muted">Đặt câu hỏi theo tài liệu đã index</div>
+                        <div class="small text-muted">Đặt câu hỏi theo tài liệu đã xử lý</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
@@ -78,6 +78,10 @@
                     {
                         <input asp-for="ViewModel.Ask.SubjectId" class="form-control" min="1" style="width: 110px; min-height: 38px;" placeholder="Mã môn học" />
                     }
+                </div>
+                <div class="chat-mobile-actions">
+                    <a asp-page="/Chat/Index" asp-route-subjectId="@Model.ViewModel.Ask.SubjectId">Trò chuyện mới</a>
+                    <a asp-page="/Chat/Sessions">Lịch sử</a>
                 </div>
             </div>
 
@@ -132,7 +136,7 @@
                                                             var metaParts = new List<string>();
                                                             if (citation.PageNumber.HasValue) metaParts.Add($"Trang {citation.PageNumber.Value}");
                                                             if (citation.SlideNumber.HasValue) metaParts.Add($"Slide {citation.SlideNumber.Value}");
-                                                            if (citation.ChunkIndex.HasValue) metaParts.Add($"Chunk {citation.ChunkIndex.Value}");
+                                                            if (citation.ChunkIndex.HasValue && !citation.PageNumber.HasValue && !citation.SlideNumber.HasValue) metaParts.Add($"Đoạn {citation.ChunkIndex.Value}");
                                                         }
                                                         @string.Join(" · ", metaParts)
                                                     </div>
@@ -368,7 +372,7 @@
                 const parts = [];
                 if (citation.pageNumber)  parts.push(`Trang ${citation.pageNumber}`);
                 if (citation.slideNumber) parts.push(`Slide ${citation.slideNumber}`);
-                if (citation.chunkIndex !== null && citation.chunkIndex !== undefined) parts.push(`Chunk ${citation.chunkIndex}`);
+                if (parts.length === 0 && citation.chunkIndex !== null && citation.chunkIndex !== undefined) parts.push(`Đoạn ${citation.chunkIndex}`);
 
                 if (parts.length > 0) {
                     const meta = document.createElement('div');

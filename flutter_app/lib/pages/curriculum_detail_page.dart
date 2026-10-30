@@ -43,6 +43,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   String _courseStatusFilter = 'all';
   bool? _courseGpaFilter;
   int? _expandedSemester;
+  bool _semesterSelectionInitialized = false;
   bool _showRightChat = true;
   String? _advisorPrompt;
 
@@ -153,24 +154,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     return Scaffold(
       backgroundColor: AppTheme.slate50,
       appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              '${activeCurriculum.id} • ${activeCurriculum.nameVi.isNotEmpty ? activeCurriculum.nameVi : activeCurriculum.name}',
-              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-            ),
-            Text(
-              'Chương trình cử nhân CNTT • ${activeCurriculum.totalSubjects} môn • ${activeCurriculum.totalCredits} tín chỉ',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.normal,
-                color: AppTheme.slate600,
-              ),
-            ),
-          ],
-        ),
+        title: const Text('Chương trình học'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -182,16 +166,15 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               unselectedLabelColor: AppTheme.slate600,
               indicatorColor: AppTheme.primaryBlue,
               indicatorWeight: 3,
-              isScrollable: true,
-              tabAlignment: TabAlignment.start,
+              isScrollable: false,
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
               tabs: const [
                 Tab(text: 'Tổng quan'),
-                Tab(text: 'Danh sách môn'),
-                Tab(text: 'Sơ đồ môn học'),
+                Tab(text: 'Môn học'),
+                Tab(text: 'Sơ đồ'),
               ],
             ),
           ),
@@ -200,18 +183,46 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
       ),
       body: Column(
         children: [
-          // Breadcrumb Navigation
-          BreadcrumbNav(
-            items: [
-              BreadcrumbItem(
-                label: 'Chương trình khung',
-                onTap: () => Navigator.pop(context),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    activeCurriculum.id,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  Text(
+                    activeCurriculum.nameVi.isNotEmpty
+                        ? activeCurriculum.nameVi
+                        : activeCurriculum.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  Text(
+                    '${activeCurriculum.totalSubjects} môn · ${activeCurriculum.totalCredits} tín chỉ',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                ],
               ),
-              BreadcrumbItem(
-                label: '${activeCurriculum.id} (${activeCurriculum.major})',
-              ),
-            ],
+            ),
           ),
+          // Breadcrumb Navigation
+          if (MediaQuery.sizeOf(context).width >= 600)
+            BreadcrumbNav(
+              items: [
+                BreadcrumbItem(
+                  label: 'Chương trình khung',
+                  onTap: () => Navigator.pop(context),
+                ),
+                BreadcrumbItem(
+                  label: '${activeCurriculum.id} (${activeCurriculum.major})',
+                ),
+              ],
+            ),
 
           // Main 2-column layout (Left: Tab Content, Right: Fixed Chat Panel)
           Expanded(
@@ -471,6 +482,10 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
       semesterMap.putIfAbsent(course.semester, () => []).add(course);
     }
     final semesters = semesterMap.keys.toList()..sort();
+    if (!_semesterSelectionInitialized && semesters.isNotEmpty) {
+      _expandedSemester = semesters.first;
+      _semesterSelectionInitialized = true;
+    }
     final transcript = context.watch<TranscriptProvider>();
 
     final query = _searchQuery.toLowerCase();
@@ -501,7 +516,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText: 'Tìm theo mã môn (PRM393, SWD392) hoặc tên môn...',
+                          hintText: 'Tìm mã hoặc tên môn học',
                           hintStyle: TextStyle(
                             fontSize: 13,
                             color: AppTheme.slate600.withValues(alpha: 0.7),
@@ -527,86 +542,105 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                 ],
               ),
               const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    for (var index = 0; index < semesters.length; index++)
-                      Padding(
-                        padding: const EdgeInsets.only(right: 6),
-                        child: ActionChip(
-                          label: Text('HK${semesters[index]}'),
-                          onPressed: () {
-                            setState(
-                              () => _expandedSemester = semesters[index],
-                            );
-                            if (_semesterScrollController.hasClients) {
-                              final desktop =
-                                  MediaQuery.of(context).size.width >= 760;
-                              if (desktop) {
-                                _semesterScrollController.animateTo(
-                                  (index * 316.0).clamp(
-                                    0,
-                                    _semesterScrollController
-                                        .position
-                                        .maxScrollExtent,
-                                  ),
-                                  duration: const Duration(milliseconds: 280),
-                                  curve: Curves.easeOut,
-                                );
+              if (semesters.length > 1)
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var index = 0; index < semesters.length; index++)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ActionChip(
+                            label: Text('HK${semesters[index]}'),
+                            onPressed: () {
+                              setState(
+                                () => _expandedSemester = semesters[index],
+                              );
+                              if (_semesterScrollController.hasClients) {
+                                final desktop =
+                                    MediaQuery.of(context).size.width >= 760;
+                                if (desktop) {
+                                  _semesterScrollController.animateTo(
+                                    (index * 316.0).clamp(
+                                      0,
+                                      _semesterScrollController
+                                          .position
+                                          .maxScrollExtent,
+                                    ),
+                                    duration: const Duration(milliseconds: 280),
+                                    curve: Curves.easeOut,
+                                  );
+                                }
                               }
-                            }
-                          },
+                            },
+                          ),
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  DropdownButton<String>(
-                    value: _courseStatusFilter,
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'all',
-                        child: Text('Mọi trạng thái'),
-                      ),
-                      DropdownMenuItem(value: 'passed', child: Text('Đã đạt')),
-                      DropdownMenuItem(
-                        value: 'failed',
-                        child: Text('Chưa đạt'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'in_progress',
-                        child: Text('Đang học'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'not_started',
-                        child: Text('Chưa học'),
-                      ),
                     ],
-                    onChanged: (value) =>
-                        setState(() => _courseStatusFilter = value ?? 'all'),
                   ),
-                  DropdownButton<bool?>(
-                    value: _courseGpaFilter,
-                    items: const [
-                      DropdownMenuItem<bool?>(
-                        value: null,
-                        child: Text('Mọi môn'),
+                ),
+              if (semesters.length > 1) const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: DropdownButtonFormField<String>(
+                      initialValue: _courseStatusFilter,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Trạng thái',
+                        isDense: true,
                       ),
-                      DropdownMenuItem<bool?>(
-                        value: true,
-                        child: Text('Tính GPA'),
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'all',
+                          child: Text('Mọi trạng thái'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'passed',
+                          child: Text('Đã đạt'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'failed',
+                          child: Text('Chưa đạt'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'in_progress',
+                          child: Text('Đang học'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'not_started',
+                          child: Text('Chưa học'),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _courseStatusFilter = value ?? 'all'),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: DropdownButtonFormField<bool?>(
+                      initialValue: _courseGpaFilter,
+                      isExpanded: true,
+                      decoration: const InputDecoration(
+                        labelText: 'Loại môn',
+                        isDense: true,
                       ),
-                      DropdownMenuItem<bool?>(
-                        value: false,
-                        child: Text('Không tính GPA'),
-                      ),
-                    ],
-                    onChanged: (value) =>
-                        setState(() => _courseGpaFilter = value),
+                      items: const [
+                        DropdownMenuItem<bool?>(
+                          value: null,
+                          child: Text('Mọi môn'),
+                        ),
+                        DropdownMenuItem<bool?>(
+                          value: true,
+                          child: Text('Tính GPA'),
+                        ),
+                        DropdownMenuItem<bool?>(
+                          value: false,
+                          child: Text('Không tính GPA'),
+                        ),
+                      ],
+                      onChanged: (value) =>
+                          setState(() => _courseGpaFilter = value),
+                    ),
                   ),
                 ],
               ),
