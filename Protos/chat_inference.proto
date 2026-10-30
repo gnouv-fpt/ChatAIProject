@@ -8,6 +8,9 @@ service TrafficRagInference {
   rpc ProcessChatMessage (ChatInferenceRequest) returns (ChatInferenceResponse);
   rpc VerifyLegalDocument (VerificationRequest) returns (VerificationResponse);
   rpc IndexDocument (IndexDocumentRequest) returns (IndexDocumentResponse);
+  rpc ProcessImageChatMessage (ImageChatInferenceRequest) returns (ChatInferenceResponse);
+  rpc DeactivateDocument (DeactivateDocumentRequest) returns (DeactivateDocumentResponse);
+  rpc ExplainQuestion (ExplainQuestionRequest) returns (ExplainQuestionResponse);
 }
 
 message ChatInferenceRequest {
@@ -39,6 +42,7 @@ message CitationDto {
   string chunk_id = 6;
   string content_hash = 7; // SHA256 of UTF-8 SQL chunk content, lowercase hex
   string point_number = 8;
+  string document_version = 9;
 }
 
 message ChatInferenceResponse {
@@ -51,12 +55,15 @@ message ChatInferenceResponse {
   string result_status = 7; // Answered, NoMatch, Blocked, NeedsClarification
   int32 contract_version = 8; // version 2 is required by the REST adapter
   bool images_processed = 9;
+  bool requires_clarification = 10;
 }
 
 message VerificationRequest {
   string document_title = 1;
   string document_number = 2;
   string content = 3;
+  string effective_date = 4;
+  string expiration_date = 5;
 }
 
 message VerificationResponse {
@@ -79,6 +86,7 @@ message DocumentChunkItem {
   string point = 11;
   string content_hash = 12;
   string document_id = 13;
+  string document_version = 14;
 }
 
 message IndexDocumentRequest {
@@ -90,3 +98,37 @@ message IndexDocumentResponse {
   int32 indexed_count = 2;
   string message = 3;
 }
+
+message ImageChatInferenceRequest {
+  string user_id = 1;
+  string session_id = 2;
+  string prompt = 3;
+  string image_base64 = 4;
+  string mime_type = 5; // e.g. "image/jpeg", "image/png"
+}
+
+message DeactivateDocumentRequest {
+  string document_number = 1;
+  repeated string chunk_ids = 2;
+}
+
+message DeactivateDocumentResponse {
+  bool success = 1;
+  int32 updated_count = 2;
+  string message = 3;
+}
+
+message ExplainQuestionRequest {
+  string question_content = 1;
+  repeated string options = 2;
+  string correct_answer_key = 3;
+  string official_explanation = 4;
+}
+
+message ExplainQuestionResponse {
+  string explanation_text = 1;
+  repeated CitationDto citations = 2;
+  int32 tokens_used = 3;
+  bool data_verified = 4;
+}
+

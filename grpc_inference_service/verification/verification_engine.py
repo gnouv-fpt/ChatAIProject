@@ -1,11 +1,13 @@
 import re
+import datetime
 from typing import Dict, Any, Optional
 
 class DataVerificationEngine:
     """
     Data Verification Engine for Vietnam Traffic Law RAG System.
-    Validates legal status, expiration, and amendment relationships between documents
+    Validates legal status, expiration dates, and amendment relationships between documents
     (e.g., Decree 100/2019/ND-CP vs Decree 123/2021/ND-CP, obsolete decrees 46/2016, 171/2013).
+    Enforces that unknown documents default strictly to 'Pending' (not eligible for active retrieval).
     """
 
     # Knowledge registry of traffic law documents and their status
@@ -13,6 +15,7 @@ class DataVerificationEngine:
         "123/2021/ND-CP": {
             "title": "Nghị định 123/2021/NĐ-CP",
             "effective_date": "2022-01-01",
+            "expiration_date": None,
             "status": "Verified",
             "is_active": True,
             "amends": ["100/2019/ND-CP"],
@@ -21,6 +24,7 @@ class DataVerificationEngine:
         "100/2019/ND-CP": {
             "title": "Nghị định 100/2019/NĐ-CP",
             "effective_date": "2020-01-01",
+            "expiration_date": None,
             "status": "Verified",
             "is_active": True,
             "amended_by": ["123/2021/ND-CP"],
@@ -48,6 +52,7 @@ class DataVerificationEngine:
         "23/2008/QH12": {
             "title": "Luật Giao thông đường bộ 2008",
             "effective_date": "2009-07-01",
+            "expiration_date": None,
             "status": "Verified",
             "is_active": True,
             "notes": "Văn bản luật nền tảng. Quốc hội đã thông qua Luật TTATGTĐB 36/2024/QH15 và Luật Đường bộ 35/2024/QH15 hiệu lực từ 01/01/2025."
@@ -55,6 +60,7 @@ class DataVerificationEngine:
         "36/2024/QH15": {
             "title": "Luật Trật tự, an toàn giao thông đường bộ 2024",
             "effective_date": "2025-01-01",
+            "expiration_date": None,
             "status": "Verified",
             "is_active": True,
             "notes": "Quy định toàn diện về trật tự an toàn giao thông đường bộ từ 01/01/2025."
@@ -70,7 +76,14 @@ class DataVerificationEngine:
         norm = re.sub(r'\s+', '', norm)
         return norm
 
-    def verify_document(self, document_title: str, document_number: str, content: str = "") -> Dict[str, Any]:
+    def verify_document(
+        self,
+        document_title: str,
+        document_number: str,
+        content: str = "",
+        effective_date_str: Optional[str] = None,
+        expiration_date_str: Optional[str] = None
+    ) -> Dict[str, Any]:
         """
         Verify if a legal document is valid, active, or superseded.
         
@@ -79,9 +92,22 @@ class DataVerificationEngine:
             status (str): "Verified" | "Outdated" | "Pending"
             notes (str)
         """
+        # 1. Date check if expiration_date is explicitly passed
+        if expiration_date_str:
+            try:
+                exp_date = datetime.datetime.fromisoformat(expiration_date_str.replace("Z", "+00:00")).date()
+                if exp_date <= datetime.date.today():
+                    return {
+                        "is_valid": False,
+                        "status": "Outdated",
+                        "notes": f"Văn bản đã hết hiệu lực từ ngày {expiration_date_str}."
+                    }
+            except Exception:
+                pass
+
         norm_number = self.normalize_doc_number(document_number)
         
-        # 1. Check known registry
+        # 2. Check known registry
         matched_info = None
         for key, info in self.LEGAL_REGISTRY.items():
             if key in norm_number or norm_number in key:
@@ -102,7 +128,7 @@ class DataVerificationEngine:
                 "notes": matched_info["notes"]
             }
 
-        # 2. Heuristic check on content if not in static registry
+        # 3. Heuristic check on content if not in static registry
         content_lower = (content or "").lower()
         if "hết hiệu lực" in content_lower or "bị bãi bỏ" in content_lower or "bị thay thế" in content_lower:
             return {
@@ -111,14 +137,7 @@ class DataVerificationEngine:
                 "notes": "Văn bản phát hiện dấu hiệu đã hết hiệu lực hoặc bị thay thế từ nội dung trích xuất."
             }
 
-        if "còn hiệu lực" in content_lower or "đang có hiệu lực" in content_lower:
-            return {
-                "is_valid": True,
-                "status": "Verified",
-                "notes": "Văn bản được ghi nhận đang có hiệu lực thi hành."
-            }
-
-        # Default fallback if unknown
+        # 4. Strict requirement: Unknown status must default to Pending (cannot assume Verified)
         return {
             "is_valid": False,
             "status": "Pending",
@@ -128,7 +147,7 @@ class DataVerificationEngine:
     def verify_chunk(self, chunk: Dict[str, Any]) -> bool:
         """
         Verify if an individual legal chunk is eligible for RAG retrieval.
-        Must be active and verified.
+        Must be active and verified. Outdated documents are strictly disqualified.
         """
         is_verified = chunk.get("is_verified", False)
         is_active = chunk.get("is_active", True)
