@@ -313,119 +313,127 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
           ),
         ),
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: SizedBox(
-              width: double.infinity,
-              child: OutlinedButton.icon(
-                onPressed: _saving ? null : () => _editEntry(),
-                icon: const Icon(Icons.add),
-                label: const Text('Thêm môn thủ công'),
-              ),
+      body: CustomScrollView(
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _saving ? null : () => _editEntry(),
+                      icon: const Icon(Icons.add),
+                      label: const Text('Thêm môn thủ công'),
+                    ),
+                  ),
+                ),
+                if (widget.importWarning.isNotEmpty || hasMissingCredits)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppTheme.spaceMd,
+                      vertical: AppTheme.spaceSm,
+                    ),
+                    child: FlmNotice(
+                      tone: NoticeTone.warning,
+                      message: hasMissingCredits
+                          ? 'Có dòng thiếu tín chỉ. Chỉ cần mở các dòng được đánh dấu để kiểm tra trước khi lưu; GPA sẽ tính sau khi bổ sung.'
+                          : widget.importWarning,
+                    ),
+                  ),
+                if (_entries.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Text(
+                      'Chưa có môn học. Bấm Thêm môn thủ công để bắt đầu.',
+                    ),
+                  )
+                else
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    color: AppTheme.primaryLight,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'GPA hiện tại',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.slate600),
+                              ),
+                              Text(
+                                hasGpaCredits ? '${eval.currentGpa}' : '—',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppTheme.primaryBlue,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Xếp loại thực',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.slate600),
+                              ),
+                              Text(
+                                hasGpaCredits ? eval.actualRank : 'Chưa tính',
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Expanded(
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Học lại',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(color: AppTheme.slate600),
+                              ),
+                              Text(
+                                '${eval.retakeCount} môn',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: eval.retakeCount >= 2
+                                      ? AppTheme.danger
+                                      : AppTheme.slate900,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits)
+                  Padding(
+                    padding: const EdgeInsets.all(AppTheme.spaceMd),
+                    child: FlmNotice(
+                      message: eval.penaltyWarning,
+                      tone: NoticeTone.warning,
+                    ),
+                  ),
+                const Divider(height: 1),
+              ],
             ),
           ),
-          if (widget.importWarning.isNotEmpty || hasMissingCredits)
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppTheme.spaceMd,
-                vertical: AppTheme.spaceSm,
-              ),
-              child: FlmNotice(
-                tone: NoticeTone.warning,
-                message: hasMissingCredits
-                    ? 'Có dòng thiếu tín chỉ. Chỉ cần mở các dòng được đánh dấu để kiểm tra trước khi lưu; GPA sẽ tính sau khi bổ sung.'
-                    : widget.importWarning,
-              ),
-            ),
-          if (_entries.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text('Chưa có môn học. Bấm Thêm môn thủ công để bắt đầu.'),
-            )
-          else
-            Container(
-              padding: const EdgeInsets.all(16),
-              color: AppTheme.primaryLight,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'GPA hiện tại',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppTheme.slate600),
-                        ),
-                        Text(
-                          hasGpaCredits ? '${eval.currentGpa}' : '—',
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryBlue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Xếp loại thực',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppTheme.slate600),
-                        ),
-                        Text(
-                          hasGpaCredits ? eval.actualRank : 'Chưa tính',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const Text(
-                          'Học lại',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppTheme.slate600),
-                        ),
-                        Text(
-                          '${eval.retakeCount} môn',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: eval.retakeCount >= 2
-                                ? AppTheme.danger
-                                : AppTheme.slate900,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits)
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.spaceMd),
-              child: FlmNotice(
-                message: eval.penaltyWarning,
-                tone: NoticeTone.warning,
-              ),
-            ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView.builder(
-              itemCount: _entries.length,
-              itemBuilder: (context, index) {
+          SliverPadding(
+            padding: const EdgeInsets.only(bottom: 12),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate((context, index) {
                 final item = _entries[index];
                 final bool missingCredits = _missingCredits(item);
                 final bool isLowConfidence =
@@ -556,7 +564,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     ),
                   ),
                 );
-              },
+              }, childCount: _entries.length),
             ),
           ),
         ],

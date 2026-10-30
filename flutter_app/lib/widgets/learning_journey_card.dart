@@ -9,10 +9,12 @@ class LearningJourneyCard extends StatelessWidget {
     required this.progress,
     required this.hasTranscript,
     required this.onOpen,
+    this.nextStep,
   });
   final LearningProgress progress;
   final bool hasTranscript;
   final VoidCallback onOpen;
+  final String? nextStep;
 
   @override
   Widget build(BuildContext context) {
@@ -77,6 +79,22 @@ class LearningJourneyCard extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: AppTheme.spaceLg),
+            ] else
+              Text(
+                'Nhập điểm để biết đã học tới đâu, còn bao nhiêu môn và môn nào cần ưu tiên. Chưa có điểm vẫn có thể khám phá chương trình.',
+                style: text.bodyMedium,
+              ),
+            if (hasTranscript && nextStep != null)
+              Text(nextStep!, style: text.bodyMedium),
+            const SizedBox(height: AppTheme.spaceMd),
+            FilledButton.icon(
+              onPressed: onOpen,
+              icon: Icon(hasTranscript ? Icons.route : Icons.edit_note),
+              label: Text(
+                hasTranscript ? 'Mở lộ trình học' : 'Bổ sung bảng điểm',
+              ),
+            ),
+            if (hasTranscript) ...[
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 childrenPadding: EdgeInsets.zero,
@@ -118,19 +136,7 @@ class LearningJourneyCard extends StatelessWidget {
                 'Theo bảng điểm đã nhập. Còn lại gồm môn đang học và môn chưa có kết quả trong chương trình.',
                 style: text.bodySmall,
               ),
-            ] else
-              Text(
-                'Nhập điểm để biết đã học tới đâu, còn bao nhiêu môn và môn nào cần ưu tiên. Chưa có điểm vẫn có thể khám phá chương trình.',
-                style: text.bodyMedium,
-              ),
-            const SizedBox(height: AppTheme.spaceMd),
-            FilledButton.icon(
-              onPressed: onOpen,
-              icon: Icon(hasTranscript ? Icons.route : Icons.edit_note),
-              label: Text(
-                hasTranscript ? 'Mở lộ trình học' : 'Bổ sung bảng điểm',
-              ),
-            ),
+            ],
           ],
         ),
       ),

@@ -1,11 +1,62 @@
 import 'package:flm_courses/models/transcript_entry.dart';
 import 'package:flm_courses/screens/transcript_confirm_screen.dart';
 import 'package:flm_courses/state/course_catalog.dart';
+import 'package:flm_courses/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 void main() {
+  testWidgets(
+    'long review warning scrolls and save stays reachable with large text',
+    (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final catalog = CourseCatalog();
+      await tester.runAsync(catalog.load);
+      await tester.pumpWidget(
+        ChangeNotifierProvider.value(
+          value: catalog,
+          child: MaterialApp(
+            theme: AppTheme.lightTheme(),
+            builder: (context, child) => MediaQuery(
+              data: MediaQuery.of(context)
+                  .copyWith(textScaler: TextScaler.linear(2)),
+              child: child!,
+            ),
+            home: TranscriptConfirmScreen(
+              rawExtractedEntries: [
+                TranscriptEntry(
+                  courseCode: 'CEA201',
+                  score: 8,
+                  credits: 3,
+                  semester: 1,
+                  isPassed: true,
+                ),
+              ],
+              importWarning: 'Kiểm tra lại mã môn, điểm và tín chỉ trước khi lưu. Nếu thông tin chưa khớp với bảng điểm gốc, hãy mở từng môn để sửa lại hoặc thêm môn còn thiếu.',
+              onSaved: (_) async {},
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(find.byTooltip('Lưu bảng điểm').hitTestable(), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byTooltip('Sửa môn học').hitTestable(),
+        160,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Sửa môn học'));
+      await tester.pumpAndSettle();
+      expect(find.text('Áp dụng'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    },
+  );
+
   testWidgets(
     'missing OCR credits cannot silently change GPA and can use catalog credits',
     (tester) async {

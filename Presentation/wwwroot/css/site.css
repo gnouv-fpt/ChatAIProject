@@ -786,6 +786,8 @@ a:hover {
 
 .chat-context-header {
   display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -794,11 +796,33 @@ a:hover {
   border-bottom: 1px solid rgba(199, 196, 216, 0.55);
 }
 
+.chat-subject-picker {
+  flex: 1 1 180px;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.chat-subject-picker .form-select {
+  width: 100%;
+  min-height: 44px;
+  font-size: 0.875rem;
+  text-overflow: ellipsis;
+}
+
 .chat-mobile-actions {
   display: none;
   gap: 16px;
   font-size: 0.875rem;
   font-weight: 600;
+}
+
+.chat-mobile-actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 1px solid var(--outline-variant);
+  border-radius: var(--radius-sm);
 }
 
 .dashboard-page { display: grid; gap: 32px; }
@@ -1191,6 +1215,9 @@ a:hover {
 
   .chat-mobile-actions {
     display: flex;
+    flex-wrap: wrap;
+    flex-basis: 100%;
+    gap: 8px;
   }
 }
 
@@ -1206,10 +1233,18 @@ a:hover {
   .chat-context-header {
     align-items: flex-start;
     flex-direction: column;
+    gap: 8px;
+    padding: 12px 16px;
   }
 
-  .chat-context-header .form-select {
-    max-width: calc(100vw - 32px);
+  .chat-subject-picker {
+    flex: none;
+    width: 100%;
+    max-width: none;
+  }
+
+  .chat-mobile-actions {
+    flex-basis: auto;
   }
 
   .chat-message-list {

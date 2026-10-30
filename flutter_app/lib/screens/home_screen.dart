@@ -25,7 +25,6 @@ class HomeScreen extends StatelessWidget {
       transcript.entries,
       currentSemester: profile.currentSemester,
     );
-    final completed = progress.completedCodes;
     final inProgress = progress.inProgressCodes.toList()..sort();
     final nextCourses = progress.nextSemesterCourses;
     final readyNext = nextCourses
@@ -34,9 +33,6 @@ class HomeScreen extends StatelessWidget {
               progress.status(course).readiness == CourseReadiness.ready,
         )
         .toList();
-    final completedCount = catalog.courses
-        .where((course) => completed.contains(course.code))
-        .length;
     final total = catalog.courses.length;
 
     return Scaffold(
@@ -68,51 +64,13 @@ class HomeScreen extends StatelessWidget {
                     LearningJourneyCard(
                       progress: progress,
                       hasTranscript: transcript.hasTranscript,
+                      nextStep: readyNext.isNotEmpty
+                          ? 'Có ${readyNext.length} môn kỳ tới đủ điều kiện học.'
+                          : null,
                       onOpen: () =>
                           onNavigate(transcript.hasTranscript ? 1 : 3),
                     ),
                   const SizedBox(height: 16),
-                  Card(
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.arrow_forward,
-                        color: AppTheme.primaryBlue,
-                      ),
-                      title: const Text('Bước tiếp theo'),
-                      subtitle: Text(
-                        !transcript.hasTranscript
-                            ? 'Nhập bảng điểm để xem tiến độ của bạn'
-                            : readyNext.isNotEmpty
-                            ? 'Xem ${readyNext.length} môn kỳ tới đủ điều kiện học'
-                            : 'Xem lộ trình và điều kiện môn học',
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () => onNavigate(transcript.hasTranscript ? 1 : 3),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _MetricCard(
-                          label: 'Môn học',
-                          value: '$total',
-                          icon: Icons.menu_book_outlined,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: _MetricCard(
-                          label: 'Đã hoàn thành',
-                          value: transcript.hasTranscript
-                              ? '$completedCount'
-                              : '—',
-                          icon: Icons.check_circle_outline,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 10),
                   Row(
                     children: [
                       Expanded(
@@ -210,6 +168,7 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const SizedBox(height: 12),
                   Card(
                     child: ListTile(
                       leading: const Icon(Icons.tune),
@@ -231,21 +190,6 @@ class HomeScreen extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
-                  if (!transcript.hasTranscript)
-                    Card(
-                      child: ListTile(
-                        leading: const Icon(
-                          Icons.upload_file,
-                          color: AppTheme.primaryBlue,
-                        ),
-                        title: const Text('Thêm bảng điểm của bạn'),
-                        subtitle: const Text(
-                          'Xem GPA và tiến độ học tập cá nhân',
-                        ),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: () => onNavigate(3),
-                      ),
-                    ),
                   Card(
                     child: ListTile(
                       leading: const Icon(
@@ -258,7 +202,8 @@ class HomeScreen extends StatelessWidget {
                       onTap: () => onNavigate(1),
                     ),
                   ),
-                  if (catalog.curriculum != null)
+                  if (catalog.curriculum != null) ...[
+                    const SizedBox(height: 8),
                     Card(
                       child: ListTile(
                         leading: const Icon(
@@ -276,6 +221,8 @@ class HomeScreen extends StatelessWidget {
                         ),
                       ),
                     ),
+                  ],
+                  const SizedBox(height: 8),
                   Card(
                     child: ListTile(
                       leading: const Icon(

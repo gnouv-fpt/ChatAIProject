@@ -511,18 +511,19 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               Row(
                 children: [
                   Expanded(
-                    child: SizedBox(
-                      height: 40,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'Tìm mã hoặc tên môn học',
-                          hintStyle: TextStyle(
-                            fontSize: 13,
-                            color: AppTheme.slate600.withValues(alpha: 0.7),
+                          hintStyle: const TextStyle(
+                            fontSize: 14,
+                            color: AppTheme.slate600,
                           ),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(
+                                  tooltip: 'Xóa nội dung tìm kiếm',
                                   icon: const Icon(Icons.clear, size: 16),
                                   onPressed: () {
                                     _searchController.clear();
@@ -532,6 +533,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                               : null,
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 12,
+                            vertical: 12,
                           ),
                         ),
                         onChanged: (val) =>
@@ -655,7 +657,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               return ListView.builder(
                 controller: _semesterScrollController,
                 scrollDirection: desktop ? Axis.horizontal : Axis.vertical,
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.fromLTRB(16, 16, 16, desktop ? 16 : 88),
                 itemCount: semesters.length,
                 itemBuilder: (context, index) {
                   final sem = semesters[index];
@@ -694,7 +696,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                         '${allCourses.length} môn • $credits tín chỉ'
                         '${semesterGpa == null ? "" : " • GPA ${semesterGpa.toStringAsFixed(2)}"}',
                       ),
-                      trailing: IconButton(
+                      leading: IconButton(
                         tooltip: 'Tư vấn học kỳ',
                         icon: const Icon(
                           Icons.auto_awesome_outlined,
