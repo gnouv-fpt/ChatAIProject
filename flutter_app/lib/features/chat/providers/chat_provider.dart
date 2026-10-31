@@ -40,11 +40,18 @@ class ChatProvider extends ChangeNotifier {
   String? _manuallyOpenedSessionId;
   bool _isLoading = false;
   bool? _isServerOnline;
+  static const _savedBaseUrlKey = 'flm_custom_base_url';
   String _baseUrl = _defaultBaseUrl();
 
   static String _defaultBaseUrl() {
     const configured = String.fromEnvironment('FLM_API_BASE_URL');
     if (configured.isNotEmpty) return configured;
+    if (kReleaseMode) {
+      throw StateError(
+        'Thiếu cấu hình URL backend cho bản release (FLM_API_BASE_URL). '
+        'Vui lòng build với cờ: --dart-define=FLM_API_BASE_URL=https://<api-host>',
+      );
+    }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000';
     }
@@ -229,6 +236,7 @@ class ChatProvider extends ChangeNotifier {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
     historyReady = _loadHistory();
+    unawaited(_initBaseUrl());
     checkServerHealth();
   }
 
@@ -373,10 +381,38 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _initBaseUrl() async {
+    try {
+      final prefs = await _storage.open();
+      if (kReleaseMode) {
+        // In release mode, always enforce FLM_API_BASE_URL and purge any stored local override
+        await prefs.remove(_savedBaseUrlKey);
+        return;
+      }
+      // Debug / Dev mode: check if user previously customized the URL
+      final saved = prefs.getString(_savedBaseUrlKey);
+      if (saved != null && saved.trim().isNotEmpty) {
+        _baseUrl = saved.trim();
+        _apiService = ChatApiService(baseUrl: _baseUrl);
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
   void updateBaseUrl(String newUrl) {
     if (newUrl.trim().isEmpty) return;
+    if (kReleaseMode) {
+      debugPrint('[ChatProvider] Base URL override is ignored in release mode.');
+      return;
+    }
     _baseUrl = newUrl.trim();
     _apiService = ChatApiService(baseUrl: _baseUrl);
+    unawaited(
+      _storage
+          .open()
+          .then((prefs) => prefs.setString(_savedBaseUrlKey, _baseUrl))
+          .catchError((_) => false),
+    );
     checkServerHealth();
     notifyListeners();
   }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../theme/app_theme.dart';
 
+export 'section_header.dart';
+
 /// Material 3 "medium" style top app bar: bold headline + supporting subtitle,
 /// matching the Figma S01–S07 headers.
 class FlmAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -52,45 +54,6 @@ class FlmAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
     );
   }
-}
-
-/// Section title with optional trailing action (Figma: "Môn đã nhập · Xem chi tiết").
-class SectionHeader extends StatelessWidget {
-  const SectionHeader({
-    super.key,
-    required this.title,
-    this.icon,
-    this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(4, 12, 4, 8),
-  });
-
-  final String title;
-  final IconData? icon;
-  final Widget? trailing;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: padding,
-    child: Row(
-      children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20, color: AppTheme.primaryBlue),
-          const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        ?trailing,
-      ],
-    ),
-  );
 }
 
 /// Rounded tinted square holding an icon (Figma course/list leading tile).

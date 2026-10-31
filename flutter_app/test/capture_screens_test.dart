@@ -26,14 +26,14 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'feedback_ui_test.dart' show loadEvidenceFont;
 import 'settings_sign_out_test.dart' show OfflineChat, SignedInService;
 
-Future<void> _capture(WidgetTester tester, String filename) async {
+Future<void> _capture(WidgetTester tester, String filename, {String dir = '../evidence/ux/after_phase1'}) async {
   await tester.runAsync(() async {
     final boundary = tester.renderObject<RenderRepaintBoundary>(
       find.byKey(const Key('capture-root')),
     );
     final image = await boundary.toImage(pixelRatio: 2.0);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final file = File('../evidence/ux/after_phase1/$filename.png');
+    final file = File('$dir/$filename.png');
     await file.parent.create(recursive: true);
     await file.writeAsBytes(bytes!.buffer.asUint8List());
     image.dispose();
@@ -85,170 +85,214 @@ Widget _wrapWithProviders({
   );
 }
 
+Future<void> _runScreenCaptures(
+  WidgetTester tester, {
+  required Size viewport,
+  required String outputDir,
+}) async {
+  tester.view.physicalSize = viewport;
+  tester.view.devicePixelRatio = 1.0;
+
+  SharedPreferences.setMockInitialValues({});
+  final catalog = CourseCatalog();
+  await tester.runAsync(catalog.load);
+  final profile = LearningProfileProvider();
+  await profile.load();
+  final transcript = TranscriptProvider();
+  await transcript.load();
+  final auth = AuthViewModel(SignedInService());
+  final chat = ChatProvider(
+    apiService: OfflineChat(),
+    profile: profile,
+  );
+
+  addTearDown(catalog.dispose);
+  addTearDown(profile.dispose);
+  addTearDown(transcript.dispose);
+  addTearDown(auth.dispose);
+  addTearDown(chat.dispose);
+
+  // 1. Tab 1: Trang chủ (Home)
+  await tester.pumpWidget(
+    _wrapWithProviders(
+      child: const AppShell(),
+      catalog: catalog,
+      profile: profile,
+      transcript: transcript,
+      auth: auth,
+      chat: chat,
+      width: viewport.width,
+      height: viewport.height,
+    ),
+  );
+  await tester.pumpAndSettle();
+  await _capture(tester, '01_home', dir: outputDir);
+
+  // 2. Tab 2: Lộ trình (Roadmap)
+  await tester.tap(find.text('Lộ trình'));
+  await tester.pumpAndSettle();
+  await _capture(tester, '02_roadmap', dir: outputDir);
+
+  // 3. Tab 3: Trợ lý AI (Chat)
+  await tester.tap(find.text('Trợ lý'));
+  await tester.pumpAndSettle();
+  await _capture(tester, '03_chat', dir: outputDir);
+
+  // 4. Tab 4: Bảng điểm (Transcript)
+  await tester.tap(find.text('Bảng điểm'));
+  await tester.pumpAndSettle();
+  await _capture(tester, '04_transcript', dir: outputDir);
+
+  // 5. Tab 5: Cài đặt (Settings)
+  await tester.tap(find.text('Cài đặt'));
+  await tester.pumpAndSettle();
+  await _capture(tester, '05_settings', dir: outputDir);
+
+  // 6. Sheet ngữ cảnh (Contextual chat sheet)
+  await tester.pumpWidget(
+    _wrapWithProviders(
+      child: Scaffold(
+        body: ContextualChatPanel(
+          scope: 'curriculum',
+          scopeId: catalog.curriculum?.id ?? 'BIT_SE_K19B',
+          backendScopeId: catalog.curriculum?.id ?? 'BIT_SE_K19B',
+          title: 'Chương trình đào tạo',
+          contextHint: 'Ngữ cảnh BIT_SE_K19B',
+          suggestedQuestions: const [
+            'Tôi nên học gì tiếp theo?',
+            'Tóm tắt tiến độ học tập.',
+          ],
+          onClose: () {},
+        ),
+      ),
+      catalog: catalog,
+      profile: profile,
+      transcript: transcript,
+      auth: auth,
+      chat: chat,
+      width: viewport.width,
+      height: viewport.height,
+    ),
+  );
+  await tester.pumpAndSettle();
+  await _capture(tester, '06_contextual_chat_sheet', dir: outputDir);
+
+  // 7. Màn Sơ đồ (Graph view screen)
+  await tester.pumpWidget(
+    _wrapWithProviders(
+      child: Scaffold(
+        appBar: AppBar(title: const Text('Sơ đồ môn học')),
+        body: GraphViewScreen(onOpenDetail: (_) {}),
+      ),
+      catalog: catalog,
+      profile: profile,
+      transcript: transcript,
+      auth: auth,
+      chat: chat,
+      width: viewport.width,
+      height: viewport.height,
+    ),
+  );
+  await tester.pumpAndSettle();
+  await _capture(tester, '07_graph_view', dir: outputDir);
+
+  // 8. Sign-in (Đăng nhập)
+  final loggedOutAuth = AuthViewModel(const _LoggedOutAuth());
+  addTearDown(loggedOutAuth.dispose);
+  await tester.pumpWidget(
+    _wrapWithProviders(
+      child: const SignInScreen(),
+      catalog: catalog,
+      profile: profile,
+      transcript: transcript,
+      auth: loggedOutAuth,
+      chat: chat,
+      width: viewport.width,
+      height: viewport.height,
+    ),
+  );
+  await tester.pumpAndSettle();
+  await _capture(tester, '08_sign_in', dir: outputDir);
+
+  // 9. Xác nhận bảng điểm (Transcript confirm screen)
+  final sampleRows = [
+    TranscriptEntry(
+      courseCode: 'PRF192',
+      courseName: 'Cơ sở lập trình',
+      score: 8.5,
+      credits: 3,
+      semester: 1,
+      isPassed: true,
+    ),
+    TranscriptEntry(
+      courseCode: 'MAE101',
+      courseName: 'Toán cho ngành kỹ thuật',
+      score: 7.0,
+      credits: 3,
+      semester: 1,
+      isPassed: true,
+    ),
+    TranscriptEntry(
+      courseCode: 'CEA201',
+      courseName: 'Kiến trúc máy tính',
+      score: 9.0,
+      credits: 3,
+      semester: 2,
+      isPassed: true,
+    ),
+  ];
+  await tester.pumpWidget(
+    _wrapWithProviders(
+      child: TranscriptConfirmScreen(
+        rawExtractedEntries: sampleRows,
+        onSaved: (_) async {},
+      ),
+      catalog: catalog,
+      profile: profile,
+      transcript: transcript,
+      auth: auth,
+      chat: chat,
+      width: viewport.width,
+      height: viewport.height,
+    ),
+  );
+  await tester.pumpAndSettle();
+  await _capture(tester, '09_transcript_confirm', dir: outputDir);
+}
+
 void main() {
-  testWidgets('Capture before_phase1 baseline screens', (tester) async {
-    tester.view.physicalSize = const Size(390, 844);
-    tester.view.devicePixelRatio = 1.0;
+  setUpAll(() async {
+    await loadEvidenceFont();
+  });
+
+  testWidgets('Capture screens at standard 390x844', (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-
-    await tester.runAsync(loadEvidenceFont);
-
-    SharedPreferences.setMockInitialValues({});
-    final catalog = CourseCatalog();
-    await tester.runAsync(catalog.load);
-    final profile = LearningProfileProvider();
-    await profile.load();
-    final transcript = TranscriptProvider();
-    await transcript.load();
-    final auth = AuthViewModel(SignedInService());
-    final chat = ChatProvider(
-      apiService: OfflineChat(),
-      profile: profile,
+    await _runScreenCaptures(
+      tester,
+      viewport: const Size(390, 844),
+      outputDir: '../evidence/ux/after_phase1',
     );
+  });
 
-    addTearDown(catalog.dispose);
-    addTearDown(profile.dispose);
-    addTearDown(transcript.dispose);
-    addTearDown(auth.dispose);
-    addTearDown(chat.dispose);
-
-    // 1. Tab 1: Trang chủ (Home)
-    await tester.pumpWidget(
-      _wrapWithProviders(
-        child: const AppShell(),
-        catalog: catalog,
-        profile: profile,
-        transcript: transcript,
-        auth: auth,
-        chat: chat,
-      ),
+  testWidgets('Capture screens at compact 360x640', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _runScreenCaptures(
+      tester,
+      viewport: const Size(360, 640),
+      outputDir: '../evidence/ux/viewports/360x640',
     );
-    await tester.pumpAndSettle();
-    await _capture(tester, '01_home');
+  });
 
-    // 2. Tab 2: Lộ trình (Roadmap)
-    await tester.tap(find.text('Lộ trình'));
-    await tester.pumpAndSettle();
-    await _capture(tester, '02_roadmap');
-
-    // 3. Tab 3: Trợ lý AI (Chat)
-    await tester.tap(find.text('Trợ lý'));
-    await tester.pumpAndSettle();
-    await _capture(tester, '03_chat');
-
-    // 4. Tab 4: Bảng điểm (Transcript)
-    await tester.tap(find.text('Bảng điểm'));
-    await tester.pumpAndSettle();
-    await _capture(tester, '04_transcript');
-
-    // 5. Tab 5: Cài đặt (Settings)
-    await tester.tap(find.text('Cài đặt'));
-    await tester.pumpAndSettle();
-    await _capture(tester, '05_settings');
-
-    // 6. Sheet ngữ cảnh (Contextual chat sheet)
-    await tester.pumpWidget(
-      _wrapWithProviders(
-        child: Scaffold(
-          body: ContextualChatPanel(
-            scope: 'curriculum',
-            scopeId: catalog.curriculum?.id ?? 'BIT_SE_K19B',
-            backendScopeId: catalog.curriculum?.id ?? 'BIT_SE_K19B',
-            title: 'Chương trình đào tạo',
-            contextHint: 'Ngữ cảnh BIT_SE_K19B',
-            suggestedQuestions: const [
-              'Tôi nên học gì tiếp theo?',
-              'Tóm tắt tiến độ học tập.',
-            ],
-            onClose: () {},
-          ),
-        ),
-        catalog: catalog,
-        profile: profile,
-        transcript: transcript,
-        auth: auth,
-        chat: chat,
-      ),
+  testWidgets('Capture screens at wide 630x900', (tester) async {
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _runScreenCaptures(
+      tester,
+      viewport: const Size(630, 900),
+      outputDir: '../evidence/ux/viewports/630x900',
     );
-    await tester.pumpAndSettle();
-    await _capture(tester, '06_contextual_chat_sheet');
-
-    // 7. Màn Sơ đồ (Graph view screen)
-    await tester.pumpWidget(
-      _wrapWithProviders(
-        child: Scaffold(
-          appBar: AppBar(title: const Text('Sơ đồ môn học')),
-          body: GraphViewScreen(onOpenDetail: (_) {}),
-        ),
-        catalog: catalog,
-        profile: profile,
-        transcript: transcript,
-        auth: auth,
-        chat: chat,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await _capture(tester, '07_graph_view');
-
-    // 8. Sign-in (Đăng nhập)
-    final loggedOutAuth = AuthViewModel(const _LoggedOutAuth());
-    addTearDown(loggedOutAuth.dispose);
-    await tester.pumpWidget(
-      _wrapWithProviders(
-        child: const SignInScreen(),
-        catalog: catalog,
-        profile: profile,
-        transcript: transcript,
-        auth: loggedOutAuth,
-        chat: chat,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await _capture(tester, '08_sign_in');
-
-    // 9. Xác nhận bảng điểm (Transcript confirm screen)
-    final sampleRows = [
-      TranscriptEntry(
-        courseCode: 'PRF192',
-        courseName: 'Cơ sở lập trình',
-        score: 8.5,
-        credits: 3,
-        semester: 1,
-        isPassed: true,
-      ),
-      TranscriptEntry(
-        courseCode: 'MAE101',
-        courseName: 'Toán cho ngành kỹ thuật',
-        score: 7.0,
-        credits: 3,
-        semester: 1,
-        isPassed: true,
-      ),
-      TranscriptEntry(
-        courseCode: 'CEA201',
-        courseName: 'Kiến trúc máy tính',
-        score: 9.0,
-        credits: 3,
-        semester: 2,
-        isPassed: true,
-      ),
-    ];
-    await tester.pumpWidget(
-      _wrapWithProviders(
-        child: TranscriptConfirmScreen(
-          rawExtractedEntries: sampleRows,
-          onSaved: (_) async {},
-        ),
-        catalog: catalog,
-        profile: profile,
-        transcript: transcript,
-        auth: auth,
-        chat: chat,
-      ),
-    );
-    await tester.pumpAndSettle();
-    await _capture(tester, '09_transcript_confirm');
   });
 }
 

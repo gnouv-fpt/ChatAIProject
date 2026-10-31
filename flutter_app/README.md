@@ -28,6 +28,27 @@ Import ảnh đi qua `/api/v1/import-grade`. Backend dùng Vision trước cho m
 
 `grading_rules.yaml` ở root là nguồn quy chế cần sửa. Flutter cần bản sao đóng gói trong `assets/`; sau khi đổi quy chế, chạy `python scripts/sync_grading_rules.py` ở root. `python scripts/sync_grading_rules.py --check` và `flutter test` sẽ phát hiện bản sao cũ.
 
+## Cấu hình Backend URL & Hướng dẫn Build Release
+
+### 1. Thứ tự ưu tiên cấu hình URL Backend:
+- **Bản Release (`kReleaseMode`)**: LUÔN bắt buộc sử dụng biến môi trường compile-time `--dart-define=FLM_API_BASE_URL=https://...`. Ứng dụng sẽ ném ngoại lệ cấu hình rõ ràng (`StateError`) nếu thiếu cờ này và tuyệt đối **KHÔNG** fallback về `localhost` hay `10.0.2.2`. Mọi URL lưu cục bộ trước đó trên thiết bị (vd `localhost:8000`) sẽ bị bỏ qua và dọn dẹp tự động.
+- **Bản Debug / Profile**: Nếu có `--dart-define=FLM_API_BASE_URL` sẽ ưu tiên sử dụng; nếu không có, cho phép ghi đè từ cài đặt cục bộ đã lưu trên máy (`flm_custom_base_url`); nếu chưa cấu hình thì fallback về `http://10.0.2.2:8000` (Android emulator) hoặc `http://localhost:8000` (Web/Desktop/iOS simulator).
+
+### 2. Lệnh Build Release:
+```powershell
+# Build Android APK Release
+flutter build apk --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
+
+# Build Android App Bundle Release
+flutter build appbundle --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
+
+# Build Web Release
+flutter build web --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
+
+# Build Windows Desktop Release
+flutter build windows --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
+```
+
 ## Kiểm tra
 
 ```powershell

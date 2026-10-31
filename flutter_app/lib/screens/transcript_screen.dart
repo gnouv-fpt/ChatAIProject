@@ -199,36 +199,38 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                         : 'Nhập ảnh bảng điểm',
                   ),
                 ),
-                const SizedBox(height: 8),
-                OutlinedButton.icon(
-                  onPressed: importer.busy ? null : _editManually,
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('Nhập hoặc sửa điểm thủ công'),
+                const SizedBox(height: 6),
+                Center(
+                  child: TextButton.icon(
+                    onPressed: importer.busy ? null : _editManually,
+                    icon: const Icon(Icons.edit_note_rounded, size: 18),
+                    label: const Text('Nhập hoặc sửa điểm thủ công'),
+                  ),
                 ),
                 if (importer.message != null) ...[
                   const SizedBox(height: 8),
                   FlmNotice(message: importer.message!, tone: NoticeTone.error),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
                 Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.lock_outline_rounded,
-                      size: 16,
+                      size: 14,
                       color: AppTheme.slate600,
                     ),
                     const SizedBox(width: 6),
-                    Expanded(
+                    Flexible(
                       child: Text(
                         transcript.usesCloud
-                            ? 'Ảnh được gửi tới backend để đọc điểm. Chỉ bảng điểm đã xác nhận được lưu trên Firestore theo tài khoản; không lưu ảnh trên Firestore.'
-                            : 'Ảnh được gửi tới backend chỉ để đọc điểm và không được lưu trên máy chủ. Bảng điểm đã xác nhận chỉ lưu trên thiết bị này.',
+                            ? 'Dữ liệu được bảo mật và đồng bộ theo tài khoản'
+                            : 'Dữ liệu chỉ lưu riêng tư trên thiết bị này',
                         style: const TextStyle(
-                          fontSize: 13,
+                          fontSize: 12,
                           color: AppTheme.slate600,
-                          height: 1.4,
                         ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                   ],
