@@ -33,7 +33,7 @@ Future<void> _capture(WidgetTester tester, String filename) async {
     );
     final image = await boundary.toImage(pixelRatio: 2.0);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    final file = File('../evidence/ux/before_phase1/$filename.png');
+    final file = File('../evidence/ux/after_phase1/$filename.png');
     await file.parent.create(recursive: true);
     await file.writeAsBytes(bytes!.buffer.asUint8List());
     image.dispose();

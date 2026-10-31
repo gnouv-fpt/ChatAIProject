@@ -71,6 +71,8 @@ class FlmApp extends StatelessWidget {
         title: 'Cố vấn học tập FLM',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme(),
+        darkTheme: AppTheme.darkTheme(),
+        themeMode: ThemeMode.system,
         home: const AppShell(),
         onGenerateRoute: (settings) {
           final uri = Uri.tryParse(settings.name ?? '');
