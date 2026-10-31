@@ -96,8 +96,12 @@ class ServerStatusBar extends StatelessWidget {
     return Semantics(
       liveRegion: true,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        color: bgColor,
+        margin: const EdgeInsets.fromLTRB(16, 4, 16, 2),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(14),
+        ),
         child: Row(
           children: [
             Icon(icon, size: 18, color: textColor),
