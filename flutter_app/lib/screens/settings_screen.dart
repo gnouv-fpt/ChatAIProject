@@ -7,6 +7,8 @@ import '../state/transcript_provider.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/auth_view_model.dart';
 import '../models/load_status.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -128,36 +130,74 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final chat = context.watch<ChatProvider>();
     final curriculum = context.watch<CourseCatalog>().curriculum;
     return Scaffold(
-      appBar: AppBar(title: const Text('Cài đặt')),
+      appBar: const FlmAppBar(
+        title: 'Cài đặt',
+        subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
+      ),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
         children: [
-          if (context.read<AuthViewModel?>() case final auth?)
+          if (context.read<AuthViewModel?>() case final auth?) ...[
             Card(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(auth.account?.name ?? 'Tài khoản Google'),
-                    Text(
-                      profile.usesCloud
-                          ? 'Hồ sơ và bảng điểm lưu trên Firestore theo tài khoản.'
-                          : 'Bộ nhớ cá nhân tách theo tài khoản; chưa bật đồng bộ cloud.',
+                    Row(
+                      children: [
+                        const IconTile(
+                          icon: Icons.verified_user_rounded,
+                          color: AppTheme.primaryBlue,
+                          size: 44,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                auth.account?.name ?? 'Tài khoản Google',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppTheme.slate900,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                profile.usesCloud
+                                    ? 'Hồ sơ và bảng điểm lưu trên Firestore theo tài khoản.'
+                                    : 'Bộ nhớ cá nhân tách theo tài khoản; chưa bật đồng bộ cloud.',
+                                style: const TextStyle(
+                                  fontSize: 13,
+                                  color: AppTheme.slate600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    if (auth.message != null) Text(auth.message!),
+                    if (auth.message != null) ...[
+                      const SizedBox(height: 8),
+                      Text(auth.message!),
+                    ],
+                    const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: auth.busy ? null : auth.signOut,
-                      icon: const Icon(Icons.logout),
+                      icon: const Icon(Icons.logout_rounded),
                       label: const Text('Đăng xuất'),
                     ),
                   ],
                 ),
               ),
             ),
+            const SizedBox(height: 12),
+          ],
           if (curriculum != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 16),
+              padding: const EdgeInsets.only(bottom: 12),
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pushNamed(
                   context,
@@ -167,9 +207,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 label: const Text('Xem chương trình'),
               ),
             ),
-          Text(
-            'Mục tiêu học tập',
-            style: Theme.of(context).textTheme.titleLarge,
+          const SectionHeader(
+            title: 'Mục tiêu học tập',
+            icon: Icons.flag_rounded,
           ),
           Card(
             child: Padding(
@@ -177,8 +217,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)} / 10',
+                  Row(
+                    children: [
+                      const IconTile(
+                        icon: Icons.track_changes_rounded,
+                        color: Color(0xFF00796B),
+                        size: 40,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)} / 10',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.slate900,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   if (transcript.saveError != null) Text(transcript.saveError!),
                   Slider(
@@ -193,14 +250,35 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
+          const SizedBox(height: 12),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Hồ sơ tư vấn (có thể bổ sung dần)'),
+                  const Row(
+                    children: [
+                      IconTile(
+                        icon: Icons.person_search_rounded,
+                        color: Color(0xFF6A1B9A),
+                        size: 40,
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          'Hồ sơ tư vấn (có thể bổ sung dần)',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.slate900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                   if (profile.error != null) Text(profile.error!),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: _currentSemester,
@@ -221,6 +299,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _currentSemester = value),
                   ),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _courseGoal,
@@ -236,6 +315,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                     onChanged: (value) => setState(() => _courseGoal = value),
                   ),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _learningStyle,
@@ -255,6 +335,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _learningStyle = value),
                   ),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _studyPriority,
@@ -274,6 +355,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _studyPriority = value),
                   ),
+                  const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _longTermGoal,
@@ -296,6 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                     onChanged: (value) => setState(() => _longTermGoal = value),
                   ),
+                  const SizedBox(height: 12),
                   TextField(
                     controller: _careerController,
                     maxLength: 80,
@@ -346,15 +429,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Kết nối trợ lý AI',
-            style: Theme.of(context).textTheme.titleLarge,
+          const SizedBox(height: 12),
+          const SectionHeader(
+            title: 'Kết nối trợ lý AI',
+            icon: Icons.smart_toy_rounded,
           ),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   TextField(
                     controller: _serverController,
@@ -362,6 +446,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Địa chỉ API',
                       hintText: 'http://localhost:8000',
+                      prefixIcon: Icon(Icons.dns_rounded),
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -410,31 +495,53 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    chat.isServerOnline == null
+                  const SizedBox(height: 10),
+                  StatusPill(
+                    label: chat.isServerOnline == null
                         ? 'Đang kiểm tra kết nối...'
                         : chat.isServerOnline!
                         ? 'Máy chủ đang hoạt động'
                         : 'Không kết nối được. Dữ liệu môn học vẫn dùng được.',
+                    icon: chat.isServerOnline == null
+                        ? Icons.sync_rounded
+                        : chat.isServerOnline!
+                        ? Icons.check_circle_rounded
+                        : Icons.info_outline_rounded,
+                    color: chat.isServerOnline == true
+                        ? AppTheme.success
+                        : AppTheme.slate700,
+                    background: chat.isServerOnline == true
+                        ? AppTheme.successSurface
+                        : AppTheme.slate100,
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          Text('Dữ liệu', style: Theme.of(context).textTheme.titleLarge),
+          const SizedBox(height: 12),
+          const SectionHeader(title: 'Dữ liệu', icon: Icons.storage_rounded),
           Card(
             child: Column(
               children: [
                 ListTile(
-                  leading: const Icon(Icons.refresh),
+                  leading: const IconTile(
+                    icon: Icons.refresh_rounded,
+                    color: AppTheme.primaryBlue,
+                    size: 40,
+                  ),
                   title: const Text('Tải lại dữ liệu môn học'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: context.read<CourseCatalog>().load,
                 ),
+                const Divider(height: 1, indent: 68),
                 ListTile(
-                  leading: const Icon(Icons.delete_outline),
+                  leading: const IconTile(
+                    icon: Icons.delete_outline_rounded,
+                    color: AppTheme.danger,
+                    size: 40,
+                  ),
                   title: const Text('Xóa bảng điểm trên thiết bị'),
+                  trailing: const Icon(Icons.chevron_right_rounded),
                   onTap: transcript.hasTranscript ? _clearTranscript : null,
                 ),
               ],
