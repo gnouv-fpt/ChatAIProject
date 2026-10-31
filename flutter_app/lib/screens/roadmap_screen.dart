@@ -1,7 +1,10 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../features/graph/views/graph_view_screen.dart';
+import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/course.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
@@ -23,6 +26,36 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   int? _semester;
   bool _nextOnly = false;
   String _query = '';
+  final ScrollController _chipScrollController = ScrollController();
+  final Map<int, GlobalKey> _semesterKeys = {};
+  final GlobalKey _allKey = GlobalKey();
+  final GlobalKey _nextKey = GlobalKey();
+  bool _hasInitialScrolled = false;
+
+  GlobalKey _keyForSemester(int semester) =>
+      _semesterKeys.putIfAbsent(semester, GlobalKey.new);
+
+  void _scrollToKey(GlobalKey key) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = key.currentContext;
+      if (ctx != null) {
+        final disableAnim = MediaQuery.disableAnimationsOf(context);
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.5,
+          duration: disableAnim ? Duration.zero : const Duration(milliseconds: 320),
+          curve: Curves.easeInOutCubic,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _chipScrollController.dispose();
+    super.dispose();
+  }
 
   void _openCourse(String code) =>
       Navigator.pushNamed(context, '/courses/${Uri.encodeComponent(code)}');
@@ -121,6 +154,29 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         title: title,
         subtitle:
             '${catalog.curriculum?.id ?? 'Chương trình đào tạo'} · ${catalog.courses.length} môn · $totalCredits tín chỉ',
+        actions: [
+          ContextualChatLauncher(
+            curriculumId: catalog.curriculum?.id ?? '',
+            contextKey: _showGraph
+                ? 'graph'
+                : _nextOnly
+                    ? 'semester-${progress.nextSemester}'
+                    : _semester == null ? 'roadmap' : 'semester-$_semester',
+            title: _showGraph
+                ? 'sơ đồ chương trình'
+                : _nextOnly && progress.nextSemester != null
+                    ? 'học kỳ ${progress.nextSemester}'
+                    : _semester == null ? 'lộ trình học tập' : 'học kỳ $_semester',
+            contextHint: _showGraph
+                ? 'Sơ đồ quan hệ môn học trong chương trình ${catalog.curriculum?.id ?? ''}'
+                : _nextOnly && progress.nextSemester != null
+                    ? 'Học kỳ ${progress.nextSemester} trong chương trình ${catalog.curriculum?.id ?? ''}'
+                    : _semester == null
+                        ? 'Lộ trình học tập trong chương trình ${catalog.curriculum?.id ?? ''}'
+                        : 'Học kỳ $_semester trong chương trình ${catalog.curriculum?.id ?? ''}',
+            semesterNumber: _showGraph ? null : (_nextOnly ? progress.nextSemester : _semester),
+          ),
+        ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -178,52 +234,87 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         ),
                       ),
                       SliverToBoxAdapter(
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
-                          child: Row(
-                            children: [
-                              if (progress.nextSemester != null) ...[
-                                _SemesterChip(
-                                  label: 'Kỳ tới · HK${progress.nextSemester}',
-                                  icon: Icons.flag_rounded,
-                                  palette: const SemesterPalette(
-                                    AppTheme.accentOrange,
-                                    AppTheme.peBadgeBg,
-                                  ),
-                                  selected: _nextOnly,
-                                  onSelected: () =>
-                                      setState(() => _nextOnly = true),
-                                ),
-                                const SizedBox(width: 8),
-                              ],
-                              _SemesterChip(
-                                label: 'Tất cả',
-                                palette: const SemesterPalette(
-                                  AppTheme.primaryDark,
-                                  AppTheme.primaryLight,
-                                ),
-                                selected: !_nextOnly && _semester == null,
-                                onSelected: () => setState(() {
-                                  _nextOnly = false;
-                                  _semester = null;
-                                }),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final screenWidth = constraints.maxWidth;
+                            final centerPadding = math.max(
+                              16.0,
+                              (screenWidth - 84) / 2,
+                            );
+                            if (!_hasInitialScrolled) {
+                              _hasInitialScrolled = true;
+                              if (_nextOnly) {
+                                _scrollToKey(_nextKey);
+                              } else if (_semester != null) {
+                                _scrollToKey(_keyForSemester(_semester!));
+                              }
+                            }
+                            return SingleChildScrollView(
+                              controller: _chipScrollController,
+                              scrollDirection: Axis.horizontal,
+                              padding: EdgeInsets.fromLTRB(
+                                centerPadding,
+                                6,
+                                centerPadding,
+                                2,
                               ),
-                              for (final semester in semesters) ...[
-                                const SizedBox(width: 8),
-                                _SemesterChip(
-                                  label: 'HK $semester',
-                                  palette: SemesterPalette.of(semester),
-                                  dot: true,
-                                  selected: !_nextOnly && _semester == semester,
-                                  onSelected: () => setState(() {
-                                    _nextOnly = false;
-                                    _semester = semester;
-                                  }),
-                                ),
-                              ],
-                            ],
-                          ),
+                              child: Row(
+                                children: [
+                                  if (progress.nextSemester != null) ...[
+                                    _SemesterChip(
+                                      key: _nextKey,
+                                      label: 'Kỳ tới · HK${progress.nextSemester}',
+                                      icon: Icons.flag_rounded,
+                                      palette: const SemesterPalette(
+                                        AppTheme.accentOrange,
+                                        AppTheme.peBadgeBg,
+                                      ),
+                                      selected: _nextOnly,
+                                      onSelected: () {
+                                        setState(() => _nextOnly = true);
+                                        _scrollToKey(_nextKey);
+                                      },
+                                    ),
+                                    const SizedBox(width: 8),
+                                  ],
+                                  _SemesterChip(
+                                    key: _allKey,
+                                    label: 'Tất cả',
+                                    palette: const SemesterPalette(
+                                      AppTheme.primaryDark,
+                                      AppTheme.primaryLight,
+                                    ),
+                                    selected: !_nextOnly && _semester == null,
+                                    onSelected: () {
+                                      setState(() {
+                                        _nextOnly = false;
+                                        _semester = null;
+                                      });
+                                      _scrollToKey(_allKey);
+                                    },
+                                  ),
+                                  for (final semester in semesters) ...[
+                                    const SizedBox(width: 8),
+                                    _SemesterChip(
+                                      key: _keyForSemester(semester),
+                                      label: 'HK $semester',
+                                      palette: SemesterPalette.of(semester),
+                                      dot: true,
+                                      selected:
+                                          !_nextOnly && _semester == semester,
+                                      onSelected: () {
+                                        setState(() {
+                                          _nextOnly = false;
+                                          _semester = semester;
+                                        });
+                                        _scrollToKey(_keyForSemester(semester));
+                                      },
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            );
+                          },
                         ),
                       ),
                       if (visible.isEmpty)
@@ -394,6 +485,7 @@ class _ProgressHero extends StatelessWidget {
 
 class _SemesterChip extends StatelessWidget {
   const _SemesterChip({
+    super.key,
     required this.label,
     required this.palette,
     required this.selected,
@@ -461,6 +553,7 @@ class _SemesterHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final palette = SemesterPalette.of(group.semester);
     final ratio = group.courses == 0 ? 0.0 : group.completed / group.courses;
+    final curriculumId = context.read<CourseCatalog>().curriculum?.id ?? '';
     return Semantics(
       header: true,
       child: Padding(
@@ -519,6 +612,17 @@ class _SemesterHeader extends StatelessWidget {
                           background: AppTheme.peBadgeBg,
                         ),
                       ],
+                      ContextualChatLauncher(
+                        curriculumId: curriculumId,
+                        contextKey: 'semester-${group.semester}',
+                        title: 'học kỳ ${group.semester}',
+                        contextHint: 'Học kỳ ${group.semester} trong chương trình $curriculumId',
+                        semesterNumber: group.semester,
+                        suggestedQuestions: [
+                          'Học kỳ này có những môn nào?',
+                          'Tôi nên chuẩn bị gì cho học kỳ này?',
+                        ],
+                      ),
                     ],
                   ),
                   const SizedBox(height: 4),

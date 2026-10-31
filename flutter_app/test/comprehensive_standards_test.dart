@@ -4,6 +4,7 @@ import 'package:flm_courses/app/app_shell.dart';
 import 'package:flm_courses/features/chat/providers/chat_provider.dart';
 import 'package:flm_courses/features/chat/views/chat_screen.dart';
 import 'package:flm_courses/features/chat/views/widgets/contextual_chat_panel.dart';
+import 'package:flm_courses/models/course.dart';
 import 'package:flm_courses/screens/roadmap_screen.dart';
 import 'package:flm_courses/screens/settings_screen.dart';
 import 'package:flm_courses/services/grade_import_service.dart';
@@ -344,6 +345,90 @@ void main() {
       } finally {
         semantics.dispose();
       }
+    });
+
+    testWidgets('Tab học kỳ tự động cuộn ra giữa màn hình khi được chọn', (tester) async {
+      tester.view.physicalSize = const Size(360, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+
+      final multiCatalog = fixtureCatalog()
+        ..courses = [
+          for (var s = 0; s <= 6; s++)
+            Course.fromJson({
+              'code': 'SUBJ$s',
+              'name': 'Subject $s',
+              'name_vi': 'Môn $s',
+              'credits': 3,
+              'semester': s,
+            }),
+        ];
+
+      final app = await buildTestApp(const RoadmapScreen(), catalog: multiCatalog);
+      await tester.pumpWidget(app);
+      await tester.pumpAndSettle();
+
+      // 1. Ban đầu tab 'Tất cả' được chọn và nằm ở giữa màn hình (360 / 2 = 180)
+      final allChip = find.widgetWithText(ChoiceChip, 'Tất cả');
+      expect(allChip, findsOneWidget);
+      final allCenterX = tester.getCenter(allChip).dx;
+      expect((allCenterX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'Tab Tất cả phải ở giữa màn hình ban đầu: $allCenterX');
+
+      // 2. Nhấn chọn 'HK 0' -> tab HK 0 tự động trượt vào chính giữa màn hình
+      final hk0Chip = find.widgetWithText(ChoiceChip, 'HK 0');
+      expect(hk0Chip, findsOneWidget);
+      await tester.tap(hk0Chip);
+      await tester.pumpAndSettle();
+
+      final hk0CenterX = tester.getCenter(hk0Chip).dx;
+      expect((hk0CenterX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'HK 0 phải tự động trượt ra giữa màn hình, thực tế: $hk0CenterX');
+
+      // 3. Khi HK 0 ở giữa, HK 1 đã trượt vào vùng nhìn thấy -> chọn HK 1
+      final hk1Chip = find.widgetWithText(ChoiceChip, 'HK 1');
+      expect(hk1Chip, findsOneWidget);
+      await tester.tap(hk1Chip);
+      await tester.pumpAndSettle();
+
+      final hk1CenterX = tester.getCenter(hk1Chip).dx;
+      expect((hk1CenterX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'HK 1 phải tự động trượt ra giữa màn hình, thực tế: $hk1CenterX');
+
+      // 4. Khi HK 1 ở giữa, HK 2 đã trượt vào vùng nhìn thấy -> chọn HK 2
+      final hk2Chip = find.widgetWithText(ChoiceChip, 'HK 2');
+      expect(hk2Chip, findsOneWidget);
+      await tester.tap(hk2Chip);
+      await tester.pumpAndSettle();
+
+      final hk2CenterX = tester.getCenter(hk2Chip).dx;
+      expect((hk2CenterX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'HK 2 phải tự động trượt ra giữa màn hình, thực tế: $hk2CenterX');
+
+      // 5. Chọn ngược lại HK 1 (đang ở bên trái trên màn hình) -> HK 1 trượt ngược lại ra giữa
+      final hk1Back = find.widgetWithText(ChoiceChip, 'HK 1');
+      await tester.tap(hk1Back);
+      await tester.pumpAndSettle();
+      final hk1BackX = tester.getCenter(hk1Back).dx;
+      expect((hk1BackX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'HK 1 phải trượt ngược lại ra giữa màn hình, thực tế: $hk1BackX');
+
+      // 6. Chọn lại 'HK 0' (bên trái) -> 'HK 0' trượt ngược lại ra giữa
+      final hk0Back = find.widgetWithText(ChoiceChip, 'HK 0');
+      await tester.tap(hk0Back);
+      await tester.pumpAndSettle();
+      final hk0BackX = tester.getCenter(hk0Back).dx;
+      expect((hk0BackX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'HK 0 phải trượt ngược lại ra giữa màn hình, thực tế: $hk0BackX');
+
+      // 7. Chọn lại 'Tất cả' (bên trái) -> 'Tất cả' trượt ngược lại ra giữa
+      final allBack = find.widgetWithText(ChoiceChip, 'Tất cả');
+      await tester.tap(allBack);
+      await tester.pumpAndSettle();
+      final allBackX = tester.getCenter(allBack).dx;
+      expect((allBackX - 180).abs(), lessThanOrEqualTo(25),
+          reason: 'Tất cả phải trượt ngược lại ra giữa màn hình, thực tế: $allBackX');
     });
   });
 }
