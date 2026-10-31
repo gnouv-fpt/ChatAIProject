@@ -7,6 +7,7 @@ import '../state/learning_profile_provider.dart';
 import '../services/learning_progress.dart';
 import '../theme/app_theme.dart';
 import '../models/load_status.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/learning_journey_card.dart';
 
@@ -36,7 +37,10 @@ class HomeScreen extends StatelessWidget {
     final total = catalog.courses.length;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Cố vấn học tập FLM')),
+      appBar: const FlmAppBar(
+        title: 'Cố vấn học tập FLM',
+        subtitle: 'Chương trình đào tạo của bạn',
+      ),
       body: catalog.isLoading && total == 0
           ? const Center(child: CircularProgressIndicator())
           : catalog.error != null && total == 0
@@ -44,13 +48,42 @@ class HomeScreen extends StatelessWidget {
           : RefreshIndicator(
               onRefresh: catalog.load,
               child: ListView(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
                 children: [
-                  Text(
-                    catalog.curriculum?.nameVi ?? 'Chương trình đào tạo',
-                    style: Theme.of(context).textTheme.bodyMedium,
+                  HeroPanel(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Chào mừng bạn đến FLM',
+                          style: TextStyle(
+                            color: Color(0xFFE3F2FD),
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        const Text(
+                          'Học tập theo lộ trình của bạn',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            height: 1.25,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          catalog.curriculum?.nameVi ?? 'Chương trình đào tạo',
+                          style: const TextStyle(
+                            color: Color(0xFFE3F2FD),
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   if (transcript.status == LoadStatus.loading ||
                       transcript.status == LoadStatus.error)
                     DataStateView(
@@ -79,10 +112,11 @@ class HomeScreen extends StatelessWidget {
                           value: transcript.hasTranscript
                               ? '${transcript.evaluation.totalAccumulatedCredits}'
                               : '—',
-                          icon: Icons.school_outlined,
+                          icon: Icons.school_rounded,
+                          color: AppTheme.primaryBlue,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _MetricCard(
                           label: 'GPA hiện tại',
@@ -92,23 +126,38 @@ class HomeScreen extends StatelessWidget {
                               ? transcript.evaluation.currentGpa
                                     .toStringAsFixed(2)
                               : '—',
-                          icon: Icons.insights_outlined,
+                          icon: Icons.insights_rounded,
+                          color: const Color(0xFF00796B),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Card(
                     child: Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Vị trí hiện tại',
-                            style: Theme.of(context).textTheme.titleMedium,
+                          Row(
+                            children: [
+                              const IconTile(
+                                icon: Icons.place_rounded,
+                                color: Color(0xFF6A1B9A),
+                                size: 40,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  'Vị trí hiện tại',
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 12),
                           Text(
                             progress.currentSemester == null
                                 ? 'Chưa xác định học kỳ: hãy nhập bảng điểm để cá nhân hóa lộ trình.'
@@ -171,7 +220,10 @@ class HomeScreen extends StatelessWidget {
                   const SizedBox(height: 12),
                   Card(
                     child: ListTile(
-                      leading: const Icon(Icons.tune),
+                      leading: const IconTile(
+                        icon: Icons.tune_rounded,
+                        color: AppTheme.accentOrange,
+                      ),
                       title: const Text('Mục tiêu và cách học của bạn'),
                       subtitle: Text(
                         profile.courseGoal == null
@@ -180,41 +232,37 @@ class HomeScreen extends StatelessWidget {
                             ? 'Ưu tiên qua môn · Có thể cập nhật bất cứ lúc nào.'
                             : 'Ưu tiên điểm cao · Có thể cập nhật bất cứ lúc nào.',
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => onNavigate(4),
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Text(
-                    'Khám phá thêm',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 8),
+                  const SectionHeader(title: 'Khám phá thêm'),
                   Card(
                     child: ListTile(
-                      leading: const Icon(
-                        Icons.route,
+                      leading: const IconTile(
+                        icon: Icons.route_rounded,
                         color: AppTheme.primaryBlue,
                       ),
                       title: const Text('Khám phá lộ trình môn học'),
                       subtitle: const Text('Xem môn tiên quyết và sơ đồ'),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => onNavigate(1),
                     ),
                   ),
                   if (catalog.curriculum != null) ...[
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Card(
                       child: ListTile(
-                        leading: const Icon(
-                          Icons.account_tree_outlined,
-                          color: AppTheme.primaryBlue,
+                        leading: const IconTile(
+                          icon: Icons.account_tree_rounded,
+                          color: Color(0xFF00796B),
                         ),
                         title: const Text('Chương trình đào tạo'),
                         subtitle: const Text(
                           'Xem tổng quan và chi tiết học kỳ',
                         ),
-                        trailing: const Icon(Icons.chevron_right),
+                        trailing: const Icon(Icons.chevron_right_rounded),
                         onTap: () => Navigator.pushNamed(
                           context,
                           '/curricula/${Uri.encodeComponent(catalog.curriculum!.id)}',
@@ -222,16 +270,16 @@ class HomeScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Card(
                     child: ListTile(
-                      leading: const Icon(
-                        Icons.smart_toy_outlined,
-                        color: AppTheme.primaryBlue,
+                      leading: const IconTile(
+                        icon: Icons.smart_toy_rounded,
+                        color: Color(0xFF6A1B9A),
                       ),
                       title: const Text('Hỏi trợ lý AI'),
                       subtitle: const Text('Tra cứu môn học và tư vấn học tập'),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: const Icon(Icons.chevron_right_rounded),
                       onTap: () => onNavigate(2),
                     ),
                   ),
@@ -247,10 +295,12 @@ class _MetricCard extends StatelessWidget {
     required this.label,
     required this.value,
     required this.icon,
+    required this.color,
   });
   final String label;
   final String value;
   final IconData icon;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => Card(
@@ -259,7 +309,7 @@ class _MetricCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, color: AppTheme.primaryBlue),
+          IconTile(icon: icon, color: color, size: 40),
           const SizedBox(height: 12),
           Text(
             value,
