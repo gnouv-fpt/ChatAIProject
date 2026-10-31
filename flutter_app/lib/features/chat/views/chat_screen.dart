@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../services/grade_import_service.dart';
 import '../../../state/course_catalog.dart';
 import '../../../state/transcript_provider.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/app_ui.dart';
 import '../providers/chat_provider.dart';
 import 'widgets/chat_bubble.dart';
 import 'widgets/server_status_bar.dart';
@@ -184,27 +186,12 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-      appBar: AppBar(
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.chat_bubble_outline, size: 20),
-            SizedBox(width: 8),
-            Flexible(
-              child: Text(
-                'Cố vấn học tập FLM',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
-                overflow: TextOverflow.ellipsis,
-              ),
-            ),
-          ],
-        ),
-        backgroundColor: const Color(0xFF1976D2),
-        foregroundColor: Colors.white,
-        elevation: 2,
+      appBar: FlmAppBar(
+        title: 'Trợ lý AI FLM',
+        subtitle: 'Hỏi về môn học và chiến lược GPA',
         actions: [
           IconButton(
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.history_rounded),
             tooltip: 'Các phiên tư vấn',
             onPressed: () => _showSessions(provider),
           ),
@@ -214,7 +201,7 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: provider.startNewSession,
           ),
           IconButton(
-            icon: const Icon(Icons.delete_sweep),
+            icon: const Icon(Icons.delete_sweep_outlined),
             tooltip: 'Xóa lịch sử chat',
             onPressed: () {
               showDialog(
@@ -252,13 +239,18 @@ class _ChatScreenState extends State<ChatScreen> {
           // Top Server Status Indicator (FastAPI Online / Offline Fallback)
           const ServerStatusBar(),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            padding: const EdgeInsets.fromLTRB(16, 6, 16, 4),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Text(
-                provider.currentScope == 'subject'
+              child: StatusPill(
+                label: provider.currentScope == 'subject'
                     ? 'Phiên môn học · ${provider.currentScopeId}'
                     : 'Phiên tổng quan · ${provider.currentScopeId}',
+                icon: provider.currentScope == 'subject'
+                    ? Icons.menu_book_rounded
+                    : Icons.school_rounded,
+                color: AppTheme.primaryDark,
+                background: AppTheme.primaryLight,
               ),
             ),
           ),
