@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../services/learning_progress.dart';
 import '../theme/app_theme.dart';
+import 'app_ui.dart';
 
 class LearningJourneyCard extends StatelessWidget {
   const LearningJourneyCard({
@@ -27,8 +28,12 @@ class LearningJourneyCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(Icons.route_outlined, color: AppTheme.primaryBlue),
-                const SizedBox(width: AppTheme.spaceSm),
+                const IconTile(
+                  icon: Icons.route_rounded,
+                  color: AppTheme.primaryBlue,
+                  size: 40,
+                ),
+                const SizedBox(width: AppTheme.spaceMd),
                 Expanded(
                   child: Text(
                     'Hành trình học của bạn',
@@ -150,8 +155,8 @@ class LearningJourneyCard extends StatelessWidget {
           vertical: AppTheme.spaceSm,
         ),
         decoration: BoxDecoration(
-          color: AppTheme.slate100,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          color: color.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
           '$label: $value',
