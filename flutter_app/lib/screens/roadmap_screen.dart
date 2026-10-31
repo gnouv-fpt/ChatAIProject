@@ -182,9 +182,24 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
             child: SegmentedButton<bool>(
               showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                backgroundColor: const Color(0xFFF1F5F9),
+                selectedBackgroundColor: AppTheme.primaryBlue,
+                selectedForegroundColor: Colors.white,
+                foregroundColor: AppTheme.slate700,
+                elevation: 0,
+                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                textStyle: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13.5,
+                ),
+              ),
               segments: const [
                 ButtonSegment(
                   value: false,
@@ -203,19 +218,35 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             ),
           ),
           Expanded(
-            child: _showGraph
-                ? GraphViewScreen(onOpenDetail: _openCourse)
-                : CustomScrollView(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 240),
+              switchInCurve: Curves.easeOutCubic,
+              switchOutCurve: Curves.easeInCubic,
+              transitionBuilder: (child, animation) {
+                return FadeTransition(
+                  opacity: animation,
+                  child: child,
+                );
+              },
+              child: _showGraph
+                  ? KeyedSubtree(
+                      key: const ValueKey('roadmap_graph_view'),
+                      child: GraphViewScreen(onOpenDetail: _openCourse),
+                    )
+                  : KeyedSubtree(
+                      key: const ValueKey('roadmap_list_view'),
+                      child: CustomScrollView(
                     keyboardDismissBehavior:
                         ScrollViewKeyboardDismissBehavior.onDrag,
                     slivers: [
-                      if (!_nextOnly && _semester == null)
+                      if (!_nextOnly)
                         SliverToBoxAdapter(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
                             child: _ProgressHero(
                               progress: progress,
                               hasTranscript: transcript.hasTranscript,
+                              selectedSemester: _semester,
                             ),
                           ),
                         ),
@@ -241,6 +272,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                               16.0,
                               (screenWidth - 84) / 2,
                             );
+                            final isAllSelected =
+                                !_nextOnly && _semester == null;
+                            final hPadding =
+                                isAllSelected ? 16.0 : centerPadding;
                             if (!_hasInitialScrolled) {
                               _hasInitialScrolled = true;
                               if (_nextOnly) {
@@ -253,9 +288,9 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                               controller: _chipScrollController,
                               scrollDirection: Axis.horizontal,
                               padding: EdgeInsets.fromLTRB(
-                                centerPadding,
+                                hPadding,
                                 6,
-                                centerPadding,
+                                hPadding,
                                 2,
                               ),
                               child: Row(
@@ -263,7 +298,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                   if (progress.nextSemester != null) ...[
                                     _SemesterChip(
                                       key: _nextKey,
-                                      label: 'Kỳ tới · HK${progress.nextSemester}',
+                                      label:
+                                          'Kỳ tới · HK${progress.nextSemester}',
                                       icon: Icons.flag_rounded,
                                       palette: const SemesterPalette(
                                         AppTheme.accentOrange,
@@ -284,13 +320,21 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                       AppTheme.primaryDark,
                                       AppTheme.primaryLight,
                                     ),
-                                    selected: !_nextOnly && _semester == null,
+                                    selected: isAllSelected,
                                     onSelected: () {
                                       setState(() {
                                         _nextOnly = false;
                                         _semester = null;
                                       });
-                                      _scrollToKey(_allKey);
+                                      if (_chipScrollController.hasClients) {
+                                        _chipScrollController.animateTo(
+                                          0,
+                                          duration: const Duration(
+                                            milliseconds: 250,
+                                          ),
+                                          curve: Curves.easeOutCubic,
+                                        );
+                                      }
                                     },
                                   ),
                                   for (final semester in semesters) ...[
@@ -368,6 +412,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         ),
                     ],
                   ),
+                ),
+            ),
           ),
         ],
       ),
@@ -376,13 +422,23 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 }
 
 class _ProgressHero extends StatelessWidget {
-  const _ProgressHero({required this.progress, required this.hasTranscript});
+  const _ProgressHero({
+    required this.progress,
+    required this.hasTranscript,
+    this.selectedSemester,
+  });
   final LearningProgress progress;
   final bool hasTranscript;
+  final int? selectedSemester;
 
   @override
   Widget build(BuildContext context) {
     final percent = (progress.completionRatio * 100).round();
+    final isSpecificSemester = selectedSemester != null;
+    final headerTitle = isSpecificSemester
+        ? 'Tiến độ chương trình · HK$selectedSemester'
+        : 'Tiến độ chương trình';
+
     return HeroPanel(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -392,10 +448,10 @@ class _ProgressHero extends StatelessWidget {
             children: [
               const Icon(Icons.route_rounded, size: 20),
               const SizedBox(width: 8),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Tiến độ chương trình',
-                  style: TextStyle(
+                  headerTitle,
+                  style: const TextStyle(
                     color: Color(0xFFE3F2FD),
                     fontWeight: FontWeight.w600,
                   ),
@@ -519,12 +575,18 @@ class _SemesterChip extends StatelessWidget {
     label: Text(label),
     labelStyle: TextStyle(
       fontWeight: FontWeight.w700,
-      color: selected ? Colors.white : palette.fg,
+      fontSize: 13,
+      color: selected ? Colors.white : AppTheme.slate700,
     ),
     selected: selected,
     selectedColor: palette.fg,
-    backgroundColor: palette.bg,
-    side: BorderSide(color: selected ? palette.fg : Colors.transparent),
+    backgroundColor: Colors.white,
+    side: BorderSide(
+      color: selected ? palette.fg : const Color(0xFFE2E8F0),
+      width: selected ? 1.5 : 1.0,
+    ),
+    elevation: selected ? 1.0 : 0.0,
+    shadowColor: palette.fg.withValues(alpha: 0.3),
     shape: const StadiumBorder(),
     onSelected: (_) => onSelected(),
   );

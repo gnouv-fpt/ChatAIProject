@@ -61,7 +61,7 @@ class SectionHeader extends StatelessWidget {
     required this.title,
     this.icon,
     this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(4, 8, 4, 8),
+    this.padding = const EdgeInsets.fromLTRB(4, 12, 4, 8),
   });
 
   final String title;

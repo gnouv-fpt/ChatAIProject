@@ -369,12 +369,12 @@ void main() {
       await tester.pumpWidget(app);
       await tester.pumpAndSettle();
 
-      // 1. Ban đầu tab 'Tất cả' được chọn và nằm ở giữa màn hình (360 / 2 = 180)
+      // 1. Ban đầu tab 'Tất cả' được chọn và căn lề trái tự nhiên (tránh khoảng trống bên trái)
       final allChip = find.widgetWithText(ChoiceChip, 'Tất cả');
       expect(allChip, findsOneWidget);
       final allCenterX = tester.getCenter(allChip).dx;
-      expect((allCenterX - 180).abs(), lessThanOrEqualTo(25),
-          reason: 'Tab Tất cả phải ở giữa màn hình ban đầu: $allCenterX');
+      expect(allCenterX, lessThanOrEqualTo(100),
+          reason: 'Tab Tất cả phải căn lề trái ban đầu, thực tế: $allCenterX');
 
       // 2. Nhấn chọn 'HK 0' -> tab HK 0 tự động trượt vào chính giữa màn hình
       final hk0Chip = find.widgetWithText(ChoiceChip, 'HK 0');
@@ -422,13 +422,13 @@ void main() {
       expect((hk0BackX - 180).abs(), lessThanOrEqualTo(25),
           reason: 'HK 0 phải trượt ngược lại ra giữa màn hình, thực tế: $hk0BackX');
 
-      // 7. Chọn lại 'Tất cả' (bên trái) -> 'Tất cả' trượt ngược lại ra giữa
+      // 7. Chọn lại 'Tất cả' (bên trái) -> 'Tất cả' trượt ngược lại về đầu danh sách (lề trái)
       final allBack = find.widgetWithText(ChoiceChip, 'Tất cả');
       await tester.tap(allBack);
       await tester.pumpAndSettle();
       final allBackX = tester.getCenter(allBack).dx;
-      expect((allBackX - 180).abs(), lessThanOrEqualTo(25),
-          reason: 'Tất cả phải trượt ngược lại ra giữa màn hình, thực tế: $allBackX');
+      expect(allBackX, lessThanOrEqualTo(100),
+          reason: 'Tất cả phải trượt về đầu danh sách (lề trái), thực tế: $allBackX');
     });
   });
 }

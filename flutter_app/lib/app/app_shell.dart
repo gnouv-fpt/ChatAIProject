@@ -43,12 +43,24 @@ class _AppShellState extends State<AppShell> {
       const TranscriptScreen(),
       const SettingsScreen(),
     ];
-    final content = IndexedStack(
-      index: _index,
-      children: [
-        for (var i = 0; i < pages.length; i++)
-          _visited.contains(i) ? pages[i] : const SizedBox.shrink(),
-      ],
+    final content = AnimatedSwitcher(
+      duration: const Duration(milliseconds: 220),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: child,
+      ),
+      child: KeyedSubtree(
+        key: ValueKey(_index),
+        child: IndexedStack(
+          index: _index,
+          children: [
+            for (var i = 0; i < pages.length; i++)
+              _visited.contains(i) ? pages[i] : const SizedBox.shrink(),
+          ],
+        ),
+      ),
     );
     final destinations = <NavigationDestination>[
       const NavigationDestination(
@@ -57,8 +69,8 @@ class _AppShellState extends State<AppShell> {
         label: 'Trang chủ',
       ),
       const NavigationDestination(
-        icon: Icon(Icons.route_outlined),
-        selectedIcon: Icon(Icons.route),
+        icon: Icon(Icons.menu_book_outlined),
+        selectedIcon: Icon(Icons.menu_book),
         label: 'Lộ trình',
       ),
       const NavigationDestination(

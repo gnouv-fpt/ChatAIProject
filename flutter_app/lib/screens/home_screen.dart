@@ -10,6 +10,7 @@ import '../models/load_status.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/learning_journey_card.dart';
+import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key, required this.onNavigate});
@@ -37,9 +38,21 @@ class HomeScreen extends StatelessWidget {
     final total = catalog.courses.length;
 
     return Scaffold(
-      appBar: const FlmAppBar(
+      appBar: FlmAppBar(
         title: 'Cố vấn học tập FLM',
         subtitle: 'Chương trình đào tạo của bạn',
+        actions: [
+          ContextualChatLauncher(
+            curriculumId: catalog.curriculum?.id ?? '',
+            contextKey: 'home',
+            title: 'trang chủ',
+            contextHint: 'Tổng quan tiến độ học tập và chương trình ${catalog.curriculum?.id ?? ''}',
+            suggestedQuestions: const [
+              'Tôi nên học gì tiếp theo?',
+              'Tóm tắt tiến độ học tập của tôi.',
+            ],
+          ),
+        ],
       ),
       body: catalog.isLoading && total == 0
           ? const Center(child: CircularProgressIndicator())
@@ -48,7 +61,7 @@ class HomeScreen extends StatelessWidget {
           : RefreshIndicator(
               onRefresh: catalog.load,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
                 children: [
                   HeroPanel(
                     child: Column(

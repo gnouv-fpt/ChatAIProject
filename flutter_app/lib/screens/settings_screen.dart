@@ -10,6 +10,7 @@ import '../models/load_status.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
+import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -130,17 +131,29 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final chat = context.watch<ChatProvider>();
     final curriculum = context.watch<CourseCatalog>().curriculum;
     return Scaffold(
-      appBar: const FlmAppBar(
+      appBar: FlmAppBar(
         title: 'Cài đặt',
         subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
+        actions: [
+          ContextualChatLauncher(
+            curriculumId: curriculum?.id ?? '',
+            contextKey: 'settings',
+            title: 'mục tiêu học tập',
+            contextHint: 'Mục tiêu học tập cá nhân trong chương trình ${curriculum?.id ?? ''}',
+            suggestedQuestions: const [
+              'Mục tiêu GPA của tôi có khả thi không?',
+              'Tôi nên chọn mục tiêu học tập thế nào?',
+            ],
+          ),
+        ],
       ),
       body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           if (context.read<AuthViewModel?>() case final auth?) ...[
             Card(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -180,10 +193,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ],
                     ),
                     if (auth.message != null) ...[
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(auth.message!),
                     ],
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     OutlinedButton.icon(
                       onPressed: auth.busy ? null : auth.signOut,
                       icon: const Icon(Icons.logout_rounded),
@@ -193,11 +206,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
           ],
           if (curriculum != null)
             Padding(
-              padding: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.only(bottom: 16),
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pushNamed(
                   context,
@@ -211,9 +224,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             title: 'Mục tiêu học tập',
             icon: Icons.flag_rounded,
           ),
+          const SizedBox(height: 4),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -237,7 +251,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  if (transcript.saveError != null) Text(transcript.saveError!),
+                  if (transcript.saveError != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(transcript.saveError!),
+                    ),
+                  const SizedBox(height: 14),
                   Slider(
                     value: transcript.targetGpa,
                     min: 0,
@@ -250,10 +269,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -277,8 +296,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  if (profile.error != null) Text(profile.error!),
-                  const SizedBox(height: 12),
+                  if (profile.error != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(profile.error!),
+                    ),
+                  const SizedBox(height: 18),
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: _currentSemester,
@@ -299,7 +322,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _currentSemester = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _courseGoal,
@@ -315,7 +338,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                     onChanged: (value) => setState(() => _courseGoal = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _learningStyle,
@@ -335,7 +358,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _learningStyle = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _studyPriority,
@@ -355,7 +378,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     onChanged: (value) =>
                         setState(() => _studyPriority = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _longTermGoal,
@@ -378,7 +401,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                     onChanged: (value) => setState(() => _longTermGoal = value),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   TextField(
                     controller: _careerController,
                     maxLength: 80,
@@ -386,6 +409,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       labelText: 'Mục tiêu nghề nghiệp (tùy chọn)',
                     ),
                   ),
+                  const SizedBox(height: 8),
                   Align(
                     alignment: Alignment.centerRight,
                     child: FilledButton(
@@ -429,14 +453,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           const SectionHeader(
             title: 'Kết nối trợ lý AI',
             icon: Icons.smart_toy_rounded,
           ),
+          const SizedBox(height: 4),
           Card(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -449,7 +474,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       prefixIcon: Icon(Icons.dns_rounded),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
@@ -486,7 +511,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: const Text('Áp dụng'),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: FilledButton(
                           onPressed: chat.checkServerHealth,
@@ -495,7 +520,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 14),
                   StatusPill(
                     label: chat.isServerOnline == null
                         ? 'Đang kiểm tra kết nối...'
@@ -518,12 +543,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           const SectionHeader(title: 'Dữ liệu', icon: Icons.storage_rounded),
+          const SizedBox(height: 4),
           Card(
             child: Column(
               children: [
                 ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   leading: const IconTile(
                     icon: Icons.refresh_rounded,
                     color: AppTheme.primaryBlue,
@@ -535,6 +565,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 const Divider(height: 1, indent: 68),
                 ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
                   leading: const IconTile(
                     icon: Icons.delete_outline_rounded,
                     color: AppTheme.danger,

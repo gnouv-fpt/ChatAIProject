@@ -5,6 +5,8 @@ import '../state/transcript_import_view_model.dart';
 import '../models/load_status.dart';
 import '../models/transcript_entry.dart';
 import '../widgets/app_ui.dart';
+import '../features/chat/views/widgets/contextual_chat_launcher.dart';
+import '../state/course_catalog.dart';
 import '../widgets/course_visuals.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/flm_notice.dart';
@@ -59,9 +61,21 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
     final hasGpa =
         transcript.hasTranscript && transcript.evaluation.totalGpaCredits > 0;
     return Scaffold(
-      appBar: const FlmAppBar(
+      appBar: FlmAppBar(
         title: 'Bảng điểm',
         subtitle: 'GPA và tiến độ học tập cá nhân',
+        actions: [
+          ContextualChatLauncher(
+            curriculumId: context.watch<CourseCatalog>().curriculum?.id ?? '',
+            contextKey: 'transcript',
+            title: 'bảng điểm',
+            contextHint: 'Bảng điểm và GPA cá nhân trong chương trình ${context.read<CourseCatalog>().curriculum?.id ?? ''}',
+            suggestedQuestions: const [
+              'GPA hiện tại của tôi là bao nhiêu?',
+              'Tôi nên cải thiện điểm những môn nào?',
+            ],
+          ),
+        ],
       ),
       body:
           transcript.status == LoadStatus.loading ||
@@ -74,7 +88,7 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
                   : null,
             )
           : ListView(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
               children: [
                 HeroPanel(
                   child: Column(

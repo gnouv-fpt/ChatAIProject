@@ -7,6 +7,7 @@ import '../models/transcript_entry.dart';
 import '../services/grade_calculator.dart';
 import '../state/course_catalog.dart';
 import '../theme/app_theme.dart';
+import '../widgets/course_visuals.dart';
 import '../widgets/flm_notice.dart';
 
 class TranscriptConfirmScreen extends StatefulWidget {
@@ -164,8 +165,6 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         ],
       ),
     );
-    // showDialog completes when pop starts; its reverse transition still owns
-    // the TextFormFields for a few frames. Dispose after the route is gone.
     unawaited(
       Future<void>.delayed(const Duration(milliseconds: 500)).then((_) {
         codeController.dispose();
@@ -287,6 +286,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
     final hasGpaCredits = eval.totalGpaCredits > 0 && !hasMissingCredits;
 
     return Scaffold(
+      backgroundColor: AppTheme.slate50,
       appBar: AppBar(
         title: Text(
           widget.manualEntry
@@ -319,7 +319,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
                   child: SizedBox(
                     width: double.infinity,
                     child: OutlinedButton.icon(
@@ -343,79 +343,122 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     ),
                   ),
                 if (_entries.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(16),
-                    child: Text(
-                      'Chưa có môn học. Bấm Thêm môn thủ công để bắt đầu.',
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Row(
+                          children: const [
+                            Icon(
+                              Icons.playlist_add_outlined,
+                              color: AppTheme.primaryBlue,
+                            ),
+                            SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Chưa có môn học. Bấm Thêm môn thủ công để bắt đầu.',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   )
                 else
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    color: AppTheme.primaryLight,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        Expanded(
-                          child: Column(
-                            children: [
-                              const Text(
-                                'GPA hiện tại',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.slate600),
-                              ),
-                              Text(
-                                hasGpaCredits ? '${eval.currentGpa}' : '—',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryBlue,
-                                ),
-                              ),
-                            ],
-                          ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 4,
+                    ),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+                        border: Border.all(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.25),
                         ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Xếp loại thực',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.slate600),
-                              ),
-                              Text(
-                                hasGpaCredits ? eval.actualRank : 'Chưa tính',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'GPA hiện tại',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppTheme.slate600,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        Expanded(
-                          child: Column(
-                            children: [
-                              const Text(
-                                'Học lại',
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: AppTheme.slate600),
-                              ),
-                              Text(
-                                '${eval.retakeCount} môn',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: eval.retakeCount >= 2
-                                      ? AppTheme.danger
-                                      : AppTheme.slate900,
+                                const SizedBox(height: 4),
+                                Text(
+                                  hasGpaCredits ? '${eval.currentGpa}' : '—',
+                                  style: const TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryBlue,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Xếp loại thực',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppTheme.slate600,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  hasGpaCredits ? eval.actualRank : 'Chưa tính',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Expanded(
+                            child: Column(
+                              children: [
+                                const Text(
+                                  'Học lại',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: AppTheme.slate600,
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '${eval.retakeCount} môn',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                    color: eval.retakeCount >= 2
+                                        ? AppTheme.danger
+                                        : AppTheme.slate900,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits)
@@ -426,12 +469,12 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                       tone: NoticeTone.warning,
                     ),
                   ),
-                const Divider(height: 1),
+                const SizedBox(height: 4),
               ],
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 16),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate((context, index) {
                 final item = _entries[index];
@@ -446,11 +489,12 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                 final bool isExcluded = GradeCalculator.isExcludedFromGpa(
                   item.courseCode,
                 );
+                final palette = SemesterPalette.of(item.semester);
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 12,
-                    vertical: 6,
+                    vertical: 5,
                   ),
                   color: isLowConfidence || isUnknown
                       ? AppTheme.warningSurface
@@ -469,31 +513,59 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          item.courseCode,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: palette.bg,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                item.courseCode,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14,
+                                  color: palette.fg,
+                                ),
+                              ),
+                            ),
+                            if (item.courseName.isNotEmpty) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  item.courseName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: AppTheme.slate900,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
+                        const SizedBox(height: 4),
                         Wrap(
                           spacing: 6,
                           runSpacing: 4,
                           children: [
                             if (isUnknown)
-                              const Padding(
-                                padding: EdgeInsets.zero,
-                                child: Text(
-                                  'Mã chưa khớp',
-                                  style: TextStyle(
-                                    color: AppTheme.danger,
-                                    fontSize: 14,
-                                  ),
+                              const Text(
+                                'Mã chưa khớp',
+                                style: TextStyle(
+                                  color: AppTheme.danger,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
                                 ),
                               ),
                             if (isExcluded)
                               Container(
-                                margin: EdgeInsets.zero,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
                                   vertical: 2,
@@ -505,14 +577,13 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                                 child: const Text(
                                   'Miễn GPA',
                                   style: TextStyle(
-                                    fontSize: 14,
+                                    fontSize: 12.5,
                                     color: AppTheme.slate600,
                                   ),
                                 ),
                               ),
                             if (isLowConfidence)
                               Container(
-                                margin: EdgeInsets.zero,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 6,
                                   vertical: 2,
@@ -525,9 +596,10 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                                   missingCredits
                                       ? 'Kiểm tra tín chỉ'
                                       : 'Cần kiểm tra',
-                                  style: TextStyle(
-                                    fontSize: 14,
+                                  style: const TextStyle(
+                                    fontSize: 12.5,
                                     color: AppTheme.danger,
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
@@ -535,8 +607,11 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                         ),
                       ],
                     ),
-                    subtitle: Text(
-                      'Kỳ ${item.semester} • ${item.credits} tín chỉ • ${item.inProgress ? "Đang học, chưa có điểm cuối" : "Điểm: ${item.score}"}',
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Kỳ ${item.semester} • ${item.credits} tín chỉ • ${item.inProgress ? "Đang học, chưa có điểm cuối" : "Điểm: ${item.score}"}',
+                      ),
                     ),
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
