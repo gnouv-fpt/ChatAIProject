@@ -465,6 +465,7 @@ class SemanticVectorStore:
         top_k: int = 4,
         target_course: Optional[str] = None,
         similarity_threshold: float = 0.03,
+        allowed_course_codes: Optional[Set[str]] = None,
     ) -> List[Tuple[FLMDocumentChunk, float]]:
         """Search by multilingual embedding similarity inside a safe scope."""
         if not self.chunks or self.embeddings is None:
@@ -472,7 +473,11 @@ class SemanticVectorStore:
         if not query.strip():
             return []
 
-        detected_courses = [self.canonical_course_code(target_course)] if target_course else self.extract_target_courses(query)
+        detected_courses = (
+            [self.canonical_course_code(target_course)] if target_course
+            else [] if allowed_course_codes is not None
+            else self.extract_target_courses(query)
+        )
         intents = self.detect_query_intent(query)
 
         target_course_code = detected_courses[0] if detected_courses else None
@@ -490,6 +495,14 @@ class SemanticVectorStore:
                     return []
 
         candidate_indices = target_indices if target_indices else list(range(len(self.chunks)))
+        if allowed_course_codes is not None:
+            allowed = {code.upper() for code in allowed_course_codes}
+            candidate_indices = [
+                index for index in candidate_indices
+                if (self.chunks[index].course_code or "").upper() in allowed
+            ]
+            if not candidate_indices:
+                return []
         query_tokens = self._tokenize(query)
         query_variants = [f"query: {query}"]
         intent_expansions = {

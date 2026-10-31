@@ -797,8 +797,10 @@ class LLMService:
             return int(matches[-1])
 
         # 3. Fallback to student_context if asking about 'kỳ này' or 'kỳ tới'
-        if any(phrase in q_lower for phrase in ["kỳ này", "học kỳ này", "semester này", "kỳ tới", "kỳ sau"]):
-            context = student_context or {}
+        context = student_context or {}
+        if context.get("target_semester") is not None or any(
+            phrase in q_lower for phrase in ["kỳ này", "học kỳ này", "semester này", "kỳ tới", "kỳ sau"]
+        ):
             value = context.get("target_semester") or context.get("current_semester")
             try:
                 return int(value) if value is not None else None

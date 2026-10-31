@@ -1,7 +1,8 @@
 """Chat with temporary images. Images are processed in memory and not stored."""
 import base64
+import json
 import logging
-from typing import List, Optional
+from typing import Any, Dict, List, Optional, Set
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile, status
 
@@ -9,6 +10,7 @@ from ....schemas.chat import ChatResponse
 from ....services.language import ENGLISH, detect_language
 from ....services.local_ocr import extract_text
 from ....services.rag_engine import rag_engine
+from ....services.curriculum_facts import semester_courses
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -69,6 +71,7 @@ async def chat_with_images(
     scope: Optional[str] = Form(None),
     id: Optional[str] = Form(None),
     course_code: Optional[str] = Form(None),
+    student_context: Optional[str] = Form(None),
 ) -> ChatResponse:
     if not question.strip():
         raise HTTPException(status_code=400, detail="Prompt không được để trống.")
@@ -76,6 +79,14 @@ async def chat_with_images(
         raise HTTPException(status_code=400, detail="Cần ít nhất một ảnh.")
     if len(images) > 10:
         raise HTTPException(status_code=400, detail="Tối đa 10 ảnh mỗi lần gửi.")
+
+    try:
+        parsed_context = json.loads(student_context) if student_context else {}
+        if not isinstance(parsed_context, dict):
+            raise ValueError("student_context must be an object")
+        student_facts: Dict[str, Any] = parsed_context
+    except (json.JSONDecodeError, ValueError) as exc:
+        raise HTTPException(status_code=400, detail="student_context không hợp lệ.") from exc
 
     answers = []
     ocr_blocks = []
@@ -98,7 +109,7 @@ async def chat_with_images(
     flm_context_sections = []
 
     # 1. Check if the question asks about a specific semester (e.g., HK3)
-    target_sem = rag_engine.llm_service._target_semester(question, None)
+    target_sem = rag_engine.llm_service._target_semester(question, student_facts)
     if target_sem:
         sem_courses = [
             c for c in rag_engine.courses.values()
@@ -119,11 +130,29 @@ async def chat_with_images(
             )
 
     # 2. Search relevant curriculum / syllabus chunks from Vector Store
+    retrieved = []
+    target_course = None
+    allowed_course_codes: Optional[Set[str]] = None
+    if scope == "subject":
+        target_course = (course_code or id or "").strip() or None
+        if target_course is None:
+            allowed_course_codes = set()
+    elif scope == "curriculum":
+        if target_sem is not None:
+            allowed_course_codes = {
+                course.code.upper()
+                for course in semester_courses(rag_engine.courses, target_sem)
+            }
+        else:
+            target_course = (id or "BIT_SE_K19B").strip()
+
     try:
         retrieved = rag_engine.vector_store.search(
             query=question,
             top_k=6,
             similarity_threshold=0.3,
+            target_course=target_course,
+            allowed_course_codes=allowed_course_codes,
         )
         if retrieved:
             contents = rag_engine.llm_service.clip_chunk_contents([chunk.content for chunk, _ in retrieved])
@@ -137,6 +166,9 @@ async def chat_with_images(
 
     flm_context_str = "\n\n".join(flm_context_sections)
     language = detect_language(question)
+    student_facts_text = rag_engine.llm_service._format_student_facts(
+        student_facts, language
+    )
     texts = _OCR_PROMPT_EN if language == ENGLISH else _OCR_PROMPT_VI
     system_prompt = rag_engine.llm_service._build_system_prompt(language)
 
@@ -151,6 +183,8 @@ async def chat_with_images(
             )
             if flm_context_str:
                 prompt += f"{flm_context_str}\n\n"
+            if student_facts_text:
+                prompt += f"{student_facts_text}\n\n"
 
             prompt += (
                 f"{texts['question']}\n{question.strip()}\n\n"
@@ -170,6 +204,8 @@ async def chat_with_images(
             vision_prompt = f"{system_prompt}\n\n"
             if flm_context_str:
                 vision_prompt += f"{flm_context_str}\n\n"
+            if student_facts_text:
+                vision_prompt += f"{student_facts_text}\n\n"
             vision_prompt += (
                 f"{texts['question']}\n{question.strip()}\n\n"
                 f"{texts['vision_instruction']}"
@@ -189,9 +225,16 @@ async def chat_with_images(
     if not answers:
         raise HTTPException(status_code=422, detail="Không nhận được nội dung từ ảnh.")
 
+    sources = list(dict.fromkeys(
+        f"{chunk.course_code}.md ({chunk.title})"
+        for chunk, _ in retrieved
+    ))
+    if not sources:
+        sources = ["Ảnh bảng điểm (OCR)"] if ocr_blocks else ["Ảnh đính kèm"]
+
     return ChatResponse(
         answer="\n\n".join(answers),
-        sources=["Ảnh bảng điểm (OCR)", "Dữ liệu chương trình đào tạo FLM FPTU"],
+        sources=sources,
         question=question,
         matched_courses=[course_code] if course_code else [],
         provider=rag_engine.llm_service.get_active_provider(),

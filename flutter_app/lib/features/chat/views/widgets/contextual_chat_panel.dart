@@ -13,6 +13,8 @@ import 'server_status_bar.dart';
 class ContextualChatPanel extends StatefulWidget {
   final String scope; // 'curriculum' | 'subject'
   final String scopeId; // e.g. 'BIT_SE_K19B' or 'PRM393'
+  final String? backendScopeId;
+  final String? contextHint;
   final String title;
   final String? subtitle;
   final int? semesterNumber;
@@ -23,6 +25,8 @@ class ContextualChatPanel extends StatefulWidget {
     super.key,
     required this.scope,
     required this.scopeId,
+    this.backendScopeId,
+    this.contextHint,
     required this.title,
     this.subtitle,
     this.semesterNumber,
@@ -102,21 +106,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     }
     _textController.clear();
 
-    if (_pendingImages.isNotEmpty) {
-      final images = List<ImageFile>.from(_pendingImages);
-      setState(() => _pendingImages.clear());
-      provider.sendPromptWithImages(
-        text,
-        images,
-        scope: widget.scope,
-        id: widget.scopeId,
-      );
-      _scrollToBottom();
-      return;
-    }
-
-    // Lấy dữ kiện học tập đã tính bằng code từ TranscriptProvider (Mục 7.4)
-    // Nếu chưa có bảng điểm, studentContext = {} và chat vẫn hoạt động bình thường
+    // Keep the same page scope and student facts for text and image requests.
     final tp = context.read<TranscriptProvider>();
     final catalog = context.read<CourseCatalog>();
     final remaining = tp.hasTranscript
@@ -134,10 +124,28 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     );
     final studentContext = facts.isEmpty ? null : facts;
 
+    if (_pendingImages.isNotEmpty) {
+      final images = List<ImageFile>.from(_pendingImages);
+      setState(() => _pendingImages.clear());
+      provider.sendPromptWithImages(
+        text,
+        images,
+        scope: widget.scope,
+        id: widget.scopeId,
+        backendId: widget.backendScopeId,
+        contextHint: widget.contextHint,
+        studentContext: studentContext,
+      );
+      _scrollToBottom();
+      return;
+    }
+
     provider.sendPrompt(
       text,
       scope: widget.scope,
       id: widget.scopeId,
+      backendId: widget.backendScopeId,
+      contextHint: widget.contextHint,
       studentContext: studentContext,
     );
     _scrollToBottom();
@@ -295,6 +303,13 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                           ],
                         ],
                       ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.add_comment_outlined,
+                          size: isCompactLandscape ? 18 : 20),
+                      visualDensity: isCompactLandscape ? VisualDensity.compact : null,
+                      tooltip: 'Bắt đầu phiên mới',
+                      onPressed: provider.isLoading ? null : provider.startNewSession,
                     ),
                     IconButton(
                       icon: Icon(Icons.delete_outline, size: isCompactLandscape ? 18 : 20),
@@ -493,7 +508,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         textInputAction: TextInputAction.send,
                         decoration: InputDecoration(
                           labelText: 'Câu hỏi của bạn',
-                          hintText: widget.scope == 'subject'
+                          hintText: widget.contextHint != null
+                              ? 'Hỏi về ${widget.title}...'
+                              : widget.scope == 'subject'
                               ? 'Hỏi về môn ${widget.scopeId}...'
                               : 'Hỏi về chương trình ${widget.scopeId}...',
                           hintStyle: const TextStyle(

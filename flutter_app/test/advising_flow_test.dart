@@ -134,11 +134,9 @@ void main() {
         );
         await tester.pump();
         expect(find.text('Chuẩn đầu ra'), findsOneWidget);
-        expect(find.text('Điều kiện môn học'), findsOneWidget);
-        expect(find.text('Tiêu chí đánh giá'), findsOneWidget);
-        await tester.drag(find.byType(TabBar), const Offset(-220, 0));
-        await tester.pump();
-        await tester.tap(find.text('Điều kiện môn học'));
+        expect(find.text('Tiên quyết'), findsOneWidget);
+        expect(find.text('Đánh giá'), findsOneWidget);
+        await tester.tap(find.text('Tiên quyết'));
         await tester.pump();
         expect(find.text('PRF192'), findsWidgets);
         await tester.binding.handlePopRoute();

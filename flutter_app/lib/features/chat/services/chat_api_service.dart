@@ -141,6 +141,7 @@ class ChatApiService {
     String? scope,
     String? id,
     String? courseCode,
+    Map<String, dynamic>? studentContext,
   }) async {
     try {
       final request =
@@ -152,6 +153,9 @@ class ChatApiService {
             ..fields['scope'] = scope ?? ''
             ..fields['id'] = id ?? ''
             ..fields['course_code'] = courseCode ?? '';
+      if (studentContext != null && studentContext.isNotEmpty) {
+        request.fields['student_context'] = jsonEncode(studentContext);
+      }
 
       for (final image in images) {
         request.files.add(

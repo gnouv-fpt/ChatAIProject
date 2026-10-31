@@ -13,11 +13,33 @@ class ChatSession {
   final String scopeId;
   final List<ChatMessage> messages;
 
+  DateTime get lastActivity => messages.last.timestamp;
+
+  String get contextLabel {
+    if (scope == 'subject') return 'Môn $scopeId';
+    final parts = scopeId.split(':');
+    if (parts.length < 2) return 'Chương trình ${parts.first}';
+    final context = parts.last;
+    if (context.startsWith('semester-')) {
+      return 'Học kỳ ${context.substring(9)} · ${parts.first}';
+    }
+    const labels = {
+      'home': 'Trang chủ',
+      'roadmap': 'Lộ trình học',
+      'graph': 'Sơ đồ môn học',
+      'transcript': 'Bảng điểm',
+      'settings': 'Mục tiêu học tập',
+    };
+    return '${labels[context] ?? context} · ${parts.first}';
+  }
+
   String get title {
     for (final message in messages) {
       if (message.sender == ChatSender.user) {
         final firstLine = message.text.split('\n').first;
-        return firstLine.length > 55 ? '${firstLine.substring(0, 55)}…' : firstLine;
+        return firstLine.length > 55
+            ? '${firstLine.substring(0, 55)}…'
+            : firstLine;
       }
     }
     return 'Phiên mới';

@@ -303,6 +303,42 @@ class RAGEngine:
                     detected_courses = past_courses
                     break
 
+        # A selected semester is authoritative for an implicit question such
+        # as "môn nào". Semantic course detection can otherwise pull an
+        # unrelated subject into the answer.
+        selected_semester = (request.student_context or {}).get("target_semester")
+        if request.scope == "curriculum" and selected_semester is not None:
+            requested_semester = detect_semester(query, request.student_context)
+            in_semester = {
+                course.code.upper()
+                for course in semester_courses(self.courses, requested_semester)
+            }
+            explicit_outside = [
+                code for code in detected_courses
+                if code.upper() in self.courses
+                and code.upper() not in in_semester
+                and re.search(rf"\b{re.escape(code)}\b", query, re.IGNORECASE)
+            ]
+            if explicit_outside:
+                code = explicit_outside[0].upper()
+                actual_semester = self.courses[code].semester
+                return ChatResponse(
+                    answer=(
+                        f"Môn {code} thuộc Học kỳ {actual_semester}, còn bạn đang hỏi "
+                        f"trong Học kỳ {requested_semester}. Hãy mở môn hoặc học kỳ đó "
+                        "để hỏi chi tiết."
+                    ),
+                    sources=[f"{code}.md (Dữ liệu môn học FLM)"],
+                    question=query,
+                    matched_courses=[code],
+                    provider="FLM-Structured-Synthesizer",
+                    latency_ms=round((time.time() - start_time) * 1000, 2),
+                    detailed_sources=[],
+                )
+            detected_courses = [
+                code for code in detected_courses if code.upper() in in_semester
+            ]
+
         target_course = (
             request.course_code
             or (request.id if request.scope == "subject" else None)
@@ -426,12 +462,27 @@ class RAGEngine:
         # of the prompt before the generator can read it.
         primary_top_k = max(1, top_k - min(2 * len(related_courses), top_k - 1))
 
+        # Select semester evidence before ranking. Filtering a top-k result
+        # afterwards can discard every relevant course chunk.
+        semester = detect_semester(query, request.student_context)
+        semester_scope = (
+            request.scope == "curriculum"
+            and semester is not None
+            and not detected_courses
+        )
+        allowed_course_codes = None
+        if semester_scope:
+            allowed_course_codes = {
+                c.code.upper() for c in semester_courses(self.courses, semester)
+            }
+
         # 2. Retrieve most relevant context chunks
         retrieved_results = self.vector_store.search(
             query=query,
             top_k=primary_top_k,
-            target_course=target_course,
+            target_course=None if semester_scope else target_course,
             similarity_threshold=settings.SIMILARITY_THRESHOLD,
+            allowed_course_codes=allowed_course_codes,
         )
 
         # A subject-scoped conversation normally searches only the open
@@ -459,14 +510,6 @@ class RAGEngine:
 
         # A semester question without a specific subject must only see that
         # semester's courses; chunks of other semesters mislead the model.
-        semester = detect_semester(query, request.student_context)
-        if semester is not None and not detected_courses:
-            allowed = {c.code.upper() for c in semester_courses(self.courses, semester)} | {"CURRICULUM", DEFAULT_CURRICULUM_ID}
-            retrieved_results = [
-                (chunk, score) for chunk, score in retrieved_results
-                if (chunk.course_code or "").upper() in allowed
-            ]
-
         curriculum_facts = build_curriculum_facts(
             question=query,
             courses=self.courses,

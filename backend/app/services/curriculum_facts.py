@@ -58,8 +58,10 @@ def detect_semester(question: str, student_context: Optional[Dict[str, Any]] = N
     if matches:
         # "điểm kỳ 1, kỳ 2... chiến lược kỳ 3": the last mentioned is the target.
         return int(matches[-1])
-    if any(p in q_lower for p in ["kỳ này", "học kỳ này", "kỳ tới", "kỳ sau", "this semester", "next semester"]):
-        context = student_context or {}
+    context = student_context or {}
+    if context.get("target_semester") is not None or any(
+        p in q_lower for p in ["kỳ này", "học kỳ này", "kỳ tới", "kỳ sau", "this semester", "next semester"]
+    ):
         value = context.get("target_semester") or context.get("current_semester")
         try:
             return int(value) if value is not None else None

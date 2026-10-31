@@ -24,6 +24,12 @@ class _ChatScreenState extends State<ChatScreen> {
   final FocusNode _focusNode = FocusNode();
   final List<ImageFile> _images = [];
 
+  String _sessionTime(DateTime value) {
+    final date = value.toLocal();
+    String two(int number) => number.toString().padLeft(2, '0');
+    return '${two(date.day)}/${two(date.month)}/${date.year} ${two(date.hour)}:${two(date.minute)}';
+  }
+
   void _showSessions(ChatProvider provider) {
     showModalBottomSheet<void>(
       context: context,
@@ -52,8 +58,9 @@ class _ChatScreenState extends State<ChatScreen> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               subtitle: Text(
-                                '${session.category} · ${session.scopeId}',
+                                '${session.contextLabel} · ${session.category}\n${_sessionTime(session.lastActivity)}',
                               ),
+                              isThreeLine: true,
                               onTap: () {
                                 provider.openSession(session.id);
                                 Navigator.pop(sheetContext);

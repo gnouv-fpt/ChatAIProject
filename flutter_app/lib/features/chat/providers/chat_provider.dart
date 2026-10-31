@@ -16,11 +16,15 @@ import '../../../state/learning_profile_provider.dart';
 class ChatProvider extends ChangeNotifier {
   static const _historyKey = 'flm_chat_history_v1';
   static const _sessionsKey = 'flm_chat_sessions_v1';
+  static const _maxTurnsPerSession = 20;
+  static const _idleSessionLimit = Duration(hours: 6);
+  static const _newDayIdleLimit = Duration(hours: 1);
   late ChatApiService _apiService;
   final PersonalPreferences _storage;
   final LearningProfileProvider? profile;
   final ActivityRepository? historyRepository;
   final AppTelemetry? telemetry;
+  final DateTime Function() _clock;
   late final Future<void> historyReady;
   String? historyError;
   bool _cloudLoaded = false;
@@ -33,6 +37,7 @@ class ChatProvider extends ChangeNotifier {
   final Map<String, String> _activeSessionIds = {};
   final List<ChatSession> _archivedSessions = [];
   int _sessionSequence = 0;
+  String? _manuallyOpenedSessionId;
   bool _isLoading = false;
   bool? _isServerOnline;
   String _baseUrl = _defaultBaseUrl();
@@ -64,8 +69,47 @@ class ChatProvider extends ChangeNotifier {
   String get currentScope => _currentScope;
   String get currentScopeId => _currentScopeId;
   String get _scopeKey => '$_currentScope:$_currentScopeId';
+  String _apiScopeId(String scope, String id) =>
+      scope == 'curriculum' ? id.split(':').first : id;
+  int? _viewedSemester(String scope, String id) {
+    if (scope != 'curriculum') return null;
+    final match = RegExp(r':semester-(\d+)$').firstMatch(id);
+    return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
   String _newSessionId() =>
-      '${DateTime.now().microsecondsSinceEpoch}_${++_sessionSequence}';
+      '${_clock().microsecondsSinceEpoch}_${++_sessionSequence}';
+
+  bool _needsFreshSession(List<ChatMessage> messages) {
+    final userTurns = messages.where((m) => m.sender == ChatSender.user).length;
+    if (userTurns == 0) return false;
+    if (userTurns >= _maxTurnsPerSession) return true;
+    final last = messages.last.timestamp.toLocal();
+    final now = _clock().toLocal();
+    final idle = now.difference(last);
+    if (idle >= _idleSessionLimit) return true;
+    return (last.year != now.year ||
+            last.month != now.month ||
+            last.day != now.day) &&
+        idle >= _newDayIdleLimit;
+  }
+
+  void _refreshSessionForScope(String key) {
+    final messages = key == _scopeKey ? _messages : _scopeMessages[key];
+    if (messages == null ||
+        (_manuallyOpenedSessionId != null &&
+            _manuallyOpenedSessionId == _activeSessionIds[key]) ||
+        !_needsFreshSession(messages)) {
+      return;
+    }
+    _archiveScope(key, messages: messages);
+    _activeSessionIds[key] = _newSessionId();
+    if (key == _scopeKey) {
+      _messages.clear();
+      _initWelcomeMessage();
+      _scopeMessages[key] = List.of(_messages);
+    }
+  }
 
   List<ChatSession> get sessions {
     final active = _scopeMessages.entries
@@ -94,11 +138,13 @@ class ChatProvider extends ChangeNotifier {
       ...active,
       ..._archivedSessions,
     ];
-    return List.unmodifiable(items.reversed);
+    items.sort((a, b) => b.lastActivity.compareTo(a.lastActivity));
+    return List.unmodifiable(items);
   }
 
   void startNewSession() {
     if (_isLoading) return;
+    _manuallyOpenedSessionId = null;
     _archiveCurrent();
     _activeSessionIds[_scopeKey] = _newSessionId();
     _messages.clear();
@@ -130,7 +176,11 @@ class ChatProvider extends ChangeNotifier {
           .where((entry) => entry.value == sessionId)
           .map((entry) => entry.key)
           .firstOrNull;
-      if (scopeKey == null || scopeKey == _scopeKey) return;
+      if (scopeKey == null) return;
+      if (scopeKey == _scopeKey) {
+        _manuallyOpenedSessionId = sessionId;
+        return;
+      }
       _scopeMessages[_scopeKey] = List.of(_messages);
       final separator = scopeKey.indexOf(':');
       _currentScope = scopeKey.substring(0, separator);
@@ -140,6 +190,7 @@ class ChatProvider extends ChangeNotifier {
         ..addAll(_scopeMessages[scopeKey] ?? []);
     }
     _lastError = null;
+    _manuallyOpenedSessionId = sessionId;
     notifyListeners();
     unawaited(_persistHistory());
   }
@@ -172,7 +223,9 @@ class ChatProvider extends ChangeNotifier {
     this.historyRepository,
     this.telemetry,
     PersonalPreferences? storage,
-  }) : _storage = storage ?? PersonalPreferences() {
+    DateTime Function()? clock,
+  }) : _storage = storage ?? PersonalPreferences(),
+       _clock = clock ?? DateTime.now {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
     historyReady = _loadHistory();
@@ -180,8 +233,15 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void updateScope({required String scope, required String id}) {
-    if (_currentScope == scope && _currentScopeId == id) return;
+    if (_currentScope == scope && _currentScopeId == id) {
+      _refreshSessionForScope(_scopeKey);
+      notifyListeners();
+      unawaited(_persistHistory());
+      return;
+    }
     _scopeMessages[_scopeKey] = List<ChatMessage>.from(_messages);
+    _manuallyOpenedSessionId = null;
+    _refreshSessionForScope('$scope:$id');
     _currentScope = scope;
     _currentScopeId = id;
     _activeSessionIds.putIfAbsent(_scopeKey, _newSessionId);
@@ -333,7 +393,7 @@ class ChatProvider extends ChangeNotifier {
             '• Số tín chỉ, môn tiên quyết và kế hoạch học tập\n'
             '• Phương pháp học và chiến lược ôn thi',
         sender: ChatSender.ai,
-        timestamp: DateTime.now(),
+        timestamp: _clock(),
         status: MessageStatus.success,
         sources: ['FLM Knowledge Base'],
       ),
@@ -353,6 +413,8 @@ class ChatProvider extends ChangeNotifier {
     String text, {
     String? scope,
     String? id,
+    String? backendId,
+    String? contextHint,
     Map<String, dynamic>? studentContext,
   }) async {
     final prompt = text.trim();
@@ -363,9 +425,14 @@ class ChatProvider extends ChangeNotifier {
 
     final activeScope = scope ?? _currentScope;
     final activeId = id ?? _currentScopeId;
+    final viewedSemester = _viewedSemester(activeScope, activeId);
+    final effectiveHint =
+        contextHint ??
+        (viewedSemester == null ? null : 'Học kỳ $viewedSemester');
     final targetScopeKey = '$activeScope:$activeId';
+    _refreshSessionForScope(targetScopeKey);
 
-    final timestamp = DateTime.now();
+    final timestamp = _clock();
     final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
     final aiMsgId = 'ai_${timestamp.millisecondsSinceEpoch}';
 
@@ -381,7 +448,7 @@ class ChatProvider extends ChangeNotifier {
       id: aiMsgId,
       text: 'Đang tra cứu dữ liệu FLM...',
       sender: ChatSender.ai,
-      timestamp: DateTime.now(),
+      timestamp: _clock(),
       status: MessageStatus.sending,
     );
 
@@ -412,13 +479,21 @@ class ChatProvider extends ChangeNotifier {
     final historyMessages = _scopeKey == targetScopeKey
         ? _messages
         : targetList;
+    final contextFacts = {...?profile?.chatContext, ...?studentContext};
+    if (viewedSemester != null) {
+      contextFacts['target_semester'] = viewedSemester;
+    }
     final result = await _apiService.sendMessage(
-      prompt,
+      effectiveHint == null
+          ? prompt
+          : 'Ngữ cảnh đang xem: $effectiveHint. Câu hỏi: $prompt',
       scope: activeScope,
-      id: activeId,
-      studentContext: {...?studentContext, ...?profile?.chatContext},
+      id: backendId ?? _apiScopeId(activeScope, activeId),
+      studentContext: contextFacts,
       history: historyMessages
-          .where((message) => message.status != MessageStatus.sending)
+          .where((message) =>
+              message.status != MessageStatus.sending &&
+              message.id != 'welcome_msg')
           .toList()
           .reversed
           .skip(1)
@@ -439,7 +514,7 @@ class ChatProvider extends ChangeNotifier {
       id: aiMsgId,
       text: result.answer,
       sender: ChatSender.ai,
-      timestamp: DateTime.now(),
+      timestamp: _clock(),
       status: result.errorMessage != null
           ? MessageStatus.error
           : result.isOfflineFallback
@@ -491,6 +566,9 @@ class ChatProvider extends ChangeNotifier {
     List<ImageFile> images, {
     String? scope,
     String? id,
+    String? backendId,
+    String? contextHint,
+    Map<String, dynamic>? studentContext,
   }) async {
     final prompt = text.trim();
     if (prompt.isEmpty || images.isEmpty || _isLoading) return;
@@ -499,9 +577,14 @@ class ChatProvider extends ChangeNotifier {
 
     final activeScope = scope ?? _currentScope;
     final activeId = id ?? _currentScopeId;
+    final viewedSemester = _viewedSemester(activeScope, activeId);
+    final effectiveHint =
+        contextHint ??
+        (viewedSemester == null ? null : 'Học kỳ $viewedSemester');
     final targetScopeKey = '$activeScope:$activeId';
+    _refreshSessionForScope(targetScopeKey);
 
-    final timestamp = DateTime.now();
+    final timestamp = _clock();
     final userMsgId = 'user_${timestamp.millisecondsSinceEpoch}';
     final aiMsgId = 'ai_${timestamp.millisecondsSinceEpoch}';
 
@@ -515,7 +598,7 @@ class ChatProvider extends ChangeNotifier {
       id: aiMsgId,
       text: 'Đang đọc ảnh và xử lý prompt...',
       sender: ChatSender.ai,
-      timestamp: DateTime.now(),
+      timestamp: _clock(),
       status: MessageStatus.sending,
     );
 
@@ -536,11 +619,20 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     final result = await _apiService.sendMessageWithImages(
-      prompt,
+      effectiveHint == null
+          ? prompt
+          : 'Ngữ cảnh đang xem: $effectiveHint. Câu hỏi: $prompt',
       images,
       scope: activeScope,
-      id: activeId,
-      courseCode: activeScope == 'subject' ? activeId : null,
+      id: backendId ?? _apiScopeId(activeScope, activeId),
+      courseCode: activeScope == 'subject' ? backendId ?? activeId : null,
+      studentContext: {
+        ...?profile?.chatContext,
+        ...?studentContext,
+        ...?(viewedSemester == null
+            ? null
+            : {'target_semester': viewedSemester}),
+      },
     );
     if (_disposed) return;
 
@@ -548,7 +640,7 @@ class ChatProvider extends ChangeNotifier {
       id: aiMsgId,
       text: result.answer,
       sender: ChatSender.ai,
-      timestamp: DateTime.now(),
+      timestamp: _clock(),
       status: result.errorMessage == null
           ? MessageStatus.success
           : MessageStatus.error,
