@@ -18,6 +18,7 @@ import 'package:flm_courses/state/transcript_import_view_model.dart';
 import 'package:flm_courses/models/transcript_entry.dart';
 import 'package:flm_courses/models/curriculum.dart';
 import 'package:flm_courses/pages/curriculum_detail_page.dart';
+import 'package:flm_courses/pages/course_detail_page.dart';
 import 'package:flm_courses/state/course_catalog.dart';
 import 'package:flm_courses/state/learning_profile_provider.dart';
 import 'package:flm_courses/state/transcript_provider.dart';
@@ -139,6 +140,22 @@ Future<void> openCurriculum(
 }
 
 void main() {
+  testWidgets('course detail stays at the same top position across tabs', (tester) async {
+    await openCurriculum(
+      tester,
+      width: 360,
+      home: const CourseDetailPage(code: 'PRF192'),
+    );
+    await tester.pumpAndSettle();
+    final header = find.text('Cơ sở lập trình');
+    final initialTop = tester.getTopLeft(header).dy;
+    for (final tab in ['Tiên quyết', 'Đánh giá', 'Chuẩn đầu ra']) {
+      await tester.tap(find.text(tab));
+      await tester.pumpAndSettle();
+      expect(tester.getTopLeft(header).dy, closeTo(initialTop, 1), reason: tab);
+    }
+  });
+
   testWidgets(
     'missing or mismatched curriculum shows recovery without invented totals',
     (tester) async {
@@ -272,10 +289,79 @@ void main() {
           find.byType(ContextualChatPanel),
         );
         expect(panel.semesterNumber, 1);
+        expect(panel.scopeId, 'TEST:semester-1');
+        expect(panel.backendScopeId, 'TEST');
         expect(panel.suggestedQuestions!.single, contains('Học kỳ 1'));
         await screenshot(tester, 'advisor-${width.toInt()}');
         expect(tester.takeException(), isNull);
       },
     );
   }
+
+  testWidgets('asking from a course card keeps that course as the chat scope', (
+    tester,
+  ) async {
+    await openCurriculum(tester, width: 360);
+    final course = find.text('Cơ sở lập trình').first;
+    await tester.ensureVisible(course);
+    await tester.tap(course);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Tư vấn'));
+    await tester.pumpAndSettle();
+
+    final panel = tester.widget<ContextualChatPanel>(
+      find.byType(ContextualChatPanel),
+    );
+    expect(panel.scope, 'subject');
+    expect(panel.scopeId, 'PRF192');
+  });
+
+  testWidgets(
+    'multi-semester curriculum starts with all cards collapsed and scrolls selected semester to top',
+    (tester) async {
+      final multiCatalog = CourseCatalog()
+        ..curriculum = Curriculum.fromJson({
+          'id': 'MULTI_TEST',
+          'code': 'MULTI_TEST',
+          'name': 'Multi-Semester Test',
+          'name_vi': 'Chương trình đa học kỳ',
+          'total_credits': 30,
+          'total_subjects': 10,
+        })
+        ..courses = [
+          for (int s = 0; s <= 6; s++)
+            Course.fromJson({
+              'code': 'SUBJ_' + s.toString(),
+              'name': 'Subject Semester ' + s.toString(),
+              'name_vi': 'Môn học kỳ ' + s.toString(),
+              'credits': 3,
+              'semester': s,
+            }),
+        ];
+
+      await openCurriculum(tester, width: 412, catalog: multiCatalog, home: const CurriculumDetailPage(curriculumId: 'MULTI_TEST'));
+      await tester.pumpAndSettle();
+
+      // 1. Initial state: All semester cards collapsed, no subjects visible initially
+      expect(find.text('Học kỳ 0'), findsOneWidget);
+      expect(find.text('Học kỳ 4'), findsOneWidget);
+      expect(find.text('Môn học kỳ 0'), findsNothing);
+      expect(find.text('Môn học kỳ 4'), findsNothing);
+
+      // 2. Tap HK4 chip on the horizontal bar
+      final hk4Chip = find.widgetWithText(ActionChip, 'HK4');
+      expect(hk4Chip, findsOneWidget);
+      await tester.ensureVisible(hk4Chip);
+      await tester.tap(hk4Chip);
+      await tester.pumpAndSettle();
+
+      // 3. HK4 expands and subject inside HK4 is visible
+      expect(find.text('Môn học kỳ 4'), findsOneWidget);
+
+      // 4. Verify HK4 card is at the top of the scrollable list viewport
+      final hk4Card = find.text('Học kỳ 4');
+      final hk4Position = tester.getTopLeft(hk4Card);
+      expect(hk4Position.dy, closeTo(393.6, 5));
+    },
+  );
 }

@@ -9,7 +9,9 @@ import '../state/learning_profile_provider.dart';
 import '../services/learning_progress.dart';
 import '../screens/transcript_screen.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/breadcrumb_nav.dart';
+import '../widgets/course_visuals.dart';
 import '../widgets/status_badge.dart';
 
 class CourseDetailPage extends StatefulWidget {
@@ -169,30 +171,26 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
 
     return Scaffold(
       backgroundColor: AppTheme.slate50,
-      appBar: AppBar(
-        title: Text(
-          course != null
-              ? '${course.code} - ${course.nameVi.isNotEmpty ? course.nameVi : course.name}'
-              : widget.code,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-        ),
-        actions: const [],
-      ),
+      appBar: AppBar(title: const Text('Chi tiết môn học'), actions: const []),
       body: Column(
         children: [
           // Breadcrumb Navigation
-          BreadcrumbNav(
-            items: [
-              BreadcrumbItem(
-                label: 'Chương trình khung',
-                onTap: () {
-                  Navigator.of(context).popUntil((route) => route.isFirst);
-                },
-              ),
-              BreadcrumbItem(label: curId, onTap: () => Navigator.pop(context)),
-              BreadcrumbItem(label: course?.code ?? widget.code),
-            ],
-          ),
+          if (MediaQuery.sizeOf(context).width >= 600)
+            BreadcrumbNav(
+              items: [
+                BreadcrumbItem(
+                  label: 'Chương trình khung',
+                  onTap: () {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                ),
+                BreadcrumbItem(
+                  label: curId,
+                  onTap: () => Navigator.pop(context),
+                ),
+                BreadcrumbItem(label: course?.code ?? widget.code),
+              ],
+            ),
 
           // Main 2-column layout (Left: Syllabus Content, Right: Fixed Subject Chat Panel)
           Expanded(
@@ -210,13 +208,20 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                       final showChatPanel = _showRightChat && isDesktop;
 
                       return Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Left Column: Course Detail / Syllabus
                           Expanded(
                             flex: showChatPanel ? 65 : 100,
                             child: SingleChildScrollView(
-                              padding: const EdgeInsets.all(20),
-                              child: Center(
+                              padding: const EdgeInsets.fromLTRB(
+                                16,
+                                12,
+                                16,
+                                96,
+                              ),
+                              child: Align(
+                                alignment: Alignment.topCenter,
                                 child: ConstrainedBox(
                                   constraints: const BoxConstraints(
                                     maxWidth: 900,
@@ -257,39 +262,12 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
           course == null ||
               (_showRightChat && MediaQuery.of(context).size.width >= 960)
           ? null
-          : Tooltip(
-              message: 'Hỏi Trợ lý AI (FLM Chatbot)',
-              child: InkWell(
-                onTap: () => _openSubjectChat(course),
-                borderRadius: BorderRadius.circular(30),
-                child: Container(
-                  width: 58,
-                  height: 58,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF0284C7), Color(0xFF6366F1)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF6366F1).withValues(alpha: 0.42),
-                        blurRadius: 14,
-                        spreadRadius: 2,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: const Center(
-                    child: Icon(
-                      Icons.smart_toy_rounded,
-                      color: Colors.white,
-                      size: 30,
-                    ),
-                  ),
-                ),
-              ),
+          : FloatingActionButton.small(
+              tooltip: 'Hỏi trợ lý về môn này',
+              onPressed: () => _openSubjectChat(course),
+              backgroundColor: AppTheme.primaryBlue,
+              foregroundColor: Colors.white,
+              child: const Icon(Icons.chat_bubble_outline_rounded),
             ),
     );
   }
@@ -304,241 +282,304 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
       context.read<CourseCatalog>().courses,
       transcript.entries,
     ).status(course);
+    final readinessStyle = ReadinessStyle.of(
+      progress.readiness,
+      known: transcript.hasTranscript,
+    );
+    final readinessText = switch (progress.readiness) {
+      CourseReadiness.completed =>
+        'Đã hoàn thành · Điểm ${progress.score?.toStringAsFixed(1) ?? 'chưa rõ'}',
+      CourseReadiness.inProgress => 'Đang học trong học kỳ hiện tại',
+      _ when !transcript.hasTranscript =>
+        'Chưa có bảng điểm để xác nhận điều kiện học',
+      CourseReadiness.ready => 'Đủ tiên quyết theo bảng điểm đã nhập',
+      CourseReadiness.blocked =>
+        'Còn thiếu: ${progress.missingPrerequisites.join(', ')}',
+      CourseReadiness.unverified =>
+        'Cần xác minh: ${progress.unverifiedPrerequisites.join(', ')}',
+    };
+
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         // Header Hero Card
         Card(
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
+          clipBehavior: Clip.antiAlias,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
+                    Text(
+                      '${course.code}  ·  HỌC KỲ ${course.semester}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.8,
+                        color: AppTheme.primaryBlue,
                       ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: AppTheme.primaryBlue.withValues(alpha: 0.3),
-                        ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      course.nameVi.isNotEmpty ? course.nameVi : course.name,
+                      style: const TextStyle(
+                        fontSize: 23,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.slate900,
+                        height: 1.2,
                       ),
-                      child: Text(
-                        course.code,
+                    ),
+                    if (course.nameVi.isNotEmpty &&
+                        course.name != course.nameVi) ...[
+                      const SizedBox(height: 5),
+                      Text(
+                        course.name,
                         style: const TextStyle(
-                          color: AppTheme.primaryBlue,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 18,
+                          fontSize: 14,
+                          color: AppTheme.slate600,
                         ),
                       ),
-                    ),
-                    StatusBadge.semester(course.semester),
-                    StatusBadge.credits(course.credits),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.accentOrange,
-                        foregroundColor: Colors.white,
-                      ),
-                      child: const Text('Tư vấn môn này'),
-                      onPressed: () => _showAdvisorDialog(course),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: () => Navigator.push<void>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TranscriptScreen(),
-                        ),
-                      ),
-                      icon: const Icon(Icons.edit_note),
-                      label: const Text('Cập nhật điểm'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  course.nameVi.isNotEmpty ? course.nameVi : course.name,
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.slate900,
-                  ),
-                ),
-                if (course.nameVi.isNotEmpty &&
-                    course.name != course.nameVi) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    course.name,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: AppTheme.slate600,
-                      fontStyle: FontStyle.italic,
-                    ),
-                  ),
-                ],
-                const SizedBox(height: 14),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  children: [
-                    StatusBadge.pe(hasPe: course.hasPe),
-                    StatusBadge.gpa(countsInGpa: course.countsInGpa),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Text(switch (progress.readiness) {
-                  CourseReadiness.completed =>
-                    'Đã hoàn thành · Điểm ${progress.score?.toStringAsFixed(1) ?? 'chưa rõ'}',
-                  CourseReadiness.inProgress => 'Đang học',
-                  _ when !transcript.hasTranscript =>
-                    'Chưa có bảng điểm để xác nhận điều kiện học',
-                  CourseReadiness.ready =>
-                    'Đủ tiên quyết theo bảng điểm đã nhập',
-                  CourseReadiness.blocked =>
-                    'Còn thiếu: ${progress.missingPrerequisites.join(', ')}',
-                  CourseReadiness.unverified =>
-                    'Cần xác minh: ${progress.unverifiedPrerequisites.join(', ')}',
-                }),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 18),
-
-        // Section: "Xuất hiện trong (Appears In)" (Chương trình & Học kỳ)
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Xuất hiện trong chương trình đào tạo',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 12),
-                if (course.appearsIn.isEmpty)
-                  Text(
-                    'Chương trình $curId, Học kỳ ${course.semester}',
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  )
-                else
-                  Table(
-                    border: TableBorder.all(color: AppTheme.slate200),
-                    columnWidths: const {
-                      0: FlexColumnWidth(2.5),
-                      1: FlexColumnWidth(2),
-                      2: FlexColumnWidth(1.5),
-                    },
-                    children: [
-                      TableRow(
-                        decoration: const BoxDecoration(
-                          color: AppTheme.slate100,
-                        ),
-                        children: const [
-                          Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text(
-                              'Chương trình đào tạo',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text(
-                              'Học kỳ xuất hiện',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: EdgeInsets.all(8),
-                            child: Text(
-                              'Số tín chỉ',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      for (final app in course.appearsIn)
-                        TableRow(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                app.curriculum,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                app.semester == 0
-                                    ? 'Giai đoạn 0'
-                                    : 'Học kỳ ${app.semester}',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Text(
-                                '${course.credits} TC',
-                                style: const TextStyle(fontSize: 14),
-                              ),
-                            ),
-                          ],
-                        ),
                     ],
-                  ),
-              ],
-            ),
-          ),
-        ),
-
-        const SizedBox(height: 20),
-
-        DefaultTabController(
-          key: ValueKey(_detailTab),
-          length: 3,
-          initialIndex: _detailTab,
-          child: TabBar(
-            isScrollable: true,
-            onTap: (index) => setState(() => _detailTab = index),
-            tabs: const [
-              Tab(text: 'Chuẩn đầu ra'),
-              Tab(text: 'Điều kiện môn học'),
-              Tab(text: 'Tiêu chí đánh giá'),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 14,
+                      runSpacing: 8,
+                      children: [
+                        _courseFact(
+                          Icons.school_outlined,
+                          '${course.credits} tín chỉ',
+                        ),
+                        _courseFact(
+                          Icons.fact_check_outlined,
+                          course.hasPe ? 'Có PE' : 'Không PE',
+                        ),
+                        _courseFact(
+                          Icons.insights_outlined,
+                          course.countsInGpa ? 'Tính GPA' : 'Không tính GPA',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    const Divider(height: 1, color: AppTheme.slate200),
+                    const SizedBox(height: 16),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: AppTheme.primaryBlue,
+                            foregroundColor: Colors.white,
+                            minimumSize: const Size(140, 48),
+                          ),
+                          icon: const Icon(
+                            Icons.auto_awesome_outlined,
+                            size: 18,
+                          ),
+                          label: const Text('Tư vấn môn này'),
+                          onPressed: () => _showAdvisorDialog(course),
+                        ),
+                        TextButton.icon(
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(140, 48),
+                          ),
+                          onPressed: () => Navigator.push<void>(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TranscriptScreen(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.edit_note, size: 20),
+                          label: const Text('Cập nhật điểm'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Icon(
+                          readinessStyle.icon,
+                          size: 18,
+                          color: readinessStyle.fg,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            readinessText,
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                              color: readinessStyle.fg,
+                              height: 1.3,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-        const SizedBox(height: 12),
+
+        if (course.appearsIn.length > 1 ||
+            course.appearsIn.any((entry) => entry.curriculum != curId)) ...[
+          const SizedBox(height: 14),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.account_tree_outlined,
+                        size: 18,
+                        color: AppTheme.primaryBlue,
+                      ),
+                      const SizedBox(width: 8),
+                      const Expanded(
+                        child: Text(
+                          'Xuất hiện trong chương trình đào tạo',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15.5,
+                            color: AppTheme.slate900,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (course.appearsIn.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.slate50,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(color: AppTheme.slate200),
+                      ),
+                      child: Wrap(
+                        spacing: 8,
+                        runSpacing: 6,
+                        alignment: WrapAlignment.spaceBetween,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            'Chương trình $curId',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.slate900,
+                            ),
+                          ),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
+                            children: [
+                              StatusBadge.semester(course.semester),
+                              StatusBadge.credits(course.credits),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
+                  else
+                    for (var i = 0; i < course.appearsIn.length; i++) ...[
+                      if (i > 0) const SizedBox(height: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppTheme.slate50,
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                          border: Border.all(color: AppTheme.slate200),
+                        ),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          alignment: WrapAlignment.spaceBetween,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            Text(
+                              course.appearsIn[i].curriculum,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                                color: AppTheme.primaryBlue,
+                              ),
+                            ),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 4,
+                              children: [
+                                StatusBadge.semester(
+                                  course.appearsIn[i].semester,
+                                ),
+                                StatusBadge.credits(course.credits),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                ],
+              ),
+            ),
+          ),
+        ],
+
+        const SizedBox(height: 16),
+
+        Container(
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppTheme.slate200)),
+          ),
+          child: DefaultTabController(
+            key: ValueKey(_detailTab),
+            length: 3,
+            initialIndex: _detailTab,
+            child: TabBar(
+              isScrollable: false,
+              dividerColor: Colors.transparent,
+              labelColor: AppTheme.primaryBlue,
+              unselectedLabelColor: AppTheme.slate600,
+              indicatorColor: AppTheme.primaryBlue,
+              indicatorWeight: 3,
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
+              onTap: (index) => setState(() => _detailTab = index),
+              tabs: const [
+                Tab(text: 'Chuẩn đầu ra'),
+                Tab(text: 'Tiên quyết'),
+                Tab(text: 'Đánh giá'),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 14),
 
         if (_detailTab == 1) ...[
-          // Section 1: Môn học tiên quyết & Kế tiếp
-          _buildSectionHeader('1. Quan hệ môn học tiên quyết'),
-          const SizedBox(height: 10),
+          // Section: Môn học tiên quyết & Kế tiếp
+          const SectionHeader(
+            title: 'Quan hệ môn học tiên quyết',
+            icon: Icons.hub_outlined,
+          ),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -547,19 +588,37 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                 children: [
                   const Text(
                     'Môn học tiên quyết (Cần hoàn thành trước môn này):',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.slate900,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   if (course.prerequisites.isEmpty)
-                    const Text(
-                      'Không có môn ràng buộc tiên quyết',
-                      style: TextStyle(color: Colors.grey),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.slate50,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      ),
+                      child: const Text(
+                        'Không có môn ràng buộc tiên quyết',
+                        style: TextStyle(color: AppTheme.slate600),
+                      ),
                     )
                   else
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
                       children: course.prerequisites.map((p) {
                         return ActionChip(
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          avatar: const Icon(
+                            Icons.lock_open_rounded,
+                            size: 16,
+                            color: AppTheme.primaryBlue,
+                          ),
                           label: Text(
                             p,
                             style: const TextStyle(
@@ -584,19 +643,37 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                   const Divider(height: 24),
                   const Text(
                     'Môn học kế tiếp (Môn này là điều kiện tiên quyết của):',
-                    style: TextStyle(fontWeight: FontWeight.w600),
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.slate900,
+                    ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   if (course.unlocks.isEmpty)
-                    const Text(
-                      'Môn học giai đoạn cuối hoặc không ràng buộc',
-                      style: TextStyle(color: Colors.grey),
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.slate50,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                      ),
+                      child: const Text(
+                        'Môn học giai đoạn cuối hoặc không ràng buộc',
+                        style: TextStyle(color: AppTheme.slate600),
+                      ),
                     )
                   else
                     Wrap(
                       spacing: 8,
+                      runSpacing: 8,
                       children: course.unlocks.map((u) {
                         return ActionChip(
+                          materialTapTargetSize: MaterialTapTargetSize.padded,
+                          avatar: const Icon(
+                            Icons.arrow_forward_rounded,
+                            size: 16,
+                            color: Color(0xFF059669),
+                          ),
                           label: Text(
                             u,
                             style: const TextStyle(
@@ -623,129 +700,177 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
         ],
 
         if (_detailTab == 0) ...[
-          // Section 2: Mục tiêu môn học & Chuẩn đầu ra (LOs)
-          _buildSectionHeader(
-            '2. Mục tiêu môn học & Chuẩn đầu ra (Learning Outcomes)',
+          // Section: Mục tiêu môn học & Chuẩn đầu ra (LOs)
+          const SectionHeader(
+            title: 'Chuẩn đầu ra của môn học',
+            icon: Icons.verified_outlined,
           ),
-          const SizedBox(height: 10),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (final outcome in course.learningOutcomes)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            '• ',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: AppTheme.primaryBlue,
-                              fontSize: 16,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              outcome,
-                              style: const TextStyle(
-                                height: 1.35,
-                                fontSize: 14,
+              child: course.learningOutcomes.isEmpty
+                  ? const Text(
+                      'Chưa có dữ liệu chuẩn đầu ra trong FLM.',
+                      style: TextStyle(color: AppTheme.slate600),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (
+                          var i = 0;
+                          i < course.learningOutcomes.length;
+                          i++
+                        ) ...[
+                          if (i > 0)
+                            const Divider(height: 20, color: AppTheme.slate200),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 28,
+                                height: 28,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryLight,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${i + 1}',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primaryBlue,
+                                    fontSize: 13,
+                                  ),
+                                ),
                               ),
-                            ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  course.learningOutcomes[i],
+                                  style: const TextStyle(
+                                    height: 1.55,
+                                    fontSize: 14,
+                                    color: AppTheme.slate900,
+                                    letterSpacing: 0.15,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
+                      ],
                     ),
-                ],
-              ),
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
         ],
 
         if (_detailTab == 2) ...[
-          // Section 3: Cấu trúc đánh giá & Hình thức thi (Assessment Scheme)
-          _buildSectionHeader('3. Cấu trúc đánh giá & Hình thức thi'),
-          const SizedBox(height: 10),
+          // Section: Cấu trúc đánh giá & Hình thức thi (Assessment Scheme)
+          const SectionHeader(
+            title: 'Cấu trúc đánh giá & Hình thức thi',
+            icon: Icons.fact_check_outlined,
+          ),
           Card(
-            child: Table(
-              border: TableBorder.all(color: AppTheme.slate200),
-              children: [
-                TableRow(
-                  decoration: const BoxDecoration(color: AppTheme.slate100),
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        'Thành phần đánh giá',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        'Tỷ trọng (%)',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Text(
-                        'Điểm tối thiểu',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ],
-                ),
-                for (final item in course.assessmentScheme)
-                  TableRow(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          item.item,
-                          style: TextStyle(
-                            fontWeight:
-                                item.item.contains("PE") ||
-                                    item.item.contains("FE")
-                                ? FontWeight.bold
-                                : FontWeight.normal,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: course.assessmentScheme.isEmpty
+                  ? const Text(
+                      'Chưa có dữ liệu đánh giá trong FLM.',
+                      style: TextStyle(color: AppTheme.slate600),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (
+                          var i = 0;
+                          i < course.assessmentScheme.length;
+                          i++
+                        ) ...[
+                          if (i > 0)
+                            const Divider(height: 20, color: AppTheme.slate200),
+                          Builder(
+                            builder: (context) {
+                              final item = course.assessmentScheme[i];
+                              final isExam =
+                                  item.item.contains('PE') ||
+                                  item.item.contains('FE');
+                              return Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          item.item,
+                                          style: TextStyle(
+                                            fontWeight: isExam
+                                                ? FontWeight.w800
+                                                : FontWeight.w600,
+                                            fontSize: 14.5,
+                                            color: AppTheme.slate900,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          'Điểm tối thiểu: ${item.minMark.isEmpty ? "0" : item.minMark}',
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            color: AppTheme.slate600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 5,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isExam
+                                          ? AppTheme.peBadgeBg
+                                          : AppTheme.primaryLight,
+                                      borderRadius: BorderRadius.circular(999),
+                                    ),
+                                    child: Text(
+                                      item.weight,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 13,
+                                        color: isExam
+                                            ? AppTheme.peBadgeText
+                                            : AppTheme.primaryBlue,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            },
                           ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(
-                          item.weight,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Text(item.minMark),
-                      ),
-                    ],
-                  ),
-              ],
+                        ],
+                      ],
+                    ),
             ),
           ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
         ],
 
         if (_detailTab == 1) ...[
-          // Section 4: Dữ liệu Syllabus Chi Tiết
-          _buildSectionHeader('4. Chi tiết đề cương môn học (FLM)'),
-          const SizedBox(height: 10),
+          // Section: Dữ liệu Syllabus Chi Tiết
+          const SectionHeader(
+            title: 'Chi tiết đề cương môn học (FLM)',
+            icon: Icons.menu_book_outlined,
+          ),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -756,15 +881,19 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                     'Điểm qua môn tối thiểu:',
                     course.minPassMark,
                   ),
+                  const Divider(height: 20, color: AppTheme.slate200),
                   _buildDetailRow(
                     'Phân bổ thời gian học tập:',
                     course.timeAllocation,
                   ),
+                  const Divider(height: 20, color: AppTheme.slate200),
                   _buildDetailRow(
                     'Phương pháp giảng dạy:',
                     course.teachingMethods,
                   ),
+                  const Divider(height: 20, color: AppTheme.slate200),
                   _buildDetailRow('Nhiệm vụ sinh viên:', course.studentTasks),
+                  const Divider(height: 20, color: AppTheme.slate200),
                   _buildDetailRow(
                     'Công cụ & phần mềm thực hành:',
                     course.toolsSoftware,
@@ -774,47 +903,46 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
             ),
           ),
         ],
-
-        const SizedBox(height: 30),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16.5,
-        fontWeight: FontWeight.w800,
-        color: AppTheme.slate900,
-      ),
+  Widget _courseFact(IconData icon, String label) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 16, color: AppTheme.slate600),
+        const SizedBox(width: 5),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 13, color: AppTheme.slate700),
+        ),
+      ],
     );
   }
 
   Widget _buildDetailRow(String label, String val) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: RichText(
-        text: TextSpan(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: AppTheme.slate600,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          val.trim().isEmpty ? 'Chưa có dữ liệu trong FLM' : val,
           style: const TextStyle(
             fontSize: 14,
             color: AppTheme.slate900,
             height: 1.4,
           ),
-          children: [
-            TextSpan(
-              text: '$label ',
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppTheme.slate600,
-              ),
-            ),
-            TextSpan(
-              text: val.trim().isEmpty ? 'Chưa có dữ liệu trong FLM' : val,
-            ),
-          ],
         ),
-      ),
+      ],
     );
   }
 }

@@ -140,32 +140,38 @@ class CourseSummaryModal extends StatelessWidget {
           const SizedBox(height: 18),
           Row(
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                  border: Border.all(
-                    color: AppTheme.primaryBlue.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  code,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.primaryBlue,
-                  ),
+              Expanded(
+                child: Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                        border: Border.all(
+                          color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Text(
+                        code,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primaryBlue,
+                        ),
+                      ),
+                    ),
+                    StatusBadge.semester(semester),
+                    StatusBadge.credits(credits),
+                  ],
                 ),
               ),
-              const SizedBox(width: 8),
-              StatusBadge.semester(semester),
-              const SizedBox(width: 6),
-              StatusBadge.credits(credits),
-              const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close, size: 20),
                 onPressed: () => Navigator.of(context).pop(),
@@ -222,56 +228,71 @@ class CourseSummaryModal extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                flex: 3,
-                child: ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 13),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final stacked = constraints.maxWidth < 450;
+              final available = constraints.maxWidth - 8;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  SizedBox(
+                    width: onAdvisorPressed == null || stacked
+                        ? constraints.maxWidth
+                        : available * 0.6,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBlue,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 13),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            AppTheme.radiusMd,
+                          ),
+                        ),
+                      ),
+                      icon: const Icon(Icons.visibility_outlined, size: 18),
+                      label: const Text(
+                        'Xem chi tiết',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      onPressed: onDetailsPressed,
                     ),
                   ),
-                  icon: const Icon(Icons.visibility_outlined, size: 18),
-                  label: const Text(
-                    'Xem chi tiết',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-                  ),
-                  onPressed: onDetailsPressed,
-                ),
-              ),
-              if (onAdvisorPressed != null) ...[
-                const SizedBox(width: 8),
-                Expanded(
-                  flex: 2,
-                  child: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppTheme.accentOrange,
-                      side: const BorderSide(
-                        color: AppTheme.accentOrange,
-                        width: 1.3,
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 13),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                      ),
-                    ),
-                    icon: const Icon(Icons.psychology_outlined, size: 18),
-                    label: const Text(
-                      'Tư vấn',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
+                  if (onAdvisorPressed != null)
+                    SizedBox(
+                      width: stacked ? constraints.maxWidth : available * 0.4,
+                      child: OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppTheme.accentOrange,
+                          side: const BorderSide(
+                            color: AppTheme.accentOrange,
+                            width: 1.3,
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              AppTheme.radiusMd,
+                            ),
+                          ),
+                        ),
+                        icon: const Icon(Icons.psychology_outlined, size: 18),
+                        label: const Text(
+                          'Tư vấn',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        onPressed: onAdvisorPressed,
                       ),
                     ),
-                    onPressed: onAdvisorPressed,
-                  ),
-                ),
-              ],
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),

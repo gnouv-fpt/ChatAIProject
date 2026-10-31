@@ -6,14 +6,16 @@ import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
 import '../models/curriculum.dart';
 import '../models/load_status.dart';
-import '../widgets/data_state_view.dart';
 import '../services/grade_calculator.dart';
 import '../services/learning_progress.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/breadcrumb_nav.dart';
 import '../widgets/course_summary_modal.dart';
+import '../widgets/course_visuals.dart';
+import '../widgets/data_state_view.dart';
 import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
@@ -38,6 +40,9 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final ScrollController _semesterScrollController = ScrollController();
+  final ScrollController _chipScrollController = ScrollController();
+  final Map<int, GlobalKey> _chipKeys = {};
+  final Map<int, GlobalKey> _semesterCardKeys = {};
 
   String _searchQuery = '';
   String _courseStatusFilter = 'all';
@@ -46,9 +51,66 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   bool _semesterSelectionInitialized = false;
   bool _showRightChat = true;
   String? _advisorPrompt;
+  String? _advisorCourseCode;
+  int? _advisorSemester;
 
   /// Môn đang chọn, đồng bộ hai chiều giữa tab "Danh sách môn" và tab Map.
   String? _selectedCourseCode;
+
+  GlobalKey _keyForSemesterChip(int semester) =>
+      _chipKeys.putIfAbsent(semester, () => GlobalKey());
+
+  GlobalKey _keyForSemesterCard(int semester) =>
+      _semesterCardKeys.putIfAbsent(semester, () => GlobalKey());
+
+  void _scrollToSelectedChip(int semester) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _chipKeys[semester]?.currentContext;
+      if (ctx == null) return;
+      final disableAnimations =
+          MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0.5,
+        duration: disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
+
+  void _scrollToSemesterCard(int semester, {int? index}) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _semesterCardKeys[semester]?.currentContext;
+      final disableAnimations =
+          MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+      if (ctx != null) {
+        Scrollable.ensureVisible(
+          ctx,
+          alignment: 0.0,
+          duration: disableAnimations
+              ? Duration.zero
+              : const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        );
+      } else if (index != null && _semesterScrollController.hasClients) {
+        final approxOffset = (index * 76.0).clamp(
+          0.0,
+          _semesterScrollController.position.maxScrollExtent,
+        );
+        _semesterScrollController.animateTo(
+          approxOffset,
+          duration: disableAnimations
+              ? Duration.zero
+              : const Duration(milliseconds: 320),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -65,6 +127,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     _tabController.dispose();
     _searchController.dispose();
     _semesterScrollController.dispose();
+    _chipScrollController.dispose();
     super.dispose();
   }
 
@@ -82,7 +145,6 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
   /// Dữ kiện GPA được tính bằng code (GradeCalculator) và gửi kèm trong student_context.
   void _showAdvisorDialog({String? semesterTitle, String? courseCode}) {
     final tp = context.read<TranscriptProvider>();
-    // Build suggested question để người dùng có thể hỏi chat
     String suggestedQuestion;
     if (courseCode != null) {
       suggestedQuestion =
@@ -98,12 +160,18 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           : 'Tư vấn lộ trình học tập toàn khóa dựa trên chương trình đào tạo. Tôi chưa import bảng điểm.';
     }
 
-    _openAdvisor(prompt: suggestedQuestion);
+    _openAdvisor(
+      prompt: suggestedQuestion,
+      courseCode: courseCode,
+      semester: semesterTitle == null ? null : _expandedSemester,
+    );
   }
 
-  void _openAdvisor({String? prompt}) {
+  void _openAdvisor({String? prompt, String? courseCode, int? semester}) {
     setState(() {
       _showRightChat = true;
+      _advisorCourseCode = courseCode;
+      _advisorSemester = semester;
       if (prompt != null) _advisorPrompt = prompt;
     });
     if (MediaQuery.sizeOf(context).width >= 960) return;
@@ -118,19 +186,39 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
         ),
         child: SizedBox(
           height: MediaQuery.sizeOf(sheetContext).height * 0.85,
-          child: ContextualChatPanel(
-            scope: 'curriculum',
-            scopeId: curriculum.id,
-            title: 'Trợ lý Khung ${curriculum.id}',
-            subtitle: curriculum.nameVi,
-            semesterNumber: _expandedSemester,
-            suggestedQuestions: _advisorPrompt == null
-                ? null
-                : [_advisorPrompt!],
+          child: _buildAdvisorPanel(
+            curriculum,
             onClose: () => Navigator.pop(sheetContext),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildAdvisorPanel(Curriculum curriculum, {VoidCallback? onClose}) {
+    final code = _advisorCourseCode;
+    final semester = _advisorSemester;
+    return ContextualChatPanel(
+      scope: code == null ? 'curriculum' : 'subject',
+      scopeId: code ??
+          (semester == null
+              ? curriculum.id
+              : '${curriculum.id}:semester-$semester'),
+      backendScopeId: code == null && semester != null ? curriculum.id : null,
+      contextHint: code != null
+          ? 'Môn $code trong chương trình ${curriculum.id}'
+          : semester != null
+          ? 'Học kỳ $semester trong chương trình ${curriculum.id}'
+          : null,
+      title: code != null
+          ? 'Trợ lý môn $code'
+          : semester != null
+          ? 'Trợ lý học kỳ $semester'
+          : 'Trợ lý Khung ${curriculum.id}',
+      subtitle: curriculum.nameVi,
+      semesterNumber: semester,
+      suggestedQuestions: _advisorPrompt == null ? null : [_advisorPrompt!],
+      onClose: onClose,
     );
   }
 
@@ -183,31 +271,61 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
       ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    activeCurriculum.id,
-                    style: Theme.of(context).textTheme.titleMedium,
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(bottom: BorderSide(color: AppTheme.slate200)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const IconTile(
+                  icon: Icons.school_rounded,
+                  color: AppTheme.primaryBlue,
+                  background: AppTheme.primaryLight,
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            activeCurriculum.id,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: AppTheme.primaryBlue,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                          Text(
+                            '${activeCurriculum.totalSubjects} môn · ${activeCurriculum.totalCredits} tín chỉ',
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        activeCurriculum.nameVi.isNotEmpty
+                            ? activeCurriculum.nameVi
+                            : activeCurriculum.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  Text(
-                    activeCurriculum.nameVi.isNotEmpty
-                        ? activeCurriculum.nameVi
-                        : activeCurriculum.name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  Text(
-                    '${activeCurriculum.totalSubjects} môn · ${activeCurriculum.totalCredits} tín chỉ',
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           // Breadcrumb Navigation
@@ -266,15 +384,8 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                     if (showChatPanel)
                       Expanded(
                         flex: 35,
-                        child: ContextualChatPanel(
-                          scope: 'curriculum',
-                          scopeId: activeCurriculum.id,
-                          title: 'Trợ lý Khung ${activeCurriculum.id}',
-                          subtitle: activeCurriculum.nameVi,
-                          semesterNumber: _expandedSemester,
-                          suggestedQuestions: _advisorPrompt == null
-                              ? null
-                              : [_advisorPrompt!],
+                        child: _buildAdvisorPanel(
+                          activeCurriculum,
                           onClose: () => setState(() => _showRightChat = false),
                         ),
                       ),
@@ -307,17 +418,17 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     final semCount = curriculum.semesterCount;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 96),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 900),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Info Card
               Card(
                 child: Padding(
-                  padding: const EdgeInsets.all(22),
+                  padding: const EdgeInsets.all(18),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -331,39 +442,101 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           color: AppTheme.slate900,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 8),
                       Text(
-                        '${curriculum.id} - ${curriculum.major} - ${curriculum.institution}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: AppTheme.slate600,
+                        '${curriculum.id} · ${curriculum.major}',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primaryBlue,
                         ),
                       ),
-                      const Divider(height: 28),
-                      Wrap(
-                        spacing: 24,
-                        runSpacing: 14,
+                      const SizedBox(height: 4),
+                      Text(
+                        curriculum.institution,
+                        style: const TextStyle(
+                          fontSize: 13.5,
+                          fontWeight: FontWeight.w500,
+                          color: AppTheme.slate600,
+                          height: 1.3,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Detail Box: Trình độ & Quyết định đào tạo
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.slate50,
+                          borderRadius:
+                              BorderRadius.circular(AppTheme.radiusMd),
+                          border: Border.all(color: AppTheme.slate200),
+                        ),
+                        child: Column(
+                          children: [
+                            _buildOverviewDetailRow(
+                              icon: Icons.school_outlined,
+                              label: 'Trình độ đào tạo',
+                              value: curriculum.degreeLevel.isNotEmpty
+                                  ? curriculum.degreeLevel
+                                  : 'Đại học chính quy',
+                            ),
+                            const Divider(height: 16, color: AppTheme.slate200),
+                            _buildOverviewDetailRow(
+                              icon: Icons.gavel_outlined,
+                              label: 'Quyết định đào tạo',
+                              value: curriculum.decisionNo.isNotEmpty
+                                  ? curriculum.decisionNo
+                                  : 'Chưa có thông tin',
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 14),
+                      // 2x2 Balanced Metrics Grid
+                      Row(
                         children: [
-                          _buildPropItem(
-                            'Quyết định đào tạo',
-                            curriculum.decisionNo,
+                          Expanded(
+                            child: _buildMetricTile(
+                              icon: Icons.calendar_today_rounded,
+                              label: 'Tổng số học kỳ',
+                              value: '$semCount học kỳ',
+                              iconColor: AppTheme.primaryBlue,
+                              iconBg: AppTheme.primaryLight,
+                            ),
                           ),
-                          _buildPropItem(
-                            'Trình độ đào tạo',
-                            curriculum.degreeLevel,
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildMetricTile(
+                              icon: Icons.menu_book_rounded,
+                              label: 'Tổng số môn học',
+                              value: '$subjectCount Môn',
+                              iconColor: const Color(0xFF0D9488),
+                              iconBg: const Color(0xFFCCFBF1),
+                            ),
                           ),
-                          _buildPropItem('Tổng số học kỳ', '$semCount học kỳ'),
-                          _buildPropItem(
-                            'Tổng số môn học',
-                            '$subjectCount Môn',
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildMetricTile(
+                              icon: Icons.workspace_premium_rounded,
+                              label: 'Tổng số tín chỉ',
+                              value: '$totalCredits Tín chỉ',
+                              iconColor: const Color(0xFFD97706),
+                              iconBg: const Color(0xFFFEF3C7),
+                            ),
                           ),
-                          _buildPropItem(
-                            'Tổng số tín chỉ',
-                            '$totalCredits Tín chỉ',
-                          ),
-                          _buildPropItem(
-                            'Tín chỉ tính GPA',
-                            '$totalCreditsGpa Tín chỉ',
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildMetricTile(
+                              icon: Icons.insights_rounded,
+                              label: 'Tín chỉ tính GPA',
+                              value: '$totalCreditsGpa Tín chỉ',
+                              iconColor: const Color(0xFF7C3AED),
+                              iconBg: const Color(0xFFEDE9FE),
+                            ),
                           ),
                         ],
                       ),
@@ -372,7 +545,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                 ),
               ),
 
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
 
               // ── Bảng điểm & Chiến lược (Mục 7) ─────────────────────
               GradeStrategyPanel(
@@ -382,19 +555,14 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                 },
               ),
 
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Program Learning Outcomes (PLOs)
               if (catalog.plos.isNotEmpty) ...[
-                const Text(
-                  'Chuẩn đầu ra chương trình đào tạo (PLOs)',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.slate900,
-                  ),
+                const SectionHeader(
+                  title: 'Chuẩn đầu ra chương trình đào tạo (PLOs)',
+                  icon: Icons.verified_outlined,
                 ),
-                const SizedBox(height: 12),
                 Card(
                   child: ListView.separated(
                     shrinkWrap: true,
@@ -405,13 +573,16 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                     itemBuilder: (context, index) {
                       final plo = catalog.plos[index];
                       return Padding(
-                        padding: const EdgeInsets.all(14),
-                        child: Row(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
+                                horizontal: 10,
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
@@ -421,20 +592,21 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                               child: Text(
                                 plo.name,
                                 style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
+                                  fontWeight: FontWeight.w700,
                                   color: AppTheme.primaryBlue,
-                                  fontSize: 12,
+                                  fontSize: 12.5,
+                                  letterSpacing: 0.3,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                plo.description,
-                                style: const TextStyle(
-                                  fontSize: 13.5,
-                                  height: 1.35,
-                                ),
+                            const SizedBox(height: 10),
+                            Text(
+                              plo.description,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                height: 1.55,
+                                color: AppTheme.slate800,
+                                letterSpacing: 0.15,
                               ),
                             ),
                           ],
@@ -451,21 +623,92 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     );
   }
 
-  Widget _buildPropItem(String label, String value) {
-    return SizedBox(
-      width: 260,
+  Widget _buildOverviewDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 18, color: AppTheme.primaryBlue),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: AppTheme.slate600,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.slate900,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMetricTile({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color iconColor,
+    required Color iconBg,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppTheme.slate50,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        border: Border.all(color: AppTheme.slate200),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 12, color: AppTheme.slate600)),
-          const SizedBox(height: 3),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Icon(icon, size: 16, color: iconColor),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           Text(
             value,
             style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
               color: AppTheme.slate900,
             ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11.5,
+              fontWeight: FontWeight.w500,
+              color: AppTheme.slate600,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -483,7 +726,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     }
     final semesters = semesterMap.keys.toList()..sort();
     if (!_semesterSelectionInitialized && semesters.isNotEmpty) {
-      _expandedSemester = semesters.first;
+      _expandedSemester = semesters.length == 1 ? semesters.first : null;
       _semesterSelectionInitialized = true;
     }
     final transcript = context.watch<TranscriptProvider>();
@@ -518,6 +761,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                         decoration: InputDecoration(
                           labelText: 'Tìm môn học',
                           hintText: 'Tìm mã hoặc tên môn học',
+                          prefixIcon: const Icon(Icons.search, size: 20),
                           hintStyle: const TextStyle(
                             fontSize: 14,
                             color: AppTheme.slate600,
@@ -546,40 +790,78 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
               ),
               const SizedBox(height: 8),
               if (semesters.length > 1)
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: [
-                      for (var index = 0; index < semesters.length; index++)
-                        Padding(
-                          padding: const EdgeInsets.only(right: 6),
-                          child: ActionChip(
-                            label: Text('HK${semesters[index]}'),
-                            onPressed: () {
-                              setState(
-                                () => _expandedSemester = semesters[index],
-                              );
-                              if (_semesterScrollController.hasClients) {
-                                final desktop =
-                                    MediaQuery.of(context).size.width >= 760;
-                                if (desktop) {
-                                  _semesterScrollController.animateTo(
-                                    (index * 316.0).clamp(
-                                      0,
-                                      _semesterScrollController
-                                          .position
-                                          .maxScrollExtent,
+                Builder(
+                  builder: (context) {
+                    final screenWidth = MediaQuery.sizeOf(context).width;
+                    final centerPadding = ((screenWidth - 80) / 2).clamp(
+                      16.0,
+                      180.0,
+                    );
+                    final hasSelection = _expandedSemester != null;
+                    return SingleChildScrollView(
+                      controller: _chipScrollController,
+                      scrollDirection: Axis.horizontal,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: hasSelection ? centerPadding : 16.0,
+                      ),
+                      child: Row(
+                        children: [
+                          for (var index = 0; index < semesters.length; index++)
+                            Builder(
+                              builder: (context) {
+                                final sem = semesters[index];
+                                final isSelected = _expandedSemester == sem;
+                                final palette = SemesterPalette.of(sem);
+                                return Padding(
+                                  key: _keyForSemesterChip(sem),
+                                  padding: const EdgeInsets.only(right: 6),
+                                  child: ActionChip(
+                                    materialTapTargetSize:
+                                        MaterialTapTargetSize.padded,
+                                    backgroundColor: isSelected
+                                        ? palette.fg
+                                        : palette.bg,
+                                    side: BorderSide.none,
+                                    shape: const StadiumBorder(),
+                                    label: Text(
+                                      'HK$sem',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : palette.fg,
+                                      ),
                                     ),
-                                    duration: const Duration(milliseconds: 280),
-                                    curve: Curves.easeOut,
-                                  );
-                                }
-                              }
-                            },
-                          ),
-                        ),
-                    ],
-                  ),
+                                    onPressed: () {
+                                      final isDeselecting =
+                                          _expandedSemester == sem;
+                                      setState(() {
+                                        _expandedSemester =
+                                            isDeselecting ? null : sem;
+                                      });
+                                      if (!isDeselecting) {
+                                        _scrollToSelectedChip(sem);
+                                        _scrollToSemesterCard(sem, index: index);
+                                      } else {
+                                        if (_chipScrollController.hasClients) {
+                                          _chipScrollController.animateTo(
+                                            0,
+                                            duration: const Duration(
+                                              milliseconds: 250,
+                                            ),
+                                            curve: Curves.easeOut,
+                                          );
+                                        }
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               if (semesters.length > 1) const SizedBox(height: 8),
               Row(
@@ -674,9 +956,11 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       .toList();
                   final semesterGpa = semesterEntries.isEmpty
                       ? null
-                      : GradeCalculator.evaluateTranscript(semesterEntries)
-                            .currentGpa;
+                      : GradeCalculator.evaluateTranscript(
+                          semesterEntries,
+                        ).currentGpa;
                   final card = Card(
+                    key: _keyForSemesterCard(sem),
                     margin: EdgeInsets.only(
                       right: desktop ? 12 : 0,
                       bottom: desktop ? 0 : 12,
@@ -686,9 +970,15 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                         'semester-$sem-${_expandedSemester == sem}',
                       ),
                       initiallyExpanded: desktop || _expandedSemester == sem,
-                      onExpansionChanged: (expanded) => setState(() {
-                        _expandedSemester = expanded ? sem : null;
-                      }),
+                      onExpansionChanged: (expanded) {
+                        setState(() {
+                          _expandedSemester = expanded ? sem : null;
+                        });
+                        if (expanded) {
+                          _scrollToSelectedChip(sem);
+                          _scrollToSemesterCard(sem, index: index);
+                        }
+                      },
                       title: Text(
                         title,
                         style: const TextStyle(fontWeight: FontWeight.w800),
@@ -723,6 +1013,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                           Padding(
                             padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                             child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: courses.map(_buildCourseCard).toList(),
                             ),
                           ),
@@ -756,6 +1047,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
 
   Widget _buildCourseCard(Course course) {
     final isSelected = course.code == _selectedCourseCode;
+    final palette = SemesterPalette.of(course.semester);
     final status = switch (_courseStatus(
       course,
       context.read<CourseCatalog>(),
@@ -768,104 +1060,112 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
     };
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
-      child: HoverCard(
-        padding: const EdgeInsets.all(12),
-        borderRadius: AppTheme.radiusMd,
-        borderColor: isSelected ? AppTheme.primaryBlue : null,
-        backgroundColor: isSelected ? AppTheme.primaryLight : null,
-        onTap: () {
-          setState(() => _selectedCourseCode = course.code);
-          CourseSummaryModal.showFromCourse(
-            context,
-            course: course,
-            onDetailsPressed: () => _openCourseDetail(course.code),
-            onAdvisorPressed: () => _showAdvisorDialog(courseCode: course.code),
-            onLinksPressed: () => setState(() => _tabController.index = 2),
-          );
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 12,
-              runSpacing: 6,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 3,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    course.code,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: AppTheme.primaryBlue,
+      child: SizedBox(
+        width: double.infinity,
+        child: HoverCard(
+          padding: const EdgeInsets.all(12),
+          borderRadius: AppTheme.radiusMd,
+          borderColor: isSelected ? AppTheme.primaryBlue : null,
+          backgroundColor: isSelected ? AppTheme.primaryLight : null,
+          onTap: () {
+            setState(() => _selectedCourseCode = course.code);
+            CourseSummaryModal.showFromCourse(
+              context,
+              course: course,
+              onDetailsPressed: () => _openCourseDetail(course.code),
+              onAdvisorPressed: () =>
+                  _showAdvisorDialog(courseCode: course.code),
+              onLinksPressed: () => setState(() => _tabController.index = 2),
+            );
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 10,
+                runSpacing: 6,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: palette.bg,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      course.code,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: palette.fg,
+                      ),
                     ),
                   ),
+                  Text(
+                    '${course.credits} TC',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppTheme.slate600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                course.nameVi.isNotEmpty ? course.nameVi : course.name,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: AppTheme.slate900,
                 ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (course.nameVi.isNotEmpty && course.name != course.nameVi) ...[
+                const SizedBox(height: 2),
                 Text(
-                  '${course.credits} TC',
-                  style: TextStyle(
+                  course.name,
+                  style: const TextStyle(
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
                     color: AppTheme.slate600,
+                    fontStyle: FontStyle.italic,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              course.nameVi.isNotEmpty ? course.nameVi : course.name,
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 13.5,
-                color: AppTheme.slate900,
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 6,
+                runSpacing: 4,
+                children: [
+                  StatusBadge.pe(hasPe: course.hasPe),
+                  StatusBadge.gpa(countsInGpa: course.countsInGpa),
+                  if (context.read<TranscriptProvider>().hasTranscript)
+                    Chip(
+                      visualDensity: VisualDensity.compact,
+                      label: Text(status, style: const TextStyle(fontSize: 11)),
+                    ),
+                ],
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            if (course.nameVi.isNotEmpty && course.name != course.nameVi) ...[
-              const SizedBox(height: 2),
-              Text(
-                course.name,
-                style: TextStyle(
-                  fontSize: 11.5,
-                  color: AppTheme.slate600,
-                  fontStyle: FontStyle.italic,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 6,
-              runSpacing: 4,
-              children: [
-                StatusBadge.pe(hasPe: course.hasPe),
-                StatusBadge.gpa(countsInGpa: course.countsInGpa),
-                if (context.read<TranscriptProvider>().hasTranscript)
-                  Chip(
-                    label: Text(status, style: const TextStyle(fontSize: 11)),
+              if (course.prerequisites.isNotEmpty) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Tiên quyết: ${course.prerequisites.join(", ")}',
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.blueGrey.shade700,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
-            ),
-            if (course.prerequisites.isNotEmpty) ...[
-              const SizedBox(height: 6),
-              Text(
-                'Tiên quyết: ${course.prerequisites.join(", ")}',
-                style: TextStyle(fontSize: 11, color: Colors.blueGrey.shade700),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );

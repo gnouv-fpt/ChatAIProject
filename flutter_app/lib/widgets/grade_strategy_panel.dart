@@ -134,8 +134,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
               ),
             ],
           ),
-
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _buildTranscriptMenuButton(context),
           const SizedBox(height: 14),
 
@@ -244,13 +243,14 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
 
   Widget _buildEmptyState(BuildContext ctx) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        const Text(
           'Mở Quản lý điểm để nhập ảnh hoặc nhập điểm thủ công, kiểm tra rồi lưu bảng điểm trước khi nhận tư vấn cá nhân.',
           style: TextStyle(
-            fontSize: 13,
-            color: Colors.amber.shade900,
-            height: 1.4,
+            fontSize: 13.5,
+            color: Color(0xFF78350F),
+            height: 1.5,
           ),
         ),
         const SizedBox(height: 12),
@@ -266,13 +266,34 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
             _buildFeatureChip(Icons.school_outlined, 'Tư vấn lộ trình'),
           ],
         ),
-        const SizedBox(height: 10),
-        Text(
-          'Mở Chat AI và bấm biểu tượng ảnh cạnh ô nhập tin nhắn để gửi bảng điểm.',
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.amber.shade800,
-            fontStyle: FontStyle.italic,
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.85),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: const Color(0xFFFDE68A)),
+          ),
+          child: Row(
+            children: const [
+              Icon(
+                Icons.lightbulb_outline_rounded,
+                size: 16,
+                color: Color(0xFFB45309),
+              ),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Mẹo: Mở Chat AI và gửi ảnh bảng điểm để nhập nhanh.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: Color(0xFF78350F),
+                    fontWeight: FontWeight.w600,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ],
@@ -281,7 +302,7 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
 
   Widget _buildFeatureChip(IconData icon, String label) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
         color: const Color(0xFFFEF3C7),
         borderRadius: BorderRadius.circular(20),
@@ -290,12 +311,16 @@ class _GradeStrategyPanelState extends State<GradeStrategyPanel> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: const Color(0xFFD97706)),
-          const SizedBox(width: 4),
+          Icon(icon, size: 13, color: const Color(0xFF92400E)),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 11, color: Color(0xFF92400E)),
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF92400E),
+              ),
             ),
           ),
         ],

@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../models/course.dart';
 import '../state/course_catalog.dart';
+import '../theme/app_theme.dart';
+import '../widgets/app_ui.dart';
+import '../widgets/course_visuals.dart';
 
 class CourseListPage extends StatefulWidget {
   const CourseListPage({super.key});
@@ -13,6 +16,29 @@ class CourseListPage extends StatefulWidget {
 
 class _CourseListPageState extends State<CourseListPage> {
   int? selectedSemester;
+  final Map<int?, GlobalKey> _chipKeys = {};
+
+  GlobalKey _keyForChip(int? semester) =>
+      _chipKeys.putIfAbsent(semester, () => GlobalKey());
+
+  void _selectSemester(int? semester) {
+    setState(() => selectedSemester = semester);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final ctx = _chipKeys[semester]?.currentContext;
+      if (ctx == null) return;
+      final disableAnimations =
+          MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+      Scrollable.ensureVisible(
+        ctx,
+        alignment: 0.5,
+        duration: disableAnimations
+            ? Duration.zero
+            : const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,32 +83,48 @@ class _CourseListPageState extends State<CourseListPage> {
             return order != 0 ? order : a.code.compareTo(b.code);
           });
 
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final centerPadding = ((screenWidth - 96) / 2).clamp(16.0, 200.0);
+
     return CustomScrollView(
       slivers: [
         const SliverToBoxAdapter(
           child: Padding(
             padding: EdgeInsets.fromLTRB(16, 12, 16, 0),
-            child: Text('Danh sách môn học theo học kỳ'),
+            child: SectionHeader(
+              title: 'Danh sách môn học theo học kỳ',
+              icon: Icons.menu_book_outlined,
+            ),
           ),
         ),
         SliverToBoxAdapter(
           child: SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: EdgeInsets.symmetric(
+              horizontal: centerPadding,
+              vertical: 8,
+            ),
             child: Row(
               children: [
-                ChoiceChip(
-                  label: const Text('Tất cả'),
-                  selected: selectedSemester == null,
-                  onSelected: (_) => setState(() => selectedSemester = null),
+                KeyedSubtree(
+                  key: _keyForChip(null),
+                  child: ChoiceChip(
+                    materialTapTargetSize: MaterialTapTargetSize.padded,
+                    label: const Text('Tất cả'),
+                    selected: selectedSemester == null,
+                    onSelected: (_) => _selectSemester(null),
+                  ),
                 ),
                 for (final semester in semesters) ...[
                   const SizedBox(width: 8),
-                  ChoiceChip(
-                    label: Text('Học kỳ $semester'),
-                    selected: selectedSemester == semester,
-                    onSelected: (_) =>
-                        setState(() => selectedSemester = semester),
+                  KeyedSubtree(
+                    key: _keyForChip(semester),
+                    child: ChoiceChip(
+                      materialTapTargetSize: MaterialTapTargetSize.padded,
+                      label: Text('Học kỳ $semester'),
+                      selected: selectedSemester == semester,
+                      onSelected: (_) => _selectSemester(semester),
+                    ),
                   ),
                 ],
               ],
@@ -95,7 +137,7 @@ class _CourseListPageState extends State<CourseListPage> {
           )
         else
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
             sliver: SliverList.builder(
               itemCount: visible.length,
               itemBuilder: (context, index) =>
@@ -114,24 +156,52 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final palette = SemesterPalette.of(course.semester);
     return Card(
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         onTap: () => Navigator.pushNamed(
           context,
           '/courses/${Uri.encodeComponent(course.code)}',
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.all(14),
+          child: Row(
             children: [
-              Text(course.code, style: Theme.of(context).textTheme.labelLarge),
-              const SizedBox(height: 5),
-              Text(course.name, style: Theme.of(context).textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text('Học kỳ ${course.semester}  •  ${course.credits} tín chỉ'),
+              IconTile(
+                icon: courseIcon(course.code),
+                color: palette.fg,
+                background: palette.bg,
+                size: 44,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.code,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 13,
+                        color: palette.fg,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      course.nameVi.isNotEmpty ? course.nameVi : course.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      'Học kỳ ${course.semester}  •  ${course.credits} tín chỉ',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right, color: AppTheme.slate600),
             ],
           ),
         ),

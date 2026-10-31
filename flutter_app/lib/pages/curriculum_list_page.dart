@@ -24,7 +24,10 @@ class CurriculumListPage extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: catalog.load,
-            child: const Text('Tải lại dữ liệu', style: TextStyle(fontWeight: FontWeight.w600)),
+            child: const Text(
+              'Tải lại dữ liệu',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
           ),
         ],
       ),
@@ -40,23 +43,23 @@ class CurriculumListPage extends StatelessWidget {
               ),
             )
           : catalog.error != null && catalog.curriculum == null
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(catalog.error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: catalog.load,
-                          child: const Text('Thử lại'),
-                        ),
-                      ],
+          ? Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(catalog.error!, textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: catalog.load,
+                      child: const Text('Thử lại'),
                     ),
-                  ),
-                )
-              : _buildContent(context, catalog),
+                  ],
+                ),
+              ),
+            )
+          : _buildContent(context, catalog),
     );
   }
 
@@ -67,7 +70,7 @@ class CurriculumListPage extends StatelessWidget {
     }
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 1100),
@@ -77,10 +80,14 @@ class CurriculumListPage extends StatelessWidget {
               // Welcome Banner / Hero
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.all(28),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [Color(0xFF0D47A1), Color(0xFF1976D2), Color(0xFF0288D1)],
+                    colors: [
+                      Color(0xFF0D47A1),
+                      Color(0xFF1976D2),
+                      Color(0xFF0288D1),
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -97,32 +104,39 @@ class CurriculumListPage extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: const Text(
                         'Cố vấn học tập FLM',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 12),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     const Text(
                       'Hệ thống Quản lý Khung Chương trình\nvà Đề cương Môn học (FLM)',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 26,
+                        fontSize: 22,
                         fontWeight: FontWeight.w800,
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 8),
                     Text(
                       'Xem chương trình khung, khám phá sơ đồ quan hệ tiên quyết Obsidian Graph, hỏi đáp AI RAG theo ngữ cảnh và tư vấn lộ trình học tập cá nhân.',
                       style: TextStyle(
                         color: Colors.white.withValues(alpha: 0.9),
-                        fontSize: 14.5,
+                        fontSize: 14,
                         height: 1.4,
                       ),
                     ),
@@ -130,32 +144,41 @@ class CurriculumListPage extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Section Header
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Column(
+                  const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Danh sách Chương trình Đào tạo',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 18,
                           fontWeight: FontWeight.w800,
                           color: AppTheme.slate900,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 2),
                       Text(
                         'Dữ liệu được trích xuất động từ FLM FPT University',
-                        style: TextStyle(fontSize: 13.5, color: AppTheme.slate600),
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: AppTheme.slate600,
+                        ),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryLight,
                       borderRadius: BorderRadius.circular(20),
@@ -172,7 +195,7 @@ class CurriculumListPage extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
 
               // Curriculum Cards List
               for (final header in catalog.curricula) ...[
@@ -186,7 +209,8 @@ class CurriculumListPage extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => CurriculumDetailPage(curriculumId: header.id),
+                        builder: (_) =>
+                            CurriculumDetailPage(curriculumId: header.id),
                       ),
                     );
                   },
@@ -222,20 +246,28 @@ class _CurriculumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return HoverCard(
       onTap: onSelect,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       borderRadius: AppTheme.radiusXl,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Row Top: Code & Badge Major
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.primaryBlue.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.primaryBlue.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Text(
                   header.id,
@@ -246,9 +278,11 @@ class _CurriculumCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(width: 10),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.slate100,
                   borderRadius: BorderRadius.circular(8),
@@ -262,21 +296,16 @@ class _CurriculumCard extends StatelessWidget {
                   ),
                 ),
               ),
-              const Spacer(),
-              Text(
-                'Xem chi tiết',
-                style: TextStyle(fontSize: 13, color: AppTheme.primaryBlue, fontWeight: FontWeight.bold),
-              ),
             ],
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Titles
           Text(
             header.nameVi.isNotEmpty ? header.nameVi : header.name,
             style: const TextStyle(
-              fontSize: 20,
+              fontSize: 19,
               fontWeight: FontWeight.w800,
               color: AppTheme.slate900,
             ),
@@ -284,44 +313,44 @@ class _CurriculumCard extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             header.name,
-            style: TextStyle(
-              fontSize: 14,
+            style: const TextStyle(
+              fontSize: 13.5,
               color: AppTheme.slate600,
               fontStyle: FontStyle.italic,
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // 4 Key Metrics Bar
+          // 4 Key Metrics Bar (responsive Wrap for mobile + desktop)
           Container(
+            width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
               color: AppTheme.slate50,
               borderRadius: BorderRadius.circular(AppTheme.radiusMd),
               border: Border.all(color: AppTheme.slate200),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
+            child: Wrap(
+              spacing: 20,
+              runSpacing: 12,
+              alignment: WrapAlignment.spaceAround,
               children: [
                 _buildMetric(
                   label: 'Số học kỳ',
                   value: '${curriculum.semesterCount} Kỳ',
                   color: const Color(0xFF2563EB),
                 ),
-                _buildDivider(),
                 _buildMetric(
                   label: 'Số môn học',
                   value: '$courseCount Môn',
                   color: const Color(0xFF059669),
                 ),
-                _buildDivider(),
                 _buildMetric(
                   label: 'Tổng tín chỉ',
                   value: '$totalCredits TC',
                   color: const Color(0xFFD97706),
                 ),
-                _buildDivider(),
                 _buildMetric(
                   label: 'Tín chỉ tính GPA',
                   value: '$totalCreditsInGpa TC',
@@ -331,7 +360,7 @@ class _CurriculumCard extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 14),
 
           // Footer info
           Row(
@@ -339,13 +368,19 @@ class _CurriculumCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   'Quyết định: ${curriculum.decisionNo} - ${curriculum.degreeLevel}',
-                  style: TextStyle(fontSize: 12.5, color: AppTheme.slate600),
+                  style: const TextStyle(
+                    fontSize: 12.5,
+                    color: AppTheme.slate600,
+                  ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
               TextButton(
                 onPressed: onSelect,
-                child: const Text('Khám phá khung', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Khám phá khung',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -360,25 +395,26 @@ class _CurriculumCard extends StatelessWidget {
     required Color color,
   }) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
-          style: TextStyle(fontSize: 12, color: AppTheme.slate600, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            fontSize: 12,
+            color: AppTheme.slate600,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 4),
         Text(
           value,
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: color),
+          style: TextStyle(
+            fontSize: 15.5,
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
         ),
       ],
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      width: 1,
-      height: 32,
-      color: AppTheme.slate200,
     );
   }
 }
