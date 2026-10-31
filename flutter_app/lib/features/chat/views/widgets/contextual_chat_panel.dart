@@ -217,301 +217,332 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
     final provider = context.watch<ChatProvider>();
     final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(left: BorderSide(color: AppTheme.slate200, width: 1.2)),
-      ),
-      child: Column(
-        children: [
-          // Header of Chat Panel
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                bottom: BorderSide(color: AppTheme.slate200, width: 1),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(7),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryLight,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.auto_awesome,
-                    size: 18,
-                    color: AppTheme.primaryBlue,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isShort = constraints.maxHeight < 360;
+        final isCompactLandscape =
+            isShort ||
+            (MediaQuery.sizeOf(context).height < 500 && keyboardVisible);
+
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            border: Border(left: BorderSide(color: AppTheme.slate200, width: 1.2)),
+          ),
+          child: Column(
+            children: [
+              // Header of Chat Panel
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: isCompactLandscape ? 4 : 12,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.slate200, width: 1),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        widget.title,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.bold,
-                          color: AppTheme.slate900,
-                        ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(isCompactLandscape ? 4 : 7),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primaryLight,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.scope == 'subject'
-                            ? 'Theo môn học'
-                            : 'Theo chương trình',
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: AppTheme.primaryBlue,
-                        ),
+                      child: Icon(
+                        Icons.auto_awesome,
+                        size: isCompactLandscape ? 16 : 18,
+                        color: AppTheme.primaryBlue,
                       ),
-                      if (widget.subtitle != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.subtitle!,
-                          style: const TextStyle(
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.title,
+                            style: TextStyle(
+                              fontSize: isCompactLandscape ? 13.5 : 14.5,
+                              fontWeight: FontWeight.bold,
+                              color: AppTheme.slate900,
+                            ),
+                          ),
+                          if (!isCompactLandscape) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              widget.scope == 'subject'
+                                  ? 'Theo môn học'
+                                  : 'Theo chương trình',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: AppTheme.primaryBlue,
+                              ),
+                            ),
+                            if (widget.subtitle != null) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.subtitle!,
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  color: AppTheme.slate600,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete_outline, size: isCompactLandscape ? 18 : 20),
+                      visualDensity: isCompactLandscape ? VisualDensity.compact : null,
+                      tooltip: 'Xóa hội thoại',
+                      onPressed: provider.isLoading
+                          ? null
+                          : () async {
+                              final confirmed = await showDialog<bool>(
+                                context: context,
+                                builder: (dialogContext) => AlertDialog(
+                                  title: const Text('Xóa hội thoại này?'),
+                                  content: const Text(
+                                    'Các tin nhắn trong hội thoại hiện tại sẽ bị xóa. Bạn không thể hoàn tác thao tác này.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, false),
+                                      child: const Text('Hủy'),
+                                    ),
+                                    FilledButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, true),
+                                      child: const Text('Xóa hội thoại'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                              if (confirmed == true && mounted) {
+                                provider.clearHistory();
+                              }
+                            },
+                    ),
+                    if (widget.onClose != null)
+                      IconButton(
+                        icon: Icon(
+                          Icons.close_rounded,
+                          size: isCompactLandscape ? 18 : 20,
+                          color: AppTheme.slate600,
+                        ),
+                        visualDensity: isCompactLandscape ? VisualDensity.compact : null,
+                        tooltip: 'Đóng Trợ lý AI',
+                        onPressed: widget.onClose,
+                      ),
+                  ],
+                ),
+              ),
+
+              // Server status bar
+              if (!isCompactLandscape) const ServerStatusBar(),
+              if (provider.historyError != null)
+                ListTile(
+                  title: Text(
+                    provider.historyError!,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  trailing: TextButton(
+                    onPressed: provider.retryHistorySync,
+                    child: const Text('Thử lại'),
+                  ),
+                ),
+
+              // Messages ListView
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: isCompactLandscape ? 4 : 12,
+                  ),
+                  itemCount: provider.messages.length,
+                  itemBuilder: (context, index) {
+                    final message = provider.messages[index];
+                    return ChatBubble(message: message);
+                  },
+                ),
+              ),
+
+              // Suggested prompts chips
+              if (_pendingImages.isNotEmpty)
+                Container(
+                  height: 76,
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                  color: AppTheme.slate50,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _pendingImages.length,
+                    separatorBuilder: (_, index) => const SizedBox(width: 8),
+                    itemBuilder: (context, index) {
+                      final image = _pendingImages[index];
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.memory(
+                              image.bytes,
+                              width: 62,
+                              height: 62,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: IconButton.filled(
+                              tooltip: 'Bỏ ảnh ${index + 1}',
+                              onPressed: () =>
+                                  setState(() => _pendingImages.removeAt(index)),
+                              style: IconButton.styleFrom(
+                                backgroundColor: Colors.black87,
+                              ),
+                              icon: const Icon(
+                                Icons.close,
+                                size: 20,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              if (!isCompactLandscape && !keyboardVisible)
+                Container(
+                  padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+                  color: AppTheme.slate50,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _defaultSuggestions.map((promptText) {
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 6),
+                          child: ActionChip(
+                            materialTapTargetSize: MaterialTapTargetSize.padded,
+                            label: Text(promptText),
+                            labelStyle: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: AppTheme.primaryBlue),
+                            backgroundColor: Colors.white,
+                            side: const BorderSide(color: AppTheme.slate200),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            onPressed: provider.isLoading
+                                ? null
+                                : () => _handleSend(provider, promptText),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ),
+
+              // Input Bar
+              Container(
+                padding: EdgeInsets.fromLTRB(
+                  12,
+                  isCompactLandscape ? 4 : 8,
+                  12,
+                  isCompactLandscape ? 4 : 12,
+                ),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  border: Border(
+                    top: BorderSide(color: AppTheme.slate200, width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: 'Đính kèm ảnh vào câu hỏi',
+                      visualDensity: isCompactLandscape ? VisualDensity.compact : null,
+                      onPressed: provider.isLoading || _isPickingImages
+                          ? null
+                          : _pickImages,
+                      icon: _isPickingImages
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Icon(
+                              Icons.add_photo_alternate_outlined,
+                              size: isCompactLandscape ? 20 : 24,
+                            ),
+                      color: AppTheme.primaryBlue,
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _textController,
+                        focusNode: _focusNode,
+                        minLines: 1,
+                        maxLines: 1,
+                        textInputAction: TextInputAction.send,
+                        decoration: InputDecoration(
+                          labelText: 'Câu hỏi của bạn',
+                          hintText: widget.scope == 'subject'
+                              ? 'Hỏi về môn ${widget.scopeId}...'
+                              : 'Hỏi về chương trình ${widget.scopeId}...',
+                          hintStyle: const TextStyle(
                             fontSize: 14,
                             color: AppTheme.slate600,
                           ),
-                          overflow: TextOverflow.ellipsis,
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: isCompactLandscape ? 6 : 10,
+                          ),
+                          constraints: BoxConstraints(
+                            minHeight: isCompactLandscape ? 40 : 48,
+                          ),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  tooltip: 'Xóa hội thoại',
-                  onPressed: provider.isLoading
-                      ? null
-                      : () async {
-                          final confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (dialogContext) => AlertDialog(
-                              title: const Text('Xóa hội thoại này?'),
-                              content: const Text(
-                                'Các tin nhắn trong hội thoại hiện tại sẽ bị xóa. Bạn không thể hoàn tác thao tác này.',
+                        onSubmitted: (text) => _handleSend(provider, text),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton.filled(
+                      tooltip: provider.isLoading ? 'Đang trả lời' : 'Gửi câu hỏi',
+                      visualDensity: isCompactLandscape ? VisualDensity.compact : null,
+                      style: IconButton.styleFrom(
+                        backgroundColor: AppTheme.primaryBlue,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      icon: provider.isLoading
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
                               ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () =>
-                                      Navigator.pop(dialogContext, false),
-                                  child: const Text('Hủy'),
-                                ),
-                                FilledButton(
-                                  onPressed: () =>
-                                      Navigator.pop(dialogContext, true),
-                                  child: const Text('Xóa hội thoại'),
-                                ),
-                              ],
-                            ),
-                          );
-                          if (confirmed == true && mounted) {
-                            provider.clearHistory();
-                          }
-                        },
-                ),
-                if (widget.onClose != null)
-                  IconButton(
-                    icon: const Icon(
-                      Icons.close_rounded,
-                      size: 20,
-                      color: AppTheme.slate600,
+                            )
+                          : Icon(Icons.send, size: isCompactLandscape ? 16 : 18),
+                      onPressed: provider.isLoading
+                          ? null
+                          : () => _handleSend(provider, _textController.text),
                     ),
-                    tooltip: 'Đóng Trợ lý AI',
-                    onPressed: widget.onClose,
-                  ),
-              ],
-            ),
+                  ],
+                ),
+              ),
+            ],
           ),
-
-          // Server status bar
-          const ServerStatusBar(),
-          if (provider.historyError != null)
-            ListTile(
-              title: Text(
-                provider.historyError!,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              trailing: TextButton(
-                onPressed: provider.retryHistorySync,
-                child: const Text('Thử lại'),
-              ),
-            ),
-
-          // Messages ListView
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              itemCount: provider.messages.length,
-              itemBuilder: (context, index) {
-                final message = provider.messages[index];
-                return ChatBubble(message: message);
-              },
-            ),
-          ),
-
-          // Suggested prompts chips
-          if (_pendingImages.isNotEmpty)
-            Container(
-              height: 76,
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-              color: AppTheme.slate50,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: _pendingImages.length,
-                separatorBuilder: (_, index) => const SizedBox(width: 8),
-                itemBuilder: (context, index) {
-                  final image = _pendingImages[index];
-                  return Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.memory(
-                          image.bytes,
-                          width: 62,
-                          height: 62,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: IconButton.filled(
-                          tooltip: 'Bỏ ảnh ${index + 1}',
-                          onPressed: () =>
-                              setState(() => _pendingImages.removeAt(index)),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.black87,
-                          ),
-                          icon: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          if (!keyboardVisible)
-            Container(
-              padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
-              color: AppTheme.slate50,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _defaultSuggestions.map((promptText) {
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 6),
-                      child: ActionChip(
-                        materialTapTargetSize: MaterialTapTargetSize.padded,
-                        label: Text(promptText),
-                        labelStyle: Theme.of(context).textTheme.bodyMedium
-                            ?.copyWith(color: AppTheme.primaryBlue),
-                        backgroundColor: Colors.white,
-                        side: const BorderSide(color: AppTheme.slate200),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        onPressed: provider.isLoading
-                            ? null
-                            : () => _handleSend(provider, promptText),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
-            ),
-
-          // Input Bar
-          Container(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: AppTheme.slate200, width: 1),
-              ),
-            ),
-            child: Row(
-              children: [
-                IconButton(
-                  tooltip: 'Đính kèm ảnh vào câu hỏi',
-                  onPressed: provider.isLoading || _isPickingImages
-                      ? null
-                      : _pickImages,
-                  icon: _isPickingImages
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.add_photo_alternate_outlined),
-                  color: AppTheme.primaryBlue,
-                ),
-                Expanded(
-                  child: TextField(
-                    controller: _textController,
-                    focusNode: _focusNode,
-                    minLines: 1,
-                    maxLines: 1,
-                    textInputAction: TextInputAction.send,
-                    decoration: InputDecoration(
-                      labelText: 'Câu hỏi của bạn',
-                      hintText: widget.scope == 'subject'
-                          ? 'Hỏi về môn ${widget.scopeId}...'
-                          : 'Hỏi về chương trình ${widget.scopeId}...',
-                      hintStyle: const TextStyle(
-                        fontSize: 14,
-                        color: AppTheme.slate600,
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
-                      ),
-                      constraints: const BoxConstraints(minHeight: 48),
-                    ),
-                    onSubmitted: (text) => _handleSend(provider, text),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                IconButton.filled(
-                  tooltip: provider.isLoading ? 'Đang trả lời' : 'Gửi câu hỏi',
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.primaryBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                  icon: provider.isLoading
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
-                        )
-                      : const Icon(Icons.send, size: 18),
-                  onPressed: provider.isLoading
-                      ? null
-                      : () => _handleSend(provider, _textController.text),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 }

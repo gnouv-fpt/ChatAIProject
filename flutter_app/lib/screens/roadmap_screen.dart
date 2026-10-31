@@ -410,6 +410,7 @@ class _SemesterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ChoiceChip(
+    materialTapTargetSize: MaterialTapTargetSize.padded,
     showCheckmark: false,
     avatar: icon != null
         ? Icon(icon, size: 16, color: selected ? Colors.white : palette.fg)
