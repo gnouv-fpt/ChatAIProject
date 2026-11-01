@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flm_courses/theme/app_theme.dart';
 import 'package:flm_courses/state/theme_provider.dart';
 import 'package:flm_courses/screens/settings_screen.dart';
 import 'package:flm_courses/state/course_catalog.dart';
@@ -14,6 +15,13 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('ThemeProvider Unit & Settings UI Tests', () {
+    test('0. ThemeData.lerp between light and dark does not throw', () {
+      expect(
+        () => ThemeData.lerp(AppTheme.lightTheme(), AppTheme.darkTheme(), 0.5),
+        returnsNormally,
+      );
+    });
+
     test('1. Default mode is system and persists when changed', () async {
       SharedPreferences.setMockInitialValues({});
       final provider = ThemeProvider();

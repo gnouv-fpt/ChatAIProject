@@ -542,6 +542,7 @@ class AppTheme {
           }),
           textStyle: const WidgetStatePropertyAll(
             TextStyle(
+              inherit: true,
               fontFamily: 'Roboto',
               fontSize: 14,
               fontWeight: FontWeight.w700,
@@ -780,6 +781,39 @@ class AppTheme {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(radiusChip),
+        ),
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          minimumSize: const WidgetStatePropertyAll(Size(0, targetSize)),
+          backgroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return primaryDark;
+            }
+            return slate800;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith<Color>((states) {
+            if (states.contains(WidgetState.selected)) {
+              return Colors.white;
+            }
+            return const Color(0xFFCBD5E1);
+          }),
+          textStyle: const WidgetStatePropertyAll(
+            TextStyle(
+              inherit: true,
+              fontFamily: 'Roboto',
+              fontSize: 14,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          side: WidgetStateProperty.all(
+            const BorderSide(color: Color(0xFF475569), width: 1.0),
+          ),
+          shape: WidgetStateProperty.all(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(radiusLg),
+            ),
+          ),
         ),
       ),
     );
