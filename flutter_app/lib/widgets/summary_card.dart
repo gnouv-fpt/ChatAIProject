@@ -34,6 +34,7 @@ class SummaryCard extends StatelessWidget {
     this.actionLabel,
     this.actionIcon,
     this.onAction,
+    this.backgroundColor,
     this.padding = const EdgeInsets.all(16),
   });
 
@@ -45,6 +46,7 @@ class SummaryCard extends StatelessWidget {
   final String? actionLabel;
   final IconData? actionIcon;
   final VoidCallback? onAction;
+  final Color? backgroundColor;
   final EdgeInsetsGeometry padding;
 
   @override
@@ -59,11 +61,11 @@ class SummaryCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+          color: colorScheme.primary.withValues(alpha: 0.18),
           width: 1,
         ),
       ),
-      color: colorScheme.surfaceContainerLow,
+      color: backgroundColor ?? colorScheme.primaryContainer.withValues(alpha: 0.35),
       child: Padding(
         padding: padding,
         child: Column(

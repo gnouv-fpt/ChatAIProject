@@ -28,6 +28,7 @@ class FlmAppBar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: preferredSize.height,
       leading: leading,
       titleSpacing: leading == null ? 20 : 4,
+      actionsPadding: const EdgeInsetsDirectional.only(end: 16),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,

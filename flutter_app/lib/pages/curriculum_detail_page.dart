@@ -402,7 +402,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           : FloatingActionButton(
               tooltip: 'Hỏi Trợ lý AI',
               onPressed: () => _openAdvisor(),
-              child: const Icon(Icons.smart_toy_outlined),
+              child: const Icon(Icons.smart_toy_rounded),
             ),
     );
   }
@@ -990,7 +990,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       leading: IconButton(
                         tooltip: 'Tư vấn học kỳ',
                         icon: const Icon(
-                          Icons.auto_awesome_outlined,
+                          Icons.smart_toy_rounded,
                           color: AppTheme.accentOrange,
                         ),
                         onPressed: () {

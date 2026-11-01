@@ -78,8 +78,13 @@ class ServerStatusBar extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final customColors = context.customColors;
+    final warningColor = customColors.warning;
+    final warningBg = customColors.warningContainer;
+    final onWarning = customColors.onWarningContainer;
+
     final isChecking = isOnline == null;
-    final dotColor = isChecking ? AppTheme.accentOrange : AppTheme.danger;
+    final dotColor = isChecking ? Theme.of(context).colorScheme.outline : warningColor;
     final labelText = isChecking ? 'Đang kiểm tra kết nối trợ lý…' : 'Trợ lý ngoại tuyến';
 
     return Semantics(
@@ -90,12 +95,14 @@ class ServerStatusBar extends StatelessWidget {
         decoration: BoxDecoration(
           color: isChecking
               ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
-              : AppTheme.danger.withValues(alpha: 0.08),
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? warningColor.withValues(alpha: 0.18)
+                  : warningBg),
           border: Border(
             bottom: BorderSide(
               color: isChecking
                   ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4)
-                  : AppTheme.danger.withValues(alpha: 0.2),
+                  : warningColor.withValues(alpha: 0.35),
               width: 0.8,
             ),
           ),
@@ -119,13 +126,16 @@ class ServerStatusBar extends StatelessWidget {
                   fontWeight: FontWeight.w600,
                   color: isChecking
                       ? Theme.of(context).colorScheme.onSurfaceVariant
-                      : AppTheme.danger,
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFFDE68A)
+                          : onWarning),
                 ),
               ),
             ),
             TextButton(
               onPressed: provider.checkServerHealth,
               style: TextButton.styleFrom(
+                foregroundColor: isChecking ? null : warningColor,
                 visualDensity: VisualDensity.compact,
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
                 minimumSize: const Size(40, 28),

@@ -376,7 +376,7 @@ class _CourseDetailPageState extends State<CourseDetailPage> {
                             minimumSize: const Size(140, 48),
                           ),
                           icon: const Icon(
-                            Icons.auto_awesome_outlined,
+                            Icons.smart_toy_rounded,
                             size: 18,
                           ),
                           label: const Text('Tư vấn môn này'),

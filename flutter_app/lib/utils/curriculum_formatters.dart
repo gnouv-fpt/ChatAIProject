@@ -1,0 +1,68 @@
+/// Formatters and display helpers for curriculum, semesters, credits, and AI contexts.
+/// Enforces consistent sentence-case Vietnamese and prevents exposing technical keys on UI.
+library;
+
+/// Formats total credits consistently across the application.
+String formatCurriculumCredits(int credits) {
+  return '$credits tín chỉ';
+}
+
+/// Formats total semesters consistently, making zero-semester explicit.
+String formatCurriculumSemesters(int count, {int startSemester = 0}) {
+  if (count <= 0) return '0 học kỳ';
+  final endSemester = startSemester + count - 1;
+  return '$count học kỳ (HK$startSemester–HK$endSemester)';
+}
+
+/// Converts a string to standard Vietnamese sentence case (capitalizes only the first letter).
+/// Replaces undesirable Title Case (e.g. "Lộ Trình Học Tập" -> "Lộ trình học tập").
+String capitalizeFirst(String text) {
+  final trimmed = text.trim();
+  if (trimmed.isEmpty) return '';
+  return '${trimmed[0].toUpperCase()}${trimmed.substring(1)}';
+}
+
+/// Maps technical context scope identifiers into human-friendly Vietnamese labels.
+///
+/// Prevents exposing raw IDs like "BIT_SE_K19B:roadmap", "BIT_SE_K19B:transcript", or raw UIDs.
+String formatContextScopeLabel({
+  required String scope,
+  required String scopeId,
+  String? title,
+  int? semesterNumber,
+}) {
+  if (scope == 'subject') {
+    final cleanCode = scopeId.contains(':') ? scopeId.split(':').last : scopeId;
+    return 'Môn: $cleanCode';
+  }
+
+  if (semesterNumber != null) {
+    return 'Phạm vi: Học kỳ $semesterNumber';
+  }
+
+  final lowerTitle = (title ?? '').toLowerCase();
+  final lowerId = scopeId.toLowerCase();
+
+  if (lowerTitle.contains('lộ trình') || lowerId.contains('roadmap')) {
+    return 'Phạm vi: Lộ trình học tập';
+  }
+
+  if (lowerTitle.contains('bảng điểm') || lowerId.contains('transcript')) {
+    return 'Phạm vi: Bảng điểm cá nhân';
+  }
+
+  if (lowerTitle.contains('cài đặt') ||
+      lowerTitle.contains('mục tiêu') ||
+      lowerId.contains('settings')) {
+    return 'Phạm vi: Mục tiêu học tập';
+  }
+
+  if (lowerTitle.contains('học kỳ') || lowerId.contains('semester')) {
+    final match = RegExp(r'\d+').firstMatch(lowerTitle) ?? RegExp(r'\d+').firstMatch(lowerId);
+    if (match != null) {
+      return 'Phạm vi: Học kỳ ${match.group(0)}';
+    }
+  }
+
+  return 'Phạm vi: Khung chương trình';
+}

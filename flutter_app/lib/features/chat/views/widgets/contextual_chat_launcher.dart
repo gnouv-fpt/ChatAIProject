@@ -60,18 +60,10 @@ class ContextualChatLauncher extends StatelessWidget {
             );
           };
 
-    if (showLabel) {
-      return AskAiButton(
-        onPressed: open,
-        tooltip: 'Hỏi Trợ lý về $title',
-      );
-    }
-
-    return IconButton(
-      tooltip: 'Hỏi Trợ lý về $title',
-      icon: const Icon(Icons.auto_awesome_outlined, size: 20),
-      visualDensity: VisualDensity.compact,
+    return AskAiButton(
       onPressed: open,
+      compact: !showLabel,
+      tooltip: 'Hỏi Trợ lý về $title',
     );
   }
 }

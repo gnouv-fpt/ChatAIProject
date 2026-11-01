@@ -80,10 +80,10 @@ void main() {
 
       // Assertions
       expect(find.text('Chào Khôi 👋'), findsOneWidget);
-      expect(find.text('Bước tiếp theo: Thiết lập lộ trình'), findsOneWidget);
-      expect(find.text('Chưa có bảng điểm'), findsOneWidget);
-      // Exactly ONE primary CTA 'Nhập bảng điểm'
-      expect(find.text('Nhập bảng điểm'), findsOneWidget);
+      expect(find.text('3 bước bắt đầu'), findsOneWidget);
+      expect(find.text('1. Nhập bảng điểm'), findsOneWidget);
+      // Exactly ONE primary CTA 'Nhập bảng điểm ngay'
+      expect(find.text('Nhập bảng điểm ngay'), findsOneWidget);
       // No duplicate navigation icons for tabs
       expect(find.text('Môn ưu tiên kỳ tới'), findsNothing);
 
@@ -181,7 +181,7 @@ void main() {
 
       // Assertions
       expect(find.text('Chào Khôi 👋'), findsOneWidget);
-      expect(find.text('Xem lộ trình môn học'), findsOneWidget);
+      expect(find.text('Xem gợi ý môn kỳ tới'), findsOneWidget);
       expect(find.text('Môn ưu tiên kỳ tới'), findsOneWidget);
       expect(find.text('Nhập bảng điểm'), findsNothing);
 
@@ -513,9 +513,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Top summary card shows unverified/neutral state
-      expect(find.text('Chương trình đào tạo'), findsOneWidget);
-      expect(find.text('Chưa có bảng điểm'), findsOneWidget);
+      // Top summary card removed in Phase 3d to ensure above-the-fold visibility
+      expect(find.text('Chương trình đào tạo'), findsNothing);
+      expect(find.textContaining('Chưa có bảng điểm'), findsOneWidget);
 
       // CRITICAL UX REQUIREMENT: No "Chưa xác nhận điều kiện" badge on any course tile
       expect(find.textContaining('Chưa xác nhận điều kiện'), findsNothing);

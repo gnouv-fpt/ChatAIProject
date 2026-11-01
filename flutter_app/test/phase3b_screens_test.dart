@@ -405,9 +405,9 @@ void main() {
       expect(find.text('Môn: PRM393'), findsOneWidget);
       // 4 contextual question chips
       expect(find.text('Môn PRM393 có thi PE không?'), findsOneWidget);
-      expect(find.text('Mục tiêu môn học (LOs) là gì?'), findsOneWidget);
-      expect(find.text('Tư vấn cách học môn này theo mục tiêu của tôi?'), findsOneWidget);
-      expect(find.text('Môn này có tính vào GPA không?'), findsOneWidget);
+      expect(find.text('Mục tiêu môn học (LOs) của PRM393 là gì?'), findsOneWidget);
+      expect(find.text('Tư vấn cách học môn PRM393 hiệu quả?'), findsOneWidget);
+      expect(find.text('Môn PRM393 có tính vào điểm GPA không?'), findsOneWidget);
 
       await _captureScreen(tester, key, 'contextual_sheet_empty_390x844_light');
     });

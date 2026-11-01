@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../features/chat/providers/chat_provider.dart';
-import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/load_status.dart';
 import '../state/auth_view_model.dart';
 import '../state/course_catalog.dart';
@@ -97,7 +96,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Xóa bảng điểm?'),
         content: Text(
           usesCloud
-              ? 'Bảng điểm của tài khoản trên đám mây (Firestore) sẽ bị xóa hoàn toàn.'
+              ? 'Bảng điểm lưu trong tài khoản của bạn sẽ bị xóa hoàn toàn. Bạn có thể nhập lại bất kỳ lúc nào.'
               : 'Dữ liệu bảng điểm đã lưu trên thiết bị này sẽ bị xóa hoàn toàn.',
         ),
         actions: [
@@ -198,22 +197,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final effectiveTargetGpa = (_targetGpa ?? transcript.targetGpa).clamp(5.0, 10.0);
 
     return Scaffold(
-      appBar: FlmAppBar(
+      appBar: const FlmAppBar(
         title: 'Cài đặt',
         subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
-        actions: [
-          ContextualChatLauncher(
-            curriculumId: curriculum?.id ?? '',
-            contextKey: 'settings',
-            title: 'mục tiêu học tập',
-            contextHint:
-                'Mục tiêu học tập cá nhân trong chương trình ${curriculum?.id ?? ''}',
-            suggestedQuestions: const [
-              'Mục tiêu GPA của tôi có khả thi không?',
-              'Tôi nên chọn mục tiêu học tập thế nào?',
-            ],
-          ),
-        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
@@ -268,9 +254,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              auth?.account?.uid.isNotEmpty == true
-                                  ? 'ID: ${auth!.account!.uid}'
-                                  : 'Tài khoản Google đã xác thực',
+                              auth?.account?.email?.isNotEmpty == true
+                                  ? auth!.account!.email!
+                                  : (auth?.account?.uid.isNotEmpty == true
+                                      ? 'Tài khoản Google đã kết nối'
+                                      : 'Tài khoản khách'),
                               style: TextStyle(
                                 fontSize: 13,
                                 color: colorScheme.onSurfaceVariant,
@@ -304,7 +292,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         Expanded(
                           child: Text(
                             profile.usesCloud
-                                ? 'Đang đồng bộ an toàn qua Firestore.'
+                                ? 'Đã đồng bộ với tài khoản.'
                                 : 'Dữ liệu lưu riêng tư trên thiết bị.',
                             style: TextStyle(
                               fontSize: 12,
@@ -320,30 +308,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     InlineBanner(
                       message: auth!.message!,
                       severity: BannerSeverity.info,
-                    ),
-                  ],
-                  if (auth != null) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: auth.busy ? null : () => _signOut(auth),
-                        icon: Icon(
-                          Icons.logout_rounded,
-                          size: 18,
-                          color: colorScheme.error,
-                        ),
-                        label: Text(
-                          'Đăng xuất',
-                          style: TextStyle(color: colorScheme.error),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(
-                            color: colorScheme.error.withValues(alpha: 0.5),
-                          ),
-                          minimumSize: const Size.fromHeight(44),
-                        ),
-                      ),
                     ),
                   ],
                 ],
@@ -796,11 +760,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           color: colorScheme.primary,
                         ),
                         const SizedBox(width: 6),
-                        const Text(
-                          'Cấu hình server nâng cao (Dành cho nhà phát triển)',
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w700,
+                        Expanded(
+                          child: const Text(
+                            'Cấu hình máy chủ nâng cao (Nhà phát triển)',
+                            style: TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ],
@@ -895,7 +861,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 SettingsTile(
                   title: 'Xóa bảng điểm cá nhân',
                   subtitle: transcript.usesCloud
-                      ? 'Xóa toàn bộ điểm số trên tài khoản đám mây'
+                      ? 'Xóa toàn bộ điểm số đã lưu trong tài khoản của bạn'
                       : 'Xóa toàn bộ điểm số lưu trên thiết bị này',
                   leadingIcon: Icons.delete_outline_rounded,
                   isDestructive: true,
@@ -905,6 +871,39 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+
+          // Sign Out Action Button at bottom
+          if (auth != null) ...[
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: auth.busy ? null : () => _signOut(auth),
+                icon: Icon(
+                  Icons.logout_rounded,
+                  size: 18,
+                  color: colorScheme.error,
+                ),
+                label: Text(
+                  'Đăng xuất tài khoản',
+                  style: TextStyle(
+                    fontSize: 14.5,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.error,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(
+                    color: colorScheme.error.withValues(alpha: 0.5),
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  ),
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: 32),
 

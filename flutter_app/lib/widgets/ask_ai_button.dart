@@ -16,7 +16,7 @@ class AskAiButton extends StatelessWidget {
     this.visible = true,
     this.compact,
     this.label = 'Hỏi AI',
-    this.icon = Icons.smart_toy_outlined,
+    this.icon = Icons.smart_toy_rounded,
     this.tooltip = 'Hỏi trợ lý AI FLM',
   });
 

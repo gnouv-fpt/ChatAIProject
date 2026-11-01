@@ -313,41 +313,72 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
           // 3. EMPTY STATE (When no transcript exists)
           if (!transcript.hasTranscript) ...[
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
               child: EmptyState(
                 icon: Icons.description_outlined,
                 title: 'Chưa có bảng điểm',
                 description: 'Nhập ảnh hoặc điểm thủ công để theo dõi GPA và kiểm tra điều kiện tiên quyết.',
-                actionLabel: 'Nhập ảnh bảng điểm',
-                onAction: importer.busy ? null : _import,
               ),
             ),
-            Center(
-              child: OutlinedButton.icon(
-                onPressed: importer.busy ? null : _editManually,
-                icon: const Icon(Icons.edit_note_rounded, size: 20),
-                label: const Text('Nhập điểm thủ công'),
-                style: OutlinedButton.styleFrom(
-                  minimumSize: const Size(220, 44),
+            const SizedBox(height: 8),
+            // Two full-width vertical buttons with 12dp spacing and 48dp height
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: FilledButton.icon(
+                onPressed: importer.busy ? null : _import,
+                icon: const Icon(Icons.upload_file_rounded, size: 20),
+                label: const Text(
+                  'Nhập ảnh bảng điểm',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700),
+                ),
+                style: FilledButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: importer.busy ? null : _editManually,
+                icon: const Icon(Icons.edit_note_rounded, size: 20),
+                label: const Text(
+                  'Nhập điểm thủ công',
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                ),
+                style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  side: BorderSide(color: colorScheme.outlineVariant),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  Icons.lock_outline_rounded,
-                  size: 14,
+                  Icons.shield_outlined,
+                  size: 15,
                   color: colorScheme.onSurfaceVariant,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  'Dữ liệu được lưu trữ an toàn trên thiết bị của bạn',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: colorScheme.onSurfaceVariant,
+                Flexible(
+                  child: Text(
+                    transcript.usesCloud
+                        ? 'Bảng điểm được lưu an toàn trong tài khoản của bạn'
+                        : 'Bảng điểm được lưu an toàn trên thiết bị của bạn',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],

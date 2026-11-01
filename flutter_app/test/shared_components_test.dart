@@ -416,7 +416,7 @@ void main() {
       );
 
       expect(find.text('Hỏi AI'), findsOneWidget);
-      expect(find.byIcon(Icons.smart_toy_outlined), findsOneWidget);
+      expect(find.byIcon(Icons.smart_toy_rounded), findsOneWidget);
       expect(find.byTooltip('Hỏi trợ lý AI FLM'), findsOneWidget);
 
       await tester.tap(find.text('Hỏi AI'));

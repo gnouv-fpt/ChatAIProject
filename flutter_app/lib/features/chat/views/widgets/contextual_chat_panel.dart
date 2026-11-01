@@ -7,6 +7,7 @@ import '../../../../services/grade_import_service.dart';
 import '../../../../state/course_catalog.dart';
 import '../../../../state/transcript_provider.dart';
 import '../../../../theme/app_theme.dart';
+import '../../../../utils/curriculum_formatters.dart';
 import '../../models/chat_message.dart';
 import '../../providers/chat_provider.dart';
 import 'chat_bubble.dart';
@@ -207,18 +208,40 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       return widget.suggestedQuestions!;
     }
     if (widget.scope == 'subject') {
+      final cleanCode = widget.scopeId.contains(':')
+          ? widget.scopeId.split(':').last
+          : widget.scopeId;
       return [
-        'Môn ${widget.scopeId} có thi PE không?',
-        'Mục tiêu môn học (LOs) là gì?',
-        'Tư vấn cách học môn này theo mục tiêu của tôi?',
-        'Môn này có tính vào GPA không?',
+        'Môn $cleanCode có thi PE không?',
+        'Mục tiêu môn học (LOs) của $cleanCode là gì?',
+        'Tư vấn cách học môn $cleanCode hiệu quả?',
+        'Môn $cleanCode có tính vào điểm GPA không?',
       ];
     }
-    return [
-      'Khung ${widget.scopeId} có bao nhiêu tín chỉ?',
-      'Học kỳ ${widget.semesterNumber ?? 1} có những môn nào?',
-      'Tôi nên chuẩn bị gì cho kỳ này?',
-      'Quy định về hạ bậc tốt nghiệp?',
+    if (widget.semesterNumber != null) {
+      final sem = widget.semesterNumber!;
+      return [
+        'Học kỳ $sem có những môn nào?',
+        'Môn nào nặng nhất trong học kỳ $sem?',
+        'Tôi nên chuẩn bị gì trước cho học kỳ $sem?',
+        'Lưu ý về tiên quyết các môn ở học kỳ $sem?',
+      ];
+    }
+    final lowerTitle = widget.title.toLowerCase();
+    final lowerScope = widget.scopeId.toLowerCase();
+    if (lowerTitle.contains('bảng điểm') || lowerScope.contains('transcript')) {
+      return const [
+        'Tiến độ tích lũy tín chỉ hiện tại của tôi?',
+        'Môn nào tôi đã hoàn thành và môn nào còn nợ?',
+        'Dự báo GPA và chiến lược cải thiện điểm?',
+        'Khung chương trình có bao nhiêu tín chỉ?',
+      ];
+    }
+    return const [
+      'Khung chương trình có bao nhiêu tín chỉ?',
+      'Các môn tiên quyết quan trọng nhất là gì?',
+      'Tôi nên đăng ký môn theo lộ trình thế nào?',
+      'Quy định về hạ bậc tốt nghiệp như thế nào?',
     ];
   }
 
@@ -231,10 +254,13 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       return 'Tổng quan chương trình';
     }
     if (widget.scope == 'subject') {
-      return 'Trợ lý môn ${widget.scopeId}';
+      final cleanCode = widget.scopeId.contains(':')
+          ? widget.scopeId.split(':').last
+          : widget.scopeId;
+      return 'Trợ lý môn $cleanCode';
     }
-    // Capitalize words
-    return raw.split(' ').map((w) => w.isNotEmpty ? '${w[0].toUpperCase()}${w.substring(1)}' : '').join(' ');
+    // Sentence case (capital letter only at start)
+    return capitalizeFirst(raw);
   }
 
   Future<void> _confirmClear(ChatProvider provider) async {
@@ -313,7 +339,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                     borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                   ),
                   child: Icon(
-                    Icons.auto_awesome_rounded,
+                    Icons.smart_toy_rounded,
                     size: 18,
                     color: colorScheme.primary,
                   ),
@@ -336,7 +362,14 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                       ),
                       const SizedBox(height: 1),
                       Text(
-                        widget.subtitle ?? widget.contextHint ?? 'Ngữ cảnh ${widget.scopeId}',
+                        widget.subtitle ??
+                            widget.contextHint ??
+                            formatContextScopeLabel(
+                              scope: widget.scope,
+                              scopeId: widget.scopeId,
+                              title: widget.title,
+                              semesterNumber: widget.semesterNumber,
+                            ),
                         style: TextStyle(
                           fontSize: 12,
                           color: colorScheme.onSurfaceVariant,
@@ -347,17 +380,45 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add_comment_outlined, size: 20),
-                  tooltip: 'Phiên mới',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: provider.isLoading ? null : provider.startNewSession,
-                ),
-                IconButton(
-                  icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                  tooltip: 'Xóa hội thoại',
-                  visualDensity: VisualDensity.compact,
-                  onPressed: provider.isLoading ? null : () => _confirmClear(provider),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert_rounded, size: 20),
+                  tooltip: 'Tùy chọn',
+                  onSelected: (value) {
+                    if (value == 'new_session') {
+                      provider.startNewSession();
+                    } else if (value == 'clear_history') {
+                      _confirmClear(provider);
+                    }
+                  },
+                  itemBuilder: (ctx) => [
+                    const PopupMenuItem(
+                      value: 'new_session',
+                      child: Row(
+                        children: [
+                          Icon(Icons.add_comment_outlined, size: 18),
+                          SizedBox(width: 8),
+                          Text('Phiên mới'),
+                        ],
+                      ),
+                    ),
+                    PopupMenuItem(
+                      value: 'clear_history',
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.delete_outline_rounded,
+                            size: 18,
+                            color: colorScheme.error,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Xóa hội thoại',
+                            style: TextStyle(color: colorScheme.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
                 if (widget.onClose != null)
                   IconButton(
@@ -382,9 +443,12 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   color: colorScheme.primary,
                 ),
                 label: Text(
-                  widget.scope == 'subject'
-                      ? 'Môn: ${widget.scopeId}'
-                      : 'Phạm vi: ${widget.scopeId}',
+                  formatContextScopeLabel(
+                    scope: widget.scope,
+                    scopeId: widget.scopeId,
+                    title: widget.title,
+                    semesterNumber: widget.semesterNumber,
+                  ),
                 ),
                 labelStyle: TextStyle(
                   fontSize: 11.5,
@@ -419,7 +483,8 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        widget.contextHint ?? 'Ngữ cảnh tư vấn: $_formattedTitle (${widget.scopeId})',
+                        widget.contextHint ??
+                            'Ngữ cảnh: $_formattedTitle',
                         style: TextStyle(
                           fontSize: 12.5,
                           color: colorScheme.onSurface,

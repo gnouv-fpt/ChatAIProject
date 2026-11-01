@@ -11,6 +11,7 @@ import '../state/course_catalog.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/curriculum_formatters.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/course_visuals.dart';
 import '../widgets/m3_components.dart';
@@ -122,7 +123,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       appBar: FlmAppBar(
         title: title,
         subtitle:
-            '${catalog.curriculum?.id ?? 'Chương trình'} · ${catalog.courses.length} môn · $totalCredits tín chỉ',
+            '${catalog.curriculum?.id ?? 'Chương trình'} · ${catalog.courses.length} môn · ${formatCurriculumCredits(totalCredits)}',
         actions: [
           ContextualChatLauncher(
             curriculumId: catalog.curriculum?.id ?? '',
@@ -209,9 +210,9 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                           if (!transcript.hasTranscript && !_dismissedNoTranscriptNotice)
                             SliverToBoxAdapter(
                               child: Padding(
-                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 6),
                                 child: InlineBanner(
-                                  message: 'Bạn chưa nhập bảng điểm. Hãy nhập để xem tiến độ và kiểm tra điều kiện tiên quyết.',
+                                  message: 'Chưa có bảng điểm. Nhập điểm để xem tiến độ và điều kiện tiên quyết.',
                                   severity: BannerSeverity.info,
                                   actionLabel: 'Nhập điểm',
                                   onAction: () => Navigator.pushNamed(context, '/transcript'),
@@ -219,7 +220,18 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                 ),
                               ),
                             ),
-                          if (!_nextOnly)
+                          if (!transcript.hasTranscript)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+                                child: _buildEmptyProgressIndicator(
+                                  context: context,
+                                  totalCourses: catalog.courses.length,
+                                  totalCredits: totalCredits,
+                                ),
+                              ),
+                            )
+                          else if (!_nextOnly)
                             SliverToBoxAdapter(
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
@@ -389,6 +401,50 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     );
   }
 
+  Widget _buildEmptyProgressIndicator({
+    required BuildContext context,
+    required int totalCourses,
+    required int totalCredits,
+  }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text(
+              'Tiến độ tích lũy',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const Spacer(),
+            Text(
+              '0/$totalCourses môn · 0/$totalCredits tín chỉ',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.primary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(4),
+          child: LinearProgressIndicator(
+            value: 0.0,
+            minHeight: 5,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            valueColor: AlwaysStoppedAnimation(colorScheme.primary),
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildProgressHero({
     required BuildContext context,
     required LearningProgress progress,
@@ -399,33 +455,6 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
     required int semestersCount,
   }) {
     final customColors = context.customColors;
-    final hasTranscript = transcript.hasTranscript;
-
-    if (!hasTranscript) {
-      return SummaryCard(
-        title: 'Chương trình đào tạo',
-        subtitle: 'Khung đào tạo chuẩn theo từng học kỳ',
-        badge: StatusChip.neutral(label: 'Chưa có bảng điểm'),
-        metrics: [
-          SummaryMetric(
-            label: 'Tổng số môn',
-            value: '$totalCourses môn',
-            icon: Icons.book_outlined,
-          ),
-          SummaryMetric(
-            label: 'Tổng tín chỉ',
-            value: '$totalCredits TC',
-            icon: Icons.workspace_premium_outlined,
-          ),
-          SummaryMetric(
-            label: 'Số học kỳ',
-            value: '$semestersCount kỳ',
-            icon: Icons.schedule_rounded,
-          ),
-        ],
-      );
-    }
-
     final percent = (progress.completionRatio * 100).round();
     final isSpecificSemester = selectedSemester != null;
     final headerTitle = isSpecificSemester
@@ -562,9 +591,9 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   @override
   double get minExtent {
     // Dynamic height adaptive to textScale, max 15% of screen height
-    final calculated = 56.0 + (textScale - 1.0) * 36.0;
+    final calculated = 52.0 + (textScale - 1.0) * 16.0;
     final maxAllowed = screenHeight * 0.15;
-    return calculated.clamp(52.0, maxAllowed);
+    return calculated.clamp(48.0, maxAllowed);
   }
 
   @override
@@ -572,10 +601,23 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Material(
-      color: Theme.of(context).colorScheme.surface,
-      elevation: overlapsContent ? 1.5 : 0.0,
-      child: Padding(
+      color: colorScheme.surface,
+      elevation: overlapsContent ? 2.0 : 0.0,
+      shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
+      child: Container(
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          border: Border(
+            bottom: BorderSide(
+              color: overlapsContent
+                  ? colorScheme.outlineVariant
+                  : colorScheme.outlineVariant.withValues(alpha: 0.35),
+              width: 1,
+            ),
+          ),
+        ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: _SemesterHeader(group: group),
       ),
@@ -606,86 +648,89 @@ class _SemesterHeader extends StatelessWidget {
     return Semantics(
       header: true,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-            Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: palette.fg,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '${group.semester}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w800,
-                ),
+          Container(
+            width: 34,
+            height: 34,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: palette.fg,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '${group.semester}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 15,
+                fontWeight: FontWeight.w800,
               ),
             ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Học kỳ ${group.semester}',
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontSize: 15.5,
-                            fontWeight: FontWeight.w800,
-                          ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        'Học kỳ ${group.semester}',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Flexible(
-                        child: Text(
-                          '${group.courses} môn · ${group.credits} TC · ${group.completed}/${group.courses}',
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12.5),
-                        ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        '${group.courses} môn · ${group.credits} TC · ${group.completed}/${group.courses}',
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
                       ),
-                      if (group.isNext) ...[
-                        const SizedBox(width: 6),
-                        const StatusPill(
-                          label: 'Kỳ tới',
-                          icon: Icons.flag_rounded,
-                          color: AppTheme.accentOrange,
-                          background: AppTheme.peBadgeBg,
-                        ),
-                      ],
-                      ContextualChatLauncher(
-                        curriculumId: curriculumId,
-                        contextKey: 'semester-${group.semester}',
-                        title: 'học kỳ ${group.semester}',
-                        contextHint: 'Học kỳ ${group.semester} trong chương trình $curriculumId',
-                        semesterNumber: group.semester,
-                        suggestedQuestions: [
-                          'Học kỳ này có những môn nào?',
-                          'Tôi nên chuẩn bị gì cho học kỳ này?',
-                        ],
+                    ),
+                    if (group.isNext) ...[
+                      const SizedBox(width: 6),
+                      const StatusPill(
+                        label: 'Kỳ tới',
+                        icon: Icons.flag_rounded,
+                        color: AppTheme.accentOrange,
+                        background: AppTheme.peBadgeBg,
                       ),
                     ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(99),
+                  child: LinearProgressIndicator(
+                    value: ratio,
+                    minHeight: 4,
+                    color: palette.fg,
+                    backgroundColor: palette.bg,
                   ),
-                  const SizedBox(height: 4),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(99),
-                    child: LinearProgressIndicator(
-                      value: ratio,
-                      minHeight: 4,
-                      color: palette.fg,
-                      backgroundColor: palette.bg,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
-        ),
-      );
+          ),
+          const SizedBox(width: 6),
+          ContextualChatLauncher(
+            curriculumId: curriculumId,
+            contextKey: 'semester-${group.semester}',
+            title: 'học kỳ ${group.semester}',
+            contextHint: 'Học kỳ ${group.semester} trong chương trình $curriculumId',
+            semesterNumber: group.semester,
+            suggestedQuestions: const [
+              'Học kỳ này có những môn nào?',
+              'Tôi nên chuẩn bị gì cho học kỳ này?',
+            ],
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -87,7 +87,7 @@ void main() {
       expect(find.text('Chưa có bảng điểm'), findsOneWidget);
       expect(find.text('Nhập ảnh bảng điểm'), findsOneWidget);
       expect(find.text('Nhập điểm thủ công'), findsOneWidget);
-      expect(find.text('Dữ liệu được lưu trữ an toàn trên thiết bị của bạn'), findsOneWidget);
+      expect(find.text('Bảng điểm được lưu an toàn trên thiết bị của bạn'), findsOneWidget);
       // Ensure "ĐỒNG BỘ" badge is NOT rendered
       expect(find.text('ĐỒNG BỘ'), findsNothing);
 
@@ -584,9 +584,11 @@ void main() {
       // Clear Transcript Danger Dialog
       await tester.scrollUntilVisible(
         find.text('Xóa bảng điểm cá nhân'),
-        150,
+        100,
         scrollable: find.byType(Scrollable).first,
       );
+      await tester.drag(find.byType(Scrollable).first, const Offset(0, -100));
+      await tester.pumpAndSettle();
       final clearTile = find.text('Xóa bảng điểm cá nhân');
       expect(clearTile, findsOneWidget);
       await tester.tap(clearTile);
