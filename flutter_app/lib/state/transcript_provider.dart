@@ -204,12 +204,9 @@ class TranscriptProvider extends ChangeNotifier {
   Future<void> clearTranscript() async {
     if (repository != null) {
       await repository!.saveTranscript([]);
-    } else {
-      final prefs = await _storage.open();
-      if (!await prefs.remove(_storageKey)) {
-        throw StateError('Không thể xóa bảng điểm trên thiết bị.');
-      }
     }
+    final prefs = await _storage.open();
+    await prefs.remove(_storageKey);
     _entries = [];
     status = LoadStatus.empty;
     loadError = null;

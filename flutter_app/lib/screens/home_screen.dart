@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/load_status.dart';
 import '../services/learning_progress.dart';
-import '../state/auth_view_model.dart';
 import '../state/course_catalog.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/transcript_provider.dart';
@@ -23,7 +22,6 @@ class HomeScreen extends StatelessWidget {
     final catalog = context.watch<CourseCatalog>();
     final transcript = context.watch<TranscriptProvider>();
     final profile = context.watch<LearningProfileProvider>();
-    final auth = context.watch<AuthViewModel?>();
 
     final progress = LearningProgress(
       catalog.courses,
@@ -39,15 +37,15 @@ class HomeScreen extends StatelessWidget {
     final total = catalog.courses.length;
     final totalCredits = catalog.courses.fold<int>(0, (sum, c) => sum + c.credits);
 
-    // Resolve greeting name
-    final fullName = auth?.account?.name;
-    final greetingName = fullName != null && fullName.trim().isNotEmpty
-        ? fullName.trim().split(' ').last
-        : 'bạn';
+
 
     return Scaffold(
       appBar: FlmAppBar(
         title: 'Cố vấn học tập FLM',
+        subtitle: formatProgramSubtitle(
+          nameVi: catalog.curriculum?.nameVi,
+          name: catalog.curriculum?.name,
+        ),
         actions: [
           ContextualChatLauncher(
             curriculumId: catalog.curriculum?.id ?? '',
@@ -75,11 +73,8 @@ class HomeScreen extends StatelessWidget {
           : RefreshIndicator(
               onRefresh: catalog.load,
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                 children: [
-                  // 1. User Greeting & Program Identity
-                  _buildGreetingHeader(context, greetingName, catalog),
-                  const SizedBox(height: 16),
 
                   // 2. Offline / Cloud status banner (if needed)
                   if (transcript.status == LoadStatus.error && transcript.loadError != null) ...[
@@ -242,50 +237,7 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildGreetingHeader(
-    BuildContext context,
-    String greetingName,
-    CourseCatalog catalog,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final textTheme = theme.textTheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Chào $greetingName 👋',
-                style: textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 21,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                formatProgramSubtitle(
-                  nameVi: catalog.curriculum?.nameVi,
-                  name: catalog.curriculum?.name,
-                ),
-                style: textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurfaceVariant,
-                  fontSize: 13,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
 
   Widget _buildHeroCard({
     required BuildContext context,

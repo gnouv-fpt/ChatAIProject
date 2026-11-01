@@ -79,7 +79,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assertions
-      expect(find.text('Chào Khôi 👋'), findsOneWidget);
+      expect(find.text('Cố vấn học tập FLM'), findsOneWidget);
+      expect(find.text('Cử nhân CNTT · Kỹ thuật phần mềm'), findsOneWidget);
       expect(find.text('3 bước bắt đầu'), findsOneWidget);
       expect(find.text('1. Nhập bảng điểm'), findsOneWidget);
       // Exactly ONE primary CTA 'Nhập bảng điểm ngay'
@@ -180,7 +181,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Assertions
-      expect(find.text('Chào Khôi 👋'), findsOneWidget);
+      expect(find.text('Cố vấn học tập FLM'), findsOneWidget);
+      expect(find.text('Cử nhân CNTT · Kỹ thuật phần mềm'), findsOneWidget);
       expect(find.text('Xem gợi ý môn kỳ tới'), findsOneWidget);
       expect(find.text('Môn ưu tiên kỳ tới'), findsOneWidget);
       expect(find.text('Nhập bảng điểm'), findsNothing);

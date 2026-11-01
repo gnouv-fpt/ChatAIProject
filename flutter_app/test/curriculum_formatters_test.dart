@@ -6,11 +6,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('CurriculumFormatters & Consistency Tests', () {
-    test('formatCurriculumCredits formats credits accurately (Option A)', () {
+    test('formatCurriculumCredits formats credits dynamically based on actual count', () {
       expect(formatCurriculumCredits(147), '147 tín chỉ trong khung chương trình');
-      expect(formatCurriculumCredits(145), '147 tín chỉ trong khung chương trình');
-      expect(formatCurriculumCredits(0), '147 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(130), '130 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(152), '152 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(0), '0 tín chỉ trong khung chương trình');
       expect(formatCurriculumCredits(147, fullScope: false), '147 tín chỉ');
+      expect(formatCurriculumCredits(130, compact: true), '130 tín chỉ');
     });
 
     test('formatCurriculumSemesters includes zero-semester explicitly', () {
@@ -95,6 +97,23 @@ void main() {
 
       expect(catalog.totalCredits, 6);
       expect(formatCurriculumCredits(catalog.curriculum!.totalCredits), '147 tín chỉ trong khung chương trình');
+
+      // Test with custom mock curriculum having different total credits (130 credits)
+      final mockCurriculum130 = Curriculum(
+        id: 'MOCK_CS_130',
+        code: 'MOCK_CS_130',
+        name: 'Mock Curriculum CS 130',
+        nameVi: 'Chương trình Khoa học máy tính 130 tín chỉ',
+        totalCredits: 130,
+        totalSubjects: 42,
+        decisionNo: '999',
+        degreeLevel: 'Bachelor',
+        institution: 'FPTU',
+        major: 'CS',
+        subjects: [],
+      );
+      expect(formatCurriculumCredits(mockCurriculum130.totalCredits), '130 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(mockCurriculum130.totalCredits, compact: true), '130 tín chỉ');
     });
 
     test('formatProgramSubtitle formats concise degree without duplicate prefix', () {

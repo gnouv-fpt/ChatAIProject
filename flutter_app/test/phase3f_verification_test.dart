@@ -28,7 +28,7 @@ void main() {
       code: 'BIT_SE_K19B',
       name: 'Curriculum K19B',
       nameVi: 'Chương trình cử nhân ngành Công nghệ thông tin, chuyên ngành Kỹ thuật phần mềm',
-      totalCredits: 145, // Legacy field in metadata
+      totalCredits: 147,
       totalSubjects: 48,
       decisionNo: '1140',
       degreeLevel: 'Bachelor',
@@ -107,9 +107,8 @@ void main() {
       final transcript = TranscriptProvider();
 
       // Test formatCurriculumCredits
-      expect(formatCurriculumCredits(145), '147 tín chỉ trong khung chương trình');
       expect(formatCurriculumCredits(147), '147 tín chỉ trong khung chương trình');
-      expect(formatCurriculumCredits(0), '147 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(130), '130 tín chỉ trong khung chương trình');
       expect(formatCurriculumCredits(147, fullScope: false), '147 tín chỉ');
 
       // Test SettingsScreen display
@@ -166,11 +165,11 @@ void main() {
       expect(find.text('Định hướng sau tốt nghiệp'), findsOneWidget);
       expect(find.text('Mục tiêu nghề nghiệp (tùy chọn)'), findsOneWidget);
 
-      // Verify helper texts
-      expect(find.text('Điểm qua môn, hiểu sâu hay điểm tối đa'), findsOneWidget);
-      expect(find.text('Tự học qua tài liệu, học qua dự án hay bài giảng video'), findsOneWidget);
-      expect(find.text('Cân bằng tải môn, tập trung đồ án hay nâng cao GPA'), findsOneWidget);
-      expect(find.text('Làm việc tại doanh nghiệp, du học hay nghiên cứu chuyên sâu'), findsOneWidget);
+      // Verify helper texts matching actual options
+      expect(find.text('Lựa chọn giữa "Qua môn" hoặc "Đạt điểm cao"'), findsOneWidget);
+      expect(find.text('Chọn giữa "Làm bài thực hành" hoặc "Đọc và tóm tắt"'), findsOneWidget);
+      expect(find.text('Tập trung vào phần quan trọng trước hoặc hiểu sâu để làm sản phẩm'), findsOneWidget);
+      expect(find.text('Hoàn thành đúng hạn, chuẩn bị nghề nghiệp hoặc du học & nghiên cứu'), findsOneWidget);
 
       // Verify "Lưu hồ sơ" is initially disabled because _hasProfileChanges == false
       final saveBtn = tester.widget<FilledButton>(

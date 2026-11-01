@@ -126,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         title: const Text('Xóa bảng điểm?'),
         content: Text(
           usesCloud
-              ? 'Bảng điểm lưu trong tài khoản của bạn sẽ bị xóa hoàn toàn. Bạn có thể nhập lại bất kỳ lúc nào.'
+              ? 'Bảng điểm lưu trong tài khoản của bạn và trên thiết bị này sẽ bị xóa hoàn toàn. Bạn có thể nhập lại bất kỳ lúc nào.'
               : 'Dữ liệu bảng điểm đã lưu trên thiết bị này sẽ bị xóa hoàn toàn.',
         ),
         actions: [
@@ -150,8 +150,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await transcript.clearTranscript();
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đã xóa bảng điểm.'),
+          SnackBar(
+            content: Text(
+              usesCloud
+                  ? 'Đã xóa bảng điểm trong tài khoản và trên thiết bị.'
+                  : 'Đã xóa bảng điểm trên thiết bị.',
+            ),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -623,7 +627,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${formatCurriculumCredits(curriculum.totalCredits)}',
+                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${formatCurriculumCredits(curriculum.totalCredits > 0 ? curriculum.totalCredits : catalog.totalCredits)}',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: colorScheme.onSurfaceVariant,
@@ -861,7 +865,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Giúp AI nhận biết giai đoạn học tập để gợi ý môn sát nhất',
+                                  'Chọn học kỳ từ HK0 đến HK9 để AI gợi ý môn phù hợp giai đoạn',
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: colorScheme.onSurfaceVariant,
@@ -885,7 +889,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // 1. Course Goal (Mục tiêu từng môn)
                   _buildProfileChoiceField(
                     label: 'Mục tiêu từng môn',
-                    helperText: 'Điểm qua môn, hiểu sâu hay điểm tối đa',
+                    helperText: 'Lựa chọn giữa "Qua môn" hoặc "Đạt điểm cao"',
                     displayValue: _courseGoal == 'pass'
                         ? 'Qua môn'
                         : _courseGoal == 'high_score'
@@ -904,7 +908,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // 2. Learning Style (Hình thức học tập)
                   _buildProfileChoiceField(
                     label: 'Hình thức học tập',
-                    helperText: 'Tự học qua tài liệu, học qua dự án hay bài giảng video',
+                    helperText: 'Chọn giữa "Làm bài thực hành" hoặc "Đọc và tóm tắt"',
                     displayValue: _learningStyle == 'practice'
                         ? 'Làm bài thực hành'
                         : _learningStyle == 'reading'
@@ -923,7 +927,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // 3. Study Priority (Trọng tâm học kỳ)
                   _buildProfileChoiceField(
                     label: 'Trọng tâm học kỳ',
-                    helperText: 'Cân bằng tải môn, tập trung đồ án hay nâng cao GPA',
+                    helperText: 'Tập trung vào phần quan trọng trước hoặc hiểu sâu để làm sản phẩm',
                     displayValue: _studyPriority == 'time'
                         ? 'Tập trung phần quan trọng trước'
                         : _studyPriority == 'depth'
@@ -942,7 +946,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   // 4. Long Term Goal (Định hướng sau tốt nghiệp)
                   _buildProfileChoiceField(
                     label: 'Định hướng sau tốt nghiệp',
-                    helperText: 'Làm việc tại doanh nghiệp, du học hay nghiên cứu chuyên sâu',
+                    helperText: 'Hoàn thành đúng hạn, chuẩn bị nghề nghiệp hoặc du học & nghiên cứu',
                     displayValue: _longTermGoal == 'graduate'
                         ? 'Hoàn thành chương trình đúng hạn'
                         : _longTermGoal == 'career'
@@ -1097,7 +1101,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       else if (chat.isServerOnline == true)
                         StatusChip.success(label: 'Trực tuyến')
                       else
-                        StatusChip.error(label: 'Ngoại tuyến'),
+                        StatusChip.warning(label: 'Ngoại tuyến'),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -1226,7 +1230,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   subtitle: !transcript.hasTranscript
                       ? 'Chưa có bảng điểm để xóa'
                       : (transcript.usesCloud
-                          ? 'Xóa toàn bộ điểm số đã lưu trong tài khoản của bạn'
+                          ? 'Xóa toàn bộ điểm số lưu trong tài khoản và trên thiết bị này'
                           : 'Xóa toàn bộ điểm số lưu trên thiết bị này'),
                   leadingIcon: Icons.delete_outline_rounded,
                   isDestructive: transcript.hasTranscript,

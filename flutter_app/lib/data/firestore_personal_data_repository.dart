@@ -34,11 +34,12 @@ class FirestorePersonalDataRepository implements PersonalDataRepository {
     ]).timeout(const Duration(seconds: 20));
     final rows = values[0] as QuerySnapshot<Map<String, dynamic>>;
     final preferences = values[1] as DocumentSnapshot<Map<String, dynamic>>;
+    final explicitTargetGpa = (preferences.data()?['targetGpa'] as num?)?.toDouble();
     return SavedTranscript(
       entries: rows.docs
           .map((doc) => TranscriptEntry.fromJson(doc.data()))
           .toList(),
-      targetGpa: (preferences.data()?['targetGpa'] as num?)?.toDouble() ?? 8.0,
+      targetGpa: explicitTargetGpa ?? 0.0,
     );
   }
 
