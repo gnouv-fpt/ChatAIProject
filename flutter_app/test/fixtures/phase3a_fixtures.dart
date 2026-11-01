@@ -9,6 +9,7 @@ import 'package:flm_courses/state/auth_view_model.dart';
 import 'package:flm_courses/state/course_catalog.dart';
 import 'package:flm_courses/state/learning_profile_provider.dart';
 import 'package:flm_courses/state/transcript_import_view_model.dart';
+import 'package:flm_courses/state/theme_provider.dart';
 import 'package:flm_courses/state/transcript_provider.dart';
 import 'package:flm_courses/theme/app_theme.dart';
 import 'package:provider/provider.dart';
@@ -114,6 +115,7 @@ Widget wrapWithTestProviders({
 }) {
   return MultiProvider(
     providers: [
+      ChangeNotifierProvider(create: (_) => ThemeProvider(initialMode: isDark ? ThemeMode.dark : ThemeMode.light)),
       ChangeNotifierProvider.value(value: catalog),
       ChangeNotifierProvider.value(value: profile),
       ChangeNotifierProvider.value(value: transcript),

@@ -8,6 +8,7 @@ import '../models/load_status.dart';
 import '../state/auth_view_model.dart';
 import '../state/course_catalog.dart';
 import '../state/learning_profile_provider.dart';
+import '../state/theme_provider.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../utils/curriculum_formatters.dart';
@@ -413,6 +414,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final auth = context.watch<AuthViewModel?>();
     final profile = context.watch<LearningProfileProvider>();
     final transcript = context.watch<TranscriptProvider>();
+    ThemeProvider? themeProvider;
+    try {
+      themeProvider = context.watch<ThemeProvider>();
+    } catch (_) {}
     final chat = context.watch<ChatProvider>();
     final catalog = context.watch<CourseCatalog>();
     final curriculum = catalog.curriculum;
@@ -1192,7 +1197,88 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 20),
 
           // ==========================================
-          // 4. PHẦN DỮ LIỆU (DATA & DANGER ACTIONS)
+          // 4. PHẦN GIAO DIỆN (APPEARANCE)
+          // ==========================================
+          const SectionHeader(
+            title: 'Giao diện',
+            icon: Icons.palette_outlined,
+          ),
+          const SizedBox(height: 6),
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Chế độ hiển thị',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Tùy chỉnh giao diện sáng, tối hoặc tự động đồng bộ theo thiết bị.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: colorScheme.onSurfaceVariant,
+                      height: 1.35,
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final currentMode = themeProvider?.themeMode ?? ThemeMode.system;
+                      return SizedBox(
+                        width: double.infinity,
+                        child: SegmentedButton<ThemeMode>(
+                          showSelectedIcon: constraints.maxWidth > 320,
+                          segments: const [
+                            ButtonSegment<ThemeMode>(
+                              value: ThemeMode.system,
+                              icon: Icon(Icons.brightness_auto_rounded, size: 18),
+                              label: Text('Hệ thống'),
+                            ),
+                            ButtonSegment<ThemeMode>(
+                              value: ThemeMode.light,
+                              icon: Icon(Icons.light_mode_rounded, size: 18),
+                              label: Text('Sáng'),
+                            ),
+                            ButtonSegment<ThemeMode>(
+                              value: ThemeMode.dark,
+                              icon: Icon(Icons.dark_mode_rounded, size: 18),
+                              label: Text('Tối'),
+                            ),
+                          ],
+                          selected: {currentMode},
+                          onSelectionChanged: (newSelection) {
+                            if (newSelection.isNotEmpty) {
+                              themeProvider?.setThemeMode(newSelection.first);
+                            }
+                          },
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ==========================================
+          // 5. PHẦN DỮ LIỆU (DATA & DANGER ACTIONS)
           // ==========================================
           const SectionHeader(
             title: 'Dữ liệu',

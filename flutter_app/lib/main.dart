@@ -10,6 +10,7 @@ import 'pages/curriculum_detail_page.dart';
 import 'state/course_catalog.dart';
 import 'state/transcript_provider.dart';
 import 'state/learning_profile_provider.dart';
+import 'state/theme_provider.dart';
 import 'theme/app_theme.dart';
 import 'services/grade_calculator.dart';
 import 'data/personal_preferences.dart';
@@ -52,6 +53,7 @@ class FlmApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (_) => ThemeProvider()..load()),
         ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
         ChangeNotifierProvider(
           create: (_) =>
@@ -147,39 +149,45 @@ class FlmApp extends StatelessWidget {
           ),
         ),
       ],
-      child: MaterialApp(
-        title: 'Cố vấn học tập FLM',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme(),
-        darkTheme: AppTheme.darkTheme(),
-        themeMode: (kIsWeb && Uri.base.queryParameters['theme'] == 'dark')
-            ? ThemeMode.dark
-            : (kIsWeb && Uri.base.queryParameters['theme'] == 'light')
-                ? ThemeMode.light
-                : ThemeMode.system,
-        home: const AppShell(),
-        onGenerateRoute: (settings) {
-          final uri = Uri.tryParse(settings.name ?? '');
-          if (uri != null && uri.pathSegments.isNotEmpty) {
-            // Route: /curricula/:id -> Màn 2
-            if (uri.pathSegments.first == 'curricula' &&
-                uri.pathSegments.length >= 2) {
-              return MaterialPageRoute<void>(
-                settings: settings,
-                builder: (_) =>
-                    CurriculumDetailPage(curriculumId: uri.pathSegments[1]),
-              );
-            }
-            // Route: /courses/:code -> Màn 3
-            if (uri.pathSegments.first == 'courses' &&
-                uri.pathSegments.length >= 2) {
-              return MaterialPageRoute<void>(
-                settings: settings,
-                builder: (_) => CourseDetailPage(code: uri.pathSegments[1]),
-              );
-            }
-          }
-          return null;
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, _) {
+          final effectiveMode =
+              (kIsWeb && Uri.base.queryParameters['theme'] == 'dark')
+                  ? ThemeMode.dark
+                  : (kIsWeb && Uri.base.queryParameters['theme'] == 'light')
+                      ? ThemeMode.light
+                      : themeProvider.themeMode;
+          return MaterialApp(
+            title: 'Cố vấn học tập FLM',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme(),
+            darkTheme: AppTheme.darkTheme(),
+            themeMode: effectiveMode,
+            home: const AppShell(),
+            onGenerateRoute: (settings) {
+              final uri = Uri.tryParse(settings.name ?? '');
+              if (uri != null && uri.pathSegments.isNotEmpty) {
+                // Route: /curricula/:id -> Màn 2
+                if (uri.pathSegments.first == 'curricula' &&
+                    uri.pathSegments.length >= 2) {
+                  return MaterialPageRoute<void>(
+                    settings: settings,
+                    builder: (_) =>
+                        CurriculumDetailPage(curriculumId: uri.pathSegments[1]),
+                  );
+                }
+                // Route: /courses/:code -> Màn 3
+                if (uri.pathSegments.first == 'courses' &&
+                    uri.pathSegments.length >= 2) {
+                  return MaterialPageRoute<void>(
+                    settings: settings,
+                    builder: (_) => CourseDetailPage(code: uri.pathSegments[1]),
+                  );
+                }
+              }
+              return null;
+            },
+          );
         },
       ),
     );
