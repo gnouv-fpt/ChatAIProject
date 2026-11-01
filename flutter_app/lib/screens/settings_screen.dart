@@ -1242,22 +1242,41 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       return SizedBox(
                         width: double.infinity,
                         child: SegmentedButton<ThemeMode>(
-                          showSelectedIcon: constraints.maxWidth > 320,
+                          showSelectedIcon: false,
+                          style: SegmentedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                          ),
                           segments: const [
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.system,
                               icon: Icon(Icons.brightness_auto_rounded, size: 18),
-                              label: Text('Hệ thống'),
+                              label: Text(
+                                'Hệ thống',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
                             ),
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.light,
                               icon: Icon(Icons.light_mode_rounded, size: 18),
-                              label: Text('Sáng'),
+                              label: Text(
+                                'Sáng',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
                             ),
                             ButtonSegment<ThemeMode>(
                               value: ThemeMode.dark,
                               icon: Icon(Icons.dark_mode_rounded, size: 18),
-                              label: Text('Tối'),
+                              label: Text(
+                                'Tối',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                              ),
                             ),
                           ],
                           selected: {currentMode},
