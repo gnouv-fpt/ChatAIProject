@@ -72,14 +72,9 @@ class CourseRepository {
         .where((c) => c.inCurriculum) // Lọc bỏ alias không trong curriculum khi hiển thị chính
         .toList(growable: false);
 
-    final computedCredits = courses.fold<int>(0, (sum, c) => sum + c.credits);
-    final unifiedCurriculum = curriculum.copyWith(
-      totalCredits: computedCredits > 0 ? computedCredits : curriculum.totalCredits,
-      totalSubjects: courses.isNotEmpty ? courses.length : curriculum.totalSubjects,
-    );
-
+    // Trả về đúng curriculum gốc từ dữ liệu (không tự ghi đè số tổng khi chưa có quyết định)
     return CourseCatalogData(
-      curriculum: unifiedCurriculum,
+      curriculum: curriculum,
       curricula: curricula,
       semesters: semesters,
       plos: plos,

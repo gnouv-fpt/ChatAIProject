@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'features/chat/providers/chat_provider.dart';
 import 'app/app_shell.dart';
+import 'models/transcript_entry.dart';
 import 'pages/course_detail_page.dart';
 import 'pages/curriculum_detail_page.dart';
 import 'state/course_catalog.dart';
@@ -67,9 +68,72 @@ class FlmApp extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) =>
-              TranscriptProvider(storage: storage, repository: personalData)
-                ..load(),
+          create: (_) {
+            final tp =
+                TranscriptProvider(storage: storage, repository: personalData);
+            if (kIsWeb && Uri.base.queryParameters['demo'] == 'populated') {
+              tp.load().then((_) {
+                if (!tp.hasTranscript) {
+                  tp.save([
+                    TranscriptEntry(
+                      courseCode: 'PRF192',
+                      courseName: 'Cơ sở lập trình',
+                      score: 8.5,
+                      credits: 3,
+                      semester: 1,
+                      isPassed: true,
+                    ),
+                    TranscriptEntry(
+                      courseCode: 'MAE101',
+                      courseName: 'Toán cho ngành kỹ thuật',
+                      score: 7.0,
+                      credits: 3,
+                      semester: 1,
+                      isPassed: true,
+                    ),
+                    TranscriptEntry(
+                      courseCode: 'CEA201',
+                      courseName: 'Kiến trúc máy tính',
+                      score: 8.0,
+                      credits: 3,
+                      semester: 1,
+                      isPassed: true,
+                    ),
+                    TranscriptEntry(
+                      courseCode: 'CSI106',
+                      courseName: 'Giới thiệu về Khoa học máy tính',
+                      score: 6.5,
+                      credits: 3,
+                      semester: 1,
+                      isPassed: true,
+                    ),
+                    TranscriptEntry(
+                      courseCode: 'PRO192',
+                      courseName: 'Lập trình hướng đối tượng với Java',
+                      score: 0.0,
+                      credits: 3,
+                      semester: 2,
+                      isPassed: false,
+                      inProgress: true,
+                    ),
+                    TranscriptEntry(
+                      courseCode: 'MAD101',
+                      courseName: 'Toán rời rạc',
+                      score: 0.0,
+                      credits: 3,
+                      semester: 2,
+                      isPassed: false,
+                      inProgress: true,
+                    ),
+                  ]);
+                  tp.setTargetGpa(8.2);
+                }
+              });
+            } else {
+              tp.load();
+            }
+            return tp;
+          },
         ),
         Provider<TranscriptImagePicker>(
           create: (_) => FileTranscriptImagePicker(),
@@ -88,7 +152,11 @@ class FlmApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme(),
         darkTheme: AppTheme.darkTheme(),
-        themeMode: ThemeMode.system,
+        themeMode: (kIsWeb && Uri.base.queryParameters['theme'] == 'dark')
+            ? ThemeMode.dark
+            : (kIsWeb && Uri.base.queryParameters['theme'] == 'light')
+                ? ThemeMode.light
+                : ThemeMode.system,
         home: const AppShell(),
         onGenerateRoute: (settings) {
           final uri = Uri.tryParse(settings.name ?? '');

@@ -94,5 +94,37 @@ void main() {
       expect(catalog.totalCredits, 6);
       expect(formatCurriculumCredits(catalog.curriculum!.totalCredits), '147 tín chỉ');
     });
+
+    test('formatProgramSubtitle formats concise degree without duplicate prefix', () {
+      expect(
+        formatProgramSubtitle(
+          nameVi: 'Chương trình cử nhân ngành Công nghệ thông tin, chuyên ngành Kỹ thuật phần mềm',
+        ),
+        'Cử nhân CNTT · Kỹ thuật phần mềm',
+      );
+      expect(
+        formatProgramSubtitle(
+          nameVi: 'Kỹ thuật phần mềm',
+        ),
+        'Cử nhân CNTT · Kỹ thuật phần mềm',
+      );
+      expect(
+        formatProgramSubtitle(),
+        'Cử nhân CNTT · Kỹ thuật phần mềm',
+      );
+    });
+
+    test('formatMajorName extracts concise major name', () {
+      expect(
+        formatMajorName(
+          nameVi: 'Chương trình cử nhân ngành Công nghệ thông tin, chuyên ngành Kỹ thuật phần mềm',
+        ),
+        'Kỹ thuật phần mềm',
+      );
+      expect(
+        formatMajorName(nameVi: 'Kỹ thuật phần mềm'),
+        'Kỹ thuật phần mềm',
+      );
+    });
   });
 }

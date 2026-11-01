@@ -5,6 +5,7 @@ import '../data/firestore_personal_data_repository.dart';
 import '../data/personal_data_repository.dart';
 
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -49,8 +50,12 @@ class _FirebaseEntryState extends State<FirebaseEntry> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<FirebaseApp>(
-    future: _initialization,
+  Widget build(BuildContext context) {
+    if (kIsWeb && Uri.base.queryParameters.containsKey('demo')) {
+      return const FlmApp();
+    }
+    return FutureBuilder<FirebaseApp>(
+      future: _initialization,
     builder: (context, snapshot) {
       if (snapshot.hasData) {
         final database = FirebaseFirestore.instanceFor(
@@ -104,6 +109,7 @@ class _FirebaseEntryState extends State<FirebaseEntry> {
       );
     },
   );
+  }
 }
 
 class AuthGate extends StatelessWidget {

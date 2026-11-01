@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -30,6 +31,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   String _query = '';
   bool _dismissedNoTranscriptNotice = false;
   final ScrollController _chipScrollController = ScrollController();
+  final ScrollController _mainScrollController = ScrollController();
   final Map<int, GlobalKey> _semesterKeys = {};
   final GlobalKey _allKey = GlobalKey();
   final GlobalKey _nextKey = GlobalKey();
@@ -57,6 +59,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   @override
   void dispose() {
     _chipScrollController.dispose();
+    _mainScrollController.dispose();
     super.dispose();
   }
 
@@ -119,6 +122,14 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       semesterGroups.putIfAbsent(course.semester, () => []).add(course);
     }
 
+    if (kIsWeb && Uri.base.queryParameters['scroll'] == 'bottom') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_mainScrollController.hasClients) {
+          _mainScrollController.jumpTo(_mainScrollController.position.maxScrollExtent);
+        }
+      });
+    }
+
     return Scaffold(
       appBar: FlmAppBar(
         title: title,
@@ -145,7 +156,6 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         ? 'Lộ trình học tập trong chương trình ${catalog.curriculum?.id ?? ''}'
                         : 'Học kỳ $_semester trong chương trình ${catalog.curriculum?.id ?? ''}',
             semesterNumber: _showGraph ? null : (_nextOnly ? progress.nextSemester : _semester),
-            showLabel: true,
           ),
         ],
       ),
@@ -205,6 +215,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                   : KeyedSubtree(
                       key: const ValueKey('roadmap_list_view'),
                       child: CustomScrollView(
+                        controller: _mainScrollController,
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         slivers: [
                           if (!transcript.hasTranscript && !_dismissedNoTranscriptNotice)
@@ -411,22 +422,31 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Tiến độ tích lũy',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: colorScheme.onSurfaceVariant,
+            Flexible(
+              child: Text(
+                'Tiến độ tích lũy',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurfaceVariant,
+                ),
               ),
             ),
-            const Spacer(),
-            Text(
-              '0/$totalCourses môn · 0/$totalCredits tín chỉ',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: colorScheme.primary,
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                '0/$totalCourses môn · 0/$totalCredits tín chỉ',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: colorScheme.primary,
+                ),
               ),
             ),
           ],
@@ -589,15 +609,10 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double screenHeight;
 
   @override
-  double get minExtent {
-    // Dynamic height adaptive to textScale, max 15% of screen height
-    final calculated = 52.0 + (textScale - 1.0) * 16.0;
-    final maxAllowed = screenHeight * 0.15;
-    return calculated.clamp(48.0, maxAllowed);
-  }
+  double get minExtent => 52.0;
 
   @override
-  double get maxExtent => minExtent;
+  double get maxExtent => 52.0;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -607,6 +622,7 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
       elevation: overlapsContent ? 2.0 : 0.0,
       shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
       child: Container(
+        height: 52.0,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           border: Border(
@@ -618,7 +634,7 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
             ),
           ),
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: _SemesterHeader(group: group),
       ),
     );
@@ -678,8 +694,10 @@ class _SemesterHeader extends StatelessWidget {
                     Flexible(
                       child: Text(
                         'Học kỳ ${group.semester}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontSize: 15,
+                          fontSize: 14.5,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
@@ -688,8 +706,9 @@ class _SemesterHeader extends StatelessWidget {
                     Flexible(
                       child: Text(
                         '${group.courses} môn · ${group.credits} TC · ${group.completed}/${group.courses}',
+                        maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11.5),
                       ),
                     ),
                     if (group.isNext) ...[
@@ -703,12 +722,12 @@ class _SemesterHeader extends StatelessWidget {
                     ],
                   ],
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(99),
                   child: LinearProgressIndicator(
                     value: ratio,
-                    minHeight: 4,
+                    minHeight: 3,
                     color: palette.fg,
                     backgroundColor: palette.bg,
                   ),
@@ -723,6 +742,7 @@ class _SemesterHeader extends StatelessWidget {
             title: 'học kỳ ${group.semester}',
             contextHint: 'Học kỳ ${group.semester} trong chương trình $curriculumId',
             semesterNumber: group.semester,
+            showLabel: false,
             suggestedQuestions: const [
               'Học kỳ này có những môn nào?',
               'Tôi nên chuẩn bị gì cho học kỳ này?',

@@ -66,3 +66,28 @@ String formatContextScopeLabel({
 
   return 'Phạm vi: Khung chương trình';
 }
+
+/// Formats a concise program degree subtitle (e.g. "Cử nhân CNTT · Kỹ thuật phần mềm")
+/// avoiding duplicated prefixing like "Cử nhân CNTT · Chương trình cử nhân...".
+String formatProgramSubtitle({String? nameVi, String? name}) {
+  final raw = nameVi ?? name ?? '';
+  if (raw.isEmpty) return 'Cử nhân CNTT · Kỹ thuật phần mềm';
+  if (raw.contains('chuyên ngành ')) {
+    final spec = raw.split('chuyên ngành ').last.trim();
+    return 'Cử nhân CNTT · $spec';
+  }
+  if (!raw.contains('Chương trình') && !raw.contains('cử nhân')) {
+    return 'Cử nhân CNTT · $raw';
+  }
+  return 'Cử nhân CNTT · Kỹ thuật phần mềm';
+}
+
+/// Formats a concise specialization or major name (e.g. "Kỹ thuật phần mềm").
+String formatMajorName({String? nameVi, String? name}) {
+  final raw = nameVi ?? name ?? '';
+  if (raw.isEmpty) return 'Kỹ thuật phần mềm';
+  if (raw.contains('chuyên ngành ')) {
+    return raw.split('chuyên ngành ').last.trim();
+  }
+  return raw;
+}

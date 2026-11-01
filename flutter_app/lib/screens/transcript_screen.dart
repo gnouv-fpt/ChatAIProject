@@ -314,14 +314,24 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
           // 3. EMPTY STATE (When no transcript exists)
           if (!transcript.hasTranscript) ...[
             const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
+              padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: EmptyState(
                 icon: Icons.description_outlined,
                 title: 'Chưa có bảng điểm',
                 description: 'Nhập ảnh hoặc điểm thủ công để theo dõi GPA và kiểm tra điều kiện tiên quyết.',
+                padding: EdgeInsets.all(12),
               ),
             ),
-            const SizedBox(height: 8),
+            Center(
+              child: Text(
+                'Ảnh chụp màn hình bảng điểm từ FLM hoặc FAP',
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
             // Two full-width vertical buttons with 12dp spacing and 48dp height
             SizedBox(
               width: double.infinity,

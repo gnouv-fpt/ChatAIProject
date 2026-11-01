@@ -10,6 +10,7 @@ import '../state/course_catalog.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
+import '../utils/curriculum_formatters.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
 import '../widgets/m3_components.dart';
@@ -24,6 +25,7 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final TextEditingController _serverController;
   late final TextEditingController _careerController;
+  final ScrollController _scrollController = ScrollController();
   bool _profileHydrated = false;
   String? _courseGoal;
   String? _learningStyle;
@@ -55,6 +57,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   void dispose() {
     _serverController.dispose();
     _careerController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -196,12 +199,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
     // Keep local target GPA aligned with provider unless user is dragging
     final effectiveTargetGpa = (_targetGpa ?? transcript.targetGpa).clamp(5.0, 10.0);
 
+    if (kIsWeb && Uri.base.queryParameters['scroll'] == 'bottom') {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (_scrollController.hasClients) {
+          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+        }
+      });
+    }
+
     return Scaffold(
       appBar: const FlmAppBar(
         title: 'Cài đặt',
         subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
       ),
       body: ListView(
+        controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
           // ==========================================
@@ -347,7 +359,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${curriculum.nameVi.isNotEmpty ? curriculum.nameVi : curriculum.name} · ${curriculum.totalCredits} tín chỉ',
+                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${curriculum.totalCredits} tín chỉ',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: colorScheme.onSurfaceVariant,
@@ -383,11 +395,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     crossAxisAlignment: CrossAxisAlignment.baseline,
                     textBaseline: TextBaseline.alphabetic,
                     children: [
-                      const Text(
-                        'Mục tiêu GPA',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w700,
+                      const Flexible(
+                        child: Text(
+                          'Mục tiêu GPA',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Row(
@@ -461,18 +476,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          '5.0 (Tối thiểu)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.onSurfaceVariant,
+                        Flexible(
+                          child: Text(
+                            '5.0 (Tối thiểu)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        Text(
-                          '10.0 (Xuất sắc)',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: colorScheme.onSurfaceVariant,
+                        const SizedBox(width: 8),
+                        Flexible(
+                          child: Text(
+                            '10.0 (Xuất sắc)',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.end,
                           ),
                         ),
                       ],

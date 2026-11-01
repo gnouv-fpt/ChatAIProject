@@ -12,7 +12,7 @@ class ContextualChatLauncher extends StatelessWidget {
     required this.contextHint,
     this.semesterNumber,
     this.suggestedQuestions,
-    this.showLabel = false,
+    this.showLabel,
   });
 
   final String curriculumId;
@@ -21,7 +21,7 @@ class ContextualChatLauncher extends StatelessWidget {
   final String contextHint;
   final int? semesterNumber;
   final List<String>? suggestedQuestions;
-  final bool showLabel;
+  final bool? showLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -62,8 +62,8 @@ class ContextualChatLauncher extends StatelessWidget {
 
     return AskAiButton(
       onPressed: open,
-      compact: !showLabel,
-      tooltip: 'Hỏi Trợ lý về $title',
+      compact: showLabel != null ? !showLabel! : null,
+      tooltip: 'Hỏi trợ lý về $title',
     );
   }
 }

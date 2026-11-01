@@ -301,6 +301,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
         (_textController.text.trim().isNotEmpty || _pendingImages.isNotEmpty);
     final hasUserMessage = provider.messages.any((m) => m.sender == ChatSender.user);
 
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final isCompactHeight = screenHeight < 450;
+
     return Container(
       decoration: BoxDecoration(
         color: colorScheme.surface,
@@ -314,22 +317,23 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
       ),
       child: Column(
         children: [
-          // 1. Drag Handle
-          Center(
-            child: Container(
-              width: 36,
-              height: 4,
-              margin: const EdgeInsets.only(top: 8, bottom: 4),
-              decoration: BoxDecoration(
-                color: colorScheme.outlineVariant,
-                borderRadius: BorderRadius.circular(2),
+          // 1. Drag Handle (hidden on short landscape viewports)
+          if (!isCompactHeight)
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                margin: const EdgeInsets.only(top: 8, bottom: 4),
+                decoration: BoxDecoration(
+                  color: colorScheme.outlineVariant,
+                  borderRadius: BorderRadius.circular(2),
+                ),
               ),
             ),
-          ),
 
           // 2. Header of Chat Panel
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
+            padding: EdgeInsets.fromLTRB(16, isCompactHeight ? 2 : 4, 8, isCompactHeight ? 2 : 8),
             child: Row(
               children: [
                 Container(
@@ -431,39 +435,40 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             ),
           ),
 
-          // 3. Clickable Context Chip (toggles details inside sheet, no SnackBar)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: ActionChip(
-                avatar: Icon(
-                  widget.scope == 'subject' ? Icons.menu_book_rounded : Icons.school_rounded,
-                  size: 15,
-                  color: colorScheme.primary,
-                ),
-                label: Text(
-                  formatContextScopeLabel(
-                    scope: widget.scope,
-                    scopeId: widget.scopeId,
-                    title: widget.title,
-                    semesterNumber: widget.semesterNumber,
+          // 3. Clickable Context Chip (hidden on compact landscape viewports)
+          if (!isCompactHeight)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ActionChip(
+                  avatar: Icon(
+                    widget.scope == 'subject' ? Icons.menu_book_rounded : Icons.school_rounded,
+                    size: 15,
+                    color: colorScheme.primary,
                   ),
+                  label: Text(
+                    formatContextScopeLabel(
+                      scope: widget.scope,
+                      scopeId: widget.scopeId,
+                      title: widget.title,
+                      semesterNumber: widget.semesterNumber,
+                    ),
+                  ),
+                  labelStyle: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                  backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  side: BorderSide(
+                    color: colorScheme.primary.withValues(alpha: 0.25),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                  onPressed: () => setState(() => _showContextDetails = !_showContextDetails),
                 ),
-                labelStyle: TextStyle(
-                  fontSize: 11.5,
-                  fontWeight: FontWeight.w700,
-                  color: colorScheme.primary,
-                ),
-                backgroundColor: colorScheme.primaryContainer.withValues(alpha: 0.5),
-                side: BorderSide(
-                  color: colorScheme.primary.withValues(alpha: 0.25),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                onPressed: () => setState(() => _showContextDetails = !_showContextDetails),
               ),
             ),
-          ),
 
           // Inline context details panel
           if (_showContextDetails)
@@ -613,7 +618,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
 
           // 8. Input Bar (Multi-line up to 5, disabled button when empty, keyboard safe)
           Container(
-            padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+            padding: EdgeInsets.fromLTRB(12, isCompactHeight ? 4 : 8, 12, isCompactHeight ? 4 : 10),
             decoration: BoxDecoration(
               color: colorScheme.surface,
               border: Border(
@@ -621,6 +626,8 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
               ),
             ),
             child: SafeArea(
+              top: false,
+              bottom: MediaQuery.viewInsetsOf(context).bottom == 0,
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [

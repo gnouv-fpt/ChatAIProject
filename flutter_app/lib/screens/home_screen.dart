@@ -54,7 +54,6 @@ class HomeScreen extends StatelessWidget {
             contextKey: 'home',
             title: 'trang chủ',
             contextHint: 'Tổng quan tiến độ học tập và chương trình ${catalog.curriculum?.id ?? ''}',
-            showLabel: true,
             suggestedQuestions: const [
               'Tôi nên học gì tiếp theo?',
               'Tóm tắt tiến độ học tập của tôi.',
@@ -252,10 +251,6 @@ class HomeScreen extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final curriculumName = catalog.curriculum?.nameVi.isNotEmpty == true
-        ? catalog.curriculum!.nameVi
-        : (catalog.curriculum?.name ?? 'Kỹ thuật phần mềm');
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -274,12 +269,15 @@ class HomeScreen extends StatelessWidget {
               ),
               const SizedBox(height: 2),
               Text(
-                'Cử nhân CNTT · $curriculumName',
+                formatProgramSubtitle(
+                  nameVi: catalog.curriculum?.nameVi,
+                  name: catalog.curriculum?.name,
+                ),
                 style: textTheme.bodySmall?.copyWith(
                   color: colorScheme.onSurfaceVariant,
                   fontSize: 13,
                 ),
-                maxLines: 2,
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
             ],
@@ -341,18 +339,23 @@ class HomeScreen extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'BƯỚC TIẾP THEO',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                  color: Colors.white.withValues(alpha: 0.85),
+              Flexible(
+                child: Text(
+                  'BƯỚC TIẾP THEO',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                    color: Colors.white.withValues(alpha: 0.85),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const Spacer(),
-              if (hasTranscript)
+              if (hasTranscript) ...[
+                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -368,6 +371,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                 ),
+              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -520,12 +524,12 @@ class HomeScreen extends StatelessWidget {
                 subtitle: Text(
                   hasTranscript
                       ? 'Đã hoàn thành · Sẵn sàng phân tích lộ trình'
-                      : 'Chưa hoàn thành · Tải ảnh hoặc nhập điểm thủ công',
+                      : 'Tải ảnh hoặc nhập điểm thủ công để bắt đầu',
                   style: TextStyle(fontSize: 12.5, color: colorScheme.onSurfaceVariant),
                 ),
                 trailing: hasTranscript
                     ? StatusChip.success(label: 'Đã xong', compact: true)
-                    : StatusChip.warning(label: 'Chưa làm', compact: true),
+                    : const Icon(Icons.chevron_right_rounded),
                 onTap: () => onNavigate(3),
               ),
               const Divider(height: 1, indent: 64),
@@ -540,17 +544,23 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14.5),
                 ),
                 subtitle: Text(
-                  'Mục tiêu hiện tại: ${targetGpa.toStringAsFixed(1)} · Chạm để điều chỉnh',
+                  transcript.hasExplicitTargetGpa
+                      ? 'Mục tiêu đã đặt: ${targetGpa.toStringAsFixed(1)} · Chạm để điều chỉnh'
+                      : 'Chưa đặt · mặc định 8.0 · Chạm để thiết lập',
                   style: TextStyle(fontSize: 12.5, color: colorScheme.onSurfaceVariant),
                 ),
-                trailing: StatusChip.info(label: targetGpa.toStringAsFixed(1), compact: true),
+                trailing: transcript.hasExplicitTargetGpa
+                    ? StatusChip.info(label: targetGpa.toStringAsFixed(1), compact: true)
+                    : const Icon(Icons.chevron_right_rounded),
                 onTap: () => onNavigate(4),
               ),
               const Divider(height: 1, indent: 64),
               ListTile(
                 leading: IconTile(
                   icon: hasTranscript ? Icons.looks_3_rounded : Icons.lock_outline_rounded,
-                  color: hasTranscript ? colorScheme.primary : colorScheme.outline,
+                  color: hasTranscript
+                      ? colorScheme.primary
+                      : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
                   size: 40,
                 ),
                 title: Text(
@@ -558,9 +568,7 @@ class HomeScreen extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 14.5,
-                    color: hasTranscript
-                        ? colorScheme.onSurface
-                        : colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 subtitle: Text(
@@ -571,7 +579,11 @@ class HomeScreen extends StatelessWidget {
                 ),
                 trailing: hasTranscript
                     ? const Icon(Icons.chevron_right_rounded)
-                    : const Icon(Icons.lock_rounded, size: 18),
+                    : Icon(
+                        Icons.lock_rounded,
+                        size: 18,
+                        color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                      ),
                 onTap: hasTranscript ? () => onNavigate(1) : null,
               ),
             ],

@@ -35,10 +35,14 @@ class AskAiButton extends StatelessWidget {
 
     final colorScheme = Theme.of(context).colorScheme;
     final width = MediaQuery.sizeOf(context).width;
-    final textScaler = MediaQuery.textScalerOf(context);
-    final isCrowded = compact ?? (width < 375 || textScaler.scale(14) > 15.5);
+    final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+    // Quy tắc duy nhất: nhãn khi rộng >= 375dp và text scale <= 1.15, ngược lại icon-only.
+    // Áp dụng cho MỌI màn qua cùng một component.
+    final bool showTextLabel = compact != null
+        ? !compact!
+        : (width >= 375 && textScale <= 1.15);
 
-    if (isCrowded) {
+    if (!showTextLabel) {
       return Semantics(
         button: true,
         label: tooltip,
