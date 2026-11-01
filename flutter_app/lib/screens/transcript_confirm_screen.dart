@@ -635,10 +635,26 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                                           onPressed: _saving
                                               ? null
                                               : () {
+                                                  final removed = item;
+                                                  final removedIndex = index;
                                                   setState(() {
                                                     _isDirty = true;
                                                     _entries.removeAt(index);
                                                   });
+                                                  ScaffoldMessenger.of(context).clearSnackBars();
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text('Đã xóa ${removed.courseCode}'),
+                                                      action: SnackBarAction(
+                                                        label: 'Hoàn tác',
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _entries.insert(removedIndex, removed);
+                                                          });
+                                                        },
+                                                      ),
+                                                    ),
+                                                  );
                                                 },
                                         ),
                                       ],

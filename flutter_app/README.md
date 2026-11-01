@@ -49,7 +49,11 @@ flutter build web --release --dart-define=FLM_API_BASE_URL=https://api.yourdomai
 flutter build windows --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
 ```
 
-### 3. Kiểm tra Build Web Release (Có và Không có `--dart-define`):
+### 3. Chế độ Nhà phát triển (Developer Mode):
+- Trong bản **Release**, phần "Cấu hình máy chủ nâng cao" trong màn hình Cài đặt mặc định được **ẩn hoàn toàn** để bảo mật và chống nhập sai URL backend.
+- Để kích hoạt/mở khóa ô nhập URL tùy chỉnh trong Release: chạm liên tục **7 lần** vào dòng phiên bản ở cuối màn hình Cài đặt ("Cố vấn học tập FLM · v1.0.0 (Build 2026)"). Khi mở khóa, ô nhập cấu hình máy chủ sẽ hiển thị kèm thông báo SnackBar xác nhận. Chạm tiếp 7 lần để khóa/ẩn lại.
+
+### 4. Kiểm tra Build Web & Android Release (Có và Không có `--dart-define`):
 Ứng dụng được thiết kế để bắt lỗi cấu hình ngay lúc khởi động (`validateReleaseConfig` trong `lib/main.dart`):
 - **Trường hợp thiếu `--dart-define`**: Ứng dụng không bao giờ bị màn hình trắng/xám hoặc crash âm thầm; thay vào đó sẽ hiển thị màn hình thông báo trực quan [`ConfigErrorScreen`](lib/widgets/config_error_screen.dart) hướng dẫn cờ cần thiết.
 - **Trường hợp có `--dart-define`**: Ứng dụng khởi động bình thường vào production.
@@ -59,7 +63,20 @@ Chạy script kiểm tra tự động cả 2 kịch bản:
 .\scripts\check_release_build.ps1
 ```
 
-## Kiểm tra
+## Bộ Test Kiểm thử QA (Phase 4 QA Test Suite)
+
+Chạy toàn bộ 49 automated test cases chuyên biệt cho QA cuối cùng (Trợ năng, Responsive, Flow người dùng, Đồng bộ dữ liệu):
+
+```powershell
+flutter test test/qa_accessibility_test.dart test/qa_responsive_test.dart test/qa_flows_test.dart test/phase3f_verification_test.dart
+```
+
+Kiểm tra phân tích mã tĩnh:
+```powershell
+flutter analyze lib/ test/qa_accessibility_test.dart test/qa_responsive_test.dart test/qa_flows_test.dart test/phase3f_verification_test.dart
+```
+
+## Kiểm tra tổng thể
 
 ```powershell
 flutter test
