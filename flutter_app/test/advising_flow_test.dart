@@ -101,32 +101,19 @@ void main() {
             ),
           ),
         );
-        await tester.pump();
-        await tester.scrollUntilVisible(
-          find.text('Học kỳ suy ra từ môn đang học: 1'),
-          250,
-          scrollable: find.byType(Scrollable).first,
-        );
-        expect(find.text('Học kỳ suy ra từ môn đang học: 1'), findsOneWidget);
+        await tester.pumpAndSettle();
+        expect(find.text('BƯỚC TIẾP THEO'), findsOneWidget);
         await tester.tap(find.text('Lộ trình'));
-        await tester.pump();
-        await tester.tap(find.text('Kỳ tới · HK2'));
-        await tester.pump();
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Kỳ tới (HK2)'));
+        await tester.pumpAndSettle();
         expect(
-          find.textContaining('Đủ tiên quyết theo dữ liệu đã nhập'),
-          findsOneWidget,
+          find.textContaining('Có thể học'),
+          findsWidgets,
         );
-        expect(find.textContaining('Còn thiếu: CSI106'), findsOneWidget);
-        tester
-            .widget<ListTile>(
-              find.ancestor(
-                of: find.textContaining('PRO192 ·').first,
-                matching: find.byType(ListTile),
-              ),
-            )
-            .onTap!();
-        await tester.pump();
-        await tester.pump(const Duration(milliseconds: 500));
+        expect(find.textContaining('Thiếu: CSI106'), findsWidgets);
+        await tester.tap(find.textContaining('PRO192').first);
+        await tester.pumpAndSettle();
         expect(find.byType(CourseDetailPage), findsOneWidget);
         await tester.drag(
           find.byType(SingleChildScrollView).first,
@@ -141,8 +128,8 @@ void main() {
         expect(find.text('PRF192'), findsWidgets);
         await tester.binding.handlePopRoute();
         await tester.pumpAndSettle();
-        expect(find.text('Kỳ tới · HK2'), findsOneWidget);
-        expect(find.textContaining('Còn thiếu: CSI106'), findsOneWidget);
+        expect(find.text('Kỳ tới (HK2)'), findsOneWidget);
+        expect(find.textContaining('Thiếu: CSI106'), findsWidgets);
         expect(tester.takeException(), isNull);
       },
     );

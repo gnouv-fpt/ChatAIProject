@@ -1,9 +1,14 @@
 import '../models/transcript_entry.dart';
 
 class SavedTranscript {
-  const SavedTranscript({required this.entries, required this.targetGpa});
+  const SavedTranscript({
+    required this.entries,
+    required this.targetGpa,
+    this.hasExplicitTargetGpa = false,
+  });
   final List<TranscriptEntry> entries;
   final double targetGpa;
+  final bool hasExplicitTargetGpa;
 }
 
 abstract interface class PersonalDataRepository {

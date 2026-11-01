@@ -19,6 +19,7 @@ import '../widgets/data_state_view.dart';
 import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
+import '../utils/curriculum_formatters.dart';
 import 'course_detail_page.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
@@ -306,7 +307,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                                 ),
                           ),
                           Text(
-                            '${activeCurriculum.totalSubjects} môn · ${activeCurriculum.totalCredits} tín chỉ',
+                            '${activeCurriculum.totalSubjects} môn · ${formatCurriculumCredits(activeCurriculum.totalCredits)}',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
@@ -402,7 +403,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
           : FloatingActionButton(
               tooltip: 'Hỏi Trợ lý AI',
               onPressed: () => _openAdvisor(),
-              child: const Icon(Icons.smart_toy_outlined),
+              child: const Icon(Icons.smart_toy_rounded),
             ),
     );
   }
@@ -990,7 +991,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                       leading: IconButton(
                         tooltip: 'Tư vấn học kỳ',
                         icon: const Icon(
-                          Icons.auto_awesome_outlined,
+                          Icons.smart_toy_rounded,
                           color: AppTheme.accentOrange,
                         ),
                         onPressed: () {

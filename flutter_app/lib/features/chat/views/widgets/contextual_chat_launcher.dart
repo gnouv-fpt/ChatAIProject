@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../widgets/ask_ai_button.dart';
 import 'contextual_chat_panel.dart';
 
 class ContextualChatLauncher extends StatelessWidget {
@@ -11,7 +12,7 @@ class ContextualChatLauncher extends StatelessWidget {
     required this.contextHint,
     this.semesterNumber,
     this.suggestedQuestions,
-    this.showLabel = false,
+    this.showLabel,
   });
 
   final String curriculumId;
@@ -20,7 +21,7 @@ class ContextualChatLauncher extends StatelessWidget {
   final String contextHint;
   final int? semesterNumber;
   final List<String>? suggestedQuestions;
-  final bool showLabel;
+  final bool? showLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -31,13 +32,19 @@ class ContextualChatLauncher extends StatelessWidget {
               context: context,
               isScrollControlled: true,
               useSafeArea: true,
+              backgroundColor: Colors.transparent,
               builder: (sheetContext) => Padding(
                 padding: EdgeInsets.only(
                   bottom: MediaQuery.viewInsetsOf(sheetContext).bottom,
                 ),
-                child: SizedBox(
-                  height: MediaQuery.sizeOf(sheetContext).height * 0.85,
-                  child: ContextualChatPanel(
+                child: DraggableScrollableSheet(
+                  initialChildSize: 0.65,
+                  minChildSize: 0.45,
+                  maxChildSize: 0.92,
+                  snap: true,
+                  snapSizes: const [0.65, 0.92],
+                  expand: false,
+                  builder: (ctx, scrollController) => ContextualChatPanel(
                     scope: 'curriculum',
                     scopeId: '$curriculumId:$contextKey',
                     backendScopeId: curriculumId,
@@ -52,20 +59,11 @@ class ContextualChatLauncher extends StatelessWidget {
               ),
             );
           };
-    if (showLabel) {
-      return Tooltip(
-        message: 'Hỏi Trợ lý về $title',
-        child: TextButton.icon(
-          onPressed: open,
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: const Text('Hỏi trợ lý'),
-        ),
-      );
-    }
-    return IconButton(
-      tooltip: 'Hỏi Trợ lý về $title',
-      icon: const Icon(Icons.auto_awesome_outlined),
+
+    return AskAiButton(
       onPressed: open,
+      compact: showLabel != null ? !showLabel! : null,
+      tooltip: 'Hỏi trợ lý về $title',
     );
   }
 }

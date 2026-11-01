@@ -40,6 +40,11 @@ class CourseCatalog extends ChangeNotifier {
     return courses.fold(0, (sum, c) => sum + c.credits);
   }
 
+  int get totalSemesters {
+    if (semesters.isNotEmpty) return semesters.length;
+    return curriculum?.semesterCount ?? 10;
+  }
+
   Future<void> load() async {
     isLoading = true;
     error = null;

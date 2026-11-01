@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -17,8 +18,26 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  int _index = 0;
-  final Set<int> _visited = {0};
+  late int _index;
+  final Set<int> _visited = {};
+
+  @override
+  void initState() {
+    super.initState();
+    int initial = 0;
+    if (kIsWeb) {
+      final tab = Uri.base.queryParameters['tab'];
+      initial = switch (tab) {
+        'roadmap' => 1,
+        'chat' => 2,
+        'transcript' => 3,
+        'settings' => 4,
+        _ => 0,
+      };
+    }
+    _index = initial;
+    _visited.add(initial);
+  }
 
   void _select(int index) {
     if (index == 2) {

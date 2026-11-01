@@ -7,8 +7,9 @@ import '../models/transcript_entry.dart';
 import '../services/grade_calculator.dart';
 import '../state/course_catalog.dart';
 import '../theme/app_theme.dart';
+import '../widgets/app_ui.dart';
 import '../widgets/course_visuals.dart';
-import '../widgets/flm_notice.dart';
+import '../widgets/m3_components.dart';
 
 class TranscriptConfirmScreen extends StatefulWidget {
   final List<TranscriptEntry> rawExtractedEntries;
@@ -32,6 +33,7 @@ class TranscriptConfirmScreen extends StatefulWidget {
 class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
   late List<TranscriptEntry> _entries;
   bool _saving = false;
+  bool _isDirty = false;
 
   bool _missingCredits(TranscriptEntry entry) {
     final course = context.read<CourseCatalog>().findByCode(entry.courseCode);
@@ -42,6 +44,38 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
   void initState() {
     super.initState();
     _entries = List.from(widget.rawExtractedEntries);
+    // If imported from OCR, mark dirty by default so user doesn't accidentally exit without saving
+    _isDirty = widget.rawExtractedEntries.isNotEmpty && !widget.manualEntry;
+  }
+
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_isDirty && _entries.length == widget.rawExtractedEntries.length) {
+      return true;
+    }
+    final shouldLeave = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Thoát mà không lưu?'),
+        content: const Text(
+          'Các môn học đã quét hoặc thay đổi sẽ không được lưu vào bảng điểm cá nhân.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Ở lại'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            child: const Text('Thoát'),
+          ),
+        ],
+      ),
+    );
+    return shouldLeave ?? false;
   }
 
   Future<void> _editEntry([int? index]) async {
@@ -51,7 +85,9 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
       text: original?.courseCode ?? '',
     );
     final scoreController = TextEditingController(
-      text: original?.score.toString() ?? '',
+      text: original != null
+          ? (original.inProgress ? '' : original.score.toStringAsFixed(1))
+          : '',
     );
     final semesterController = TextEditingController(
       text: original?.semester.toString() ?? '',
@@ -61,110 +97,137 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
           ? original.credits.toString()
           : '',
     );
+    bool inProgress = original?.inProgress ?? false;
     final formKey = GlobalKey<FormState>();
+
     final edited = await showDialog<TranscriptEntry>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(index == null ? 'Thêm môn học' : 'Sửa môn học'),
-        content: SizedBox(
-          width: 360,
-          child: SingleChildScrollView(
-            child: Form(
-              key: formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: codeController,
-                    textCapitalization: TextCapitalization.characters,
-                    decoration: const InputDecoration(labelText: 'Mã môn học'),
-                    validator: (value) =>
-                        catalog.findByCode(value ?? '') == null
-                        ? 'Mã môn không có trong chương trình'
-                        : null,
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: scoreController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text(index == null ? 'Thêm môn học' : 'Sửa thông tin môn'),
+          content: SizedBox(
+            width: 360,
+            child: SingleChildScrollView(
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    TextFormField(
+                      controller: codeController,
+                      textCapitalization: TextCapitalization.characters,
+                      decoration: const InputDecoration(
+                        labelText: 'Mã môn học',
+                        hintText: 'Ví dụ: PRM392',
+                      ),
+                      validator: (value) =>
+                          catalog.findByCode(value ?? '') == null
+                              ? 'Mã môn không có trong chương trình'
+                              : null,
                     ),
-                    decoration: const InputDecoration(labelText: 'Điểm (0–10)'),
-                    validator: (value) {
-                      final score = double.tryParse(
-                        (value ?? '').replaceAll(',', '.'),
-                      );
-                      return score == null || score < 0 || score > 10
-                          ? 'Nhập điểm từ 0 đến 10'
-                          : null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: semesterController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Kỳ (0–20)'),
-                    validator: (value) {
-                      final semester = int.tryParse(value ?? '');
-                      return semester == null || semester < 0 || semester > 20
-                          ? 'Nhập kỳ từ 0 đến 20'
-                          : null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: creditsController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'Tín chỉ (để trống dùng chương trình)',
+                    const SizedBox(height: 12),
+                    CheckboxListTile(
+                      value: inProgress,
+                      title: const Text('Đang học kỳ này'),
+                      contentPadding: EdgeInsets.zero,
+                      onChanged: (val) {
+                        setDialogState(() => inProgress = val ?? false);
+                      },
                     ),
-                    validator: (value) {
-                      if ((value ?? '').trim().isEmpty) return null;
-                      final credits = int.tryParse(value ?? '');
-                      return credits == null || credits < 0 || credits > 30
-                          ? 'Nhập tín chỉ từ 0 đến 30'
-                          : null;
-                    },
-                  ),
-                ],
+                    if (!inProgress) ...[
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: scoreController,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        decoration: const InputDecoration(
+                          labelText: 'Điểm (0–10)',
+                          hintText: 'Ví dụ: 8.5',
+                        ),
+                        validator: (value) {
+                          final score = double.tryParse(
+                            (value ?? '').replaceAll(',', '.'),
+                          );
+                          return score == null || score < 0 || score > 10
+                              ? 'Nhập điểm từ 0 đến 10'
+                              : null;
+                        },
+                      ),
+                    ],
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: semesterController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Học kỳ (0–20)',
+                        hintText: 'Ví dụ: 5',
+                      ),
+                      validator: (value) {
+                        final semester = int.tryParse(value ?? '');
+                        return semester == null || semester < 0 || semester > 20
+                            ? 'Nhập kỳ từ 0 đến 20'
+                            : null;
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: creditsController,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        labelText: 'Tín chỉ (để trống dùng chương trình)',
+                      ),
+                      validator: (value) {
+                        if ((value ?? '').trim().isEmpty) return null;
+                        final credits = int.tryParse(value ?? '');
+                        return credits == null || credits < 0 || credits > 30
+                            ? 'Nhập tín chỉ từ 0 đến 30'
+                            : null;
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Hủy'),
+            ),
+            FilledButton(
+              onPressed: () {
+                if (!formKey.currentState!.validate()) return;
+                final course = catalog.findByCode(codeController.text)!;
+                final score = inProgress
+                    ? 0.0
+                    : double.parse(scoreController.text.replaceAll(',', '.'));
+                Navigator.pop(
+                  dialogContext,
+                  TranscriptEntry(
+                    courseCode: course.code,
+                    courseName: course.nameVi.isNotEmpty
+                        ? course.nameVi
+                        : course.name,
+                    score: score,
+                    credits: creditsController.text.trim().isEmpty
+                        ? course.credits
+                        : int.parse(creditsController.text),
+                    semester: int.parse(semesterController.text),
+                    isPassed: inProgress ? false : score >= 5,
+                    inProgress: inProgress,
+                    // If manually edited, confidence becomes 1.0 (verified)
+                    confidence: 1.0,
+                  ),
+                );
+              },
+              child: const Text('Áp dụng'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (!formKey.currentState!.validate()) return;
-              final course = catalog.findByCode(codeController.text)!;
-              final score = double.parse(
-                scoreController.text.replaceAll(',', '.'),
-              );
-              Navigator.pop(
-                dialogContext,
-                TranscriptEntry(
-                  courseCode: course.code,
-                  courseName: course.nameVi.isNotEmpty
-                      ? course.nameVi
-                      : course.name,
-                  score: score,
-                  credits: creditsController.text.trim().isEmpty
-                      ? course.credits
-                      : int.parse(creditsController.text),
-                  semester: int.parse(semesterController.text),
-                  isPassed: original?.inProgress == true ? false : score >= 5,
-                  inProgress: original?.inProgress ?? false,
-                ),
-              );
-            },
-            child: const Text('Áp dụng'),
-          ),
-        ],
       ),
     );
+
     unawaited(
       Future<void>.delayed(const Duration(milliseconds: 500)).then((_) {
         codeController.dispose();
@@ -173,8 +236,10 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         creditsController.dispose();
       }),
     );
+
     if (!mounted || edited == null) return;
     setState(() {
+      _isDirty = true;
       if (index == null) {
         _entries.add(edited);
       } else {
@@ -255,17 +320,20 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         confidence: entry.confidence,
       );
     }).toList();
+
     setState(() => _saving = true);
     final messenger = ScaffoldMessenger.of(context);
     try {
       await widget.onSaved(confirmed);
       if (!mounted) return;
+      _isDirty = false;
       Navigator.pop(context);
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-            confirmed.isEmpty ? 'Đã xóa bảng điểm.' : 'Đã lưu bảng điểm.',
+            confirmed.isEmpty ? 'Đã xóa bảng điểm.' : 'Đã lưu bảng điểm thành công.',
           ),
+          behavior: SnackBarBehavior.floating,
         ),
       );
     } catch (_) {
@@ -273,6 +341,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
       messenger.showSnackBar(
         const SnackBar(
           content: Text('Không thể lưu bảng điểm. Vui lòng thử lại.'),
+          behavior: SnackBarBehavior.floating,
         ),
       );
       setState(() => _saving = false);
@@ -281,368 +350,328 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final eval = GradeCalculator.evaluateTranscript(_entries);
     final hasMissingCredits = _entries.any(_missingCredits);
     final hasGpaCredits = eval.totalGpaCredits > 0 && !hasMissingCredits;
 
-    return Scaffold(
-      backgroundColor: AppTheme.slate50,
-      appBar: AppBar(
-        title: Text(
-          widget.manualEntry
-              ? 'Nhập điểm thủ công'
-              : 'Xác nhận bảng điểm đã quét',
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ),
-      bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-        child: Tooltip(
-          message: 'Lưu bảng điểm',
-          child: FilledButton.icon(
-            onPressed: _saving ? null : _save,
-            icon: _saving
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.save_outlined),
-            label: Text(_saving ? 'Đang lưu...' : 'Lưu bảng điểm'),
+    final lowConfidenceCount = _entries.where((e) => e.confidence < 0.85 || _missingCredits(e)).length;
+
+    return PopScope(
+      canPop: !_isDirty,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldLeave = await _confirmDiscardChanges();
+        if (shouldLeave && context.mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.manualEntry
+                ? 'Nhập điểm thủ công'
+                : 'Xác nhận bảng điểm đã quét',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
         ),
-      ),
-      body: CustomScrollView(
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _saving ? null : () => _editEntry(),
-                      icon: const Icon(Icons.add),
-                      label: const Text('Thêm môn thủ công'),
-                    ),
-                  ),
-                ),
-                if (widget.importWarning.isNotEmpty || hasMissingCredits)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppTheme.spaceMd,
-                      vertical: AppTheme.spaceSm,
-                    ),
-                    child: FlmNotice(
-                      tone: NoticeTone.warning,
-                      message: hasMissingCredits
-                          ? 'Có dòng thiếu tín chỉ. Chỉ cần mở các dòng được đánh dấu để kiểm tra trước khi lưu; GPA sẽ tính sau khi bổ sung.'
-                          : widget.importWarning,
-                    ),
-                  ),
-                if (_entries.isEmpty)
-                  Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Row(
-                          children: const [
-                            Icon(
-                              Icons.playlist_add_outlined,
-                              color: AppTheme.primaryBlue,
-                            ),
-                            SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                'Chưa có môn học. Bấm Thêm môn thủ công để bắt đầu.',
-                              ),
-                            ),
-                          ],
-                        ),
+        bottomNavigationBar: SafeArea(
+          minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: SizedBox(
+            height: 48,
+            child: FilledButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: colorScheme.onPrimary,
+                      ),
+                    )
+                  : const Icon(Icons.check_circle_rounded, size: 20),
+              label: Text(
+                _saving
+                    ? 'Đang lưu bảng điểm...'
+                    : 'Xác nhận & Lưu bảng điểm (${_entries.length} môn)',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
+            ),
+          ),
+        ),
+        body: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                child: Column(
+                  children: [
+                    // Manual Add Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: _saving ? null : () => _editEntry(),
+                        icon: const Icon(Icons.add_rounded, size: 20),
+                        label: const Text('Thêm môn thủ công'),
                       ),
                     ),
-                  )
-                else
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 4,
-                    ),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryLight,
-                        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                        border: Border.all(
-                          color: AppTheme.primaryBlue.withValues(alpha: 0.25),
-                        ),
+                    const SizedBox(height: 10),
+
+                    // Warnings
+                    if (widget.importWarning.isNotEmpty || hasMissingCredits) ...[
+                      InlineBanner(
+                        message: hasMissingCredits
+                            ? 'Có môn thiếu số tín chỉ. Vui lòng mở dòng được đánh dấu để bổ sung trước khi lưu.'
+                            : widget.importWarning,
+                        severity: BannerSeverity.warning,
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          Expanded(
-                            child: Column(
-                              children: [
-                                const Text(
-                                  'GPA hiện tại',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppTheme.slate600,
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  hasGpaCredits ? '${eval.currentGpa}' : '—',
-                                  style: const TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppTheme.primaryBlue,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    if (lowConfidenceCount > 0 && !hasMissingCredits) ...[
+                      InlineBanner(
+                        message: 'AI phát hiện $lowConfidenceCount môn có độ tin cậy thấp. Vui lòng chạm vào môn để đối chiếu điểm và mã môn.',
+                        severity: BannerSeverity.info,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+
+                    // Evaluation Summary Card
+                    if (_entries.isNotEmpty) ...[
+                      SummaryCard(
+                        title: 'Đánh giá sơ bộ sau khi lưu',
+                        subtitle: 'Dựa trên ${_entries.length} môn học đã quét',
+                        metrics: [
+                          SummaryMetric(
+                            label: 'GPA dự kiến',
+                            value: hasGpaCredits ? eval.currentGpa.toStringAsFixed(2) : '—',
                           ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                const Text(
-                                  'Xếp loại thực',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppTheme.slate600,
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  hasGpaCredits ? eval.actualRank : 'Chưa tính',
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          SummaryMetric(
+                            label: 'Xếp loại',
+                            value: hasGpaCredits ? eval.actualRank : 'Chưa tính',
                           ),
-                          Expanded(
-                            child: Column(
-                              children: [
-                                const Text(
-                                  'Học lại',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppTheme.slate600,
-                                    fontSize: 12.5,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '${eval.retakeCount} môn',
-                                  style: TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.w800,
-                                    color: eval.retakeCount >= 2
-                                        ? AppTheme.danger
-                                        : AppTheme.slate900,
-                                  ),
-                                ),
-                              ],
-                            ),
+                          SummaryMetric(
+                            label: 'Học lại',
+                            value: '${eval.retakeCount} môn',
+                          ),
+                          SummaryMetric(
+                            label: 'Cần kiểm tra',
+                            value: '$lowConfidenceCount môn',
                           ),
                         ],
                       ),
-                    ),
-                  ),
-                if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits)
-                  Padding(
-                    padding: const EdgeInsets.all(AppTheme.spaceMd),
-                    child: FlmNotice(
-                      message: eval.penaltyWarning,
-                      tone: NoticeTone.warning,
-                    ),
-                  ),
-                const SizedBox(height: 4),
-              ],
+                      if (eval.penaltyWarning.isNotEmpty && !hasMissingCredits) ...[
+                        const SizedBox(height: 10),
+                        InlineBanner(
+                          message: eval.penaltyWarning,
+                          severity: BannerSeverity.warning,
+                        ),
+                      ],
+                    ],
+                  ],
+                ),
+              ),
             ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.only(bottom: 16),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate((context, index) {
-                final item = _entries[index];
-                final bool missingCredits = _missingCredits(item);
-                final bool isLowConfidence =
-                    item.confidence < 0.8 || missingCredits;
-                final bool isUnknown =
-                    context.watch<CourseCatalog>().findByCode(
-                      item.courseCode,
-                    ) ==
-                    null;
-                final bool isExcluded = GradeCalculator.isExcludedFromGpa(
-                  item.courseCode,
-                );
-                final palette = SemesterPalette.of(item.semester);
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 5,
+            if (_entries.isEmpty)
+              const SliverFillRemaining(
+                hasScrollBody: false,
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                  child: EmptyState(
+                    icon: Icons.playlist_add_rounded,
+                    title: 'Chưa có môn học',
+                    description: 'Bấm nút "Thêm môn thủ công" ở trên để bắt đầu nhập bảng điểm.',
                   ),
-                  color: isLowConfidence || isUnknown
-                      ? AppTheme.warningSurface
-                      : Colors.white,
-                  shape: RoundedRectangleBorder(
-                    side: BorderSide(
-                      color: isLowConfidence || isUnknown
-                          ? AppTheme.warning
-                          : AppTheme.slate200,
-                      width: isLowConfidence || isUnknown ? 1.5 : 1.0,
-                    ),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-                  ),
-                  child: ListTile(
-                    onTap: _saving ? null : () => _editEntry(index),
-                    title: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: palette.bg,
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: Text(
-                                item.courseCode,
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  fontSize: 14,
-                                  color: palette.fg,
-                                ),
-                              ),
-                            ),
-                            if (item.courseName.isNotEmpty) ...[
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  item.courseName,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: AppTheme.slate900,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 4,
-                          children: [
-                            if (isUnknown)
-                              const Text(
-                                'Mã chưa khớp',
-                                style: TextStyle(
-                                  color: AppTheme.danger,
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            if (isExcluded)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.slate100,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: const Text(
-                                  'Miễn GPA',
-                                  style: TextStyle(
-                                    fontSize: 12.5,
-                                    color: AppTheme.slate600,
-                                  ),
-                                ),
-                              ),
-                            if (isLowConfidence)
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.dangerSurface,
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  missingCredits
-                                      ? 'Kiểm tra tín chỉ'
-                                      : 'Cần kiểm tra',
-                                  style: const TextStyle(
-                                    fontSize: 12.5,
-                                    color: AppTheme.danger,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    subtitle: Padding(
-                      padding: const EdgeInsets.only(top: 4),
-                      child: Text(
-                        'Kỳ ${item.semester} • ${item.credits} tín chỉ • ${item.inProgress ? "Đang học, chưa có điểm cuối" : "Điểm: ${item.score}"}',
-                      ),
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          tooltip: 'Sửa môn học',
-                          icon: const Icon(Icons.edit_outlined),
-                          onPressed: _saving ? null : () => _editEntry(index),
-                        ),
-                        IconButton(
-                          tooltip: 'Xóa môn học',
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: AppTheme.danger,
+                ),
+              )
+            else
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 96),
+                sliver: SliverList(
+                  delegate: SliverChildBuilderDelegate((context, index) {
+                    final item = _entries[index];
+                    final bool missingCredits = _missingCredits(item);
+                    final bool isLowConfidence = item.confidence < 0.85 || missingCredits;
+                    final bool isUnknown = context
+                            .watch<CourseCatalog>()
+                            .findByCode(item.courseCode) ==
+                        null;
+                    final bool isExcluded = GradeCalculator.isExcludedFromGpa(
+                      item.courseCode,
+                    );
+                    final palette = SemesterPalette.of(item.semester);
+
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Card(
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          side: BorderSide(
+                            color: isLowConfidence || isUnknown
+                                ? colorScheme.error.withValues(alpha: 0.6)
+                                : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                            width: isLowConfidence || isUnknown ? 1.5 : 1.0,
                           ),
-                          onPressed: _saving
-                              ? null
-                              : () {
-                                  setState(() {
-                                    _entries.removeAt(index);
-                                  });
-                                },
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              }, childCount: _entries.length),
-            ),
-          ),
-        ],
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                          onTap: _saving ? null : () => _editEntry(index),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
+                            child: Row(
+                              children: [
+                                IconTile(
+                                  icon: courseIcon(item.courseCode),
+                                  color: palette.fg,
+                                  background: palette.bg,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Text(
+                                            item.courseCode,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          if (isLowConfidence)
+                                            StatusChip.warning(
+                                              label: missingCredits
+                                                  ? 'Thiếu tín chỉ'
+                                                  : 'Cần kiểm tra',
+                                            )
+                                          else
+                                            StatusChip.success(
+                                              label: 'Tin cậy',
+                                            ),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        item.courseName.isNotEmpty
+                                            ? item.courseName
+                                            : 'Môn học',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Wrap(
+                                        spacing: 6,
+                                        runSpacing: 4,
+                                        children: [
+                                          Text(
+                                            'Kỳ ${item.semester} · ${item.credits} tín chỉ',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: colorScheme.onSurfaceVariant
+                                                  .withValues(alpha: 0.8),
+                                            ),
+                                          ),
+                                          if (isExcluded)
+                                            StatusChip.info(
+                                              label: 'Miễn GPA',
+                                            ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    if (item.inProgress)
+                                      StatusChip.info(label: 'Đang học')
+                                    else if (item.isPassed)
+                                      StatusChip.success(
+                                        label: 'Đạt (${item.score.toStringAsFixed(1)})',
+                                      )
+                                    else
+                                      StatusChip.error(
+                                        label: 'Trượt (${item.score.toStringAsFixed(1)})',
+                                      ),
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Sửa môn học',
+                                          icon: const Icon(
+                                            Icons.edit_outlined,
+                                            size: 18,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                          onPressed: _saving
+                                              ? null
+                                              : () => _editEntry(index),
+                                        ),
+                                        IconButton(
+                                          tooltip: 'Xóa môn học',
+                                          icon: Icon(
+                                            Icons.delete_outline_rounded,
+                                            size: 18,
+                                            color: colorScheme.error,
+                                          ),
+                                          visualDensity: VisualDensity.compact,
+                                          onPressed: _saving
+                                              ? null
+                                              : () {
+                                                  final removed = item;
+                                                  final removedIndex = index;
+                                                  setState(() {
+                                                    _isDirty = true;
+                                                    _entries.removeAt(index);
+                                                  });
+                                                  ScaffoldMessenger.of(context).clearSnackBars();
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+                                                    SnackBar(
+                                                      content: Text('Đã xóa ${removed.courseCode}'),
+                                                      action: SnackBarAction(
+                                                        label: 'Hoàn tác',
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            _entries.insert(removedIndex, removed);
+                                                          });
+                                                        },
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }, childCount: _entries.length),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

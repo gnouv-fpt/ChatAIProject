@@ -3,9 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 class AuthAccount {
-  const AuthAccount({required this.uid, this.name});
+  const AuthAccount({required this.uid, this.name, this.email});
   final String uid;
   final String? name;
+  final String? email;
 }
 
 abstract interface class AuthService {
@@ -28,7 +29,7 @@ class FirebaseAuthService implements AuthService {
   Stream<AuthAccount?> get changes => _auth.authStateChanges().map(
     (user) => user == null
         ? null
-        : AuthAccount(uid: user.uid, name: user.displayName),
+        : AuthAccount(uid: user.uid, name: user.displayName, email: user.email),
   );
 
   @override

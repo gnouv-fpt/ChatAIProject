@@ -40,11 +40,18 @@ class ChatProvider extends ChangeNotifier {
   String? _manuallyOpenedSessionId;
   bool _isLoading = false;
   bool? _isServerOnline;
+  static const _savedBaseUrlKey = 'flm_custom_base_url';
   String _baseUrl = _defaultBaseUrl();
 
   static String _defaultBaseUrl() {
     const configured = String.fromEnvironment('FLM_API_BASE_URL');
     if (configured.isNotEmpty) return configured;
+    if (kReleaseMode) {
+      throw StateError(
+        'Thiếu cấu hình URL backend cho bản release (FLM_API_BASE_URL). '
+        'Vui lòng build với cờ: --dart-define=FLM_API_BASE_URL=https://<api-host>',
+      );
+    }
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
       return 'http://10.0.2.2:8000';
     }
@@ -54,6 +61,7 @@ class ChatProvider extends ChangeNotifier {
   String? _lastError;
   String _currentScope = 'curriculum';
   String _currentScopeId = 'BIT_SE_K19B';
+  int _activeRequestId = 0;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
@@ -75,6 +83,29 @@ class ChatProvider extends ChangeNotifier {
     if (scope != 'curriculum') return null;
     final match = RegExp(r':semester-(\d+)$').firstMatch(id);
     return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  void cancelCurrentRequest() {
+    if (!_isLoading) return;
+    _activeRequestId++;
+    _isLoading = false;
+    if (_messages.isNotEmpty && _messages.last.status == MessageStatus.sending) {
+      final lastId = _messages.last.id;
+      final stoppedMessage = ChatMessage(
+        id: lastId,
+        text: 'Đã dừng tạo câu trả lời theo yêu cầu.',
+        sender: ChatSender.ai,
+        timestamp: _clock(),
+        status: MessageStatus.error,
+        errorMessage: 'Đã dừng',
+      );
+      _messages[_messages.length - 1] = stoppedMessage;
+      final targetList = _scopeMessages[_scopeKey];
+      if (targetList != null && targetList.isNotEmpty && targetList.last.id == lastId) {
+        targetList[targetList.length - 1] = stoppedMessage;
+      }
+    }
+    notifyListeners();
   }
 
   String _newSessionId() =>
@@ -229,6 +260,7 @@ class ChatProvider extends ChangeNotifier {
     _apiService = apiService ?? ChatApiService(baseUrl: _baseUrl);
     _initWelcomeMessage();
     historyReady = _loadHistory();
+    unawaited(_initBaseUrl());
     checkServerHealth();
   }
 
@@ -373,10 +405,38 @@ class ChatProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> _initBaseUrl() async {
+    try {
+      final prefs = await _storage.open();
+      if (kReleaseMode) {
+        // In release mode, always enforce FLM_API_BASE_URL and purge any stored local override
+        await prefs.remove(_savedBaseUrlKey);
+        return;
+      }
+      // Debug / Dev mode: check if user previously customized the URL
+      final saved = prefs.getString(_savedBaseUrlKey);
+      if (saved != null && saved.trim().isNotEmpty) {
+        _baseUrl = saved.trim();
+        _apiService = ChatApiService(baseUrl: _baseUrl);
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
   void updateBaseUrl(String newUrl) {
     if (newUrl.trim().isEmpty) return;
+    if (kReleaseMode) {
+      debugPrint('[ChatProvider] Base URL override is ignored in release mode.');
+      return;
+    }
     _baseUrl = newUrl.trim();
     _apiService = ChatApiService(baseUrl: _baseUrl);
+    unawaited(
+      _storage
+          .open()
+          .then((prefs) => prefs.setString(_savedBaseUrlKey, _baseUrl))
+          .catchError((_) => false),
+    );
     checkServerHealth();
     notifyListeners();
   }
@@ -395,7 +455,7 @@ class ChatProvider extends ChangeNotifier {
         sender: ChatSender.ai,
         timestamp: _clock(),
         status: MessageStatus.success,
-        sources: ['FLM Knowledge Base'],
+        sources: null,
       ),
     );
   }
@@ -464,6 +524,7 @@ class ChatProvider extends ChangeNotifier {
       targetList.add(loadingAiMessage);
     }
 
+    final currentRequestId = ++_activeRequestId;
     _isLoading = true;
     unawaited(
       telemetry?.event('advising_request', {
@@ -508,7 +569,7 @@ class ChatProvider extends ChangeNotifier {
           )
           .toList(),
     );
-    if (_disposed) return;
+    if (_disposed || _activeRequestId != currentRequestId) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,
@@ -614,6 +675,7 @@ class ChatProvider extends ChangeNotifier {
       targetList.add(loadingAiMessage);
     }
 
+    final currentRequestId = ++_activeRequestId;
     _isLoading = true;
     _lastError = null;
     notifyListeners();
@@ -634,7 +696,7 @@ class ChatProvider extends ChangeNotifier {
             : {'target_semester': viewedSemester}),
       },
     );
-    if (_disposed) return;
+    if (_disposed || _activeRequestId != currentRequestId) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,

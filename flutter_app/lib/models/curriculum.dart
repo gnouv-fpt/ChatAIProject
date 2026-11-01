@@ -156,4 +156,32 @@ class Curriculum {
     final maxSem = subjects.map((s) => s.semester).reduce((a, b) => a > b ? a : b);
     return maxSem + 1;
   }
+
+  Curriculum copyWith({
+    String? id,
+    String? code,
+    String? name,
+    String? nameVi,
+    int? totalCredits,
+    int? totalSubjects,
+    String? decisionNo,
+    String? degreeLevel,
+    String? institution,
+    String? major,
+    List<CurriculumSubjectEntry>? subjects,
+  }) {
+    return Curriculum(
+      id: id ?? this.id,
+      code: code ?? this.code,
+      name: name ?? this.name,
+      nameVi: nameVi ?? this.nameVi,
+      totalCredits: totalCredits ?? this.totalCredits,
+      totalSubjects: totalSubjects ?? this.totalSubjects,
+      decisionNo: decisionNo ?? this.decisionNo,
+      degreeLevel: degreeLevel ?? this.degreeLevel,
+      institution: institution ?? this.institution,
+      major: major ?? this.major,
+      subjects: subjects ?? this.subjects,
+    );
+  }
 }

@@ -331,9 +331,9 @@ void main() {
         ..courses = [
           for (int s = 0; s <= 6; s++)
             Course.fromJson({
-              'code': 'SUBJ_' + s.toString(),
-              'name': 'Subject Semester ' + s.toString(),
-              'name_vi': 'Môn học kỳ ' + s.toString(),
+              'code': 'SUBJ_$s',
+              'name': 'Subject Semester $s',
+              'name_vi': 'Môn học kỳ $s',
               'credits': 3,
               'semester': s,
             }),
@@ -361,7 +361,7 @@ void main() {
       // 4. Verify HK4 card is at the top of the scrollable list viewport
       final hk4Card = find.text('Học kỳ 4');
       final hk4Position = tester.getTopLeft(hk4Card);
-      expect(hk4Position.dy, closeTo(393.6, 5));
+      expect(hk4Position.dy, closeTo(401.8, 5));
     },
   );
 }

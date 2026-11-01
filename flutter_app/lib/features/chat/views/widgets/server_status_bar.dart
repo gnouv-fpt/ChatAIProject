@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../../theme/app_theme.dart';
 import '../../providers/chat_provider.dart';
 
 class ServerStatusBar extends StatelessWidget {
@@ -12,7 +14,7 @@ class ServerStatusBar extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Kết nối trợ lý AI'),
+        title: const Text('Kết nối trợ lý AI (Debug)'),
         scrollable: true,
         content: Form(
           key: formKey,
@@ -21,7 +23,7 @@ class ServerStatusBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Chỉ thay đổi địa chỉ này khi được người quản trị hướng dẫn.',
+                'Chỉ thay đổi địa chỉ này khi đang phát triển hoặc kiểm thử cục bộ.',
                 style: TextStyle(fontSize: 13),
               ),
               const SizedBox(height: 12),
@@ -71,61 +73,87 @@ class ServerStatusBar extends StatelessWidget {
     final provider = context.watch<ChatProvider>();
     final isOnline = provider.isServerOnline;
 
-    Color bgColor;
-    Color textColor;
-    IconData icon;
-    String statusText;
-
-    if (isOnline == null) {
-      bgColor = Colors.blue.shade50;
-      textColor = Colors.blue.shade800;
-      icon = Icons.sync;
-      statusText = 'Đang kiểm tra kết nối…';
-    } else if (isOnline) {
-      bgColor = Colors.green.shade50;
-      textColor = Colors.green.shade900;
-      icon = Icons.check_circle;
-      statusText = 'Trợ lý AI đã kết nối';
-    } else {
-      bgColor = Colors.amber.shade100;
-      textColor = Colors.brown.shade900;
-      icon = Icons.offline_bolt_rounded;
-      statusText = 'Chưa kết nối trợ lý AI';
+    // When server is online, keep screen completely clean by hiding the bar
+    if (isOnline == true) {
+      return const SizedBox.shrink();
     }
+
+    final customColors = context.customColors;
+    final warningColor = customColors.warning;
+    final warningBg = customColors.warningContainer;
+    final onWarning = customColors.onWarningContainer;
+
+    final isChecking = isOnline == null;
+    final dotColor = isChecking ? Theme.of(context).colorScheme.outline : warningColor;
+    final labelText = isChecking ? 'Đang kiểm tra kết nối trợ lý…' : 'Trợ lý ngoại tuyến';
 
     return Semantics(
       liveRegion: true,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 4, 16, 2),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
         decoration: BoxDecoration(
-          color: bgColor,
-          borderRadius: BorderRadius.circular(14),
+          color: isChecking
+              ? Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.6)
+              : (Theme.of(context).brightness == Brightness.dark
+                  ? warningColor.withValues(alpha: 0.18)
+                  : warningBg),
+          border: Border(
+            bottom: BorderSide(
+              color: isChecking
+                  ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.4)
+                  : warningColor.withValues(alpha: 0.35),
+              width: 0.8,
+            ),
+          ),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: textColor),
+            Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: dotColor,
+                shape: BoxShape.circle,
+              ),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                statusText,
+                labelText,
                 style: TextStyle(
-                  color: textColor,
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
+                  color: isChecking
+                      ? Theme.of(context).colorScheme.onSurfaceVariant
+                      : (Theme.of(context).brightness == Brightness.dark
+                          ? const Color(0xFFFDE68A)
+                          : onWarning),
                 ),
               ),
             ),
-            IconButton(
-              icon: Icon(Icons.refresh, size: 18, color: textColor),
-              tooltip: 'Kiểm tra lại kết nối',
-              onPressed: () => provider.checkServerHealth(),
+            TextButton(
+              onPressed: provider.checkServerHealth,
+              style: TextButton.styleFrom(
+                foregroundColor: isChecking ? null : warningColor,
+                visualDensity: VisualDensity.compact,
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                minimumSize: const Size(40, 28),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text('Thử lại', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
             ),
-            IconButton(
-              icon: Icon(Icons.settings_outlined, size: 16, color: textColor),
-              tooltip: 'Cài đặt kết nối',
-              onPressed: () => _showUrlDialog(context, provider),
-            ),
+            if (!kReleaseMode) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.settings_outlined, size: 16),
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                tooltip: 'Cài đặt kết nối máy chủ (Debug)',
+                onPressed: () => _showUrlDialog(context, provider),
+              ),
+            ],
           ],
         ),
       ),

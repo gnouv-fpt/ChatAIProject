@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_theme.dart';
+export 'section_header.dart';
 
 /// Material 3 "medium" style top app bar: bold headline + supporting subtitle,
 /// matching the Figma S01–S07 headers.
@@ -28,6 +28,7 @@ class FlmAppBar extends StatelessWidget implements PreferredSizeWidget {
       toolbarHeight: preferredSize.height,
       leading: leading,
       titleSpacing: leading == null ? 20 : 4,
+      actionsPadding: const EdgeInsetsDirectional.only(end: 16),
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -52,45 +53,6 @@ class FlmAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: actions,
     );
   }
-}
-
-/// Section title with optional trailing action (Figma: "Môn đã nhập · Xem chi tiết").
-class SectionHeader extends StatelessWidget {
-  const SectionHeader({
-    super.key,
-    required this.title,
-    this.icon,
-    this.trailing,
-    this.padding = const EdgeInsets.fromLTRB(4, 12, 4, 8),
-  });
-
-  final String title;
-  final IconData? icon;
-  final Widget? trailing;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-    padding: padding,
-    child: Row(
-      children: [
-        if (icon != null) ...[
-          Icon(icon, size: 20, color: AppTheme.primaryBlue),
-          const SizedBox(width: 8),
-        ],
-        Expanded(
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-        ?trailing,
-      ],
-    ),
-  );
 }
 
 /// Rounded tinted square holding an icon (Figma course/list leading tile).
@@ -165,72 +127,4 @@ class StatusPill extends StatelessWidget {
   );
 }
 
-/// Gradient hero container used for the top summary block of a screen.
-class HeroPanel extends StatelessWidget {
-  const HeroPanel({
-    super.key,
-    required this.child,
-    this.colors = const [AppTheme.primaryBlue, AppTheme.primaryDark],
-    this.padding = const EdgeInsets.all(20),
-  });
-
-  final Widget child;
-  final List<Color> colors;
-  final EdgeInsetsGeometry padding;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      gradient: LinearGradient(
-        colors: colors,
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      borderRadius: BorderRadius.circular(AppTheme.radiusXl),
-      boxShadow: [
-        BoxShadow(
-          color: colors.last.withValues(alpha: 0.25),
-          blurRadius: 18,
-          offset: const Offset(0, 8),
-        ),
-      ],
-    ),
-    child: DefaultTextStyle.merge(
-      style: const TextStyle(color: Colors.white),
-      child: IconTheme.merge(
-        data: const IconThemeData(color: Colors.white),
-        child: child,
-      ),
-    ),
-  );
-}
-
-/// Compact metric for hero panels: big number + caption.
-class HeroStat extends StatelessWidget {
-  const HeroStat({super.key, required this.value, required this.label});
-
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Text(
-        value,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 20,
-          fontWeight: FontWeight.w800,
-        ),
-      ),
-      Text(
-        label,
-        style: const TextStyle(color: Color(0xFFE3F2FD), fontSize: 12.5),
-      ),
-    ],
-  );
-}
 

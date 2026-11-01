@@ -72,6 +72,7 @@ class CourseRepository {
         .where((c) => c.inCurriculum) // Lọc bỏ alias không trong curriculum khi hiển thị chính
         .toList(growable: false);
 
+    // Trả về đúng curriculum gốc từ dữ liệu (không tự ghi đè số tổng khi chưa có quyết định)
     return CourseCatalogData(
       curriculum: curriculum,
       curricula: curricula,

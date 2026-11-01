@@ -23,6 +23,7 @@ class TranscriptProvider extends ChangeNotifier {
 
   List<TranscriptEntry> _entries = [];
   double _targetGpa = 8.0;
+  bool _hasExplicitTargetGpa = false;
   bool _isLoaded = false;
   bool _disposed = false;
   LoadStatus status = LoadStatus.loading;
@@ -36,6 +37,7 @@ class TranscriptProvider extends ChangeNotifier {
         return semester != 0 ? semester : a.courseCode.compareTo(b.courseCode);
       });
   double get targetGpa => _targetGpa;
+  bool get hasExplicitTargetGpa => _hasExplicitTargetGpa;
   bool get hasTranscript => _entries.isNotEmpty;
   bool get isLoaded => _isLoaded;
 
@@ -81,6 +83,7 @@ class TranscriptProvider extends ChangeNotifier {
       'has_rank_penalty': eval.hasRankPenalty,
       'penalty_warning': eval.penaltyWarning,
       'target_gpa': _targetGpa,
+      'has_explicit_target_gpa': _hasExplicitTargetGpa,
       'is_target_feasible': target['isFeasible'],
       'required_avg_mark': target['requiredAverage'],
       'rank_penalty_applied': eval.hasRankPenalty,
@@ -135,10 +138,13 @@ class TranscriptProvider extends ChangeNotifier {
       if (repository != null) {
         final saved = await repository!.loadTranscript();
         _entries = saved.entries;
-        _targetGpa = saved.targetGpa.clamp(0.0, 10.0);
+        _hasExplicitTargetGpa = saved.hasExplicitTargetGpa;
+        _targetGpa = saved.targetGpa.clamp(5.0, 10.0);
       } else {
         final prefs = await _storage.open();
-        _targetGpa = (prefs.getDouble(_targetGpaKey) ?? 8.0).clamp(0.0, 10.0);
+        final stored = prefs.getDouble(_targetGpaKey);
+        _hasExplicitTargetGpa = stored != null;
+        _targetGpa = (stored ?? 8.0).clamp(5.0, 10.0);
         final raw = prefs.getString(_storageKey);
         if (raw != null) {
           final list = jsonDecode(raw) as List;
@@ -176,6 +182,7 @@ class TranscriptProvider extends ChangeNotifier {
 
   void setTargetGpa(double gpa) {
     _targetGpa = gpa.clamp(0.0, 10.0);
+    _hasExplicitTargetGpa = true;
     _notify();
     unawaited(_persistTargetGpa());
   }
@@ -196,19 +203,27 @@ class TranscriptProvider extends ChangeNotifier {
   }
 
   Future<void> clearTranscript() async {
-    if (repository != null) {
-      await repository!.saveTranscript([]);
-    } else {
-      final prefs = await _storage.open();
-      if (!await prefs.remove(_storageKey)) {
-        throw StateError('Không thể xóa bảng điểm trên thiết bị.');
+    try {
+      if (repository != null) {
+        await repository!.saveTranscript([]);
       }
+      try {
+        final prefs = await _storage.open();
+        await prefs.remove(_storageKey);
+      } catch (_) {
+        // Handled gracefully in environments without storage binding
+      }
+      _entries = [];
+      status = LoadStatus.empty;
+      loadError = null;
+      saveError = null;
+      _cachedResult = null;
+      _notify();
+    } catch (e) {
+      saveError = 'Không thể xóa bảng điểm trên đám mây. Dữ liệu chưa bị xóa. Vui lòng thử lại.';
+      _notify();
+      rethrow;
     }
-    _entries = [];
-    status = LoadStatus.empty;
-    loadError = null;
-    _cachedResult = null;
-    _notify();
   }
 
   void _notify() {

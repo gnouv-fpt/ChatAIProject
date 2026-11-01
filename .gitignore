@@ -384,3 +384,6 @@ __pycache__/
 .vscode/
 **/devtools_options.yaml
 
+
+# Evidence screenshots and QA run artifacts
+evidence/
