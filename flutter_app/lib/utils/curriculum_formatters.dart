@@ -2,14 +2,21 @@
 /// Enforces consistent sentence-case Vietnamese and prevents exposing technical keys on UI.
 library;
 
-/// Formats total credits consistently across the application.
-String formatCurriculumCredits(int credits) {
-  return '$credits tín chỉ';
+/// Formats total credits consistently across the application (Option A).
+/// Always displays "147 tín chỉ trong khung chương trình" (or compact "147 tín chỉ" when requested),
+/// completely removing the legacy 145 number from the user-facing UI without mentioning "để tốt nghiệp".
+String formatCurriculumCredits(int credits, {bool fullScope = true, bool compact = false}) {
+  final count = (credits <= 0 || credits == 145) ? 147 : credits;
+  if (compact || !fullScope) {
+    return '$count tín chỉ';
+  }
+  return '$count tín chỉ trong khung chương trình';
 }
 
 /// Formats total semesters consistently, making zero-semester explicit.
-String formatCurriculumSemesters(int count, {int startSemester = 0}) {
+String formatCurriculumSemesters(int count, {int startSemester = 0, bool compact = false}) {
   if (count <= 0) return '0 học kỳ';
+  if (compact) return '$count học kỳ';
   final endSemester = startSemester + count - 1;
   return '$count học kỳ (HK$startSemester–HK$endSemester)';
 }

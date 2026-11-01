@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../models/course.dart';
 import '../../../state/course_catalog.dart';
@@ -87,9 +88,35 @@ class _GraphViewScreenState extends State<GraphViewScreen>
       vsync: this,
       duration: const Duration(seconds: 1),
     )..addListener(_step);
+    _loadLegendPreference();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _loadGraph();
     });
+  }
+
+  Future<void> _loadLegendPreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final saved = prefs.getBool('flm_graph_legend_open');
+      if (mounted) {
+        setState(() {
+          // Open by default on first visit (saved == null -> true)
+          _showLegend = saved ?? true;
+        });
+      }
+    } catch (_) {
+      // Default to open
+      if (mounted) setState(() => _showLegend = true);
+    }
+  }
+
+  Future<void> _toggleLegend() async {
+    final next = !_showLegend;
+    setState(() => _showLegend = next);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('flm_graph_legend_open', next);
+    } catch (_) {}
   }
 
   @override
@@ -300,9 +327,13 @@ class _GraphViewScreenState extends State<GraphViewScreen>
   }
 
   _GraphNode? _hit(Offset point, Set<String> visible) {
+    final currentScale = max(0.1, _transform.value.getMaxScaleOnAxis());
+    // 48dp diameter on screen translates to 24dp radius in canvas space
+    final minTouchRadiusCanvas = 24.0 / currentScale;
     for (final id in visible) {
       final node = _nodes[id]!;
-      if ((point - node.position).distance <= node.radius * _nodeSize + 12) {
+      final effectiveRadius = max(node.radius * _nodeSize + 12, minTouchRadiusCanvas);
+      if ((point - node.position).distance <= effectiveRadius) {
         return node;
       }
     }
@@ -708,17 +739,21 @@ class _GraphViewScreenState extends State<GraphViewScreen>
     final dependents = <String>{};
     if (focus != null) {
       related.add(focus);
+      if (_highlightAncestors || _selected != null) {
+        final ancestors = _ancestorIds(focus);
+        related.addAll(ancestors);
+        prerequisites.addAll(ancestors.where((id) => id != focus));
+      }
       for (final edge in _edges) {
         if (edge.from == focus) {
           related.add(edge.to);
           dependents.add(edge.to);
         }
-        if (edge.to == focus) {
+        if (!_highlightAncestors && _selected == null && edge.to == focus) {
           related.add(edge.from);
           prerequisites.add(edge.from);
         }
       }
-      if (_highlightAncestors) related.addAll(_ancestorIds(focus));
     }
 
     return LayoutBuilder(
@@ -871,23 +906,47 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                           },
                         ),
                       ),
-                      IconButton(
-                        tooltip: 'Xem danh sách (Trợ năng)',
-                        onPressed: () => _showCourseList(visible),
-                        icon: const Icon(Icons.view_list_rounded),
+                      Semantics(
+                        button: true,
+                        label: 'Xem danh sách môn học cho trợ năng',
+                        child: IconButton(
+                          tooltip: 'Xem danh sách (Trợ năng)',
+                          onPressed: () => _showCourseList(visible),
+                          icon: const Icon(Icons.view_list_rounded),
+                        ),
                       ),
-                      IconButton(
-                        tooltip: 'Vừa màn hình',
-                        onPressed: _fit,
-                        icon: const Icon(Icons.fit_screen_rounded),
+                      Semantics(
+                        button: true,
+                        label: 'Thu phóng vừa màn hình',
+                        child: IconButton(
+                          tooltip: 'Vừa màn hình',
+                          onPressed: _fit,
+                          icon: const Icon(Icons.fit_screen_rounded),
+                        ),
                       ),
-                      IconButton(
-                        tooltip: 'Bộ lọc & Tùy chọn',
-                        onPressed: () =>
-                            setState(() => _controlsOpen = !_controlsOpen),
-                        icon: Icon(
-                          Icons.tune_rounded,
-                          color: _controlsOpen ? colorScheme.primary : null,
+                      Semantics(
+                        button: true,
+                        label: 'Bật tắt bảng chú thích màu sắc',
+                        child: IconButton(
+                          tooltip: 'Chú thích màu',
+                          onPressed: _toggleLegend,
+                          icon: Icon(
+                            Icons.palette_outlined,
+                            color: _showLegend ? colorScheme.primary : null,
+                          ),
+                        ),
+                      ),
+                      Semantics(
+                        button: true,
+                        label: 'Bộ lọc và tùy chọn hiển thị sơ đồ',
+                        child: IconButton(
+                          tooltip: 'Bộ lọc & Tùy chọn',
+                          onPressed: () =>
+                              setState(() => _controlsOpen = !_controlsOpen),
+                          icon: Icon(
+                            Icons.tune_rounded,
+                            color: _controlsOpen ? colorScheme.primary : null,
+                          ),
                         ),
                       ),
                     ],
@@ -1099,7 +1158,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       InkWell(
-                        onTap: () => setState(() => _showLegend = !_showLegend),
+                        onTap: _toggleLegend,
                         borderRadius: BorderRadius.circular(6),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
@@ -1107,7 +1166,9 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
-                                'Chú giải màu',
+                                _useStatusColors && transcript.hasTranscript
+                                    ? 'Chú giải: Màu trạng thái'
+                                    : 'Chú giải: Màu học kỳ',
                                 style: TextStyle(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 12,
@@ -1128,12 +1189,12 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                       ),
                       if (_showLegend) ...[
                         const SizedBox(height: 6),
-                        if (_useStatusColors && transcript.hasTranscript)
+                        if (_useStatusColors && transcript.hasTranscript) ...[
                           Wrap(
                             spacing: 6,
                             runSpacing: 4,
                             children: [
-                              StatusChip.success(label: 'Đạt'),
+                              StatusChip.success(label: 'Đã đạt'),
                               StatusChip.error(label: 'Chưa đạt'),
                               StatusChip.info(label: 'Đang học'),
                               const StatusChip(
@@ -1141,8 +1202,8 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                 customColor: Color(0xFF94A3B8),
                               ),
                             ],
-                          )
-                        else
+                          ),
+                        ] else ...[
                           SizedBox(
                             width: min(280, limits.maxWidth - 48),
                             child: Wrap(
@@ -1179,6 +1240,55 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                               ],
                             ),
                           ),
+                        ],
+                        const SizedBox(height: 6),
+                        const Divider(height: 8),
+                        Text(
+                          'Chạm môn để xem chi tiết & chuỗi tiên quyết:',
+                          style: TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.w600,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFF16A34A), shape: BoxShape.circle)),
+                            const SizedBox(width: 4),
+                            Text('Tiên quyết', style: TextStyle(fontSize: 10.5, color: colorScheme.onSurfaceVariant)),
+                            const SizedBox(width: 8),
+                            Container(width: 8, height: 8, decoration: const BoxDecoration(color: Color(0xFFEA580C), shape: BoxShape.circle)),
+                            const SizedBox(width: 4),
+                            Text('Mở khóa', style: TextStyle(fontSize: 10.5, color: colorScheme.onSurfaceVariant)),
+                          ],
+                        ),
+                        if (transcript.hasTranscript) ...[
+                          const SizedBox(height: 4),
+                          InkWell(
+                            onTap: () => setState(() => _useStatusColors = !_useStatusColors),
+                            borderRadius: BorderRadius.circular(4),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.sync_alt_rounded, size: 13, color: colorScheme.primary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    _useStatusColors ? 'Đổi sang màu học kỳ' : 'Đổi sang màu trạng thái',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ],
                   ),
@@ -1359,13 +1469,17 @@ class _GraphPainter extends CustomPainter {
             ..strokeWidth = 3,
         );
       }
-      if (labels && (scale > 0.65 || radius >= 20 || related.contains(id))) {
+      final isRelatedOrFocused = focus == id || related.contains(id);
+      final shouldShowLabel = labels && (isRelatedOrFocused || scale >= 0.55);
+      if (shouldShowLabel) {
+        // Enforce font size >= 11sp on screen at default/any scale
+        final effectiveFontSize = max(13.0, 11.0 / max(0.2, scale));
         final painter = TextPainter(
           text: TextSpan(
             text: id,
             style: TextStyle(
               color: textColor.withValues(alpha: dim ? 0.2 : 1),
-              fontSize: 13,
+              fontSize: effectiveFontSize,
               fontWeight: FontWeight.w700,
             ),
           ),

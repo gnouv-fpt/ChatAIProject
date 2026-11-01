@@ -34,9 +34,9 @@ class SettingsTile extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
 
-    final resolvedColor = isDestructive
-        ? colorScheme.error
-        : (leadingColor ?? colorScheme.primary);
+    final resolvedColor = !enabled
+        ? colorScheme.outline
+        : (isDestructive ? colorScheme.error : (leadingColor ?? colorScheme.primary));
 
     Widget? leadingWidget;
     if (leadingIcon != null) {
@@ -58,8 +58,8 @@ class SettingsTile extends StatelessWidget {
     }
 
     final effectiveTextColor = isDestructive
-        ? colorScheme.error
-        : (enabled ? colorScheme.onSurface : colorScheme.onSurface.withValues(alpha: 0.38));
+        ? (enabled ? colorScheme.error : colorScheme.onSurfaceVariant)
+        : (enabled ? colorScheme.onSurface : colorScheme.onSurfaceVariant);
 
     return InkWell(
       onTap: enabled ? onTap : null,
@@ -92,9 +92,7 @@ class SettingsTile extends StatelessWidget {
                       Text(
                         subtitle!,
                         style: textTheme.bodySmall?.copyWith(
-                          color: enabled
-                              ? colorScheme.onSurfaceVariant
-                              : colorScheme.onSurfaceVariant.withValues(alpha: 0.38),
+                          color: colorScheme.onSurfaceVariant,
                           fontSize: 13,
                         ),
                       ),

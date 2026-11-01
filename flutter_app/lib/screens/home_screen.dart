@@ -399,9 +399,9 @@ class HomeScreen extends StatelessWidget {
                   ? [
                       _buildMetricItem('$totalCourses môn', 'Chương trình'),
                       _buildMetricDivider(),
-                      _buildMetricItem(formatCurriculumCredits(totalCredits), 'Tổng số'),
+                      _buildMetricItem(formatCurriculumCredits(totalCredits, compact: true), 'Tổng số'),
                       _buildMetricDivider(),
-                      _buildMetricItem(formatCurriculumSemesters(totalSemesters), 'Thời gian'),
+                      _buildMetricItem(formatCurriculumSemesters(totalSemesters, compact: true), 'Thời gian'),
                     ]
                   : [
                       _buildMetricItem('${progress.completedCount}/$totalCourses môn', 'Đã xong'),

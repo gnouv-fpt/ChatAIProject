@@ -26,6 +26,14 @@ class RoadmapScreen extends StatefulWidget {
 
 class _RoadmapScreenState extends State<RoadmapScreen> {
   bool _showGraph = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb && Uri.base.queryParameters['view'] == 'graph') {
+      _showGraph = true;
+    }
+  }
   int? _semester;
   bool _nextOnly = false;
   String _query = '';
@@ -134,7 +142,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       appBar: FlmAppBar(
         title: title,
         subtitle:
-            '${catalog.curriculum?.id ?? 'Chương trình'} · ${catalog.courses.length} môn · ${formatCurriculumCredits(totalCredits)}',
+            '${catalog.curriculum?.id ?? 'Chương trình'} · ${catalog.courses.length} môn · ${formatCurriculumCredits(totalCredits, compact: true)}',
         actions: [
           ContextualChatLauncher(
             curriculumId: catalog.curriculum?.id ?? '',

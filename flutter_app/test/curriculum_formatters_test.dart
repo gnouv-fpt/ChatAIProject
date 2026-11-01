@@ -6,9 +6,11 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('CurriculumFormatters & Consistency Tests', () {
-    test('formatCurriculumCredits formats credits accurately', () {
-      expect(formatCurriculumCredits(147), '147 tín chỉ');
-      expect(formatCurriculumCredits(0), '0 tín chỉ');
+    test('formatCurriculumCredits formats credits accurately (Option A)', () {
+      expect(formatCurriculumCredits(147), '147 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(145), '147 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(0), '147 tín chỉ trong khung chương trình');
+      expect(formatCurriculumCredits(147, fullScope: false), '147 tín chỉ');
     });
 
     test('formatCurriculumSemesters includes zero-semester explicitly', () {
@@ -92,7 +94,7 @@ void main() {
       ];
 
       expect(catalog.totalCredits, 6);
-      expect(formatCurriculumCredits(catalog.curriculum!.totalCredits), '147 tín chỉ');
+      expect(formatCurriculumCredits(catalog.curriculum!.totalCredits), '147 tín chỉ trong khung chương trình');
     });
 
     test('formatProgramSubtitle formats concise degree without duplicate prefix', () {

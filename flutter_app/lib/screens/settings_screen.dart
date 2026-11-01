@@ -33,9 +33,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _longTermGoal;
   int? _currentSemester;
 
+  String? _initialCourseGoal;
+  String? _initialLearningStyle;
+  String? _initialStudyPriority;
+  String? _initialLongTermGoal;
+  int? _initialCurrentSemester;
+  String _initialCareerGoal = '';
+
   double? _targetGpa;
   int _versionTapCount = 0;
   bool _developerMode = !kReleaseMode;
+
+  bool get _hasProfileChanges {
+    return _courseGoal != _initialCourseGoal ||
+        _learningStyle != _initialLearningStyle ||
+        _studyPriority != _initialStudyPriority ||
+        _longTermGoal != _initialLongTermGoal ||
+        _currentSemester != _initialCurrentSemester ||
+        _careerController.text.trim() != _initialCareerGoal.trim();
+  }
 
   @override
   void initState() {
@@ -45,12 +61,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
     final profile = context.read<LearningProfileProvider>();
     _courseGoal = profile.courseGoal;
+    _initialCourseGoal = profile.courseGoal;
     _learningStyle = profile.learningStyle;
+    _initialLearningStyle = profile.learningStyle;
     _studyPriority = profile.studyPriority;
+    _initialStudyPriority = profile.studyPriority;
     _longTermGoal = profile.longTermGoal;
+    _initialLongTermGoal = profile.longTermGoal;
     _currentSemester = profile.currentSemester;
+    _initialCurrentSemester = profile.currentSemester;
     _careerController = TextEditingController(text: profile.careerGoal ?? '');
+    _initialCareerGoal = profile.careerGoal ?? '';
+    _careerController.addListener(_onCareerChanged);
     _profileHydrated = profile.isLoaded;
+  }
+
+  void _onCareerChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
@@ -140,6 +167,218 @@ class _SettingsScreenState extends State<SettingsScreen> {
     }
   }
 
+  Future<bool> _confirmDiscardChanges() async {
+    if (!_hasProfileChanges) return true;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bỏ thay đổi chưa lưu?'),
+        content: const Text(
+          'Bạn có thay đổi trong hồ sơ tư vấn chưa được lưu. Bạn có muốn bỏ các thay đổi này không?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Tiếp tục chỉnh sửa'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Bỏ thay đổi'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true) {
+      setState(() {
+        _courseGoal = _initialCourseGoal;
+        _learningStyle = _initialLearningStyle;
+        _studyPriority = _initialStudyPriority;
+        _longTermGoal = _initialLongTermGoal;
+        _currentSemester = _initialCurrentSemester;
+        _careerController.text = _initialCareerGoal;
+      });
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _saveProfile(LearningProfileProvider profile) async {
+    try {
+      await profile.update(
+        courseGoal: _courseGoal,
+        learningStyle: _learningStyle,
+        studyPriority: _studyPriority,
+        longTermGoal: _longTermGoal,
+        currentSemester: _currentSemester,
+        careerGoal: _careerController.text.trim(),
+      );
+      if (!mounted) return;
+      setState(() {
+        _initialCourseGoal = _courseGoal;
+        _initialLearningStyle = _learningStyle;
+        _initialStudyPriority = _studyPriority;
+        _initialLongTermGoal = _longTermGoal;
+        _initialCurrentSemester = _currentSemester;
+        _initialCareerGoal = _careerController.text.trim();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Đã lưu hồ sơ tư vấn học tập thành công.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            profile.error ?? 'Không thể lưu hồ sơ. Vui lòng thử lại.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _showSemesterPicker() {
+    final colorScheme = Theme.of(context).colorScheme;
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+      ),
+      builder: (sheetCtx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Chọn học kỳ hiện tại',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close_rounded),
+                    tooltip: 'Đóng',
+                    onPressed: () => Navigator.pop(sheetCtx),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ListTile(
+                    title: const Text('Chưa xác định'),
+                    trailing: _currentSemester == null
+                        ? Icon(Icons.check_rounded, color: colorScheme.primary)
+                        : null,
+                    onTap: () {
+                      setState(() => _currentSemester = null);
+                      Navigator.pop(sheetCtx);
+                    },
+                  ),
+                  for (var s = 0; s <= 12; s++)
+                    ListTile(
+                      title: Text('Học kỳ $s'),
+                      trailing: _currentSemester == s
+                          ? Icon(Icons.check_rounded, color: colorScheme.primary)
+                          : null,
+                      onTap: () {
+                        setState(() => _currentSemester = s);
+                        Navigator.pop(sheetCtx);
+                      },
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileChoiceField({
+    required String label,
+    required String helperText,
+    required String displayValue,
+    required List<({String key, String label})> options,
+    required String? selectedKey,
+    required ValueChanged<String?> onSelected,
+    required ColorScheme colorScheme,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: displayValue == 'Chưa chọn'
+                    ? colorScheme.surfaceContainerHighest
+                    : colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                displayValue == 'Chưa chọn' ? 'Chưa chọn' : 'Đã chọn: $displayValue',
+                style: TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: displayValue == 'Chưa chọn'
+                      ? colorScheme.onSurfaceVariant
+                      : colorScheme.onPrimaryContainer,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          helperText,
+          style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+        ),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          runSpacing: 6,
+          children: options.map((opt) {
+            final isSelected = selectedKey == opt.key;
+            return ChoiceChip(
+              label: Text(opt.label),
+              selected: isSelected,
+              onSelected: (selected) {
+                onSelected(selected ? opt.key : null);
+              },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
   void _onVersionTapped() {
     _versionTapCount++;
     if (_versionTapCount >= 7) {
@@ -188,31 +427,56 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     if (!_profileHydrated && profile.isLoaded) {
       _courseGoal = profile.courseGoal;
+      _initialCourseGoal = profile.courseGoal;
       _learningStyle = profile.learningStyle;
+      _initialLearningStyle = profile.learningStyle;
       _studyPriority = profile.studyPriority;
+      _initialStudyPriority = profile.studyPriority;
       _longTermGoal = profile.longTermGoal;
+      _initialLongTermGoal = profile.longTermGoal;
       _currentSemester = profile.currentSemester;
+      _initialCurrentSemester = profile.currentSemester;
       _careerController.text = profile.careerGoal ?? '';
+      _initialCareerGoal = profile.careerGoal ?? '';
       _profileHydrated = true;
     }
 
     // Keep local target GPA aligned with provider unless user is dragging
     final effectiveTargetGpa = (_targetGpa ?? transcript.targetGpa).clamp(5.0, 10.0);
 
-    if (kIsWeb && Uri.base.queryParameters['scroll'] == 'bottom') {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (_scrollController.hasClients) {
-          _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
-        }
-      });
+    if (kIsWeb) {
+      final scrollParam = Uri.base.queryParameters['scroll'];
+      if (scrollParam != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (_scrollController.hasClients) {
+            if (scrollParam == 'bottom') {
+              _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+            } else if (scrollParam == 'profile') {
+              _scrollController.jumpTo(420.0);
+            } else if (scrollParam == 'data') {
+              _scrollController.jumpTo(1150.0);
+            }
+          }
+        });
+      }
     }
 
-    return Scaffold(
-      appBar: const FlmAppBar(
-        title: 'Cài đặt',
-        subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
-      ),
-      body: ListView(
+    return PopScope(
+      canPop: !_hasProfileChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final nav = Navigator.of(context);
+        final shouldDiscard = await _confirmDiscardChanges();
+        if (shouldDiscard && mounted) {
+          nav.pop();
+        }
+      },
+      child: Scaffold(
+        appBar: const FlmAppBar(
+          title: 'Cài đặt',
+          subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
+        ),
+        body: ListView(
         controller: _scrollController,
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
@@ -359,7 +623,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${curriculum.totalCredits} tín chỉ',
+                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${formatCurriculumCredits(curriculum.totalCredits)}',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: colorScheme.onSurfaceVariant,
@@ -539,151 +803,227 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  DropdownButtonFormField<int>(
-                    isExpanded: true,
-                    initialValue: _currentSemester,
-                    decoration: const InputDecoration(
-                      labelText: 'Học kỳ hiện tại (tự xác nhận)',
-                    ),
-                    items: [
-                      const DropdownMenuItem<int>(
-                        value: null,
-                        child: Text('Chưa xác định'),
-                      ),
-                      for (var semester = 0; semester <= 12; semester++)
-                        DropdownMenuItem(
-                          value: semester,
-                          child: Text('Học kỳ $semester'),
+
+                  // 0. Current Semester (Bottom Sheet Picker)
+                  InkWell(
+                    onTap: _showSemesterPicker,
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        border: Border.all(
+                          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
                         ),
-                    ],
-                    onChanged: (value) => setState(() => _currentSemester = value),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _courseGoal,
-                    decoration: const InputDecoration(
-                      labelText: 'Mục tiêu môn học',
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: 'pass', child: Text('Qua môn')),
-                      DropdownMenuItem(
-                        value: 'high_score',
-                        child: Text('Đạt điểm cao'),
                       ),
-                    ],
-                    onChanged: (value) => setState(() => _courseGoal = value),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _learningStyle,
-                    decoration: const InputDecoration(
-                      labelText: 'Cách học ưu tiên',
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'practice',
-                        child: Text('Làm bài thực hành'),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Expanded(
+                                      child: Text(
+                                        'Học kỳ hiện tại (tự xác nhận)',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: _currentSemester == null
+                                            ? colorScheme.surfaceContainerHighest
+                                            : colorScheme.primaryContainer,
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        _currentSemester != null ? 'Học kỳ $_currentSemester' : 'Chưa chọn',
+                                        style: TextStyle(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: _currentSemester == null
+                                              ? colorScheme.onSurfaceVariant
+                                              : colorScheme.onPrimaryContainer,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'Giúp AI nhận biết giai đoạn học tập để gợi ý môn sát nhất',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(
+                            Icons.arrow_drop_down_rounded,
+                            color: colorScheme.onSurfaceVariant,
+                            size: 26,
+                          ),
+                        ],
                       ),
-                      DropdownMenuItem(
-                        value: 'reading',
-                        child: Text('Đọc và tóm tắt lý thuyết'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => _learningStyle = value),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _studyPriority,
-                    decoration: const InputDecoration(
-                      labelText: 'Ưu tiên học tập',
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'time',
-                        child: Text('Tập trung phần quan trọng trước'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'depth',
-                        child: Text('Hiểu sâu và làm sản phẩm thực tế'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => _studyPriority = value),
-                  ),
-                  const SizedBox(height: 14),
-                  DropdownButtonFormField<String>(
-                    isExpanded: true,
-                    initialValue: _longTermGoal,
-                    decoration: const InputDecoration(
-                      labelText: 'Mục tiêu dài hạn',
-                    ),
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'graduate',
-                        child: Text('Hoàn thành chương trình đúng hạn'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'career',
-                        child: Text('Chuẩn bị nghề nghiệp & đi làm'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'study_abroad',
-                        child: Text('Chuẩn bị du học & nghiên cứu'),
-                      ),
-                    ],
-                    onChanged: (value) => setState(() => _longTermGoal = value),
-                  ),
-                  const SizedBox(height: 14),
-                  TextField(
-                    controller: _careerController,
-                    maxLength: 80,
-                    decoration: const InputDecoration(
-                      labelText: 'Định hướng nghề nghiệp (tùy chọn)',
-                      hintText: 'Ví dụ: Mobile Developer Flutter',
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 16),
+
+                  // 1. Course Goal (Mục tiêu từng môn)
+                  _buildProfileChoiceField(
+                    label: 'Mục tiêu từng môn',
+                    helperText: 'Điểm qua môn, hiểu sâu hay điểm tối đa',
+                    displayValue: _courseGoal == 'pass'
+                        ? 'Qua môn'
+                        : _courseGoal == 'high_score'
+                            ? 'Đạt điểm cao'
+                            : 'Chưa chọn',
+                    options: const [
+                      (key: 'pass', label: 'Qua môn'),
+                      (key: 'high_score', label: 'Đạt điểm cao'),
+                    ],
+                    selectedKey: _courseGoal,
+                    onSelected: (val) => setState(() => _courseGoal = val),
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 2. Learning Style (Hình thức học tập)
+                  _buildProfileChoiceField(
+                    label: 'Hình thức học tập',
+                    helperText: 'Tự học qua tài liệu, học qua dự án hay bài giảng video',
+                    displayValue: _learningStyle == 'practice'
+                        ? 'Làm bài thực hành'
+                        : _learningStyle == 'reading'
+                            ? 'Đọc và tóm tắt'
+                            : 'Chưa chọn',
+                    options: const [
+                      (key: 'practice', label: 'Làm bài thực hành'),
+                      (key: 'reading', label: 'Đọc và tóm tắt'),
+                    ],
+                    selectedKey: _learningStyle,
+                    onSelected: (val) => setState(() => _learningStyle = val),
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 3. Study Priority (Trọng tâm học kỳ)
+                  _buildProfileChoiceField(
+                    label: 'Trọng tâm học kỳ',
+                    helperText: 'Cân bằng tải môn, tập trung đồ án hay nâng cao GPA',
+                    displayValue: _studyPriority == 'time'
+                        ? 'Tập trung phần quan trọng trước'
+                        : _studyPriority == 'depth'
+                            ? 'Hiểu sâu và làm sản phẩm thực tế'
+                            : 'Chưa chọn',
+                    options: const [
+                      (key: 'time', label: 'Tập trung phần quan trọng trước'),
+                      (key: 'depth', label: 'Hiểu sâu và làm sản phẩm thực tế'),
+                    ],
+                    selectedKey: _studyPriority,
+                    onSelected: (val) => setState(() => _studyPriority = val),
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 4. Long Term Goal (Định hướng sau tốt nghiệp)
+                  _buildProfileChoiceField(
+                    label: 'Định hướng sau tốt nghiệp',
+                    helperText: 'Làm việc tại doanh nghiệp, du học hay nghiên cứu chuyên sâu',
+                    displayValue: _longTermGoal == 'graduate'
+                        ? 'Hoàn thành chương trình đúng hạn'
+                        : _longTermGoal == 'career'
+                            ? 'Chuẩn bị nghề nghiệp'
+                            : _longTermGoal == 'study_abroad'
+                                ? 'Chuẩn bị du học & nghiên cứu'
+                                : 'Chưa chọn',
+                    options: const [
+                      (key: 'graduate', label: 'Hoàn thành chương trình đúng hạn'),
+                      (key: 'career', label: 'Chuẩn bị nghề nghiệp'),
+                      (key: 'study_abroad', label: 'Chuẩn bị du học & nghiên cứu'),
+                    ],
+                    selectedKey: _longTermGoal,
+                    onSelected: (val) => setState(() => _longTermGoal = val),
+                    colorScheme: colorScheme,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // 5. Career Goal (Mục tiêu nghề nghiệp)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Expanded(
+                            child: Text(
+                              'Mục tiêu nghề nghiệp (tùy chọn)',
+                              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: _careerController.text.trim().isEmpty
+                                  ? colorScheme.surfaceContainerHighest
+                                  : colorScheme.primaryContainer,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              _careerController.text.trim().isNotEmpty
+                                  ? _careerController.text.trim()
+                                  : 'Chưa chọn',
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: _careerController.text.trim().isEmpty
+                                    ? colorScheme.onSurfaceVariant
+                                    : colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Vị trí hoặc lĩnh vực mong muốn (vd: Mobile Developer Flutter)',
+                        style: TextStyle(fontSize: 12, color: colorScheme.onSurfaceVariant),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: _careerController,
+                        maxLength: 80,
+                        decoration: const InputDecoration(
+                          hintText: 'Ví dụ: Mobile Developer Flutter',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+
+                  // Save Profile Action Button (Disabled unless dirty)
                   SizedBox(
                     width: double.infinity,
                     child: FilledButton.icon(
-                      onPressed: profile.saving
-                          ? null
-                          : () async {
-                              try {
-                                await profile.update(
-                                  courseGoal: _courseGoal,
-                                  learningStyle: _learningStyle,
-                                  studyPriority: _studyPriority,
-                                  longTermGoal: _longTermGoal,
-                                  currentSemester: _currentSemester,
-                                  careerGoal: _careerController.text,
-                                );
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      profile.usesCloud
-                                          ? 'Đã lưu hồ sơ tư vấn lên Firestore.'
-                                          : 'Đã lưu hồ sơ tư vấn trên thiết bị.',
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              } catch (_) {
-                                if (!context.mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      profile.error ??
-                                          'Không thể lưu hồ sơ. Vui lòng thử lại.',
-                                    ),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              }
-                            },
+                      onPressed: (!profile.saving && _hasProfileChanges)
+                          ? () => _saveProfile(profile)
+                          : null,
                       icon: profile.saving
                           ? SizedBox(
                               width: 18,
@@ -883,11 +1223,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
                 SettingsTile(
                   title: 'Xóa bảng điểm cá nhân',
-                  subtitle: transcript.usesCloud
-                      ? 'Xóa toàn bộ điểm số đã lưu trong tài khoản của bạn'
-                      : 'Xóa toàn bộ điểm số lưu trên thiết bị này',
+                  subtitle: !transcript.hasTranscript
+                      ? 'Chưa có bảng điểm để xóa'
+                      : (transcript.usesCloud
+                          ? 'Xóa toàn bộ điểm số đã lưu trong tài khoản của bạn'
+                          : 'Xóa toàn bộ điểm số lưu trên thiết bị này'),
                   leadingIcon: Icons.delete_outline_rounded,
-                  isDestructive: true,
+                  isDestructive: transcript.hasTranscript,
                   enabled: transcript.hasTranscript,
                   onTap: transcript.hasTranscript ? _clearTranscript : null,
                 ),
@@ -960,6 +1302,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

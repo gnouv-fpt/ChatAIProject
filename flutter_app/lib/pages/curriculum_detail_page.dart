@@ -19,6 +19,7 @@ import '../widgets/data_state_view.dart';
 import '../widgets/grade_strategy_panel.dart';
 import '../widgets/hover_card.dart';
 import '../widgets/status_badge.dart';
+import '../utils/curriculum_formatters.dart';
 import 'course_detail_page.dart';
 
 class CurriculumDetailPage extends StatefulWidget {
@@ -306,7 +307,7 @@ class _CurriculumDetailPageState extends State<CurriculumDetailPage>
                                 ),
                           ),
                           Text(
-                            '${activeCurriculum.totalSubjects} môn · ${activeCurriculum.totalCredits} tín chỉ',
+                            '${activeCurriculum.totalSubjects} môn · ${formatCurriculumCredits(activeCurriculum.totalCredits)}',
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
