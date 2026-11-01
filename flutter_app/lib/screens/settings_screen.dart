@@ -1,16 +1,19 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../features/chat/providers/chat_provider.dart';
-import '../state/course_catalog.dart';
-import '../state/transcript_provider.dart';
-import '../state/learning_profile_provider.dart';
-import '../state/auth_view_model.dart';
+import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/load_status.dart';
+import '../state/auth_view_model.dart';
+import '../state/course_catalog.dart';
+import '../state/learning_profile_provider.dart';
+import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/data_state_view.dart';
-import '../features/chat/views/widgets/contextual_chat_launcher.dart';
+import '../widgets/m3_components.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -28,6 +31,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   String? _studyPriority;
   String? _longTermGoal;
   int? _currentSemester;
+
+  double? _targetGpa;
+  int _versionTapCount = 0;
+  bool _developerMode = !kReleaseMode;
 
   @override
   void initState() {
@@ -52,62 +59,120 @@ class _SettingsScreenState extends State<SettingsScreen> {
     super.dispose();
   }
 
-  Future<void> _clearTranscript() async {
+  Future<void> _signOut(AuthViewModel auth) async {
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Xóa bảng điểm?'),
-        content: Text(
-          context.read<TranscriptProvider>().usesCloud
-              ? 'Bảng điểm của tài khoản trên Firestore sẽ bị xóa.'
-              : 'Dữ liệu bảng điểm đã lưu trên thiết bị sẽ bị xóa.',
+      builder: (ctx) => AlertDialog(
+        title: const Text('Đăng xuất tài khoản?'),
+        content: const Text(
+          'Bạn sẽ cần đăng nhập lại bằng Google để đồng bộ bảng điểm và lịch sử học tập.',
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
+            onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Hủy'),
           ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await auth.signOut();
+    }
+  }
+
+  Future<void> _clearTranscript() async {
+    final transcript = context.read<TranscriptProvider>();
+    final usesCloud = transcript.usesCloud;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Xóa bảng điểm?'),
+        content: Text(
+          usesCloud
+              ? 'Bảng điểm của tài khoản trên đám mây (Firestore) sẽ bị xóa hoàn toàn.'
+              : 'Dữ liệu bảng điểm đã lưu trên thiết bị này sẽ bị xóa hoàn toàn.',
+        ),
+        actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Xóa'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Hủy'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Theme.of(ctx).colorScheme.onError,
+            ),
+            child: const Text('Xóa vĩnh viễn'),
           ),
         ],
       ),
     );
     if (confirmed == true && mounted) {
       try {
-        await context.read<TranscriptProvider>().clearTranscript();
+        await transcript.clearTranscript();
         if (!mounted) return;
-        ScaffoldMessenger.of(context)
-            .showSnackBar(const SnackBar(content: Text('Đã xóa bảng điểm.')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã xóa bảng điểm.'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
       } catch (_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Không thể xóa bảng điểm. Vui lòng thử lại.'),
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
   }
 
+  void _onVersionTapped() {
+    _versionTapCount++;
+    if (_versionTapCount >= 7) {
+      _versionTapCount = 0;
+      setState(() => _developerMode = !_developerMode);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            _developerMode
+                ? 'Đã mở khóa Cấu hình máy chủ nâng cao.'
+                : 'Đã ẩn Cấu hình máy chủ nâng cao.',
+          ),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final auth = context.watch<AuthViewModel?>();
     final profile = context.watch<LearningProfileProvider>();
+    final transcript = context.watch<TranscriptProvider>();
+    final chat = context.watch<ChatProvider>();
+    final catalog = context.watch<CourseCatalog>();
+    final curriculum = catalog.curriculum;
+
     if (profile.status == LoadStatus.loading ||
         profile.status == LoadStatus.error) {
       return Scaffold(
-        appBar: AppBar(
-          title: const Text('Cài đặt'),
-          actions: [
-            if (auth != null)
-              TextButton.icon(
-                onPressed: auth.busy ? null : auth.signOut,
-                icon: const Icon(Icons.logout),
-                label: const Text('Đăng xuất'),
-              ),
-          ],
+        appBar: const FlmAppBar(
+          title: 'Cài đặt',
+          subtitle: 'Tài khoản, mục tiêu học tập và kết nối AI',
         ),
         body: DataStateView(
           status: profile.status,
@@ -118,6 +183,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       );
     }
+
     if (!_profileHydrated && profile.isLoaded) {
       _courseGoal = profile.courseGoal;
       _learningStyle = profile.learningStyle;
@@ -127,9 +193,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
       _careerController.text = profile.careerGoal ?? '';
       _profileHydrated = true;
     }
-    final transcript = context.watch<TranscriptProvider>();
-    final chat = context.watch<ChatProvider>();
-    final curriculum = context.watch<CourseCatalog>().curriculum;
+
+    // Keep local target GPA aligned with provider unless user is dragging
+    final effectiveTargetGpa = (_targetGpa ?? transcript.targetGpa).clamp(5.0, 10.0);
+
     return Scaffold(
       appBar: FlmAppBar(
         title: 'Cài đặt',
@@ -139,7 +206,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
             curriculumId: curriculum?.id ?? '',
             contextKey: 'settings',
             title: 'mục tiêu học tập',
-            contextHint: 'Mục tiêu học tập cá nhân trong chương trình ${curriculum?.id ?? ''}',
+            contextHint:
+                'Mục tiêu học tập cá nhân trong chương trình ${curriculum?.id ?? ''}',
             suggestedQuestions: const [
               'Mục tiêu GPA của tôi có khả thi không?',
               'Tôi nên chọn mục tiêu học tập thế nào?',
@@ -150,158 +218,340 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
         children: [
-          if (context.read<AuthViewModel?>() case final auth?) ...[
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const IconTile(
-                          icon: Icons.verified_user_rounded,
-                          color: AppTheme.primaryBlue,
-                          size: 44,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                auth.account?.name ?? 'Tài khoản Google',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w800,
-                                  color: AppTheme.slate900,
-                                ),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                profile.usesCloud
-                                    ? 'Hồ sơ và bảng điểm lưu trên Firestore theo tài khoản.'
-                                    : 'Bộ nhớ cá nhân tách theo tài khoản; chưa bật đồng bộ cloud.',
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: AppTheme.slate600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (auth.message != null) ...[
-                      const SizedBox(height: 10),
-                      Text(auth.message!),
-                    ],
-                    const SizedBox(height: 16),
-                    OutlinedButton.icon(
-                      onPressed: auth.busy ? null : auth.signOut,
-                      icon: const Icon(Icons.logout_rounded),
-                      label: const Text('Đăng xuất'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-          ],
-          if (curriculum != null)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.pushNamed(
-                  context,
-                  '/curricula/${Uri.encodeComponent(curriculum.id)}',
-                ),
-                icon: const Icon(Icons.account_tree_outlined),
-                label: const Text('Xem chương trình'),
-              ),
-            ),
+          // ==========================================
+          // 1. PHẦN TÀI KHOẢN (ACCOUNT)
+          // ==========================================
           const SectionHeader(
-            title: 'Mục tiêu học tập',
-            icon: Icons.flag_rounded,
+            title: 'Tài khoản',
+            icon: Icons.account_circle_outlined,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      const IconTile(
-                        icon: Icons.track_changes_rounded,
-                        color: Color(0xFF00796B),
-                        size: 40,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
+                      CircleAvatar(
+                        radius: 24,
+                        backgroundColor: colorScheme.primaryContainer,
+                        foregroundColor: colorScheme.onPrimaryContainer,
                         child: Text(
-                          'GPA mục tiêu: ${transcript.targetGpa.toStringAsFixed(1)} / 10',
+                          (auth?.account?.name ?? 'U').characters.first.toUpperCase(),
                           style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.slate900,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w800,
                           ),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              auth?.account?.name ?? 'Người dùng FLM',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              auth?.account?.uid.isNotEmpty == true
+                                  ? 'ID: ${auth!.account!.uid}'
+                                  : 'Tài khoản Google đã xác thực',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                  if (transcript.saveError != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(transcript.saveError!),
+                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                  const SizedBox(height: 14),
-                  Slider(
-                    value: transcript.targetGpa,
-                    min: 0,
-                    max: 10,
-                    divisions: 100,
-                    label: transcript.targetGpa.toStringAsFixed(1),
-                    onChanged: transcript.setTargetGpa,
+                    child: Row(
+                      children: [
+                        Icon(
+                          profile.usesCloud
+                              ? Icons.cloud_done_rounded
+                              : Icons.cloud_off_rounded,
+                          size: 16,
+                          color: profile.usesCloud
+                              ? colorScheme.primary
+                              : colorScheme.onSurfaceVariant,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            profile.usesCloud
+                                ? 'Đang đồng bộ an toàn qua Firestore.'
+                                : 'Dữ liệu lưu riêng tư trên thiết bị.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (auth?.message != null) ...[
+                    const SizedBox(height: 10),
+                    InlineBanner(
+                      message: auth!.message!,
+                      severity: BannerSeverity.info,
+                    ),
+                  ],
+                  if (auth != null) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: auth.busy ? null : () => _signOut(auth),
+                        icon: Icon(
+                          Icons.logout_rounded,
+                          size: 18,
+                          color: colorScheme.error,
+                        ),
+                        label: Text(
+                          'Đăng xuất',
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(
+                            color: colorScheme.error.withValues(alpha: 0.5),
+                          ),
+                          minimumSize: const Size.fromHeight(44),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // ==========================================
+          // 2. PHẦN MỤC TIÊU HỌC TẬP (LEARNING GOALS)
+          // ==========================================
+          const SectionHeader(
+            title: 'Mục tiêu học tập',
+            icon: Icons.flag_outlined,
+          ),
+          const SizedBox(height: 6),
+
+          // "Xem chương trình" moved into this section
+          if (curriculum != null) ...[
+            Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                  width: 1,
+                ),
+              ),
+              child: ListTile(
+                leading: Icon(
+                  Icons.account_tree_outlined,
+                  color: colorScheme.primary,
+                ),
+                title: Text(
+                  'Chương trình đào tạo: ${curriculum.id}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+                subtitle: Text(
+                  '${curriculum.nameVi.isNotEmpty ? curriculum.nameVi : curriculum.name} · ${curriculum.totalCredits} tín chỉ',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/curricula/${Uri.encodeComponent(curriculum.id)}',
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+          ],
+
+          // GPA Slider Card (5.0 - 10.0, step 0.5, large display, end labels, haptic, auto-save)
+          Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
+                    children: [
+                      const Text(
+                        'Mục tiêu GPA',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.baseline,
+                        textBaseline: TextBaseline.alphabetic,
+                        children: [
+                          Text(
+                            effectiveTargetGpa.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w900,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          Text(
+                            ' / 10',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Kéo để thay đổi mục tiêu GPA (bước 0.5). Hệ thống tự lưu.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: colorScheme.primary,
+                      thumbColor: colorScheme.primary,
+                      overlayColor: colorScheme.primary.withValues(alpha: 0.12),
+                      valueIndicatorColor: colorScheme.primary,
+                      showValueIndicator: ShowValueIndicator.onDrag,
+                    ),
+                    child: Slider(
+                      value: effectiveTargetGpa,
+                      min: 5.0,
+                      max: 10.0,
+                      divisions: 10,
+                      label: effectiveTargetGpa.toStringAsFixed(1),
+                      onChanged: (val) {
+                        HapticFeedback.selectionClick();
+                        setState(() => _targetGpa = val);
+                      },
+                      onChangeEnd: (val) {
+                        transcript.setTargetGpa(val);
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              'Đã lưu mục tiêu GPA: ${val.toStringAsFixed(1)}',
+                            ),
+                            behavior: SnackBarBehavior.floating,
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          '5.0 (Tối thiểu)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        Text(
+                          '10.0 (Xuất sắc)',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 10),
+
+          // Consulting Profile Form Card
           Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      IconTile(
-                        icon: Icons.person_search_rounded,
-                        color: Color(0xFF6A1B9A),
-                        size: 40,
-                      ),
-                      SizedBox(width: 12),
-                      Expanded(
-                        child: Text(
-                          'Hồ sơ tư vấn (có thể bổ sung dần)',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.slate900,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (profile.error != null)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8),
-                      child: Text(profile.error!),
+                  const Text(
+                    'Hồ sơ tư vấn học tập',
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
                     ),
-                  const SizedBox(height: 18),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Thông tin này giúp Trợ lý AI đưa ra lời khuyên sát với lộ trình của bạn.',
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
                     isExpanded: true,
                     initialValue: _currentSemester,
@@ -319,10 +569,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           child: Text('Học kỳ $semester'),
                         ),
                     ],
-                    onChanged: (value) =>
-                        setState(() => _currentSemester = value),
+                    onChanged: (value) => setState(() => _currentSemester = value),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _courseGoal,
@@ -338,7 +587,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     ],
                     onChanged: (value) => setState(() => _courseGoal = value),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _learningStyle,
@@ -352,13 +601,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       DropdownMenuItem(
                         value: 'reading',
-                        child: Text('Đọc và tóm tắt'),
+                        child: Text('Đọc và tóm tắt lý thuyết'),
                       ),
                     ],
-                    onChanged: (value) =>
-                        setState(() => _learningStyle = value),
+                    onChanged: (value) => setState(() => _learningStyle = value),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _studyPriority,
@@ -372,13 +620,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                       DropdownMenuItem(
                         value: 'depth',
-                        child: Text('Hiểu sâu và làm sản phẩm'),
+                        child: Text('Hiểu sâu và làm sản phẩm thực tế'),
                       ),
                     ],
-                    onChanged: (value) =>
-                        setState(() => _studyPriority = value),
+                    onChanged: (value) => setState(() => _studyPriority = value),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   DropdownButtonFormField<String>(
                     isExpanded: true,
                     initialValue: _longTermGoal,
@@ -388,31 +635,32 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     items: const [
                       DropdownMenuItem(
                         value: 'graduate',
-                        child: Text('Hoàn thành chương trình'),
+                        child: Text('Hoàn thành chương trình đúng hạn'),
                       ),
                       DropdownMenuItem(
                         value: 'career',
-                        child: Text('Chuẩn bị nghề nghiệp'),
+                        child: Text('Chuẩn bị nghề nghiệp & đi làm'),
                       ),
                       DropdownMenuItem(
                         value: 'study_abroad',
-                        child: Text('Chuẩn bị du học'),
+                        child: Text('Chuẩn bị du học & nghiên cứu'),
                       ),
                     ],
                     onChanged: (value) => setState(() => _longTermGoal = value),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   TextField(
                     controller: _careerController,
                     maxLength: 80,
                     decoration: const InputDecoration(
-                      labelText: 'Mục tiêu nghề nghiệp (tùy chọn)',
+                      labelText: 'Định hướng nghề nghiệp (tùy chọn)',
+                      hintText: 'Ví dụ: Mobile Developer Flutter',
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: FilledButton(
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
                       onPressed: profile.saving
                           ? null
                           : () async {
@@ -430,9 +678,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                   SnackBar(
                                     content: Text(
                                       profile.usesCloud
-                                          ? 'Đã lưu hồ sơ lên Firestore.'
+                                          ? 'Đã lưu hồ sơ tư vấn lên Firestore.'
                                           : 'Đã lưu hồ sơ tư vấn trên thiết bị.',
                                     ),
+                                    behavior: SnackBarBehavior.floating,
                                   ),
                                 );
                               } catch (_) {
@@ -440,145 +689,251 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
                                     content: Text(
-                                      profile.error ?? 'Không thể lưu hồ sơ. Vui lòng thử lại.',
+                                      profile.error ??
+                                          'Không thể lưu hồ sơ. Vui lòng thử lại.',
                                     ),
+                                    behavior: SnackBarBehavior.floating,
                                   ),
                                 );
                               }
                             },
-                      child: const Text('Lưu hồ sơ'),
+                      icon: profile.saving
+                          ? SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.onPrimary,
+                              ),
+                            )
+                          : const Icon(Icons.save_outlined, size: 18),
+                      label: Text(profile.saving ? 'Đang lưu...' : 'Lưu hồ sơ'),
                     ),
                   ),
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 20),
+
+          // ==========================================
+          // 3. PHẦN TRỢ LÝ AI (AI ASSISTANT)
+          // ==========================================
           const SectionHeader(
-            title: 'Kết nối trợ lý AI',
-            icon: Icons.smart_toy_rounded,
+            title: 'Trợ lý AI',
+            icon: Icons.smart_toy_outlined,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 6),
           Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
             child: Padding(
-              padding: const EdgeInsets.all(18),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TextField(
-                    controller: _serverController,
-                    keyboardType: TextInputType.url,
-                    decoration: const InputDecoration(
-                      labelText: 'Địa chỉ API',
-                      hintText: 'http://localhost:8000',
-                      prefixIcon: Icon(Icons.dns_rounded),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
                   Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton(
-                          onPressed: () {
-                            final uri = Uri.tryParse(
-                              _serverController.text.trim(),
-                            );
-                            if (uri == null ||
-                                !uri.hasAuthority ||
-                                (uri.scheme != 'http' &&
-                                    uri.scheme != 'https')) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Nhập địa chỉ API hợp lệ.'),
-                                ),
-                              );
-                              return;
-                            }
-                            chat.updateBaseUrl(
-                              _serverController.text.trim().replaceAll(
-                                RegExp(r'/$'),
-                                '',
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Trạng thái kết nối',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
-                            );
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                  'Đã áp dụng địa chỉ API cho phiên này.',
-                                ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              chat.isServerOnline == true
+                                  ? 'Kết nối ổn định với máy chủ cố vấn'
+                                  : 'Không kết nối được với máy chủ AI',
+                              style: TextStyle(
+                                fontSize: 12.5,
+                                color: colorScheme.onSurfaceVariant,
                               ),
-                            );
-                          },
-                          child: const Text('Áp dụng'),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton(
-                          onPressed: chat.checkServerHealth,
-                          child: const Text('Thử kết nối'),
-                        ),
-                      ),
+                      if (chat.isServerOnline == null)
+                        StatusChip.info(label: 'Đang kiểm tra...')
+                      else if (chat.isServerOnline == true)
+                        StatusChip.success(label: 'Trực tuyến')
+                      else
+                        StatusChip.error(label: 'Ngoại tuyến'),
                     ],
                   ),
                   const SizedBox(height: 14),
-                  StatusPill(
-                    label: chat.isServerOnline == null
-                        ? 'Đang kiểm tra kết nối...'
-                        : chat.isServerOnline!
-                        ? 'Máy chủ đang hoạt động'
-                        : 'Không kết nối được. Dữ liệu môn học vẫn dùng được.',
-                    icon: chat.isServerOnline == null
-                        ? Icons.sync_rounded
-                        : chat.isServerOnline!
-                        ? Icons.check_circle_rounded
-                        : Icons.info_outline_rounded,
-                    color: chat.isServerOnline == true
-                        ? AppTheme.success
-                        : AppTheme.slate700,
-                    background: chat.isServerOnline == true
-                        ? AppTheme.successSurface
-                        : AppTheme.slate100,
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: chat.checkServerHealth,
+                      icon: const Icon(Icons.sync_rounded, size: 18),
+                      label: const Text('Thử kết nối lại'),
+                    ),
                   ),
+
+                  // Advanced Server Config (shown in Debug or if 7-tapped)
+                  if (_developerMode) ...[
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.build_circle_outlined,
+                          size: 16,
+                          color: colorScheme.primary,
+                        ),
+                        const SizedBox(width: 6),
+                        const Text(
+                          'Cấu hình server nâng cao (Dành cho nhà phát triển)',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _serverController,
+                      keyboardType: TextInputType.url,
+                      decoration: const InputDecoration(
+                        labelText: 'Địa chỉ API máy chủ',
+                        hintText: 'http://localhost:8000',
+                        prefixIcon: Icon(Icons.dns_rounded),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton.tonal(
+                        onPressed: () {
+                          final uri = Uri.tryParse(_serverController.text.trim());
+                          if (uri == null ||
+                              !uri.hasAuthority ||
+                              (uri.scheme != 'http' && uri.scheme != 'https')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Nhập địa chỉ API hợp lệ.'),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+                          chat.updateBaseUrl(
+                            _serverController.text.trim().replaceAll(RegExp(r'/$'), ''),
+                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Đã cập nhật địa chỉ API.'),
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        },
+                        child: const Text('Áp dụng URL'),
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
-          const SizedBox(height: 16),
-          const SectionHeader(title: 'Dữ liệu', icon: Icons.storage_rounded),
-          const SizedBox(height: 4),
+
+          const SizedBox(height: 20),
+
+          // ==========================================
+          // 4. PHẦN DỮ LIỆU (DATA & DANGER ACTIONS)
+          // ==========================================
+          const SectionHeader(
+            title: 'Dữ liệu',
+            icon: Icons.storage_outlined,
+          ),
+          const SizedBox(height: 6),
           Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              side: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+                width: 1,
+              ),
+            ),
             child: Column(
               children: [
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  leading: const IconTile(
-                    icon: Icons.refresh_rounded,
-                    color: AppTheme.primaryBlue,
-                    size: 40,
-                  ),
-                  title: const Text('Tải lại dữ liệu môn học'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: context.read<CourseCatalog>().load,
+                SettingsTile(
+                  title: 'Tải lại dữ liệu môn học',
+                  subtitle: 'Cập nhật lại danh mục môn học và điều kiện tiên quyết',
+                  leadingIcon: Icons.refresh_rounded,
+                  leadingColor: colorScheme.primary,
+                  onTap: () {
+                    context.read<CourseCatalog>().load();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Đang làm mới dữ liệu chương trình...'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  },
                 ),
-                const Divider(height: 1, indent: 68),
-                ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 4,
-                  ),
-                  leading: const IconTile(
-                    icon: Icons.delete_outline_rounded,
-                    color: AppTheme.danger,
-                    size: 40,
-                  ),
-                  title: const Text('Xóa bảng điểm trên thiết bị'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
+                Divider(
+                  height: 1,
+                  indent: 68,
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                ),
+                SettingsTile(
+                  title: 'Xóa bảng điểm cá nhân',
+                  subtitle: transcript.usesCloud
+                      ? 'Xóa toàn bộ điểm số trên tài khoản đám mây'
+                      : 'Xóa toàn bộ điểm số lưu trên thiết bị này',
+                  leadingIcon: Icons.delete_outline_rounded,
+                  isDestructive: true,
+                  enabled: transcript.hasTranscript,
                   onTap: transcript.hasTranscript ? _clearTranscript : null,
                 ),
               ],
+            ),
+          ),
+
+          const SizedBox(height: 32),
+
+          // Version Footer (Tap 7 times to toggle developer options)
+          InkWell(
+            onTap: _onVersionTapped,
+            borderRadius: BorderRadius.circular(8),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                children: [
+                  Text(
+                    'Cố vấn học tập FLM',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Phiên bản 1.0.0${_developerMode ? ' (Chế độ nhà phát triển)' : ''}',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

@@ -355,6 +355,8 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                             .length,
                                         isNext: entry.key == progress.nextSemester,
                                       ),
+                                      textScale: MediaQuery.textScalerOf(context).scale(1.0),
+                                      screenHeight: MediaQuery.sizeOf(context).height,
                                     ),
                                   ),
                                   SliverPadding(
@@ -547,15 +549,26 @@ class _SemesterGroup {
 }
 
 class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
-  _SemesterStickyHeaderDelegate({required this.group});
+  _SemesterStickyHeaderDelegate({
+    required this.group,
+    this.textScale = 1.0,
+    this.screenHeight = 800.0,
+  });
 
   final _SemesterGroup group;
+  final double textScale;
+  final double screenHeight;
 
   @override
-  double get minExtent => 68.0;
+  double get minExtent {
+    // Dynamic height adaptive to textScale, max 15% of screen height
+    final calculated = 56.0 + (textScale - 1.0) * 36.0;
+    final maxAllowed = screenHeight * 0.15;
+    return calculated.clamp(52.0, maxAllowed);
+  }
 
   @override
-  double get maxExtent => 68.0;
+  double get maxExtent => minExtent;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -563,7 +576,7 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
       color: Theme.of(context).colorScheme.surface,
       elevation: overlapsContent ? 1.5 : 0.0,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: _SemesterHeader(group: group),
       ),
     );
@@ -574,7 +587,9 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
     return oldDelegate.group.semester != group.semester ||
         oldDelegate.group.completed != group.completed ||
         oldDelegate.group.courses != group.courses ||
-        oldDelegate.group.isNext != group.isNext;
+        oldDelegate.group.isNext != group.isNext ||
+        oldDelegate.textScale != textScale ||
+        oldDelegate.screenHeight != screenHeight;
   }
 }
 
@@ -728,13 +743,13 @@ class _CourseTile extends StatelessWidget {
           ),
         CourseReadiness.unverified => StatusChip.warning(
             label: progress.unverifiedPrerequisites.length > 2
-                ? 'Ngoài CT: ${progress.unverifiedPrerequisites.length} môn'
-                : 'Ngoài CT: ${progress.unverifiedPrerequisites.join(', ')}',
+                ? 'Ngoài khung CT: ${progress.unverifiedPrerequisites.length} môn'
+                : 'Ngoài khung CT: ${progress.unverifiedPrerequisites.join(', ')}',
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Tiên quyết ngoài CTĐT hiện tại: ${progress.unverifiedPrerequisites.join(', ')}',
+                    'Tiên quyết ngoài khung CTĐT chuẩn: ${progress.unverifiedPrerequisites.join(', ')}',
                   ),
                   duration: const Duration(seconds: 4),
                   behavior: SnackBarBehavior.floating,

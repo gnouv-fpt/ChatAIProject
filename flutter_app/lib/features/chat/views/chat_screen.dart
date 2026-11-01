@@ -441,6 +441,9 @@ class _ChatScreenState extends State<ChatScreen> {
                             if (event is KeyDownEvent &&
                                 event.logicalKey == LogicalKeyboardKey.enter &&
                                 !HardwareKeyboard.instance.isShiftPressed) {
+                              if (_textController.value.isComposingRangeValid) {
+                                return KeyEventResult.ignored;
+                              }
                               _handleSend(provider, _textController.text);
                               return KeyEventResult.handled;
                             }
@@ -451,8 +454,8 @@ class _ChatScreenState extends State<ChatScreen> {
                             focusNode: _focusNode,
                             minLines: 1,
                             maxLines: 5,
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: (text) => _handleSend(provider, text),
+                            keyboardType: TextInputType.multiline,
+                            textInputAction: TextInputAction.newline,
                             decoration: InputDecoration(
                               hintText: 'Hỏi về môn học, tiên quyết, GPA...',
                               hintStyle: TextStyle(
@@ -492,22 +495,21 @@ class _ChatScreenState extends State<ChatScreen> {
                       Padding(
                         padding: const EdgeInsets.only(bottom: 2),
                         child: IconButton.filled(
-                          tooltip: provider.isLoading ? 'Đang trả lời' : 'Gửi câu hỏi',
+                          tooltip: provider.isLoading ? 'Dừng' : 'Gửi câu hỏi',
                           style: IconButton.styleFrom(
-                            backgroundColor: canSend ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-                            foregroundColor: canSend ? colorScheme.onPrimary : colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                            backgroundColor: provider.isLoading
+                                ? colorScheme.error
+                                : (canSend ? colorScheme.primary : colorScheme.surfaceContainerHighest),
+                            foregroundColor: provider.isLoading
+                                ? colorScheme.onError
+                                : (canSend ? colorScheme.onPrimary : colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                           ),
                           icon: provider.isLoading
-                              ? const SizedBox(
-                                  width: 18,
-                                  height: 18,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                )
+                              ? const Icon(Icons.stop_rounded, size: 20)
                               : const Icon(Icons.send_rounded, size: 20),
-                          onPressed: canSend ? () => _handleSend(provider, _textController.text) : null,
+                          onPressed: provider.isLoading
+                              ? () => provider.cancelCurrentRequest()
+                              : (canSend ? () => _handleSend(provider, _textController.text) : null),
                         ),
                       ),
                     ],

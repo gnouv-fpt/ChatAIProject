@@ -553,5 +553,68 @@ void main() {
       expect(tester.takeException(), isNull);
       await _captureScreen(tester, keyWide, 'contextual_sheet_populated_630x900_light');
     });
+
+    testWidgets('ContextualChatPanel - Inline context details toggles on chip tap', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final api = MockChatApiService(isOnline: true);
+      final chat = ChatProvider(apiService: api);
+      addTearDown(chat.dispose);
+
+      await tester.pumpWidget(
+        wrapWithChatProviders(
+          child: const Scaffold(
+            body: ContextualChatPanel(
+              scope: 'subject',
+              scopeId: 'PRM393',
+              title: 'trợ lý môn PRM393',
+              contextHint: 'Lập trình di động Flutter · Kỳ 5 · 3 tín chỉ',
+            ),
+          ),
+          chat: chat,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Tap context chip
+      await tester.tap(find.text('Môn: PRM393'));
+      await tester.pumpAndSettle();
+
+      // Details shown inline inside sheet, NOT in a SnackBar
+      expect(find.byType(SnackBar), findsNothing);
+      expect(find.text('Lập trình di động Flutter · Kỳ 5 · 3 tín chỉ'), findsNWidgets(2)); // header + inline box
+    });
+
+    testWidgets('Stop Button cancels in-flight response and allows retry', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final completer = Completer<ChatResponseResult>();
+      final api = MockChatApiService(isOnline: true, completer: completer);
+      final chat = ChatProvider(apiService: api);
+      addTearDown(chat.dispose);
+
+      await tester.pumpWidget(
+        wrapWithChatProviders(
+          child: const ChatScreen(),
+          chat: chat,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Trigger question
+      await tester.tap(find.text('Tôi nên học gì ở kỳ tới?'));
+      await tester.pump();
+
+      // Button is now "Dừng" (Stop)
+      final stopButtonFinder = find.byTooltip('Dừng');
+      expect(stopButtonFinder, findsOneWidget);
+
+      // Tap "Dừng"
+      await tester.tap(stopButtonFinder);
+      await tester.pumpAndSettle();
+
+      // Generation stopped, message marked as error with retry button
+      expect(find.text('Đã dừng tạo câu trả lời theo yêu cầu.'), findsOneWidget);
+      expect(find.text('Gửi lại'), findsOneWidget);
+      expect(find.byTooltip('Gửi câu hỏi'), findsOneWidget);
+    });
   });
 }

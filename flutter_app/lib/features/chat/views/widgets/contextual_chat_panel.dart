@@ -45,6 +45,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
   final ScrollController _scrollController = ScrollController();
   final FocusNode _focusNode = FocusNode();
   bool _isPickingImages = false;
+  bool _showContextDetails = false;
   final List<ImageFile> _pendingImages = [];
 
   @override
@@ -369,7 +370,7 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
             ),
           ),
 
-          // 3. Clickable Context Chip
+          // 3. Clickable Context Chip (toggles details inside sheet, no SnackBar)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
             child: Align(
@@ -395,18 +396,45 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   color: colorScheme.primary.withValues(alpha: 0.25),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Ngữ cảnh tư vấn: ${widget.contextHint ?? _formattedTitle}'),
-                      duration: const Duration(seconds: 2),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
+                onPressed: () => setState(() => _showContextDetails = !_showContextDetails),
               ),
             ),
           ),
+
+          // Inline context details panel
+          if (_showContextDetails)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                  border: Border.all(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline_rounded, size: 16, color: colorScheme.primary),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        widget.contextHint ?? 'Ngữ cảnh tư vấn: $_formattedTitle (${widget.scopeId})',
+                        style: TextStyle(
+                          fontSize: 12.5,
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () => setState(() => _showContextDetails = false),
+                      borderRadius: BorderRadius.circular(99),
+                      child: const Icon(Icons.close, size: 16),
+                    ),
+                  ],
+                ),
+              ),
+            ),
 
           // 4. Server Status Bar (hidden when online)
           const ServerStatusBar(),
@@ -549,6 +577,9 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         if (event is KeyDownEvent &&
                             event.logicalKey == LogicalKeyboardKey.enter &&
                             !HardwareKeyboard.instance.isShiftPressed) {
+                          if (_textController.value.isComposingRangeValid) {
+                            return KeyEventResult.ignored;
+                          }
                           _handleSend(provider, _textController.text);
                           return KeyEventResult.handled;
                         }
@@ -559,8 +590,8 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         focusNode: _focusNode,
                         minLines: 1,
                         maxLines: 5,
-                        textInputAction: TextInputAction.send,
-                        onSubmitted: (text) => _handleSend(provider, text),
+                        keyboardType: TextInputType.multiline,
+                        textInputAction: TextInputAction.newline,
                         decoration: InputDecoration(
                           hintText: widget.contextHint != null
                               ? 'Hỏi về ${widget.title}...'
@@ -602,22 +633,21 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 2),
                     child: IconButton.filled(
-                      tooltip: provider.isLoading ? 'Đang trả lời' : 'Gửi câu hỏi',
+                      tooltip: provider.isLoading ? 'Dừng' : 'Gửi câu hỏi',
                       style: IconButton.styleFrom(
-                        backgroundColor: canSend ? colorScheme.primary : colorScheme.surfaceContainerHighest,
-                        foregroundColor: canSend ? colorScheme.onPrimary : colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+                        backgroundColor: provider.isLoading
+                            ? colorScheme.error
+                            : (canSend ? colorScheme.primary : colorScheme.surfaceContainerHighest),
+                        foregroundColor: provider.isLoading
+                            ? colorScheme.onError
+                            : (canSend ? colorScheme.onPrimary : colorScheme.onSurfaceVariant.withValues(alpha: 0.4)),
                       ),
                       icon: provider.isLoading
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2,
-                              ),
-                            )
+                          ? const Icon(Icons.stop_rounded, size: 20)
                           : const Icon(Icons.send_rounded, size: 20),
-                      onPressed: canSend ? () => _handleSend(provider, _textController.text) : null,
+                      onPressed: provider.isLoading
+                          ? () => provider.cancelCurrentRequest()
+                          : (canSend ? () => _handleSend(provider, _textController.text) : null),
                     ),
                   ),
                 ],

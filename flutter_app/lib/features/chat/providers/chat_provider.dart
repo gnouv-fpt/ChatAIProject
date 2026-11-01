@@ -61,6 +61,7 @@ class ChatProvider extends ChangeNotifier {
   String? _lastError;
   String _currentScope = 'curriculum';
   String _currentScopeId = 'BIT_SE_K19B';
+  int _activeRequestId = 0;
 
   List<ChatMessage> get messages => List.unmodifiable(_messages);
   bool get isLoading => _isLoading;
@@ -82,6 +83,29 @@ class ChatProvider extends ChangeNotifier {
     if (scope != 'curriculum') return null;
     final match = RegExp(r':semester-(\d+)$').firstMatch(id);
     return match == null ? null : int.tryParse(match.group(1)!);
+  }
+
+  void cancelCurrentRequest() {
+    if (!_isLoading) return;
+    _activeRequestId++;
+    _isLoading = false;
+    if (_messages.isNotEmpty && _messages.last.status == MessageStatus.sending) {
+      final lastId = _messages.last.id;
+      final stoppedMessage = ChatMessage(
+        id: lastId,
+        text: 'Đã dừng tạo câu trả lời theo yêu cầu.',
+        sender: ChatSender.ai,
+        timestamp: _clock(),
+        status: MessageStatus.error,
+        errorMessage: 'Đã dừng',
+      );
+      _messages[_messages.length - 1] = stoppedMessage;
+      final targetList = _scopeMessages[_scopeKey];
+      if (targetList != null && targetList.isNotEmpty && targetList.last.id == lastId) {
+        targetList[targetList.length - 1] = stoppedMessage;
+      }
+    }
+    notifyListeners();
   }
 
   String _newSessionId() =>
@@ -500,6 +524,7 @@ class ChatProvider extends ChangeNotifier {
       targetList.add(loadingAiMessage);
     }
 
+    final currentRequestId = ++_activeRequestId;
     _isLoading = true;
     unawaited(
       telemetry?.event('advising_request', {
@@ -544,7 +569,7 @@ class ChatProvider extends ChangeNotifier {
           )
           .toList(),
     );
-    if (_disposed) return;
+    if (_disposed || _activeRequestId != currentRequestId) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,
@@ -650,6 +675,7 @@ class ChatProvider extends ChangeNotifier {
       targetList.add(loadingAiMessage);
     }
 
+    final currentRequestId = ++_activeRequestId;
     _isLoading = true;
     _lastError = null;
     notifyListeners();
@@ -670,7 +696,7 @@ class ChatProvider extends ChangeNotifier {
             : {'target_semester': viewedSemester}),
       },
     );
-    if (_disposed) return;
+    if (_disposed || _activeRequestId != currentRequestId) return;
 
     final finalAiMessage = ChatMessage(
       id: aiMsgId,

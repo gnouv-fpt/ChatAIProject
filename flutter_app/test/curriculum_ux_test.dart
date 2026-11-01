@@ -331,9 +331,9 @@ void main() {
         ..courses = [
           for (int s = 0; s <= 6; s++)
             Course.fromJson({
-              'code': 'SUBJ_' + s.toString(),
-              'name': 'Subject Semester ' + s.toString(),
-              'name_vi': 'Môn học kỳ ' + s.toString(),
+              'code': 'SUBJ_$s',
+              'name': 'Subject Semester $s',
+              'name_vi': 'Môn học kỳ $s',
               'credits': 3,
               'semester': s,
             }),

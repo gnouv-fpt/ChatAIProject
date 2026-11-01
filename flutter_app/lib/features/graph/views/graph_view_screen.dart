@@ -6,20 +6,12 @@ import 'package:provider/provider.dart';
 import '../../../models/course.dart';
 import '../../../state/course_catalog.dart';
 import '../../../state/transcript_provider.dart';
+import '../../../theme/app_theme.dart';
+import '../../../widgets/app_ui.dart';
+import '../../../widgets/course_visuals.dart';
+import '../../../widgets/m3_components.dart';
 
 const _canvasSize = Size(1600, 1100);
-const _semesterColors = <Color>[
-  Color(0xFF64748B),
-  Color(0xFF2563EB),
-  Color(0xFF0891B2),
-  Color(0xFF0D9488),
-  Color(0xFF16A34A),
-  Color(0xFFCA8A04),
-  Color(0xFFEA580C),
-  Color(0xFFDC2626),
-  Color(0xFF9333EA),
-  Color(0xFF4F46E5),
-];
 
 class _GraphNode {
   _GraphNode(this.course, this.position);
@@ -72,13 +64,13 @@ class _GraphViewScreenState extends State<GraphViewScreen>
   bool _localGraph = false;
   bool _showLabels = true;
   bool _showArrows = true;
-  bool _showSemesterNodes = false;
-  double _repulsion = 1800;
-  double _spring = 0.003;
-  double _linkLength = 135;
-  double _centerForce = 0.00025;
-  double _edgeWidth = 1.2;
-  double _nodeSize = 1;
+  final bool _showSemesterNodes = false;
+  final double _repulsion = 1800;
+  final double _spring = 0.003;
+  final double _linkLength = 135;
+  final double _centerForce = 0.00025;
+  final double _edgeWidth = 1.2;
+  final double _nodeSize = 1;
   int _depth = 1;
   bool _initialFit = false;
   bool _controlsOpen = false;
@@ -86,6 +78,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
   bool _useStatusColors = false;
   Size _viewport = Size.zero;
   int _frames = 0;
+  bool _highlightAncestors = false;
 
   @override
   void initState() {
@@ -134,10 +127,9 @@ class _GraphViewScreenState extends State<GraphViewScreen>
     }
     final seen = <String>{};
     for (final course in courses) {
-      for (final raw
-          in course.prerequisitesNorm.isNotEmpty
-              ? course.prerequisitesNorm
-              : course.prerequisites) {
+      for (final raw in course.prerequisitesNorm.isNotEmpty
+          ? course.prerequisitesNorm
+          : course.prerequisites) {
         final prerequisite = raw.trim().toUpperCase().replaceAll('Ð', 'Đ');
         final dependent = course.code.toUpperCase();
         if (!_nodes.containsKey(prerequisite) || prerequisite == dependent) {
@@ -333,43 +325,132 @@ class _GraphViewScreenState extends State<GraphViewScreen>
 
   Future<void> _showCourseList(Set<String> visible) async {
     final codes = visible.toList()..sort();
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final transcript = context.read<TranscriptProvider>();
+
     final selected = await showModalBottomSheet<String>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
       builder: (sheetContext) => SafeArea(
         child: SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * 0.75,
+          height: MediaQuery.sizeOf(sheetContext).height * 0.8,
           child: Column(
             children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Row(
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 32,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               ListTile(
-                title: const Text('Môn học trong sơ đồ'),
+                title: Text(
+                  'Danh sách môn học trong sơ đồ (${codes.length})',
+                  style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 17),
+                ),
+                subtitle: const Text('Chế độ xem trợ năng cho sơ đồ quan hệ'),
                 trailing: IconButton(
                   tooltip: 'Đóng danh sách',
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_rounded),
                   onPressed: () => Navigator.pop(sheetContext),
                 ),
               ),
+              const Divider(height: 1),
               Expanded(
                 child: codes.isEmpty
-                    ? const Center(child: Text('Không có môn phù hợp bộ lọc.'))
-                    : ListView.builder(
+                    ? const Center(
+                        child: EmptyState(
+                          icon: Icons.search_off_rounded,
+                          title: 'Không có môn phù hợp',
+                          description: 'Thử đặt lại bộ lọc để xem toàn bộ sơ đồ môn học.',
+                        ),
+                      )
+                    : ListView.separated(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         itemCount: codes.length,
+                        separatorBuilder: (_, _) => const SizedBox(height: 6),
                         itemBuilder: (_, index) {
                           final course = _nodes[codes[index]]!.course;
+                          final palette = SemesterPalette.of(course.semester);
                           final prerequisites = _edges
                               .where((edge) => edge.to == course.code)
-                              .map((edge) => edge.from);
-                          return ListTile(
-                            title: Text(
-                              '${course.code} · ${course.nameVi.isEmpty ? course.name : course.nameVi}',
+                              .map((edge) => edge.from)
+                              .toList();
+
+                          final entries = transcript.entries
+                              .where((e) => e.courseCode == course.code)
+                              .toList();
+                          Widget? statusWidget;
+                          if (entries.isNotEmpty) {
+                            if (entries.last.inProgress) {
+                              statusWidget = StatusChip.info(label: 'Đang học');
+                            } else if (entries.last.isPassed) {
+                              statusWidget = StatusChip.success(label: 'Đã đạt');
+                            } else {
+                              statusWidget = StatusChip.error(label: 'Chưa đạt');
+                            }
+                          }
+
+                          return Card(
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                              side: BorderSide(
+                                color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                width: 1,
+                              ),
                             ),
-                            subtitle: Text(
-                              'Tiên quyết: ${prerequisites.isEmpty ? "Không có" : prerequisites.join(", ")}',
+                            child: ListTile(
+                              leading: IconTile(
+                                icon: courseIcon(course.code),
+                                color: palette.fg,
+                                background: palette.bg,
+                              ),
+                              title: Row(
+                                children: [
+                                  Text(
+                                    course.code,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  ?statusWidget,
+                                ],
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    course.nameVi.isEmpty ? course.name : course.nameVi,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Học kỳ ${course.semester} · ${course.credits} tín chỉ${prerequisites.isNotEmpty ? " · Tiên quyết: ${prerequisites.join(', ')}" : ""}',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: const Icon(Icons.chevron_right_rounded),
+                              onTap: () => Navigator.pop(sheetContext, course.code),
                             ),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () =>
-                                Navigator.pop(sheetContext, course.code),
                           );
                         },
                       ),
@@ -395,79 +476,215 @@ class _GraphViewScreenState extends State<GraphViewScreen>
         .where((e) => e.from == node.course.code)
         .map((e) => e.to)
         .toList();
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final palette = SemesterPalette.of(node.course.semester);
+    final transcript = context.read<TranscriptProvider>();
+    final entries = transcript.entries
+        .where((e) => e.courseCode == node.course.code)
+        .toList();
+
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLg)),
+      ),
       builder: (sheetContext) => SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(22),
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Align(
-                alignment: Alignment.centerRight,
-                child: IconButton(
-                  tooltip: 'Đóng thông tin môn',
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(sheetContext),
+              // M3 Drag Handle
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 16),
+                  decoration: BoxDecoration(
+                    color: colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
-              Text(
-                '${node.course.code} · ${node.course.credits} tín chỉ',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                node.course.nameVi.isEmpty
-                    ? node.course.name
-                    : node.course.nameVi,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Tiên quyết: ${prerequisites.isEmpty ? "Không có" : prerequisites.join(", ")}',
-              ),
-              Text(
-                'Môn phụ thuộc: ${dependents.isEmpty ? "Không có" : dependents.join(", ")}',
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      setState(() => _localGraph = true);
-                    },
-                    child: const Text('Xem liên kết'),
+                  IconTile(
+                    icon: courseIcon(node.course.code),
+                    color: palette.fg,
+                    background: palette.bg,
+                    size: 44,
                   ),
-                  OutlinedButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      setState(() => _selected = node.course.code);
-                      _highlightAncestors = true;
-                    },
-                    child: const Text('Chuỗi tiên quyết'),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Text(
+                              node.course.code,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            if (entries.isNotEmpty) ...[
+                              if (entries.last.inProgress)
+                                StatusChip.info(label: 'Đang học')
+                              else if (entries.last.isPassed)
+                                StatusChip.success(
+                                  label: 'Đã đạt (${entries.last.score.toStringAsFixed(1)})',
+                                )
+                              else
+                                StatusChip.error(
+                                  label: 'Chưa đạt (${entries.last.score.toStringAsFixed(1)})',
+                                ),
+                            ] else
+                              StatusChip(
+                                label: 'Học kỳ ${node.course.semester}',
+                                customColor: palette.fg,
+                                icon: Icons.calendar_today_rounded,
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          node.course.nameVi.isEmpty
+                              ? node.course.name
+                              : node.course.nameVi,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: colorScheme.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${node.course.credits} tín chỉ · Học kỳ ${node.course.semester}${node.course.countsInGpa ? " · Tính GPA" : " · Miễn GPA"}',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                  OutlinedButton(
-                    onPressed: widget.onAdvisorRequested == null
-                        ? null
-                        : () {
-                            Navigator.pop(sheetContext);
-                            widget.onAdvisorRequested?.call(node.course.code);
-                          },
-                    child: const Text('Tư vấn môn này'),
+                  IconButton(
+                    tooltip: 'Đóng',
+                    icon: const Icon(Icons.close_rounded),
+                    onPressed: () => Navigator.pop(sheetContext),
                   ),
-                  FilledButton(
-                    onPressed: widget.onOpenDetail == null
-                        ? null
-                        : () {
-                            Navigator.pop(sheetContext);
-                            widget.onOpenDetail?.call(node.course.code);
-                          },
-                    child: const Text('Xem chi tiết'),
+                ],
+              ),
+              const SizedBox(height: 16),
+              const Divider(height: 1),
+              const SizedBox(height: 14),
+
+              // Prerequisites & Dependents
+              Text(
+                'Môn tiên quyết:',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                prerequisites.isEmpty
+                    ? 'Không có môn tiên quyết'
+                    : prerequisites.join(' · '),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Môn mở khóa sau đó (phụ thuộc):',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                dependents.isEmpty
+                    ? 'Không có môn phụ thuộc'
+                    : dependents.join(' · '),
+                style: TextStyle(
+                  fontSize: 13,
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Action Buttons Row with "Hỏi AI"
+              Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: widget.onAdvisorRequested == null
+                          ? null
+                          : () {
+                              Navigator.pop(sheetContext);
+                              widget.onAdvisorRequested?.call(node.course.code);
+                            },
+                      icon: const Icon(Icons.smart_toy_rounded, size: 18),
+                      label: const Text('Hỏi AI'),
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: widget.onOpenDetail == null
+                          ? null
+                          : () {
+                              Navigator.pop(sheetContext);
+                              widget.onOpenDetail?.call(node.course.code);
+                            },
+                      icon: const Icon(Icons.info_outline_rounded, size: 18),
+                      label: const Text('Chi tiết môn'),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(44),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                        setState(() => _localGraph = true);
+                      },
+                      child: const Text('Xem liên kết'),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(sheetContext);
+                        setState(() => _selected = node.course.code);
+                        _highlightAncestors = true;
+                      },
+                      child: const Text('Chuỗi tiên quyết'),
+                    ),
                   ),
                 ],
               ),
@@ -478,10 +695,11 @@ class _GraphViewScreenState extends State<GraphViewScreen>
     );
   }
 
-  bool _highlightAncestors = false;
-
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     final transcript = context.watch<TranscriptProvider>();
     final visible = _visibleIds(transcript);
     final focus = _hovered ?? _selected;
@@ -502,6 +720,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
       }
       if (_highlightAncestors) related.addAll(_ancestorIds(focus));
     }
+
     return LayoutBuilder(
       builder: (context, limits) {
         _viewport = Size(limits.maxWidth, limits.maxHeight);
@@ -591,6 +810,8 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                             nodeSize: _nodeSize,
                             scale: _transform.value.getMaxScaleOnAxis(),
                             search: _search,
+                            textColor: colorScheme.onSurface,
+                            isDark: isDark,
                           ),
                         ),
                       ),
@@ -599,25 +820,37 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                 ),
               ),
             ),
+
+            // Top Search & Quick Control Bar
             Positioned(
               top: 12,
               left: 12,
               right: 12,
               child: Material(
-                elevation: 3,
-                borderRadius: BorderRadius.circular(12),
+                elevation: 2,
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: Row(
                     children: [
                       Expanded(
                         child: TextField(
-                          decoration: const InputDecoration(
-                            labelText: 'Tìm môn',
-                            prefixIcon: Icon(Icons.search),
-                            hintText: 'Tìm môn theo mã hoặc tên',
+                          decoration: InputDecoration(
+                            hintText: 'Tìm mã hoặc tên môn...',
+                            prefixIcon: const Icon(Icons.search_rounded, size: 20),
                             isDense: true,
-                            border: OutlineInputBorder(),
+                            border: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 10,
+                            ),
+                            suffixIcon: _search.isNotEmpty
+                                ? IconButton(
+                                    icon: const Icon(Icons.clear_rounded, size: 18),
+                                    onPressed: () => setState(() => _search = ''),
+                                  )
+                                : null,
                           ),
                           onChanged: (value) {
                             setState(
@@ -639,46 +872,72 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                         ),
                       ),
                       IconButton(
+                        tooltip: 'Xem danh sách (Trợ năng)',
+                        onPressed: () => _showCourseList(visible),
+                        icon: const Icon(Icons.view_list_rounded),
+                      ),
+                      IconButton(
                         tooltip: 'Vừa màn hình',
                         onPressed: _fit,
-                        icon: const Icon(Icons.fit_screen),
+                        icon: const Icon(Icons.fit_screen_rounded),
                       ),
                       IconButton(
-                        tooltip: 'Đặt lại sơ đồ',
-                        onPressed: _reset,
-                        icon: const Icon(Icons.restart_alt),
-                      ),
-                      IconButton(
-                        tooltip: 'Bộ lọc',
+                        tooltip: 'Bộ lọc & Tùy chọn',
                         onPressed: () =>
                             setState(() => _controlsOpen = !_controlsOpen),
-                        icon: const Icon(Icons.tune),
+                        icon: Icon(
+                          Icons.tune_rounded,
+                          color: _controlsOpen ? colorScheme.primary : null,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
             ),
+
+            // Filter & Settings Panel
             if (_controlsOpen)
               Positioned(
-                top: 80,
+                top: 72,
                 right: 12,
                 child: Material(
                   elevation: 3,
-                  borderRadius: BorderRadius.circular(12),
+                  color: colorScheme.surface,
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                   child: SizedBox(
-                    width: min(290, limits.maxWidth - 24),
-                    height: min(530, max(120, limits.maxHeight - 96)),
+                    width: min(300, limits.maxWidth - 24),
+                    height: min(520, max(120, limits.maxHeight - 88)),
                     child: SingleChildScrollView(
                       child: Padding(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(14),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text(
+                                  'Bộ lọc & Bố cục',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                                IconButton(
+                                  tooltip: 'Đóng bảng lọc',
+                                  icon: const Icon(Icons.close_rounded, size: 18),
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => setState(() => _controlsOpen = false),
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 8),
                             SwitchListTile(
                               dense: true,
-                              title: const Text('Theo học kỳ'),
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Bố cục theo học kỳ'),
                               value: _semesterLayout,
                               onChanged: (value) {
                                 if (value) {
@@ -691,7 +950,8 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                             ),
                             SwitchListTile(
                               dense: true,
-                              title: const Text('Xem liên kết'),
+                              contentPadding: EdgeInsets.zero,
+                              title: const Text('Xem liên kết cục bộ'),
                               value: _localGraph && _selected != null,
                               onChanged: _selected == null
                                   ? null
@@ -701,7 +961,7 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                             if (_localGraph)
                               Row(
                                 children: [
-                                  const Text('Độ sâu'),
+                                  const Text('Độ sâu:'),
                                   Expanded(
                                     child: Slider(
                                       min: 1,
@@ -720,11 +980,12 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                               initialValue: _semesterFilter,
                               decoration: const InputDecoration(
                                 labelText: 'Học kỳ',
+                                isDense: true,
                               ),
                               items: [
                                 const DropdownMenuItem<int?>(
                                   value: null,
-                                  child: Text('Tất cả'),
+                                  child: Text('Tất cả học kỳ'),
                                 ),
                                 for (final sem
                                     in _nodes.values
@@ -734,21 +995,23 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                       ..sort())
                                   DropdownMenuItem<int?>(
                                     value: sem,
-                                    child: Text('HK$sem'),
+                                    child: Text('Học kỳ $sem'),
                                   ),
                               ],
                               onChanged: (value) =>
                                   setState(() => _semesterFilter = value),
                             ),
+                            const SizedBox(height: 10),
                             DropdownButtonFormField<String>(
                               initialValue: _statusFilter,
                               decoration: const InputDecoration(
-                                labelText: 'Trạng thái',
+                                labelText: 'Trạng thái môn',
+                                isDense: true,
                               ),
                               items: const [
                                 DropdownMenuItem(
                                   value: 'all',
-                                  child: Text('Tất cả'),
+                                  child: Text('Tất cả trạng thái'),
                                 ),
                                 DropdownMenuItem(
                                   value: 'passed',
@@ -771,46 +1034,21 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                 () => _statusFilter = value ?? 'all',
                               ),
                             ),
+                            const SizedBox(height: 12),
                             Wrap(
-                              spacing: 4,
-                              runSpacing: 0,
+                              spacing: 6,
+                              runSpacing: 4,
                               children: [
                                 FilterChip(
-                                  label: const Text('Tính GPA'),
-                                  selected: _gpaFilter == true,
-                                  onSelected: (value) => setState(
-                                    () => _gpaFilter = value ? true : null,
-                                  ),
+                                  label: const Text('Màu điểm'),
+                                  selected: _useStatusColors,
+                                  onSelected: transcript.hasTranscript
+                                      ? (v) =>
+                                            setState(() => _useStatusColors = v)
+                                      : null,
                                 ),
                                 FilterChip(
-                                  label: const Text('Không tính GPA'),
-                                  selected: _gpaFilter == false,
-                                  onSelected: (value) => setState(
-                                    () => _gpaFilter = value ? false : null,
-                                  ),
-                                ),
-                                FilterChip(
-                                  label: const Text('Có tiên quyết'),
-                                  selected: _prerequisiteFilter == true,
-                                  onSelected: (value) => setState(
-                                    () => _prerequisiteFilter = value
-                                        ? true
-                                        : null,
-                                  ),
-                                ),
-                                FilterChip(
-                                  label: const Text('Ẩn node cô lập'),
-                                  selected: _hideIsolated,
-                                  onSelected: (value) =>
-                                      setState(() => _hideIsolated = value),
-                                ),
-                              ],
-                            ),
-                            Wrap(
-                              spacing: 4,
-                              children: [
-                                FilterChip(
-                                  label: const Text('Nhãn'),
+                                  label: const Text('Nhãn mã'),
                                   selected: _showLabels,
                                   onSelected: (v) =>
                                       setState(() => _showLabels = v),
@@ -822,78 +1060,21 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                       setState(() => _showArrows = v),
                                 ),
                                 FilterChip(
-                                  label: const Text('Node học kỳ'),
-                                  selected: _showSemesterNodes,
-                                  onSelected: (v) =>
-                                      setState(() => _showSemesterNodes = v),
-                                ),
-                                FilterChip(
-                                  label: const Text('Màu điểm'),
-                                  selected: _useStatusColors,
-                                  onSelected: transcript.hasTranscript
-                                      ? (v) =>
-                                            setState(() => _useStatusColors = v)
-                                      : null,
+                                  label: const Text('Ẩn node cô lập'),
+                                  selected: _hideIsolated,
+                                  onSelected: (value) =>
+                                      setState(() => _hideIsolated = value),
                                 ),
                               ],
                             ),
-                            const Divider(),
-                            const Text('Mô phỏng và hiển thị'),
-                            _GraphControlSlider(
-                              label: 'Lực đẩy',
-                              value: _repulsion,
-                              min: 500,
-                              max: 5000,
-                              onChanged: (value) {
-                                setState(() => _repulsion = value);
-                                if (!_semesterLayout) _startSimulation();
-                              },
-                            ),
-                            _GraphControlSlider(
-                              label: 'Lực kéo',
-                              value: _spring,
-                              min: 0.001,
-                              max: 0.01,
-                              onChanged: (value) {
-                                setState(() => _spring = value);
-                                if (!_semesterLayout) _startSimulation();
-                              },
-                            ),
-                            _GraphControlSlider(
-                              label: 'Độ dài nối',
-                              value: _linkLength,
-                              min: 80,
-                              max: 260,
-                              onChanged: (value) {
-                                setState(() => _linkLength = value);
-                                if (!_semesterLayout) _startSimulation();
-                              },
-                            ),
-                            _GraphControlSlider(
-                              label: 'Hút về tâm',
-                              value: _centerForce,
-                              min: 0,
-                              max: 0.001,
-                              onChanged: (value) {
-                                setState(() => _centerForce = value);
-                                if (!_semesterLayout) _startSimulation();
-                              },
-                            ),
-                            _GraphControlSlider(
-                              label: 'Độ dày cạnh',
-                              value: _edgeWidth,
-                              min: 0.5,
-                              max: 4,
-                              onChanged: (value) =>
-                                  setState(() => _edgeWidth = value),
-                            ),
-                            _GraphControlSlider(
-                              label: 'Kích thước node',
-                              value: _nodeSize,
-                              min: 0.65,
-                              max: 1.8,
-                              onChanged: (value) =>
-                                  setState(() => _nodeSize = value),
+                            const SizedBox(height: 12),
+                            OutlinedButton.icon(
+                              onPressed: _reset,
+                              icon: const Icon(Icons.restart_alt_rounded, size: 16),
+                              label: const Text('Đặt lại mặc định'),
+                              style: OutlinedButton.styleFrom(
+                                minimumSize: const Size.fromHeight(36),
+                              ),
                             ),
                           ],
                         ),
@@ -902,43 +1083,72 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                   ),
                 ),
               ),
+
+            // Bottom Legend Floating Card
             Positioned(
               left: 12,
               bottom: 12,
               child: Material(
                 elevation: 2,
-                borderRadius: BorderRadius.circular(10),
+                color: colorScheme.surface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      TextButton.icon(
-                        onPressed: () => _showCourseList(visible),
-                        icon: const Icon(Icons.list_alt),
-                        label: const Text('Danh sách môn'),
-                      ),
-                      TextButton(
-                        onPressed: () =>
-                            setState(() => _showLegend = !_showLegend),
-                        child: Text(
-                          'Chú giải màu ${_showLegend ? "▾" : "▸"}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                      InkWell(
+                        onTap: () => setState(() => _showLegend = !_showLegend),
+                        borderRadius: BorderRadius.circular(6),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Chú giải màu',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 12,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                _showLegend
+                                    ? Icons.keyboard_arrow_down_rounded
+                                    : Icons.keyboard_arrow_right_rounded,
+                                size: 18,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      if (!_showLegend)
-                        SizedBox(
-                          width: min(270, limits.maxWidth - 48),
-                          child: Wrap(
-                            spacing: 8,
+                      if (_showLegend) ...[
+                        const SizedBox(height: 6),
+                        if (_useStatusColors && transcript.hasTranscript)
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 4,
                             children: [
-                              if (_useStatusColors && transcript.hasTranscript)
-                                const Text(
-                                  'Lục: đạt · Đỏ: chưa đạt · Lam: đang học · Xám: chưa học',
-                                  style: TextStyle(fontSize: 10),
-                                )
-                              else
+                              StatusChip.success(label: 'Đạt'),
+                              StatusChip.error(label: 'Chưa đạt'),
+                              StatusChip.info(label: 'Đang học'),
+                              const StatusChip(
+                                label: 'Chưa học',
+                                customColor: Color(0xFF94A3B8),
+                              ),
+                            ],
+                          )
+                        else
+                          SizedBox(
+                            width: min(280, limits.maxWidth - 48),
+                            child: Wrap(
+                              spacing: 8,
+                              runSpacing: 4,
+                              children: [
                                 for (final sem
                                     in _nodes.values
                                         .map((n) => n.course.semester)
@@ -948,65 +1158,28 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(
-                                        Icons.circle,
-                                        color: _semesterColors[sem.clamp(0, 9)],
-                                        size: 9,
+                                      Container(
+                                        width: 10,
+                                        height: 10,
+                                        decoration: BoxDecoration(
+                                          color: SemesterPalette.of(sem).fg,
+                                          shape: BoxShape.circle,
+                                        ),
                                       ),
+                                      const SizedBox(width: 4),
                                       Text(
-                                        ' HK$sem',
-                                        style: const TextStyle(fontSize: 10),
+                                        'HK$sem',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: colorScheme.onSurfaceVariant,
+                                        ),
                                       ),
                                     ],
                                   ),
-                              if (focus != null) ...[
-                                const Text(
-                                  'Lục: tiên quyết',
-                                  style: TextStyle(
-                                    color: Color(0xFF166534),
-                                    fontSize: 10,
-                                  ),
-                                ),
-                                const Text(
-                                  'Cam: phụ thuộc',
-                                  style: TextStyle(
-                                    color: Color(0xFF9A3412),
-                                    fontSize: 10,
-                                  ),
-                                ),
                               ],
-                            ],
+                            ),
                           ),
-                        ),
-                      if (_showLegend &&
-                          !(_useStatusColors && transcript.hasTranscript))
-                        for (final sem
-                            in _nodes.values
-                                .map((n) => n.course.semester)
-                                .toSet()
-                                .toList()
-                              ..sort())
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                color: _semesterColors[sem.clamp(0, 9)],
-                                size: 12,
-                              ),
-                              Text(
-                                '  HK$sem',
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                      if (_showLegend &&
-                          _useStatusColors &&
-                          transcript.hasTranscript)
-                        const Text(
-                          'Lục: đạt · Đỏ: chưa đạt · Lam: đang học · Xám: chưa học',
-                          style: TextStyle(fontSize: 11),
-                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -1017,32 +1190,6 @@ class _GraphViewScreenState extends State<GraphViewScreen>
       },
     );
   }
-}
-
-class _GraphControlSlider extends StatelessWidget {
-  const _GraphControlSlider({
-    required this.label,
-    required this.value,
-    required this.min,
-    required this.max,
-    required this.onChanged,
-  });
-
-  final String label;
-  final double value;
-  final double min;
-  final double max;
-  final ValueChanged<double> onChanged;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      SizedBox(width: 100, child: Text(label)),
-      Expanded(
-        child: Slider(value: value, min: min, max: max, onChanged: onChanged),
-      ),
-    ],
-  );
 }
 
 class _GraphPainter extends CustomPainter {
@@ -1063,7 +1210,10 @@ class _GraphPainter extends CustomPainter {
     required this.nodeSize,
     required this.scale,
     required this.search,
+    required this.textColor,
+    required this.isDark,
   });
+
   final Map<String, _GraphNode> nodes;
   final List<_GraphEdge> edges;
   final Set<String> visible;
@@ -1080,6 +1230,8 @@ class _GraphPainter extends CustomPainter {
   final double nodeSize;
   final double scale;
   final String search;
+  final Color textColor;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -1098,7 +1250,7 @@ class _GraphPainter extends CustomPainter {
                   group.length -
               95,
         );
-        final color = _semesterColors[entry.key.clamp(0, 9)];
+        final color = SemesterPalette.of(entry.key).fg;
         for (final node in group) {
           canvas.drawLine(
             center,
@@ -1123,6 +1275,7 @@ class _GraphPainter extends CustomPainter {
         title.paint(canvas, center - Offset(title.width / 2, title.height / 2));
       }
     }
+
     for (final edge in edges) {
       if (!visible.contains(edge.from) || !visible.contains(edge.to)) continue;
       final from = nodes[edge.from]!;
@@ -1131,9 +1284,10 @@ class _GraphPainter extends CustomPainter {
       final dim = focus != null && !active;
       final color = active
           ? edge.to == focus
-                ? const Color(0xFF16A34A)
-                : const Color(0xFFEA580C)
-          : const Color(0xFF94A3B8).withValues(alpha: dim ? 0.09 : 0.48);
+              ? const Color(0xFF16A34A)
+              : const Color(0xFFEA580C)
+          : (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
+              .withValues(alpha: dim ? 0.09 : 0.48);
       canvas.drawLine(
         from.position,
         to.position,
@@ -1161,17 +1315,18 @@ class _GraphPainter extends CustomPainter {
         canvas.drawPath(path, Paint()..color = color);
       }
     }
+
     for (final id in visible) {
       final node = nodes[id]!;
       final radius = node.radius * nodeSize;
       final dim = focus != null && !related.contains(id);
-      Color color = _semesterColors[node.course.semester.clamp(0, 9)];
+      Color color = SemesterPalette.of(node.course.semester).fg;
       if (statusColors && transcript.hasTranscript) {
         final entries = transcript.entries
             .where((e) => e.courseCode == id)
             .toList();
         color = entries.isEmpty
-            ? const Color(0xFF94A3B8)
+            ? (isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8))
             : entries.last.inProgress
             ? const Color(0xFF2563EB)
             : entries.last.isPassed
@@ -1209,7 +1364,7 @@ class _GraphPainter extends CustomPainter {
           text: TextSpan(
             text: id,
             style: TextStyle(
-              color: const Color(0xFF0F172A).withValues(alpha: dim ? 0.2 : 1),
+              color: textColor.withValues(alpha: dim ? 0.2 : 1),
               fontSize: 13,
               fontWeight: FontWeight.w700,
             ),
