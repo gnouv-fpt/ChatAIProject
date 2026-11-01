@@ -14,12 +14,16 @@ enum StatusType {
 ///
 /// Ensures accessibility by combining an explicit icon and text label;
 /// never conveys status through color alone (WCAG 1.4.1).
+/// Supports custom labels and icons (e.g. "Có thể học", "Chưa đủ tiên quyết", "Đã qua").
 class StatusChip extends StatelessWidget {
   const StatusChip({
     super.key,
     required this.label,
-    required this.type,
+    this.type = StatusType.neutral,
     this.icon,
+    this.customColor,
+    this.customBackgroundColor,
+    this.semanticDescription,
     this.onTap,
     this.compact = false,
   });
@@ -109,9 +113,63 @@ class StatusChip extends StatelessWidget {
         compact: compact,
       );
 
+  /// Convenience factory for eligible/ready courses ("Có thể học").
+  factory StatusChip.eligible({
+    Key? key,
+    String label = 'Có thể học',
+    IconData icon = Icons.play_circle_outline_rounded,
+    VoidCallback? onTap,
+    bool compact = false,
+  }) =>
+      StatusChip(
+        key: key,
+        label: label,
+        type: StatusType.info,
+        icon: icon,
+        onTap: onTap,
+        compact: compact,
+      );
+
+  /// Convenience factory for locked/prerequisite-missing courses ("Chưa đủ tiên quyết").
+  factory StatusChip.locked({
+    Key? key,
+    String label = 'Chưa đủ tiên quyết',
+    IconData icon = Icons.lock_outline_rounded,
+    VoidCallback? onTap,
+    bool compact = false,
+  }) =>
+      StatusChip(
+        key: key,
+        label: label,
+        type: StatusType.warning,
+        icon: icon,
+        onTap: onTap,
+        compact: compact,
+      );
+
+  /// Convenience factory for passed courses ("Đã qua").
+  factory StatusChip.passed({
+    Key? key,
+    String label = 'Đã qua',
+    IconData icon = Icons.check_circle_outline_rounded,
+    VoidCallback? onTap,
+    bool compact = false,
+  }) =>
+      StatusChip(
+        key: key,
+        label: label,
+        type: StatusType.success,
+        icon: icon,
+        onTap: onTap,
+        compact: compact,
+      );
+
   final String label;
   final StatusType type;
   final IconData? icon;
+  final Color? customColor;
+  final Color? customBackgroundColor;
+  final String? semanticDescription;
   final VoidCallback? onTap;
   final bool compact;
 
@@ -121,7 +179,7 @@ class StatusChip extends StatelessWidget {
     final colorScheme = theme.colorScheme;
     final customColors = context.customColors;
 
-    final (Color bg, Color fg, IconData defaultIcon) = switch (type) {
+    final (Color defaultBg, Color defaultFg, IconData defaultIcon) = switch (type) {
       StatusType.success => (
         customColors.successContainer,
         customColors.onSuccessContainer,
@@ -149,6 +207,8 @@ class StatusChip extends StatelessWidget {
       ),
     };
 
+    final bg = customBackgroundColor ?? defaultBg;
+    final fg = customColor ?? defaultFg;
     final resolvedIcon = icon ?? defaultIcon;
     final horizontalPad = compact ? 8.0 : 10.0;
     final verticalPad = compact ? 3.0 : 5.0;
@@ -194,8 +254,9 @@ class StatusChip extends StatelessWidget {
       );
     }
 
+    final description = semanticDescription ?? _typeDescription(type);
     return Semantics(
-      label: '$label: ${_typeDescription(type)}',
+      label: '$label: $description',
       button: onTap != null,
       child: chipContent,
     );
@@ -209,4 +270,3 @@ class StatusChip extends StatelessWidget {
     StatusType.neutral => 'chưa có dữ liệu / mặc định',
   };
 }
-

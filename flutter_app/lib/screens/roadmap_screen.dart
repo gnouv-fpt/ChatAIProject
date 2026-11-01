@@ -3,16 +3,17 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../features/graph/views/graph_view_screen.dart';
 import '../features/chat/views/widgets/contextual_chat_launcher.dart';
+import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
-import '../state/course_catalog.dart';
-import '../state/transcript_provider.dart';
-import '../state/learning_profile_provider.dart';
 import '../services/learning_progress.dart';
+import '../state/course_catalog.dart';
+import '../state/learning_profile_provider.dart';
+import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/app_ui.dart';
 import '../widgets/course_visuals.dart';
+import '../widgets/m3_components.dart';
 
 class RoadmapScreen extends StatefulWidget {
   const RoadmapScreen({super.key});
@@ -40,7 +41,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       if (!mounted) return;
       final ctx = key.currentContext;
       if (ctx != null) {
-        final disableAnim = MediaQuery.disableAnimationsOf(context);
+        final disableAnim = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
         Scrollable.ensureVisible(
           ctx,
           alignment: 0.5,
@@ -71,64 +72,51 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       currentSemester: profile.currentSemester,
     );
     const title = 'Lộ trình học tập';
+
     if (catalog.isLoading && catalog.courses.isEmpty) {
-      return const Scaffold(
-        appBar: FlmAppBar(title: title),
-        body: Center(child: CircularProgressIndicator()),
+      return Scaffold(
+        appBar: const FlmAppBar(title: title),
+        body: _buildLoadingSkeleton(context),
       );
     }
     if (catalog.error != null && catalog.courses.isEmpty) {
       return Scaffold(
         appBar: const FlmAppBar(title: title),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.cloud_off_rounded,
-                size: 48,
-                color: AppTheme.accentOrange,
-              ),
-              const SizedBox(height: 12),
-              Text(catalog.error!),
-              const SizedBox(height: 12),
-              FilledButton(
-                onPressed: catalog.load,
-                child: const Text('Thử lại'),
-              ),
-            ],
-          ),
+        body: EmptyState(
+          icon: Icons.cloud_off_rounded,
+          title: 'Không thể tải lộ trình',
+          description: catalog.error!,
+          actionLabel: 'Thử lại',
+          actionIcon: Icons.refresh_rounded,
+          onAction: catalog.load,
         ),
       );
     }
 
-    final semesters = catalog.courses.map((c) => c.semester).toSet().toList()
-      ..sort();
+    final semesters = catalog.courses.map((c) => c.semester).toSet().toList()..sort();
     final totalCredits = catalog.courses.fold<int>(0, (s, c) => s + c.credits);
-    final visible =
-        catalog.courses.where((c) {
-          final matchSemester = _nextOnly
-              ? c.semester == progress.nextSemester
-              : _semester == null || c.semester == _semester;
-          final q = _query.trim().toLowerCase();
-          return matchSemester &&
-              (q.isEmpty ||
-                  c.code.toLowerCase().contains(q) ||
-                  c.name.toLowerCase().contains(q) ||
-                  c.nameVi.toLowerCase().contains(q));
-        }).toList()..sort((a, b) {
-          final bySemester = a.semester.compareTo(b.semester);
-          return bySemester != 0 ? bySemester : a.code.compareTo(b.code);
-        });
+    final visible = catalog.courses.where((c) {
+      final matchSemester = _nextOnly
+          ? c.semester == progress.nextSemester
+          : _semester == null || c.semester == _semester;
+      final q = _query.trim().toLowerCase();
+      return matchSemester &&
+          (q.isEmpty ||
+              c.code.toLowerCase().contains(q) ||
+              c.name.toLowerCase().contains(q) ||
+              c.nameVi.toLowerCase().contains(q));
+    }).toList()
+      ..sort((a, b) {
+        final bySemester = a.semester.compareTo(b.semester);
+        return bySemester != 0 ? bySemester : a.code.compareTo(b.code);
+      });
 
     // Flatten into semester headers followed by their courses.
     final items = <Object>[];
     int? lastSemester;
     for (final course in visible) {
       if (course.semester != lastSemester) {
-        final inSemester = visible
-            .where((c) => c.semester == course.semester)
-            .toList();
+        final inSemester = visible.where((c) => c.semester == course.semester).toList();
         items.add(
           _SemesterGroup(
             semester: course.semester,
@@ -136,9 +124,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             credits: inSemester.fold(0, (s, c) => s + c.credits),
             completed: inSemester
                 .where(
-                  (c) =>
-                      progress.status(c).readiness ==
-                      CourseReadiness.completed,
+                  (c) => progress.status(c).readiness == CourseReadiness.completed,
                 )
                 .length,
             isNext: course.semester == progress.nextSemester,
@@ -153,7 +139,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
       appBar: FlmAppBar(
         title: title,
         subtitle:
-            '${catalog.curriculum?.id ?? 'Chương trình đào tạo'} · ${catalog.courses.length} môn · $totalCredits tín chỉ',
+            '${catalog.curriculum?.id ?? 'Chương trình'} · ${catalog.courses.length} môn · $totalCredits tín chỉ',
         actions: [
           ContextualChatLauncher(
             curriculumId: catalog.curriculum?.id ?? '',
@@ -186,14 +172,15 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
             child: SegmentedButton<bool>(
               showSelectedIcon: false,
               style: SegmentedButton.styleFrom(
-                backgroundColor: const Color(0xFFF1F5F9),
-                selectedBackgroundColor: AppTheme.primaryBlue,
-                selectedForegroundColor: Colors.white,
-                foregroundColor: AppTheme.slate700,
+                backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                selectedBackgroundColor: Theme.of(context).colorScheme.primary,
+                selectedForegroundColor: Theme.of(context).colorScheme.onPrimary,
                 elevation: 0,
-                side: const BorderSide(color: Color(0xFFE2E8F0)),
+                side: BorderSide(
+                  color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+                ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
                 textStyle: const TextStyle(
                   fontWeight: FontWeight.w700,
@@ -213,8 +200,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                 ),
               ],
               selected: {_showGraph},
-              onSelectionChanged: (value) =>
-                  setState(() => _showGraph = value.first),
+              onSelectionChanged: (value) => setState(() => _showGraph = value.first),
             ),
           ),
           Expanded(
@@ -222,12 +208,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
               duration: const Duration(milliseconds: 240),
               switchInCurve: Curves.easeOutCubic,
               switchOutCurve: Curves.easeInCubic,
-              transitionBuilder: (child, animation) {
-                return FadeTransition(
-                  opacity: animation,
-                  child: child,
-                );
-              },
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: child,
+              ),
               child: _showGraph
                   ? KeyedSubtree(
                       key: const ValueKey('roadmap_graph_view'),
@@ -236,305 +220,251 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                   : KeyedSubtree(
                       key: const ValueKey('roadmap_list_view'),
                       child: CustomScrollView(
-                    keyboardDismissBehavior:
-                        ScrollViewKeyboardDismissBehavior.onDrag,
-                    slivers: [
-                      if (!_nextOnly)
-                        SliverToBoxAdapter(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 2, 16, 0),
-                            child: _ProgressHero(
-                              progress: progress,
-                              hasTranscript: transcript.hasTranscript,
-                              selectedSemester: _semester,
-                            ),
-                          ),
-                        ),
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                          child: TextField(
-                            decoration: const InputDecoration(
-                              labelText: 'Tìm môn học',
-                              prefixIcon: Icon(Icons.search_rounded),
-                              hintText: 'Tìm mã hoặc tên môn học',
-                            ),
-                            onChanged: (value) =>
-                                setState(() => _query = value),
-                          ),
-                        ),
-                      ),
-                      SliverToBoxAdapter(
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final screenWidth = constraints.maxWidth;
-                            final centerPadding = math.max(
-                              16.0,
-                              (screenWidth - 84) / 2,
-                            );
-                            final isAllSelected =
-                                !_nextOnly && _semester == null;
-                            final hPadding =
-                                isAllSelected ? 16.0 : centerPadding;
-                            if (!_hasInitialScrolled) {
-                              _hasInitialScrolled = true;
-                              if (_nextOnly) {
-                                _scrollToKey(_nextKey);
-                              } else if (_semester != null) {
-                                _scrollToKey(_keyForSemester(_semester!));
-                              }
-                            }
-                            return SingleChildScrollView(
-                              controller: _chipScrollController,
-                              scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.fromLTRB(
-                                hPadding,
-                                6,
-                                hPadding,
-                                2,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (progress.nextSemester != null) ...[
-                                    _SemesterChip(
-                                      key: _nextKey,
-                                      label:
-                                          'Kỳ tới · HK${progress.nextSemester}',
-                                      icon: Icons.flag_rounded,
-                                      palette: const SemesterPalette(
-                                        AppTheme.accentOrange,
-                                        AppTheme.peBadgeBg,
-                                      ),
-                                      selected: _nextOnly,
-                                      onSelected: () {
-                                        setState(() => _nextOnly = true);
-                                        _scrollToKey(_nextKey);
-                                      },
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  _SemesterChip(
-                                    key: _allKey,
-                                    label: 'Tất cả',
-                                    palette: const SemesterPalette(
-                                      AppTheme.primaryDark,
-                                      AppTheme.primaryLight,
-                                    ),
-                                    selected: isAllSelected,
-                                    onSelected: () {
-                                      setState(() {
-                                        _nextOnly = false;
-                                        _semester = null;
-                                      });
-                                      if (_chipScrollController.hasClients) {
-                                        _chipScrollController.animateTo(
-                                          0,
-                                          duration: const Duration(
-                                            milliseconds: 250,
-                                          ),
-                                          curve: Curves.easeOutCubic,
-                                        );
-                                      }
-                                    },
-                                  ),
-                                  for (final semester in semesters) ...[
-                                    const SizedBox(width: 8),
-                                    _SemesterChip(
-                                      key: _keyForSemester(semester),
-                                      label: 'HK $semester',
-                                      palette: SemesterPalette.of(semester),
-                                      dot: true,
-                                      selected:
-                                          !_nextOnly && _semester == semester,
-                                      onSelected: () {
-                                        setState(() {
-                                          _nextOnly = false;
-                                          _semester = semester;
-                                        });
-                                        _scrollToKey(_keyForSemester(semester));
-                                      },
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      if (visible.isEmpty)
-                        SliverFillRemaining(
-                          hasScrollBody: false,
-                          child: Center(
-                            child: Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const IconTile(
-                                    icon: Icons.search_off_rounded,
-                                    color: AppTheme.slate600,
-                                    size: 56,
-                                  ),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    _nextOnly
-                                        ? 'Không có môn ở kỳ kế tiếp trong chương trình hiện tại.'
-                                        : 'Không tìm thấy môn học.',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      else
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                          sliver: SliverList.builder(
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final item = items[index];
-                              if (item is _SemesterGroup) {
-                                return _SemesterHeader(group: item);
-                              }
-                              final course = item as Course;
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: _CourseTile(
-                                  course: course,
-                                  progress: progress.status(course),
-                                  hasTranscript: transcript.hasTranscript,
-                                  onTap: () => _openCourse(course.code),
+                        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                        slivers: [
+                          if (!_nextOnly)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                child: _buildProgressHero(
+                                  context: context,
+                                  progress: progress,
+                                  transcript: transcript,
+                                  selectedSemester: _semester,
+                                  totalCredits: totalCredits,
+                                  totalCourses: catalog.courses.length,
+                                  semestersCount: semesters.length,
                                 ),
-                              );
-                            },
+                              ),
+                            ),
+                          SliverToBoxAdapter(
+                            child: Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                              child: TextField(
+                                decoration: const InputDecoration(
+                                  labelText: 'Tìm môn học',
+                                  prefixIcon: Icon(Icons.search_rounded),
+                                  hintText: 'Tìm theo mã hoặc tên môn...',
+                                ),
+                                onChanged: (value) => setState(() => _query = value),
+                              ),
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
+                          SliverToBoxAdapter(
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                final screenWidth = constraints.maxWidth;
+                                final centerPadding = math.max(16.0, (screenWidth - 84) / 2);
+                                final isAllSelected = !_nextOnly && _semester == null;
+                                final hPadding = isAllSelected ? 16.0 : centerPadding;
+                                if (!_hasInitialScrolled) {
+                                  _hasInitialScrolled = true;
+                                  if (_nextOnly) {
+                                    _scrollToKey(_nextKey);
+                                  } else if (_semester != null) {
+                                    _scrollToKey(_keyForSemester(_semester!));
+                                  }
+                                }
+                                return SingleChildScrollView(
+                                  controller: _chipScrollController,
+                                  scrollDirection: Axis.horizontal,
+                                  padding: EdgeInsets.fromLTRB(hPadding, 6, hPadding, 6),
+                                  child: Row(
+                                    children: [
+                                      if (progress.nextSemester != null) ...[
+                                        _SemesterChip(
+                                          key: _nextKey,
+                                          label: 'Kỳ tới (HK${progress.nextSemester})',
+                                          selected: _nextOnly,
+                                          isNext: true,
+                                          palette: SemesterPalette.of(progress.nextSemester!),
+                                          onSelected: () {
+                                            setState(() {
+                                              _nextOnly = true;
+                                              _semester = null;
+                                            });
+                                            _scrollToKey(_nextKey);
+                                          },
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      _SemesterChip(
+                                        key: _allKey,
+                                        label: 'Tất cả (${catalog.courses.length})',
+                                        selected: !_nextOnly && _semester == null,
+                                        palette: const SemesterPalette(
+                                          AppTheme.primaryBlue,
+                                          Color(0xFFF1F5F9),
+                                        ),
+                                        onSelected: () {
+                                          setState(() {
+                                            _nextOnly = false;
+                                            _semester = null;
+                                          });
+                                          _scrollToKey(_allKey);
+                                        },
+                                      ),
+                                      for (final sem in semesters) ...[
+                                        const SizedBox(width: 8),
+                                        _SemesterChip(
+                                          key: _keyForSemester(sem),
+                                          label: 'HK$sem',
+                                          selected: !_nextOnly && _semester == sem,
+                                          palette: SemesterPalette.of(sem),
+                                          isNext: sem == progress.nextSemester,
+                                          onSelected: () {
+                                            setState(() {
+                                              _nextOnly = false;
+                                              _semester = sem;
+                                            });
+                                            _scrollToKey(_keyForSemester(sem));
+                                          },
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          if (visible.isEmpty)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+                                child: EmptyState(
+                                  icon: Icons.search_off_rounded,
+                                  title: 'Không tìm thấy môn học',
+                                  description: _nextOnly
+                                      ? 'Không có môn học ở kỳ kế tiếp trong chương trình.'
+                                      : 'Không tìm thấy môn học nào khớp với từ khóa "$_query".',
+                                ),
+                              ),
+                            )
+                          else
+                            SliverPadding(
+                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
+                              sliver: SliverList.builder(
+                                itemCount: items.length,
+                                itemBuilder: (context, index) {
+                                  final item = items[index];
+                                  if (item is _SemesterGroup) {
+                                    return _SemesterHeader(group: item);
+                                  }
+                                  final course = item as Course;
+                                  return Padding(
+                                    padding: const EdgeInsets.only(bottom: 10),
+                                    child: _CourseTile(
+                                      course: course,
+                                      progress: progress.status(course),
+                                      hasTranscript: transcript.hasTranscript,
+                                      onTap: () => _openCourse(course.code),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
             ),
           ),
         ],
       ),
     );
   }
-}
 
-class _ProgressHero extends StatelessWidget {
-  const _ProgressHero({
-    required this.progress,
-    required this.hasTranscript,
-    this.selectedSemester,
-  });
-  final LearningProgress progress;
-  final bool hasTranscript;
-  final int? selectedSemester;
+  Widget _buildProgressHero({
+    required BuildContext context,
+    required LearningProgress progress,
+    required TranscriptProvider transcript,
+    required int? selectedSemester,
+    required int totalCredits,
+    required int totalCourses,
+    required int semestersCount,
+  }) {
+    final customColors = context.customColors;
+    final hasTranscript = transcript.hasTranscript;
 
-  @override
-  Widget build(BuildContext context) {
+    if (!hasTranscript) {
+      return SummaryCard(
+        title: 'Chương trình đào tạo',
+        subtitle: 'Khung đào tạo chuẩn theo từng học kỳ',
+        badge: StatusChip.neutral(label: 'Chưa có bảng điểm'),
+        metrics: [
+          SummaryMetric(
+            label: 'Tổng số môn',
+            value: '$totalCourses môn',
+            icon: Icons.book_outlined,
+          ),
+          SummaryMetric(
+            label: 'Tổng tín chỉ',
+            value: '$totalCredits TC',
+            icon: Icons.workspace_premium_outlined,
+          ),
+          SummaryMetric(
+            label: 'Số học kỳ',
+            value: '$semestersCount kỳ',
+            icon: Icons.schedule_rounded,
+          ),
+        ],
+      );
+    }
+
     final percent = (progress.completionRatio * 100).round();
     final isSpecificSemester = selectedSemester != null;
     final headerTitle = isSpecificSemester
-        ? 'Tiến độ chương trình · HK$selectedSemester'
-        : 'Tiến độ chương trình';
+        ? 'Tiến độ · Học kỳ $selectedSemester'
+        : 'Tiến độ toàn khóa';
 
-    return HeroPanel(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.route_rounded, size: 20),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  headerTitle,
-                  style: const TextStyle(
-                    color: Color(0xFFE3F2FD),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (hasTranscript)
-                Text(
-                  '$percent%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Text(
-            hasTranscript
-                ? '${progress.completedCount}/${progress.totalCount} môn hoàn thành'
-                : '${progress.totalCount} môn trong chương trình',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(99),
-            child: LinearProgressIndicator(
-              value: hasTranscript ? progress.completionRatio : 0,
-              minHeight: 8,
-              color: Colors.white,
-              backgroundColor: Colors.white.withValues(alpha: 0.25),
-              semanticsLabel: 'Tiến độ theo bảng điểm đã nhập',
-              semanticsValue: '$percent%',
-            ),
-          ),
-          const SizedBox(height: 14),
-          if (hasTranscript)
-            Row(
-              children: [
-                Expanded(
-                  child: HeroStat(
-                    value: '${progress.ongoingCount}',
-                    label: 'Đang học',
-                  ),
-                ),
-                Expanded(
-                  child: HeroStat(
-                    value: '${progress.remainingCount}',
-                    label: 'Còn lại',
-                  ),
-                ),
-                Expanded(
-                  child: HeroStat(
-                    value: '${progress.failedCodes.length}',
-                    label: 'Cần học lại',
-                  ),
-                ),
-              ],
-            )
-          else
-            const Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.info_outline_rounded, size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Chưa có bảng điểm: điều kiện học dưới đây chỉ là thông tin chương trình, chưa xác nhận bạn đủ điều kiện.',
-                    style: TextStyle(
-                      color: Color(0xFFE3F2FD),
-                      fontSize: 13,
-                      height: 1.4,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
+    return SummaryCard(
+      title: headerTitle,
+      subtitle: '${progress.completedCount}/$totalCourses môn đã hoàn thành',
+      badge: StatusChip.success(label: '$percent% hoàn thành'),
+      metrics: [
+        SummaryMetric(
+          label: 'Đã hoàn thành',
+          value: '${progress.completedCount} môn',
+          icon: Icons.check_circle_outlined,
+          color: customColors.success,
+        ),
+        SummaryMetric(
+          label: 'Tín chỉ đạt',
+          value: '${transcript.evaluation.totalAccumulatedCredits} TC',
+          icon: Icons.workspace_premium_outlined,
+          color: Theme.of(context).colorScheme.primary,
+        ),
+        SummaryMetric(
+          label: 'Môn còn lại',
+          value: '${totalCourses - progress.completedCount} môn',
+          icon: Icons.pending_actions_rounded,
+          color: AppTheme.accentOrange,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingSkeleton(BuildContext context) {
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: const [
+        SkeletonCard(height: 120),
+        SizedBox(height: 14),
+        SkeletonLine(width: double.infinity, height: 48),
+        SizedBox(height: 14),
+        Row(
+          children: [
+            SkeletonLine(width: 80, height: 32),
+            SizedBox(width: 8),
+            SkeletonLine(width: 80, height: 32),
+            SizedBox(width: 8),
+            SkeletonLine(width: 80, height: 32),
+          ],
+        ),
+        SizedBox(height: 20),
+        SkeletonCard(height: 90),
+        SizedBox(height: 10),
+        SkeletonCard(height: 90),
+      ],
     );
   }
 }
@@ -543,26 +473,22 @@ class _SemesterChip extends StatelessWidget {
   const _SemesterChip({
     super.key,
     required this.label,
-    required this.palette,
     required this.selected,
+    required this.palette,
     required this.onSelected,
-    this.icon,
-    this.dot = false,
+    this.isNext = false,
   });
+
   final String label;
-  final SemesterPalette palette;
   final bool selected;
+  final SemesterPalette palette;
   final VoidCallback onSelected;
-  final IconData? icon;
-  final bool dot;
+  final bool isNext;
 
   @override
-  Widget build(BuildContext context) => ChoiceChip(
-    materialTapTargetSize: MaterialTapTargetSize.padded,
+  Widget build(BuildContext context) => FilterChip(
     showCheckmark: false,
-    avatar: icon != null
-        ? Icon(icon, size: 16, color: selected ? Colors.white : palette.fg)
-        : dot
+    avatar: isNext
         ? Container(
             width: 8,
             height: 8,
@@ -576,17 +502,16 @@ class _SemesterChip extends StatelessWidget {
     labelStyle: TextStyle(
       fontWeight: FontWeight.w700,
       fontSize: 13,
-      color: selected ? Colors.white : AppTheme.slate700,
+      color: selected ? Colors.white : Theme.of(context).colorScheme.onSurface,
     ),
     selected: selected,
     selectedColor: palette.fg,
-    backgroundColor: Colors.white,
+    backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
     side: BorderSide(
-      color: selected ? palette.fg : const Color(0xFFE2E8F0),
+      color: selected ? palette.fg : Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.6),
       width: selected ? 1.5 : 1.0,
     ),
     elevation: selected ? 1.0 : 0.0,
-    shadowColor: palette.fg.withValues(alpha: 0.3),
     shape: const StadiumBorder(),
     onSelected: (_) => onSelected(),
   );
@@ -616,10 +541,11 @@ class _SemesterHeader extends StatelessWidget {
     final palette = SemesterPalette.of(group.semester);
     final ratio = group.courses == 0 ? 0.0 : group.completed / group.courses;
     final curriculumId = context.read<CourseCatalog>().curriculum?.id ?? '';
+
     return Semantics(
       header: true,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 8, 0, 6),
+        padding: const EdgeInsets.fromLTRB(0, 12, 0, 8),
         child: Row(
           children: [
             Container(
@@ -649,11 +575,10 @@ class _SemesterHeader extends StatelessWidget {
                       Flexible(
                         child: Text(
                           'Học kỳ ${group.semester}',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                fontSize: 15.5,
-                                fontWeight: FontWeight.w800,
-                              ),
+                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontSize: 15.5,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -661,8 +586,7 @@ class _SemesterHeader extends StatelessWidget {
                         child: Text(
                           '${group.courses} môn · ${group.credits} TC · ${group.completed}/${group.courses}',
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(fontSize: 12.5),
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 12.5),
                         ),
                       ),
                       if (group.isNext) ...[
@@ -714,6 +638,7 @@ class _CourseTile extends StatelessWidget {
     required this.hasTranscript,
     required this.onTap,
   });
+
   final Course course;
   final CourseProgress progress;
   final bool hasTranscript;
@@ -722,118 +647,134 @@ class _CourseTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = SemesterPalette.of(course.semester);
-    final style = ReadinessStyle.of(progress.readiness, known: hasTranscript);
     final prerequisites = course.prerequisitesNorm.isNotEmpty
         ? course.prerequisitesNorm
         : course.prerequisites;
-    final status = switch (progress.readiness) {
-      CourseReadiness.completed =>
-        'Đã hoàn thành · ${progress.score?.toStringAsFixed(1) ?? 'chưa có điểm'}',
-      CourseReadiness.inProgress => 'Đang học',
-      _ when !hasTranscript => 'Chưa xác nhận điều kiện: cần nhập bảng điểm',
-      CourseReadiness.ready => 'Đủ tiên quyết theo dữ liệu đã nhập',
-      CourseReadiness.blocked =>
-        'Còn thiếu: ${progress.missingPrerequisites.join(', ')}',
-      CourseReadiness.unverified =>
-        'Cần xác minh mã tiên quyết: ${progress.unverifiedPrerequisites.join(', ')}',
-    };
     final name = course.nameVi.isNotEmpty ? course.nameVi : course.name;
+
+    // Resolve multimodal StatusChip ONLY when transcript is present
+    Widget? statusChipWidget;
+    if (hasTranscript) {
+      statusChipWidget = switch (progress.readiness) {
+        CourseReadiness.completed => StatusChip.passed(
+            label: progress.score != null
+                ? 'Đã đạt · ${progress.score!.toStringAsFixed(1)}'
+                : 'Đã hoàn thành',
+          ),
+        CourseReadiness.inProgress => StatusChip.info(
+            label: 'Đang học',
+          ),
+        CourseReadiness.ready => StatusChip.eligible(
+            label: 'Có thể học',
+          ),
+        CourseReadiness.blocked => StatusChip.locked(
+            label: 'Thiếu: ${progress.missingPrerequisites.join(', ')}',
+          ),
+        CourseReadiness.unverified => StatusChip.warning(
+            label: 'Cần xác minh: ${progress.unverifiedPrerequisites.join(', ')}',
+          ),
+      };
+    }
+
     return Card(
       clipBehavior: Clip.antiAlias,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
       child: Stack(
         children: [
           ListTile(
-                onTap: onTap,
-                contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 10),
-                leading: IconTile(
-                  icon: courseIcon(course.code),
-                  color: palette.fg,
-                  background: palette.bg,
-                ),
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${course.code} · ${course.credits} tín chỉ',
-                      style: TextStyle(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.2,
-                        color: palette.fg,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      name,
-                      style: const TextStyle(
-                        fontSize: 15.5,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.slate900,
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
-                subtitle: Padding(
-                  padding: const EdgeInsets.only(top: 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (prerequisites.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 6),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.link_rounded,
-                                size: 15,
-                                color: AppTheme.slate600,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  'Tiên quyết: ${prerequisites.join(', ')}',
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: AppTheme.slate600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: [
-                          StatusPill(
-                            label: status,
-                            icon: style.icon,
-                            color: style.fg,
-                            background: style.bg,
-                          ),
-                          if (course.hasPe)
-                            const StatusPill(
-                              label: 'Có PE',
-                              icon: Icons.computer_rounded,
-                              color: AppTheme.peBadgeText,
-                              background: AppTheme.peBadgeBg,
-                            ),
-                          if (!course.countsInGpa)
-                            const StatusPill(
-                              label: 'Không tính GPA',
-                              color: AppTheme.nonGpaBadgeText,
-                              background: AppTheme.nonGpaBadgeBg,
-                            ),
-                        ],
-                      ),
-                    ],
+            onTap: onTap,
+            contentPadding: const EdgeInsets.fromLTRB(16, 8, 8, 10),
+            leading: IconTile(
+              icon: courseIcon(course.code),
+              color: palette.fg,
+              background: palette.bg,
+            ),
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${course.code} · ${course.credits} tín chỉ',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.2,
+                    color: palette.fg,
                   ),
                 ),
-                trailing: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: AppTheme.slate600,
+                const SizedBox(height: 2),
+                Text(
+                  name,
+                  style: TextStyle(
+                    fontSize: 15.5,
+                    fontWeight: FontWeight.w700,
+                    color: Theme.of(context).colorScheme.onSurface,
+                    height: 1.3,
+                  ),
                 ),
+              ],
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (prerequisites.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.link_rounded,
+                            size: 15,
+                            color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'Tiên quyết: ${prerequisites.join(', ')}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  Wrap(
+                    spacing: 6,
+                    runSpacing: 6,
+                    children: [
+                      // Multimodal status chip: ONLY shown when transcript is present!
+                      ?statusChipWidget,
+                      if (course.hasPe)
+                        const StatusPill(
+                          label: 'Có PE',
+                          icon: Icons.computer_rounded,
+                          color: AppTheme.peBadgeText,
+                          background: AppTheme.peBadgeBg,
+                        ),
+                      if (!course.countsInGpa)
+                        const StatusPill(
+                          label: 'Không tính GPA',
+                          color: AppTheme.nonGpaBadgeText,
+                          background: AppTheme.nonGpaBadgeBg,
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            trailing: Icon(
+              Icons.chevron_right_rounded,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
           Positioned(
             left: 0,

@@ -110,6 +110,37 @@ void main() {
       await _captureComponent(tester, name: 'summary_card', widget: card, isDark: false, textScale: 1.3);
       await _captureComponent(tester, name: 'summary_card', widget: card, isDark: true, textScale: 1.3);
     });
+
+    testWidgets('CTA is optional and metrics do not overflow at 360px and text scale 1.3', (tester) async {
+      const cardNoCta = SummaryCard(
+        title: 'Học kỳ 1 (Đã hoàn thành)',
+        subtitle: 'Khóa 19 · Ngành SE',
+        metrics: [
+          SummaryMetric(label: 'Điểm TB', value: '8.4', icon: Icons.grade_outlined),
+          SummaryMetric(label: 'Tín chỉ tích lũy', value: '18/18', icon: Icons.stars_outlined),
+          SummaryMetric(label: 'Xếp loại', value: 'Giỏi', icon: Icons.military_tech_outlined),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme(),
+          home: MediaQuery(
+            data: const MediaQueryData(
+              size: Size(360, 640),
+              textScaler: TextScaler.linear(1.3),
+            ),
+            child: const Scaffold(body: cardNoCta),
+          ),
+        ),
+      );
+
+      expect(find.byType(FilledButton), findsNothing);
+      expect(find.text('Học kỳ 1 (Đã hoàn thành)'), findsOneWidget);
+      expect(find.text('8.4'), findsOneWidget);
+      expect(find.text('18/18'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 
   group('2. StatusChip Tests & Goldens (Multimodal: Icon + Text)', () {
@@ -157,6 +188,35 @@ void main() {
       await _captureComponent(tester, name: 'status_chip', widget: chipGroup, isDark: true, textScale: 1.0);
       await _captureComponent(tester, name: 'status_chip', widget: chipGroup, isDark: false, textScale: 1.3);
       await _captureComponent(tester, name: 'status_chip', widget: chipGroup, isDark: true, textScale: 1.3);
+    });
+
+    testWidgets('supports custom labels and icons outside default variants', (tester) async {
+      final customChips = Wrap(
+        spacing: 8,
+        children: [
+          StatusChip.eligible(),
+          StatusChip.locked(),
+          StatusChip.passed(),
+          const StatusChip(
+            label: 'Đang mở đăng ký',
+            icon: Icons.event_available_rounded,
+            type: StatusType.info,
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme(),
+          home: Scaffold(body: customChips),
+        ),
+      );
+
+      expect(find.text('Có thể học'), findsOneWidget);
+      expect(find.text('Chưa đủ tiên quyết'), findsOneWidget);
+      expect(find.text('Đã qua'), findsOneWidget);
+      expect(find.text('Đang mở đăng ký'), findsOneWidget);
+      expect(find.byIcon(Icons.event_available_rounded), findsOneWidget);
     });
   });
 
@@ -389,6 +449,28 @@ void main() {
       await _captureComponent(tester, name: 'ask_ai_button', widget: Center(child: visibleButton), isDark: false, textScale: 1.3);
       await _captureComponent(tester, name: 'ask_ai_button', widget: Center(child: visibleButton), isDark: true, textScale: 1.3);
     });
+
+    testWidgets('AskAiButton collapses to compact icon + tooltip when screen is narrow', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme(),
+          home: MediaQuery(
+            data: const MediaQueryData(size: Size(360, 640)),
+            child: Scaffold(
+              appBar: AppBar(
+                actions: [
+                  AskAiButton(onPressed: () {}),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // In compact mode, IconButton.filledTonal is used (no text label displayed to save app bar space)
+      expect(find.byType(IconButton), findsOneWidget);
+      expect(find.byTooltip('Hỏi trợ lý AI FLM'), findsOneWidget);
+    });
   });
 
   group('8. Skeleton Tests & Goldens', () {
@@ -420,6 +502,29 @@ void main() {
       await _captureComponent(tester, name: 'skeleton', widget: skeletonDemo, isDark: true, textScale: 1.0);
       await _captureComponent(tester, name: 'skeleton', widget: skeletonDemo, isDark: false, textScale: 1.3);
       await _captureComponent(tester, name: 'skeleton', widget: skeletonDemo, isDark: true, textScale: 1.3);
+    });
+
+    testWidgets('Skeleton respects MediaQuery.disableAnimations', (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.lightTheme(),
+          home: const MediaQuery(
+            data: MediaQueryData(disableAnimations: true),
+            child: Scaffold(
+              body: SkeletonBox(width: 100, height: 20),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.byType(SkeletonBox), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(SkeletonBox),
+          matching: find.byType(AnimatedBuilder),
+        ),
+        findsNothing,
+      );
     });
   });
 }

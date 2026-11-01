@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -16,9 +17,24 @@ import 'app/firebase_entry.dart';
 import 'services/grade_import_service.dart';
 import 'services/transcript_image_picker.dart';
 import 'state/transcript_import_view_model.dart';
+import 'widgets/config_error_screen.dart';
+
+String? validateReleaseConfig() {
+  const configured = String.fromEnvironment('FLM_API_BASE_URL');
+  if (kReleaseMode && configured.isEmpty) {
+    return 'Thiếu biến môi trường: FLM_API_BASE_URL\n'
+        'Lệnh biên dịch: flutter build ... --dart-define=FLM_API_BASE_URL=https://<api-host>';
+  }
+  return null;
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  final configError = validateReleaseConfig();
+  if (configError != null) {
+    runApp(ConfigErrorApp(message: configError, onRetry: () => main()));
+    return;
+  }
   await GradeCalculator.loadRules();
   runApp(const FirebaseEntry());
 }

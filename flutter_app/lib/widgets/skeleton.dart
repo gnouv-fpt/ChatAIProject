@@ -40,6 +40,17 @@ class _SkeletonBoxState extends State<SkeletonBox>
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final disableAnimations = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (disableAnimations && _controller.isAnimating) {
+      _controller.stop();
+    } else if (!disableAnimations && !_controller.isAnimating) {
+      _controller.repeat(reverse: true);
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -48,6 +59,24 @@ class _SkeletonBoxState extends State<SkeletonBox>
   @override
   Widget build(BuildContext context) {
     final baseColor = Theme.of(context).colorScheme.surfaceContainerHighest;
+    final disableAnimations = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+
+    if (disableAnimations) {
+      return Semantics(
+        label: 'Đang tải...',
+        child: Container(
+          width: widget.width,
+          height: widget.height,
+          decoration: BoxDecoration(
+            color: baseColor.withValues(alpha: 0.5),
+            shape: widget.shape,
+            borderRadius: widget.shape == BoxShape.circle
+                ? null
+                : (widget.borderRadius ?? BorderRadius.circular(AppTheme.radiusSm)),
+          ),
+        ),
+      );
+    }
 
     return Semantics(
       label: 'Đang tải...',

@@ -49,6 +49,16 @@ flutter build web --release --dart-define=FLM_API_BASE_URL=https://api.yourdomai
 flutter build windows --release --dart-define=FLM_API_BASE_URL=https://api.yourdomain.com
 ```
 
+### 3. Kiểm tra Build Web Release (Có và Không có `--dart-define`):
+Ứng dụng được thiết kế để bắt lỗi cấu hình ngay lúc khởi động (`validateReleaseConfig` trong `lib/main.dart`):
+- **Trường hợp thiếu `--dart-define`**: Ứng dụng không bao giờ bị màn hình trắng/xám hoặc crash âm thầm; thay vào đó sẽ hiển thị màn hình thông báo trực quan [`ConfigErrorScreen`](lib/widgets/config_error_screen.dart) hướng dẫn cờ cần thiết.
+- **Trường hợp có `--dart-define`**: Ứng dụng khởi động bình thường vào production.
+
+Chạy script kiểm tra tự động cả 2 kịch bản:
+```powershell
+.\scripts\check_release_build.ps1
+```
+
 ## Kiểm tra
 
 ```powershell

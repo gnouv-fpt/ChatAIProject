@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../widgets/ask_ai_button.dart';
 import 'contextual_chat_panel.dart';
 
 class ContextualChatLauncher extends StatelessWidget {
@@ -53,19 +54,14 @@ class ContextualChatLauncher extends StatelessWidget {
             );
           };
     if (showLabel) {
-      return Tooltip(
-        message: 'Hỏi Trợ lý về $title',
-        child: TextButton.icon(
-          onPressed: open,
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: const Text('Hỏi trợ lý'),
-        ),
+      return AskAiButton(
+        onPressed: open,
+        tooltip: 'Hỏi Trợ lý về $title',
       );
     }
-    return IconButton(
-      tooltip: 'Hỏi Trợ lý về $title',
-      icon: const Icon(Icons.auto_awesome_outlined),
+    return AskAiButton(
       onPressed: open,
+      tooltip: 'Hỏi Trợ lý về $title',
     );
   }
 }
