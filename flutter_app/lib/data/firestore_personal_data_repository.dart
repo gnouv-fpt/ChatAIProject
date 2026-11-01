@@ -39,7 +39,8 @@ class FirestorePersonalDataRepository implements PersonalDataRepository {
       entries: rows.docs
           .map((doc) => TranscriptEntry.fromJson(doc.data()))
           .toList(),
-      targetGpa: explicitTargetGpa ?? 0.0,
+      targetGpa: explicitTargetGpa ?? 8.0,
+      hasExplicitTargetGpa: explicitTargetGpa != null,
     );
   }
 

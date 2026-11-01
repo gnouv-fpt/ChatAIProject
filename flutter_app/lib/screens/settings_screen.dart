@@ -162,9 +162,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
       } catch (_) {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Không thể xóa bảng điểm. Vui lòng thử lại.'),
+          SnackBar(
+            content: Text(
+              usesCloud
+                  ? 'Không thể xóa bảng điểm trên đám mây. Dữ liệu chưa bị xóa. Vui lòng kiểm tra mạng và thử lại.'
+                  : 'Không thể xóa bảng điểm trên thiết bị. Vui lòng thử lại.',
+            ),
             behavior: SnackBarBehavior.floating,
+            backgroundColor: Theme.of(context).colorScheme.error,
           ),
         );
       }
