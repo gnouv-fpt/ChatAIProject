@@ -19,13 +19,18 @@ class MockImagePicker implements TranscriptImagePicker {
 }
 
 class TestAuthService implements AuthService {
-  TestAuthService({this.userName = 'Nguyễn Đăng Khôi', this.signedIn = true});
+  TestAuthService({
+    this.userName = 'Nguyễn Đăng Khôi',
+    this.userEmail = 'khoind@fpt.edu.vn',
+    this.signedIn = true,
+  });
   final String userName;
+  final String userEmail;
   final bool signedIn;
 
   @override
   Stream<AuthAccount?> get changes => Stream.value(
-        signedIn ? AuthAccount(uid: 'khoind', name: userName) : null,
+        signedIn ? AuthAccount(uid: 'khoind', name: userName, email: userEmail) : null,
       );
 
   @override

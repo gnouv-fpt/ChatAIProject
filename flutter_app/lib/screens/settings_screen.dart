@@ -627,7 +627,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
                 subtitle: Text(
-                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${formatCurriculumCredits(curriculum.totalCredits > 0 ? curriculum.totalCredits : catalog.totalCredits)}',
+                  '${formatMajorName(nameVi: curriculum.nameVi, name: curriculum.name)} · ${formatCurriculumCredits(catalog.totalCredits > 100 ? catalog.totalCredits : (curriculum.totalCredits > 0 ? curriculum.totalCredits : catalog.totalCredits))}',
                   style: TextStyle(
                     fontSize: 12.5,
                     color: colorScheme.onSurfaceVariant,

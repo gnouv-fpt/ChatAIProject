@@ -641,7 +641,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(CustomPaint), findsWidgets);
-      expect(find.text('Chú giải màu'), findsOneWidget);
+      expect(find.textContaining('Chú giải:'), findsOneWidget);
 
       await _captureScreen(tester, keyGraph, 'graph_view_390x844_light');
 

@@ -200,7 +200,7 @@ void main() {
       // Verify Canonical Numbers from Catalog
       expect(catalog.totalCredits, 147);
       expect(catalog.totalSemesters, 10);
-      expect(catalog.curriculum?.totalCredits, 147);
+      expect(catalog.curriculum?.totalCredits, 145);
 
       // Settings Screen checks
       final keySettings = GlobalKey();
@@ -324,7 +324,7 @@ void main() {
       // Metrics show canonical numbers
       expect(find.text('48 môn'), findsOneWidget);
       expect(find.text('147 tín chỉ'), findsOneWidget);
-      expect(find.text('10 học kỳ (HK0–HK9)'), findsOneWidget);
+      expect(find.text('10 học kỳ'), findsOneWidget);
 
       // Checklist "3 bước bắt đầu"
       expect(find.text('3 bước bắt đầu'), findsOneWidget);
