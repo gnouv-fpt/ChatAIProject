@@ -102,12 +102,13 @@ void main() {
     await tester.pump();
 
     final askSemester = find.byTooltip('Hỏi Trợ lý về học kỳ 1');
-    await tester.ensureVisible(askSemester);
+    await tester.scrollUntilVisible(askSemester, 100, scrollable: find.byType(Scrollable).first);
     await tester.tap(askSemester);
     await tester.pumpAndSettle();
-    expect(find.text('học kỳ 1', findRichText: true), findsWidgets);
+    expect(find.textContaining('Học kỳ 1', findRichText: true), findsWidgets);
 
     await tester.enterText(find.byType(TextField).last, 'Tôi nên chuẩn bị gì?');
+    await tester.pump();
     await tester.tap(find.byTooltip('Gửi câu hỏi'));
     await tester.pumpAndSettle();
 
@@ -123,7 +124,7 @@ void main() {
     await tester.tap(find.byTooltip('Đóng Trợ lý AI'));
     await tester.pumpAndSettle();
     final askNextSemester = find.byTooltip('Hỏi Trợ lý về học kỳ 2');
-    await tester.ensureVisible(askNextSemester);
+    await tester.scrollUntilVisible(askNextSemester, 100, scrollable: find.byType(Scrollable).first);
     await tester.tap(askNextSemester);
     await tester.pumpAndSettle();
     expect(chat.currentScopeId, 'TEST:semester-2');
@@ -132,6 +133,7 @@ void main() {
       isFalse,
     );
     await tester.enterText(find.byType(TextField).last, 'Kỳ này có gì quan trọng?');
+    await tester.pump();
     await tester.tap(find.byTooltip('Gửi câu hỏi'));
     await tester.pumpAndSettle();
     expect(api.scopeId, 'TEST');

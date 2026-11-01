@@ -431,7 +431,7 @@ class ChatProvider extends ChangeNotifier {
         sender: ChatSender.ai,
         timestamp: _clock(),
         status: MessageStatus.success,
-        sources: ['FLM Knowledge Base'],
+        sources: null,
       ),
     );
   }

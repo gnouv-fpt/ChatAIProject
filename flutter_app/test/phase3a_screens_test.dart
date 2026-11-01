@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:flm_courses/app/app_shell.dart' as flm_app;
 import 'package:flm_courses/features/chat/providers/chat_provider.dart';
 import 'package:flm_courses/models/load_status.dart';
 import 'package:flm_courses/screens/home_screen.dart';
@@ -895,6 +896,52 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
       await _captureScreen(tester, key630, 'roadmap_empty_630x900_light');
+    });
+
+    testWidgets('AskAiButton is hidden on Chat and Settings tabs', (tester) async {
+      SharedPreferences.setMockInitialValues({});
+      final catalog = CourseCatalog();
+      await tester.runAsync(catalog.load);
+      final profile = LearningProfileProvider();
+      await profile.load();
+      final transcript = TranscriptProvider();
+      await transcript.load();
+      final auth = AuthViewModel(TestAuthService());
+      final chat = ChatProvider(apiService: OfflineChatService());
+
+      addTearDown(() {
+        catalog.dispose();
+        profile.dispose();
+        transcript.dispose();
+        auth.dispose();
+        chat.dispose();
+      });
+
+      // Pump AppShell starting on Home tab
+      await tester.pumpWidget(
+        wrapWithTestProviders(
+          child: const flm_app.AppShell(),
+          catalog: catalog,
+          profile: profile,
+          transcript: transcript,
+          auth: auth,
+          chat: chat,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Home tab has AskAiButton
+      expect(find.byType(AskAiButton), findsOneWidget);
+
+      // Navigate to Chat tab (Tab index 2: "Trợ lý")
+      await tester.tap(find.text('Trợ lý'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AskAiButton), findsNothing);
+
+      // Navigate to Settings tab (Tab index 4: "Cài đặt")
+      await tester.tap(find.text('Cài đặt'));
+      await tester.pumpAndSettle();
+      expect(find.byType(AskAiButton), findsNothing);
     });
   });
 }

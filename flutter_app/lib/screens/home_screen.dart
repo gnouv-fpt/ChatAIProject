@@ -53,6 +53,7 @@ class HomeScreen extends StatelessWidget {
             contextKey: 'home',
             title: 'trang chủ',
             contextHint: 'Tổng quan tiến độ học tập và chương trình ${catalog.curriculum?.id ?? ''}',
+            showLabel: true,
             suggestedQuestions: const [
               'Tôi nên học gì tiếp theo?',
               'Tóm tắt tiến độ học tập của tôi.',

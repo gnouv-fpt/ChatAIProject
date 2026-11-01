@@ -2,230 +2,303 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+import '../../../../theme/app_theme.dart';
 import '../../models/chat_message.dart';
 import 'markdown_formatted_text.dart';
 
 class ChatBubble extends StatelessWidget {
   final ChatMessage message;
+  final VoidCallback? onRetry;
 
-  const ChatBubble({super.key, required this.message});
+  const ChatBubble({
+    super.key,
+    required this.message,
+    this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     final isUser = message.sender == ChatSender.user;
     final timeStr = DateFormat('HH:mm').format(message.timestamp);
+    final isError = message.status == MessageStatus.error;
+    final isSending = message.status == MessageStatus.sending;
+    final isOffline = message.status == MessageStatus.offlineFallback;
 
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 12.0),
+      padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
       child: Row(
-        mainAxisAlignment: isUser
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.start,
+        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
             CircleAvatar(
-              radius: 18,
-              backgroundColor: message.status == MessageStatus.offlineFallback
-                  ? Colors.amber.shade700
-                  : const Color(0xFF1E88E5),
+              radius: 16,
+              backgroundColor: isOffline
+                  ? AppTheme.accentOrange.withValues(alpha: 0.15)
+                  : colorScheme.primaryContainer,
               child: Icon(
-                message.status == MessageStatus.offlineFallback
-                    ? Icons.offline_bolt
-                    : Icons.smart_toy,
-                color: Colors.white,
-                size: 20,
+                isOffline ? Icons.offline_bolt_rounded : Icons.smart_toy_rounded,
+                color: isOffline ? AppTheme.accentOrange : colorScheme.primary,
+                size: 18,
               ),
             ),
             const SizedBox(width: 8),
           ],
           Flexible(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 580),
-              decoration: BoxDecoration(
-                color: isUser
-                    ? const Color(0xFF1976D2)
-                    : (message.status == MessageStatus.offlineFallback
-                          ? Colors.amber.shade50
-                          : Colors.white),
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(isUser ? 16 : 4),
-                  bottomRight: Radius.circular(isUser ? 4 : 16),
-                ),
-                border: !isUser
-                    ? Border.all(
-                        color: message.status == MessageStatus.offlineFallback
-                            ? Colors.amber.shade300
-                            : Colors.grey.shade300,
-                      )
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(10),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+            child: SelectionArea(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 580),
+                decoration: BoxDecoration(
+                  color: isUser
+                      ? (isError ? colorScheme.errorContainer : colorScheme.primary)
+                      : (isOffline
+                          ? AppTheme.accentOrange.withValues(alpha: 0.08)
+                          : colorScheme.surfaceContainerLow),
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(18),
+                    topRight: const Radius.circular(18),
+                    bottomLeft: Radius.circular(isUser ? 18 : 4),
+                    bottomRight: Radius.circular(isUser ? 4 : 18),
                   ),
-                ],
-              ),
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Offline Fallback Header Notice
-                  if (message.status == MessageStatus.offlineFallback) ...[
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      margin: const EdgeInsets.only(bottom: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.amber.shade200,
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.wifi_off, size: 14, color: Colors.brown),
-                          SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
+                  border: Border.all(
+                    color: isError
+                        ? colorScheme.error
+                        : isUser
+                            ? Colors.transparent
+                            : isOffline
+                                ? AppTheme.accentOrange.withValues(alpha: 0.3)
+                                : colorScheme.outlineVariant.withValues(alpha: 0.6),
+                    width: 1,
+                  ),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Offline Fallback Header Notice (AI message only)
+                    if (isOffline) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.accentOrange.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.offline_bolt_rounded, size: 14, color: AppTheme.accentOrange),
+                            const SizedBox(width: 6),
+                            Text(
                               'Phản hồi ngoại tuyến',
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.brown,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.onSurface,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+
+                    // Message Content Body
+                    if (!isUser && isSending)
+                      Semantics(
+                        liveRegion: true,
+                        label: 'Trợ lý đang trả lời...',
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 14,
+                              height: 14,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Flexible(
+                              child: Text(
+                                'Trợ lý đang trả lời…',
+                                style: TextStyle(
+                                  fontStyle: FontStyle.italic,
+                                  color: colorScheme.onSurfaceVariant,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      MarkdownFormattedText(text: message.text, isUser: isUser),
+
+                    // Sources Section (Only if non-empty sources exist and not a simple greeting)
+                    if (message.sources != null &&
+                        message.sources!.isNotEmpty &&
+                        !isSending) ...[
+                      const SizedBox(height: 10),
+                      Divider(height: 12, color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+                      Wrap(
+                        spacing: 6,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            'Nguồn:',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: isUser ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          ...message.sources!.map(
+                            (src) => Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isUser
+                                    ? Colors.white.withValues(alpha: 0.2)
+                                    : colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(
+                                  color: isUser
+                                      ? Colors.white.withValues(alpha: 0.3)
+                                      : colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                ),
+                              ),
+                              child: Text(
+                                src,
+                                style: TextStyle(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: isUser ? colorScheme.onPrimary : colorScheme.primary,
+                                ),
                               ),
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
+                    ],
 
-                  // Message Content Body
-                  if (message.status == MessageStatus.sending)
-                    const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SizedBox(
-                          width: 14,
-                          height: 14,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Color(0xFF1E88E5),
-                          ),
-                        ),
-                        SizedBox(width: 8),
-                        Flexible(
-                          child: Text(
-                            'Đang tra cứu dữ liệu…',
-                            style: TextStyle(
-                              fontStyle: FontStyle.italic,
-                              color: Color(0xFF475569),
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    MarkdownFormattedText(text: message.text, isUser: isUser),
-
-                  // Sources Section (If AI message has sources)
-                  if (message.sources != null &&
-                      message.sources!.isNotEmpty &&
-                      message.status != MessageStatus.sending) ...[
-                    const SizedBox(height: 10),
-                    const Divider(height: 12),
-                    Wrap(
-                      spacing: 6,
-                      runSpacing: 4,
-                      children: [
-                        const Text(
-                          'Nguồn:',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF475569),
-                          ),
-                        ),
-                        ...message.sources!.map(
-                          (src) => Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isUser
-                                  ? Colors.blue.shade800
-                                  : Colors.blue.shade50,
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: isUser
-                                    ? Colors.blue.shade400
-                                    : Colors.blue.shade200,
-                              ),
-                            ),
+                    // Error & Retry row (if sending failed)
+                    if (isError) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.error_outline_rounded, size: 16, color: colorScheme.error),
+                          const SizedBox(width: 6),
+                          Flexible(
                             child: Text(
-                              src,
+                              message.errorMessage ?? 'Gửi không thành công',
                               style: TextStyle(
-                                fontSize: 14,
-                                color: isUser
-                                    ? Colors.white
-                                    : Colors.blue.shade800,
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w600,
+                                color: colorScheme.error,
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
-
-                  // Footer: Timestamp + Copy Button
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        timeStr,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isUser ? Colors.white : Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      IconButton(
-                        tooltip: 'Sao chép tin nhắn',
-                        onPressed: () {
-                          Clipboard.setData(ClipboardData(text: message.text));
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Đã sao chép nội dung tin nhắn!'),
-                              duration: Duration(seconds: 1),
+                          if (onRetry != null) ...[
+                            const SizedBox(width: 8),
+                            TextButton.icon(
+                              onPressed: onRetry,
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                minimumSize: const Size(40, 28),
+                                foregroundColor: colorScheme.error,
+                              ),
+                              icon: const Icon(Icons.refresh_rounded, size: 14),
+                              label: const Text(
+                                'Gửi lại',
+                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700),
+                              ),
                             ),
-                          );
-                        },
-                        icon: Icon(
-                          Icons.copy,
-                          size: 20,
-                          color: isUser ? Colors.white : Colors.grey.shade700,
-                        ),
+                          ],
+                        ],
                       ),
                     ],
-                  ),
-                ],
+
+                    // Footer: Timestamp + Status Icon + Copy Button
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Text(
+                          timeStr,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: isUser
+                                ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (isUser) ...[
+                          const SizedBox(width: 4),
+                          if (isSending)
+                            SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                color: colorScheme.onPrimary.withValues(alpha: 0.8),
+                              ),
+                            )
+                          else if (isError)
+                            Icon(Icons.error_outline_rounded, size: 13, color: colorScheme.error)
+                          else
+                            Icon(
+                              Icons.done_all_rounded,
+                              size: 14,
+                              color: colorScheme.onPrimary.withValues(alpha: 0.85),
+                            ),
+                        ],
+                        const SizedBox(width: 6),
+                        IconButton(
+                          tooltip: 'Sao chép tin nhắn',
+                          visualDensity: VisualDensity.compact,
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          onPressed: () {
+                            Clipboard.setData(ClipboardData(text: message.text));
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đã sao chép nội dung tin nhắn!'),
+                                duration: Duration(seconds: 1),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          },
+                          icon: Icon(
+                            Icons.copy_rounded,
+                            size: 15,
+                            color: isUser
+                                ? colorScheme.onPrimary.withValues(alpha: 0.8)
+                                : colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           if (isUser) ...[
             const SizedBox(width: 8),
-            const CircleAvatar(
-              radius: 18,
-              backgroundColor: Color(0xFF1565C0),
-              child: Icon(Icons.person, color: Colors.white, size: 20),
+            CircleAvatar(
+              radius: 16,
+              backgroundColor: isError ? colorScheme.errorContainer : colorScheme.primary,
+              child: Icon(
+                Icons.person_rounded,
+                color: isError ? colorScheme.error : colorScheme.onPrimary,
+                size: 18,
+              ),
             ),
           ],
         ],

@@ -27,6 +27,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
   int? _semester;
   bool _nextOnly = false;
   String _query = '';
+  bool _dismissedNoTranscriptNotice = false;
   final ScrollController _chipScrollController = ScrollController();
   final Map<int, GlobalKey> _semesterKeys = {};
   final GlobalKey _allKey = GlobalKey();
@@ -111,28 +112,10 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
         return bySemester != 0 ? bySemester : a.code.compareTo(b.code);
       });
 
-    // Flatten into semester headers followed by their courses.
-    final items = <Object>[];
-    int? lastSemester;
+    // Group courses by semester for sticky headers.
+    final semesterGroups = <int, List<Course>>{};
     for (final course in visible) {
-      if (course.semester != lastSemester) {
-        final inSemester = visible.where((c) => c.semester == course.semester).toList();
-        items.add(
-          _SemesterGroup(
-            semester: course.semester,
-            courses: inSemester.length,
-            credits: inSemester.fold(0, (s, c) => s + c.credits),
-            completed: inSemester
-                .where(
-                  (c) => progress.status(c).readiness == CourseReadiness.completed,
-                )
-                .length,
-            isNext: course.semester == progress.nextSemester,
-          ),
-        );
-        lastSemester = course.semester;
-      }
-      items.add(course);
+      semesterGroups.putIfAbsent(course.semester, () => []).add(course);
     }
 
     return Scaffold(
@@ -161,6 +144,7 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                         ? 'Lộ trình học tập trong chương trình ${catalog.curriculum?.id ?? ''}'
                         : 'Học kỳ $_semester trong chương trình ${catalog.curriculum?.id ?? ''}',
             semesterNumber: _showGraph ? null : (_nextOnly ? progress.nextSemester : _semester),
+            showLabel: true,
           ),
         ],
       ),
@@ -222,6 +206,19 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                       child: CustomScrollView(
                         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                         slivers: [
+                          if (!transcript.hasTranscript && !_dismissedNoTranscriptNotice)
+                            SliverToBoxAdapter(
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                                child: InlineBanner(
+                                  message: 'Bạn chưa nhập bảng điểm. Hãy nhập để xem tiến độ và kiểm tra điều kiện tiên quyết.',
+                                  severity: BannerSeverity.info,
+                                  actionLabel: 'Nhập điểm',
+                                  onAction: () => Navigator.pushNamed(context, '/transcript'),
+                                  onDismiss: () => setState(() => _dismissedNoTranscriptNotice = true),
+                                ),
+                              ),
+                            ),
                           if (!_nextOnly)
                             SliverToBoxAdapter(
                               child: Padding(
@@ -341,28 +338,45 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                               ),
                             )
                           else
-                            SliverPadding(
-                              padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
-                              sliver: SliverList.builder(
-                                itemCount: items.length,
-                                itemBuilder: (context, index) {
-                                  final item = items[index];
-                                  if (item is _SemesterGroup) {
-                                    return _SemesterHeader(group: item);
-                                  }
-                                  final course = item as Course;
-                                  return Padding(
-                                    padding: const EdgeInsets.only(bottom: 10),
-                                    child: _CourseTile(
-                                      course: course,
-                                      progress: progress.status(course),
-                                      hasTranscript: transcript.hasTranscript,
-                                      onTap: () => _openCourse(course.code),
+                            for (final entry in semesterGroups.entries)
+                              SliverMainAxisGroup(
+                                slivers: [
+                                  SliverPersistentHeader(
+                                    pinned: true,
+                                    delegate: _SemesterStickyHeaderDelegate(
+                                      group: _SemesterGroup(
+                                        semester: entry.key,
+                                        courses: entry.value.length,
+                                        credits: entry.value.fold(0, (s, c) => s + c.credits),
+                                        completed: entry.value
+                                            .where(
+                                              (c) => progress.status(c).readiness == CourseReadiness.completed,
+                                            )
+                                            .length,
+                                        isNext: entry.key == progress.nextSemester,
+                                      ),
                                     ),
-                                  );
-                                },
+                                  ),
+                                  SliverPadding(
+                                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 12),
+                                    sliver: SliverList.builder(
+                                      itemCount: entry.value.length,
+                                      itemBuilder: (context, idx) {
+                                        final course = entry.value[idx];
+                                        return Padding(
+                                          padding: const EdgeInsets.only(bottom: 10),
+                                          child: _CourseTile(
+                                            course: course,
+                                            progress: progress.status(course),
+                                            hasTranscript: transcript.hasTranscript,
+                                            onTap: () => _openCourse(course.code),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
                         ],
                       ),
                     ),
@@ -418,18 +432,18 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
 
     return SummaryCard(
       title: headerTitle,
-      subtitle: '${progress.completedCount}/$totalCourses môn đã hoàn thành',
+      subtitle: '${progress.completedCount}/$totalCourses môn · ${transcript.evaluation.totalAccumulatedCredits}/$totalCredits tín chỉ',
       badge: StatusChip.success(label: '$percent% hoàn thành'),
       metrics: [
         SummaryMetric(
           label: 'Đã hoàn thành',
-          value: '${progress.completedCount} môn',
+          value: '${progress.completedCount}/$totalCourses môn',
           icon: Icons.check_circle_outlined,
           color: customColors.success,
         ),
         SummaryMetric(
           label: 'Tín chỉ đạt',
-          value: '${transcript.evaluation.totalAccumulatedCredits} TC',
+          value: '${transcript.evaluation.totalAccumulatedCredits}/$totalCredits TC',
           icon: Icons.workspace_premium_outlined,
           color: Theme.of(context).colorScheme.primary,
         ),
@@ -532,6 +546,38 @@ class _SemesterGroup {
   final bool isNext;
 }
 
+class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
+  _SemesterStickyHeaderDelegate({required this.group});
+
+  final _SemesterGroup group;
+
+  @override
+  double get minExtent => 68.0;
+
+  @override
+  double get maxExtent => 68.0;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Material(
+      color: Theme.of(context).colorScheme.surface,
+      elevation: overlapsContent ? 1.5 : 0.0,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+        child: _SemesterHeader(group: group),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _SemesterStickyHeaderDelegate oldDelegate) {
+    return oldDelegate.group.semester != group.semester ||
+        oldDelegate.group.completed != group.completed ||
+        oldDelegate.group.courses != group.courses ||
+        oldDelegate.group.isNext != group.isNext;
+  }
+}
+
 class _SemesterHeader extends StatelessWidget {
   const _SemesterHeader({required this.group});
   final _SemesterGroup group;
@@ -544,10 +590,8 @@ class _SemesterHeader extends StatelessWidget {
 
     return Semantics(
       header: true,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 12, 0, 8),
-        child: Row(
-          children: [
+      child: Row(
+        children: [
             Container(
               width: 34,
               height: 34,
@@ -626,8 +670,7 @@ class _SemesterHeader extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
 
@@ -668,10 +711,36 @@ class _CourseTile extends StatelessWidget {
             label: 'Có thể học',
           ),
         CourseReadiness.blocked => StatusChip.locked(
-            label: 'Thiếu: ${progress.missingPrerequisites.join(', ')}',
+            label: progress.missingPrerequisites.length > 2
+                ? 'Thiếu ${progress.missingPrerequisites.length} môn'
+                : 'Thiếu: ${progress.missingPrerequisites.join(', ')}',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Môn còn thiếu cho ${course.code}: ${progress.missingPrerequisites.join(', ')}',
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
           ),
         CourseReadiness.unverified => StatusChip.warning(
-            label: 'Cần xác minh: ${progress.unverifiedPrerequisites.join(', ')}',
+            label: progress.unverifiedPrerequisites.length > 2
+                ? 'Ngoài CT: ${progress.unverifiedPrerequisites.length} môn'
+                : 'Ngoài CT: ${progress.unverifiedPrerequisites.join(', ')}',
+            onTap: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'Tiên quyết ngoài CTĐT hiện tại: ${progress.unverifiedPrerequisites.join(', ')}',
+                  ),
+                  duration: const Duration(seconds: 4),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
+            },
           ),
       };
     }
