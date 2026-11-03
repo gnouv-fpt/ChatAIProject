@@ -12,6 +12,13 @@ class DataVerificationEngine:
 
     # Knowledge registry of traffic law documents and their status
     LEGAL_REGISTRY: Dict[str, Dict[str, Any]] = {
+        "55/VBHN-VPQH": {
+            "title": "Luật Trật tự, an toàn giao thông đường bộ · VBHN 55/2026",
+            "effective_date": "2026-07-01", "expiration_date": None,
+            "status": "Verified", "is_active": True,
+            "notes": "Đối chiếu bản hợp nhất Chính phủ ngày 23/03/2026 và nguồn TVPL; "
+                     "chỉ kích hoạt phạm vi Điều 1–33 đã duyệt trong Content SQL, gồm sửa đổi Luật 118/2025."
+        },
         "123/2021/ND-CP": {
             "title": "Nghị định 123/2021/NĐ-CP",
             "effective_date": "2022-01-01",
@@ -115,6 +122,12 @@ class DataVerificationEngine:
                 break
 
         if matched_info:
+            # These old, partly amended texts are not a blanket current-law certificate.
+            if norm_number in {"100/2019/ND-CP", "123/2021/ND-CP", "23/2008/QH12", "36/2024/QH15"}:
+                return {"is_valid": False, "status": "Pending",
+                        "notes": "Cần bản hợp nhất và đối chiếu sửa đổi theo từng phạm vi; không kích hoạt toàn văn cũ."}
+            if matched_info.get("effective_date") and datetime.date.fromisoformat(matched_info["effective_date"]) > datetime.date.today():
+                return {"is_valid": False, "status": "Pending", "notes": "Văn bản chưa đến ngày hiệu lực."}
             return {
                 "is_valid": matched_info["is_active"],
                 "status": matched_info["status"],
@@ -147,6 +160,8 @@ class DataVerificationEngine:
         
         # Extra check: if document_number belongs to an outdated decree
         doc_num = self.normalize_doc_number(chunk.get("document_number", ""))
+        if doc_num in {"100/2019/ND-CP", "123/2021/ND-CP", "23/2008/QH12", "36/2024/QH15"}:
+            return False
         for key, info in self.LEGAL_REGISTRY.items():
             if key in doc_num:
                 if not info["is_active"] or info["status"] == "Outdated":

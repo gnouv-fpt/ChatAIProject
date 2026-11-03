@@ -257,6 +257,8 @@ public class ChatbotService : IChatbotService
                 throw new UpstreamTimeoutException("Dịch vụ AI phản hồi quá chậm. Vui lòng thử lại cùng requestId.");
             }
             ValidateResult(result, images.Count > 0);
+            if (result.TokensUsed > turn.ReservedTokens)
+                throw new ServiceUnavailableException("Usage AI vượt quota đã giữ cho lượt hỏi. Vui lòng rút ngắn ngữ cảnh và thử lại.");
             // Remote evidence check stays outside the User DB transaction; snapshots reflect this check.
             var citations = await ValidateCitationsAsync(result.Citations, cancellationToken);
             var completed = await _turns.WithUserLockAsync(userId, async () =>
@@ -336,7 +338,8 @@ public class ChatbotService : IChatbotService
             throw new ServiceUnavailableException("Phản hồi AI không hợp lệ hoặc chưa có căn cứ pháp lý xác thực.");
     }
 
-    private async Task<List<Citation>> ValidateCitationsAsync(List<CitationResultDto> citations, CancellationToken ct)
+    private async Task<List<Citation>> ValidateCitationsAsync(List<CitationResultDto> citations, CancellationToken ct,
+        bool historicalSnapshot = false)
     {
         if (citations.Any(c => !Guid.TryParse(c.ChunkId, out _)))
             throw new ServiceUnavailableException("Trích dẫn AI thiếu mã đoạn văn bản SQL.");
@@ -346,8 +349,9 @@ public class ChatbotService : IChatbotService
         foreach (var citation in citations)
         {
             var chunk = chunks.SingleOrDefault(c => c.Id == Guid.Parse(citation.ChunkId));
+            // Titles can change when a reviewed edition expands; chunk ID, hash, location and source URL bind the evidence.
             if (chunk == null || !IsEligible(chunk) || Hash(chunk.Content) != citation.ContentHash ||
-                chunk.Document.Title != citation.DocumentTitle || chunk.Document.SourceUrl != citation.SourceUrl ||
+                chunk.Document.SourceUrl != citation.SourceUrl ||
                 (chunk.Article ?? "") != citation.ArticleNumber || (chunk.Clause ?? "") != citation.ClauseNumber || (chunk.Point ?? "") != citation.PointNumber ||
                 string.IsNullOrWhiteSpace(citation.Excerpt) || !chunk.Content.Contains(citation.Excerpt, StringComparison.Ordinal))
                 throw new ConflictException("Căn cứ pháp lý đã thay đổi hoặc không khớp. Vui lòng hỏi lại.");
@@ -368,7 +372,7 @@ public class ChatbotService : IChatbotService
             ChunkId = c.DocumentChunkId?.ToString() ?? "", ContentHash = c.ContentHash ?? "",
             DocumentTitle = c.DocumentTitle ?? "", ArticleNumber = c.ArticleNumber ?? "",
             ClauseNumber = c.ClauseNumber ?? "", SourceUrl = c.SourceUrl ?? "", Excerpt = c.Excerpt ?? "", PointNumber = c.PointNumber ?? ""
-        }).ToList(), ct);
+        }).ToList(), ct, historicalSnapshot: true);
     }
 
     public static bool IsEligible(DocumentChunk chunk) => chunk.IsVerified && chunk.Document.IsActive &&

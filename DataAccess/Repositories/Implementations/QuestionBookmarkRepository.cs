@@ -12,6 +12,8 @@ public class QuestionBookmarkRepository : GenericRepository<QuestionBookmark>, I
     {
     }
 
+    public QuestionBookmarkRepository(UserDbContext context) : base(context) { }
+
     public Task<QuestionBookmark?> GetAsync(Guid userId, Guid questionId, CancellationToken cancellationToken = default)
     {
         return DbSet.FirstOrDefaultAsync(b => b.UserId == userId && b.QuestionId == questionId, cancellationToken);
@@ -33,6 +35,7 @@ public class QuestionBookmarkRepository : GenericRepository<QuestionBookmark>, I
         var totalCount = await bookmarks.CountAsync(cancellationToken);
         var items = await bookmarks
             .OrderByDescending(b => b.CreatedAt)
+            .ThenBy(b => b.Id)
             .Skip((pageIndex - 1) * pageSize)
             .Take(pageSize)
             .Select(b => new BookmarkRow(b.QuestionId, b.CreatedAt))

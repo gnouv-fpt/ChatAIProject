@@ -34,6 +34,10 @@ jwtSettings.EnsureValid();
 var authSettings = builder.Configuration.GetSection(AuthSettings.SectionName).Get<AuthSettings>() ?? new AuthSettings();
 builder.Services.AddSingleton(jwtSettings);
 builder.Services.AddSingleton(authSettings);
+builder.Services.AddSingleton(new AnimationSettings {
+    AllowedHosts = builder.Configuration.GetSection("Content:AnimationAllowedHosts").Get<string[]>() ?? [],
+    LocalAssetOrigin = builder.Environment.IsDevelopment() ? builder.Configuration["Content:LocalAssetOrigin"] : null
+});
 
 // ==================== Web API ====================
 builder.Services.AddControllers()
@@ -44,6 +48,7 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddHealthChecks().AddCheck<Presentation.Infrastructure.DatabaseHealthCheck>("sql");
 var chatSettings = builder.Configuration.GetSection("Chat").Get<ChatSettings>() ?? new();
 if (chatSettings.ReservationTokens < 1 || chatSettings.InferenceTimeoutSeconds is < 1 or > 300 ||
+    chatSettings.IndexingTimeoutSeconds is < 1 or > 900 ||
     chatSettings.MaxAttachmentBytes is < 1024 or > 5 * 1024 * 1024 || chatSettings.AttachmentRetentionHours < 1)
     throw new InvalidOperationException("Invalid Chat configuration.");
 builder.Services.AddSingleton(chatSettings);
@@ -54,11 +59,14 @@ if (module == "User")
     builder.Services.AddHostedService<Presentation.Infrastructure.OutboxMetricsService>();
 }
 builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService(module == "User" ? "user-service" : "content-service"))
-    .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter())
+    .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
+        .AddSource(ExamEventTelemetry.Name).AddOtlpExporter())
     .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation()
-        .AddMeter("ChatAIWeb.Chat", "ChatAIWeb.Chat.Outbox").AddPrometheusExporter());
+        .AddMeter("ChatAIWeb.Chat", "ChatAIWeb.Chat.Outbox", ExamEventTelemetry.Name).AddPrometheusExporter());
 builder.Logging.AddProvider(new Presentation.Infrastructure.SafeFileLoggerProvider(
-    builder.Configuration["Logging:FilePath"] ?? "logs/rest-api.jsonl"));
+    builder.Configuration["Logging:FilePath"] ?? "logs/rest-api.jsonl",
+    builder.Configuration.GetValue<long?>("Logging:MaxFileBytes") ?? 10 * 1024 * 1024,
+    builder.Configuration.GetValue<int?>("Logging:RetentionDays") ?? 7));
 
 // ==================== Authentication ====================
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -224,6 +232,7 @@ if (module == "User" && (migrateOnStartup || builder.Configuration.GetValue("Aut
 }
 
 app.UseExceptionHandler();
+app.UseMiddleware<Presentation.Infrastructure.RequestTelemetryMiddleware>();
 app.UseStatusCodePages();
 
 app.UseSwagger();

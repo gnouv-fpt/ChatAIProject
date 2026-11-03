@@ -14,6 +14,14 @@ public sealed class InternalExamQuestionsController(ExamIntegrationService servi
         Ok(await service.GetPoolAsync(categoryId, bankVersion, count, ct));
 }
 
+[ApiController, ServiceModule("Content"), Route("internal/content/exam-template-questions"), Authorize(Policy = "ContentRead")]
+public sealed class InternalExamTemplateQuestionsController(ExamIntegrationService service) : ControllerBase
+{
+    [HttpGet]
+    public async Task<IActionResult> Get(string code, int version, CancellationToken ct) =>
+        Ok(await service.GetTemplateAsync(code, version, ct));
+}
+
 [ApiController, Route("internal/user/exam-results"), Authorize(Policy = "ExamWrite")]
 public sealed class InternalExamResultsController(ExamResultService service) : ControllerBase
 {
@@ -28,6 +36,10 @@ public sealed class InternalExamResultsController(ExamResultService service) : C
 [ApiController, Route("api/exam-attempts"), Authorize]
 public sealed class ExamAttemptsController(ExamResultService service) : ControllerBase
 {
+    [HttpGet("{id:guid}/review")]
+    public async Task<ActionResult<ExamAttemptReview>> Review(Guid id, CancellationToken ct) =>
+        Ok(await service.GetReviewAsync(User.GetUserId(), id, ct));
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken ct) =>
         Ok(await service.GetOwnedAsync(User.GetUserId(), id, ct));

@@ -11,6 +11,7 @@ public sealed class UserDbContext(DbContextOptions<UserDbContext> options) : Tra
     public DbSet<ChatSession> ChatSessions => Set<ChatSession>();
     public DbSet<ChatMessage> ChatMessages => Set<ChatMessage>();
     public DbSet<ExamAttempt> ExamAttempts => Set<ExamAttempt>();
+    public DbSet<QuestionBookmark> QuestionBookmarks => Set<QuestionBookmark>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -67,6 +68,14 @@ public sealed class UserDbContext(DbContextOptions<UserDbContext> options) : Tra
             e.HasIndex(a => new { a.UserId, a.SubmittedAt });
             e.HasOne(a => a.User).WithMany().HasForeignKey(a => a.UserId).OnDelete(DeleteBehavior.Restrict);
             // Id is the stable attempt/idempotency key. ExamCode is a logical reference only.
+        });
+        model.Entity<QuestionBookmark>(e =>
+        {
+            e.ToTable("QuestionBookmarks");
+            e.Ignore(b => b.Question); // Logical Content question ID; never map a cross-database navigation.
+            e.HasIndex(b => new { b.UserId, b.QuestionId }).IsUnique();
+            e.HasIndex(b => new { b.UserId, b.CreatedAt });
+            e.HasOne(b => b.User).WithMany().HasForeignKey(b => b.UserId).OnDelete(DeleteBehavior.Cascade);
         });
     }
 

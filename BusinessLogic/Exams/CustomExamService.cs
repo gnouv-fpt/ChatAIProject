@@ -30,31 +30,55 @@ public sealed class CustomExamService
 
         var bankQuestions = await _questions.GetQuestionsAsync(
             request.CategoryId, request.BankVersion, request.QuestionCount, cancellationToken);
-        if (bankQuestions.Count < request.QuestionCount)
+        return await CreateFromQuestionsAsync(userId, request.BankVersion, request.QuestionCount,
+            request.DurationMinutes, bankQuestions, true, cancellationToken);
+    }
+
+    public async Task<CustomExamView> CreateTemplateAsync(Guid userId, CreateTemplateExam request,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId == Guid.Empty || string.IsNullOrWhiteSpace(request.ExamCode) || request.Version < 1)
+            throw new BadRequestException("Mã hoặc phiên bản đề mẫu không hợp lệ.");
+        var template = await _questions.GetTemplateAsync(request.ExamCode, request.Version, cancellationToken);
+        if (template.Questions is not { Count: > 0 and <= 100 } || template.DurationMinutes is < 1 or > 180 ||
+            template.PassingScore is < 1 || template.PassingScore > template.Questions.Count ||
+            template.Questions.Any(q => q.PassingScore != template.PassingScore))
+            throw new BadRequestException("Đề mẫu trả về dữ liệu không hợp lệ.");
+        return await CreateFromQuestionsAsync(userId, template.BankVersion, template.Questions.Count,
+            template.DurationMinutes, template.Questions, false, cancellationToken,
+            request.ExamCode, request.Version);
+    }
+
+    private async Task<CustomExamView> CreateFromQuestionsAsync(Guid userId, string bankVersion,
+        int questionCount, int durationMinutes, IReadOnlyList<BankQuestion> bankQuestions,
+        bool randomize, CancellationToken cancellationToken, string? templateCode = null, int? templateVersion = null)
+    {
+        if (bankQuestions.Count < questionCount)
             throw new BadRequestException("Ngân hàng không đủ câu hỏi cho đề đã chọn.");
 
         if (bankQuestions.Any(q => string.IsNullOrWhiteSpace(q.Id) || string.IsNullOrWhiteSpace(q.Text) ||
-                q.Version != request.BankVersion || string.IsNullOrWhiteSpace(q.CorrectOptionId) ||
+                q.Version != bankVersion || string.IsNullOrWhiteSpace(q.CorrectOptionId) ||
                 q.Options.Count < 2 || q.Options.Any(o => string.IsNullOrWhiteSpace(o.Id) ||
                     string.IsNullOrWhiteSpace(o.Text)) ||
                 q.Options.Select(o => o.Id).Distinct().Count() != q.Options.Count ||
                 !q.Options.Any(o => o.Id == q.CorrectOptionId)))
             throw new BadRequestException("Ngân hàng câu hỏi trả về dữ liệu không hợp lệ hoặc trùng câu.");
         var selected = bankQuestions.DistinctBy(q => q.Id).ToArray();
-        if (selected.Length < request.QuestionCount)
+        if (selected.Length < questionCount)
             throw new BadRequestException("Ngân hàng không đủ câu hỏi không trùng cho đề đã chọn.");
-        Random.Shared.Shuffle(selected);
-        selected = selected.Take(request.QuestionCount).ToArray();
+        if (randomize) Random.Shared.Shuffle(selected);
+        selected = selected.Take(questionCount).ToArray();
 
         var now = _clock.GetUtcNow();
-        var exam = new StoredExam(Guid.NewGuid(), Guid.NewGuid(), userId, request.BankVersion,
-            now, now.AddMinutes(request.DurationMinutes), 0, "Active", null,
+        var exam = new StoredExam(Guid.NewGuid(), Guid.NewGuid(), userId, bankVersion,
+            now, now.AddMinutes(durationMinutes), 0, "Active", null,
             selected.Select(q => new StoredQuestion(q.Id, q.Version, q.Text,
                 q.CanShuffleOptions ? Shuffle(q.Options) : q.Options.ToArray(), q.CorrectOptionId, q.IsCritical, q.Assets, q.Explanation, q.ExplanationAnimationUrl)).ToArray(),
-            new Dictionary<string, string>(), selected[0].BankId, selected[0].PassingScore, selected[0].FailOnCriticalWrong);
+            new Dictionary<string, string>(), selected[0].BankId, selected[0].PassingScore,
+            selected[0].FailOnCriticalWrong, templateCode, templateVersion);
 
         // The extra seven days let an in-flight submit retry after the deadline.
-        if (!await _store.CreateAsync(exam, TimeSpan.FromMinutes(request.DurationMinutes).Add(TimeSpan.FromDays(7)),
+        if (!await _store.CreateAsync(exam, TimeSpan.FromMinutes(durationMinutes).Add(TimeSpan.FromDays(7)),
                 cancellationToken))
             throw new ConflictException("Không thể tạo đề thi. Vui lòng thử lại.");
         return ToView(exam);
@@ -111,7 +135,7 @@ public sealed class CustomExamService
         var correct = graded.Count(q => q.SelectedOptionId == q.CorrectOptionId);
         var result = new SaveExamResult(exam.AttemptId, exam.ExamId, userId, exam.BankVersion,
             submittedAt, correct, graded.Length, graded, exam.BankId, exam.CreatedAtUtc, exam.DeadlineUtc,
-            exam.PassingScore, exam.FailOnCriticalWrong);
+            exam.PassingScore, exam.FailOnCriticalWrong, exam.TemplateCode, exam.TemplateVersion);
         if (exam.Status == "Submitted")
             return new ExamScore(exam.AttemptId, exam.ExamId, correct, graded.Length, submittedAt);
         if (exam.Status != "Submitting")
@@ -136,7 +160,9 @@ public sealed class CustomExamService
 
     private static CustomExamView ToView(StoredExam exam) => new(
         exam.ExamId, exam.BankVersion, exam.DeadlineUtc, exam.Revision, exam.Status,
-        exam.Questions.Select(q => new ExamQuestion(q.Id, q.Text, q.Options, q.Assets)).ToArray(), exam.Answers);
+        exam.Questions.Select(q => new ExamQuestion(q.Id, q.Text, q.Options, q.Assets)).ToArray(),
+        exam.Answers, exam.BankId, exam.PassingScore, exam.FailOnCriticalWrong,
+        exam.Status == "Submitted" ? exam.AttemptId : null);
 
     private static IReadOnlyList<ExamOption> Shuffle(IReadOnlyList<ExamOption> options)
     {

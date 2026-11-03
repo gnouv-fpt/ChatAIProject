@@ -31,14 +31,19 @@
     <label>Số câu <input id="count" type="number" min="1" max="100" value="10"></label>
     <label>Thời gian (phút) <input id="minutes" type="number" min="1" max="180" value="30"></label>
     <button id="create">Bắt đầu</button>
+    <h3>Đề mẫu đã xuất bản</h3>
+    <label>Đề mẫu<select id="templateChoice"><option value="">Chọn đề mẫu</option></select></label>
+    <button id="createTemplate">Bắt đầu đề mẫu</button>
     <p>Nếu đã có mã đề, nhập để tiếp tục:</p>
     <label>Mã đề <input id="resumeId"></label><button id="resume">Tiếp tục</button>
   </section>
   <section id="exam" hidden>
     <h2>Đề thi</h2><p>Mã đề: <span id="examId"></span></p>
+    <p id="practiceTarget"></p>
     <p>Còn lại: <span id="timer"></span></p>
     <div id="questions"></div>
     <button id="submit">Nộp bài</button>
+    <button id="review" hidden>Xem lại từng câu</button>
   </section>
   <section id="notifications" hidden>
     <h2>Thông báo</h2><ul id="notificationList"></ul>
@@ -55,7 +60,7 @@ const notice = message => { $('message').textContent = message; };
 window.addEventListener('message', event => {
   if (event.origin !== location.origin || event.source !== parent) return;
   if (event.data?.type === 'exam-ready') {
-    ready = true; $('authNotice').hidden = true; loadBanks();
+    ready = true; $('authNotice').hidden = true; loadBanks(); loadTemplates();
   } else if (event.data?.type === 'exam-response') {
     const item = pending.get(event.data.id);
     if (!item) return;
@@ -88,6 +93,16 @@ async function loadBanks() {
     if (!banks.length) notice('Chưa có ngân hàng câu hỏi đã xuất bản.');
   } catch (error) { notice(error.message); }
 }
+async function loadTemplates() {
+  try {
+    const templates = await request('/api/exam-templates');
+    $('templateChoice').replaceChildren(new Option('Chọn đề mẫu', ''));
+    templates.forEach(template => {
+      const option = new Option(`${template.title} · ${template.version} · ${template.questionIds.length} câu · ${template.durationMinutes} phút`, `${template.examCode}/${template.version}`);
+      $('templateChoice').append(option);
+    });
+  } catch (error) { notice(error.message); }
+}
 $('bankChoice').onchange = () => {
   const [id, version] = $('bankChoice').value.split('/');
   $('category').value = id || ''; $('version').value = version || '';
@@ -102,6 +117,7 @@ function render(data) {
   exam = data;
   $('setup').hidden = true; $('exam').hidden = false;
   $('examId').textContent = data.examId;
+  $('practiceTarget').textContent = `Mục tiêu: đúng ít nhất ${data.passingScore}/${data.questions.length} câu${data.failOnCriticalWrong ? ' và không sai câu điểm liệt' : ''}.`;
   $('resumeId').value = data.examId;
   const container = $('questions'); container.replaceChildren();
   data.questions.forEach((question, index) => {
@@ -125,6 +141,7 @@ function render(data) {
     article.append(group); container.append(article);
   });
   $('submit').disabled = data.status === 'Submitted';
+  $('review').hidden = data.status !== 'Submitted' || !data.attemptId;
   tick();
 }
 async function save(questionId, optionId) {
@@ -145,8 +162,8 @@ async function submit() {
   try {
     const score = await api('/' + exam.examId + '/submit', 'POST');
     notice(`Đã nộp bài. Đúng ${score.correct}/${score.total} câu.`);
-    render(await api('/' + exam.examId));
-    await loadNotifications();
+    render({ ...exam, status: 'Submitted', attemptId: score.attemptId });
+    openReview(score.attemptId);
   } catch (error) { notice(error.message); $('submit').disabled = false; }
   finally { submitting = false; }
 }
@@ -177,11 +194,23 @@ $('create').onclick = async () => {
     render(data); notice('Đề đã tạo.');
   } catch (error) { notice(error.message); }
 };
+$('createTemplate').onclick = async () => {
+  const [examCode, version] = $('templateChoice').value.split('/');
+  if (!examCode) { notice('Hãy chọn đề mẫu.'); return; }
+  try {
+    render(await api('/from-template', 'POST', { examCode, version: Number(version) }));
+    notice('Đề mẫu đã tạo.');
+  } catch (error) { notice(error.message); }
+};
 $('resume').onclick = async () => {
   try { render(await api('/' + encodeURIComponent($('resumeId').value.trim()))); notice('Đã khôi phục đề.'); }
   catch (error) { notice(error.message); }
 };
 $('submit').onclick = submit;
+$('review').onclick = () => openReview(exam?.attemptId);
+function openReview(attemptId) {
+  if (attemptId) parent.postMessage({ type: 'exam-review', attemptId }, location.origin);
+}
 setInterval(tick, 1000);
 setInterval(loadNotifications, 10000);
 </script>

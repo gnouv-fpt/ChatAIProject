@@ -8,6 +8,7 @@ service TrafficRagInference {
   rpc ProcessChatMessage (ChatInferenceRequest) returns (ChatInferenceResponse);
   rpc VerifyLegalDocument (VerificationRequest) returns (VerificationResponse);
   rpc IndexDocument (IndexDocumentRequest) returns (IndexDocumentResponse);
+  rpc VerifyDocumentIndex (IndexDocumentRequest) returns (VerifyDocumentIndexResponse);
   rpc ProcessImageChatMessage (ImageChatInferenceRequest) returns (ChatInferenceResponse);
   rpc DeactivateDocument (DeactivateDocumentRequest) returns (DeactivateDocumentResponse);
   rpc ExplainQuestion (ExplainQuestionRequest) returns (ExplainQuestionResponse);
@@ -96,6 +97,12 @@ message IndexDocumentRequest {
 message IndexDocumentResponse {
   bool success = 1;
   int32 indexed_count = 2;
+  string message = 3;
+}
+
+message VerifyDocumentIndexResponse {
+  bool matches = 1;
+  int32 matched_count = 2;
   string message = 3;
 }
 

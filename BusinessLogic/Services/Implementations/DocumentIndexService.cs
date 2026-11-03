@@ -1,5 +1,6 @@
 using BusinessLogic.DTOs;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Infrastructure;
 using BusinessLogic.Services.Interfaces;
 using BusinessLogic.Infrastructure.Settings;
 using BusinessObject.Entities;
@@ -48,7 +49,7 @@ public sealed class DocumentIndexService(IDocumentRepository documents, IGeneric
         document.EffectiveDate = request.EffectiveDate;
         document.ExpirationDate = request.ExpirationDate;
         documents.Update(document);
-        foreach (var chunk in content) { chunk.IsVerified = true; chunk.VectorId = chunk.Id.ToString(); chunks.Update(chunk); }
+        foreach (var chunk in content) { chunk.IsVerified = true; chunk.VectorId = QdrantPointIds.FromChunkId(chunk.Id); chunks.Update(chunk); }
         await documents.SaveChangesAsync(cancellationToken);
         logger.LogInformation("Document {DocumentId} reviewed and indexed: {ChunkCount} chunks, evidence {EvidenceUrl}", id, content.Count, request.EvidenceUrl);
         return result;

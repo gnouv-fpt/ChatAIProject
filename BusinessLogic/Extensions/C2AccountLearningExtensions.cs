@@ -18,6 +18,7 @@ public static class C2AccountLearningExtensions
         services.AddScoped<IQuotaService, QuotaService>();
         services.AddScoped<IUsageReportService, UsageReportService>();
         services.AddScoped<ILearningProgressRepository, C2LearningProgressRepository>();
+        services.AddScoped<IQuestionBookmarkRepository>(sp => new QuestionBookmarkRepository(sp.GetRequiredService<DataAccess.UserDbContext>()));
         services.AddScoped<ILearningProgressService, LearningProgressService>();
         services.AddHttpClient<ILearningCatalogClient, LearningCatalogHttpClient>((sp, http) =>
         {

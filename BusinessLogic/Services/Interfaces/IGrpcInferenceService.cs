@@ -22,4 +22,9 @@ public interface IGrpcInferenceService
     Task<IndexDocumentResultDto> IndexDocumentAsync(
         IEnumerable<DocumentChunkInputDto> chunks,
         CancellationToken cancellationToken = default);
+
+    Task<bool> VerifyDocumentIndexAsync(
+        IEnumerable<DocumentChunkInputDto> chunks,
+        CancellationToken cancellationToken = default) =>
+        throw new NotSupportedException("Inference adapter does not support index parity checks.");
 }

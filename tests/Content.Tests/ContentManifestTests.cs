@@ -10,6 +10,34 @@ public sealed class ContentManifestTests
     private readonly ContentManifestService _service = new(new AnimationSettings { AllowedHosts = ["animations.example.org"] });
 
     [Theory]
+    [InlineData("http://localhost:8765/q544.html", true)]
+    [InlineData("http://localhost:8766/q544.html", false)]
+    [InlineData("http://localhost.evil.test:8765/q544.html", false)]
+    [InlineData("http://127.0.0.1:8765/q544.html", false)]
+    [InlineData("http://localhost:8765/q544.html?answer=1", false)]
+    [InlineData("http://localhost:8765/%2e%2e/q544.html", false)]
+    public void LocalAssetsRequireExactServerOriginAndRemainDisabledByDefault(string url, bool expected)
+    {
+        Assert.False(ContentManifestService.IsAllowedAnimationUrl(url, []));
+        Assert.Equal(expected, ContentManifestService.IsAllowedAnimationUrl(url, [], "http://localhost:8765"));
+        Assert.False(ContentManifestService.IsAllowedAnimationUrl(url, [], "http://example.org:8765"));
+    }
+
+    [Fact]
+    public void LocalBankImagesAndAnimationsRequireExplicitDevelopmentSettings()
+    {
+        var bank = QuestionBankTests.Fixture();
+        bank = bank with { Questions = [bank.Questions[0] with {
+            Assets = [new("image", "http://localhost:8765/bank-review/544/image-1.jpeg", new string('a', 64), "image/jpeg", "Local original")],
+            ExplanationAnimationUrl = "http://localhost:8765/q544.html"
+        }] };
+        Assert.NotEmpty(QuestionBankService.Validate(bank));
+        Assert.Empty(QuestionBankService.Validate(bank, "http://localhost:8765"));
+        Assert.False(new ContentManifestService(new()).Preview(new() { Bank = bank }).CanImport);
+        Assert.True(new ContentManifestService(new() { LocalAssetOrigin = "http://localhost:8765" }).Preview(new() { Bank = bank }).CanImport);
+    }
+
+    [Theory]
     [InlineData("https://animations.example.org/lesson.html", true)]
     [InlineData("https://animations.example.org/lesson/", true)]
     [InlineData("http://animations.example.org/lesson.html", false)]

@@ -191,6 +191,31 @@ namespace DataAccess.Migrations.User
                         });
                 });
 
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBookmark", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("QuestionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "QuestionId")
+                        .IsUnique();
+
+                    b.ToTable("QuestionBookmarks", (string)null);
+                });
+
             modelBuilder.Entity("BusinessObject.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -265,6 +290,17 @@ namespace DataAccess.Migrations.User
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BusinessObject.Entities.QuestionBookmark", b =>
+                {
+                    b.HasOne("BusinessObject.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("User");

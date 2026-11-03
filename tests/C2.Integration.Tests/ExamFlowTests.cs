@@ -92,6 +92,11 @@ public sealed class ExamFlowTests
             var preview = (await import.Content.ReadFromJsonAsync<BankPreviewDto>())!;
             var publishPath = $"/api/admin/question-banks/{bank.Id}/versions/1/publish";
             (await contentHttp.PostAsJsonAsync(publishPath, new { expectedHash = preview.Summary.Hash, sourceAndAnswersReviewed = true })).EnsureSuccessStatusCode();
+            var template = new ImportExamTemplateRequest("fixture-exam", 1, "Đề mẫu kiểm thử", 30, 1, [bank.Questions[0].Id]);
+            (await contentHttp.PostAsJsonAsync("/api/exam-templates/import", template)).EnsureSuccessStatusCode();
+            Assert.Empty((await contentHttp.GetFromJsonAsync<ExamTemplateDto[]>("/api/exam-templates"))!);
+            (await contentHttp.PostAsync("/api/exam-templates/fixture-exam/versions/1/publish", null)).EnsureSuccessStatusCode();
+            Assert.Single((await contentHttp.GetFromJsonAsync<ExamTemplateDto[]>("/api/exam-templates"))!);
             contentHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(alice).Token);
             var publicJson = await contentHttp.GetStringAsync($"/api/question-banks/{bank.Id}/versions/1/questions");
             Assert.DoesNotContain("correctOption", publicJson, StringComparison.OrdinalIgnoreCase);
@@ -105,12 +110,44 @@ public sealed class ExamFlowTests
             contentHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateContentMaintenanceToken());
             (await contentHttp.PostAsync("/internal/content/maintenance", null)).EnsureSuccessStatusCode();
             userHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(alice).Token);
+            var bookmarkPath = $"/api/learning/bookmarks/{bank.Questions[0].Id}";
+            foreach (var response in await Task.WhenAll(Enumerable.Range(0, 4).Select(_ => userHttp.PutAsync(bookmarkPath, null))))
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            var bookmarks = await userHttp.GetFromJsonAsync<System.Text.Json.JsonElement>($"/api/learning/bookmarks?bankId={bank.Id}");
+            Assert.Equal(1, bookmarks.GetProperty("totalCount").GetInt32());
+            Assert.Equal(bank.Questions[0].Id, bookmarks.GetProperty("items")[0].GetProperty("questionId").GetGuid());
+            Assert.Equal(1, await userDb.QuestionBookmarks.CountAsync());
+            userHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(bob).Token);
+            var bobBookmarks = await userHttp.GetFromJsonAsync<System.Text.Json.JsonElement>("/api/learning/bookmarks");
+            Assert.Equal(0, bobBookmarks.GetProperty("totalCount").GetInt32());
+            Assert.Equal(HttpStatusCode.NoContent, (await userHttp.DeleteAsync(bookmarkPath)).StatusCode);
+            Assert.Equal(1, await userDb.QuestionBookmarks.CountAsync());
+            userHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(alice).Token);
+            foreach (var response in await Task.WhenAll(Enumerable.Range(0, 3).Select(_ => userHttp.DeleteAsync(bookmarkPath))))
+                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+            Assert.Equal(0, await userDb.QuestionBookmarks.CountAsync());
+            Assert.Equal(HttpStatusCode.NotFound, (await userHttp.PutAsync($"/api/learning/bookmarks/{Guid.NewGuid()}", null)).StatusCode);
+            var fromTemplate = await userHttp.PostAsJsonAsync("/api/custom-exams/from-template", new CreateTemplateExam("fixture-exam", 1));
+            fromTemplate.EnsureSuccessStatusCode();
+            var templateView = (await fromTemplate.Content.ReadFromJsonAsync<CustomExamView>())!;
+            Assert.Single(templateView.Questions);
+            Assert.Equal(1, templateView.PassingScore);
+            Assert.InRange((templateView.DeadlineUtc - DateTimeOffset.UtcNow).TotalMinutes, 29, 31);
+            Assert.DoesNotContain("correctOption", await fromTemplate.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+            using (var templateRedis = await ConnectionMultiplexer.ConnectAsync(settings["ConnectionStrings:Redis"]!))
+            {
+                var templateStored = await new RedisCustomExamStore(templateRedis).ReadAsync(templateView.ExamId, default);
+                Assert.Equal("fixture-exam", templateStored!.TemplateCode);
+                Assert.Equal(1, templateStored.TemplateVersion);
+                await templateRedis.GetDatabase().KeyDeleteAsync($"custom-exam:v1:{templateView.ExamId:N}");
+            }
             var create = await userHttp.PostAsJsonAsync("/api/custom-exams", new CreateCustomExam(bank.Id.ToString(), "1", 1, 1));
             create.EnsureSuccessStatusCode();
             var view = (await create.Content.ReadFromJsonAsync<CustomExamView>())!;
             Assert.DoesNotContain("correctOption", await create.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
             Assert.DoesNotContain("Secret explanation", await create.Content.ReadAsStringAsync());
             Assert.DoesNotContain("animations.example.org", await create.Content.ReadAsStringAsync());
+            Assert.Null(view.AttemptId);
             Assert.Equal("Synthetic image", Assert.Single(view.Questions[0].Assets!).AltText);
             using var redis = await ConnectionMultiplexer.ConnectAsync(settings["ConnectionStrings:Redis"]!);
             var key = $"custom-exam:v1:{view.ExamId:N}";
@@ -128,6 +165,8 @@ public sealed class ExamFlowTests
             submit.EnsureSuccessStatusCode();
             var score = (await submit.Content.ReadFromJsonAsync<ExamScore>())!;
             Assert.Equal(1, score.Correct);
+            var submittedView = (await userHttp.GetFromJsonAsync<CustomExamView>($"/api/custom-exams/{view.ExamId}"))!;
+            Assert.Equal(score.AttemptId, submittedView.AttemptId);
             (await userHttp.PostAsync($"/api/custom-exams/{view.ExamId}/submit", null)).EnsureSuccessStatusCode();
             Assert.Equal(1, await userDb.ExamAttempts.CountAsync(a => a.Id == score.AttemptId));
             var attempt = await userDb.ExamAttempts.AsNoTracking().SingleAsync(a => a.Id == score.AttemptId);
@@ -152,12 +191,25 @@ public sealed class ExamFlowTests
             }
             finally { await worker.StopAsync(new CancellationTokenSource(TimeSpan.FromSeconds(10)).Token); await starting; }
             await redis.GetDatabase().KeyDeleteAsync(key);
+            await redis.GetDatabase().KeyDeleteAsync($"exam-notification:item:{score.AttemptId:N}");
+            await redis.GetDatabase().KeyDeleteAsync($"exam-notification:inbox:{alice.Id:N}");
+            var durableNotifications = (await userHttp.GetFromJsonAsync<ExamSubmittedEvent[]>("/api/exam-notifications"))!;
+            Assert.Equal(score.AttemptId, Assert.Single(durableNotifications).EventId);
             Assert.Equal(HttpStatusCode.NotFound, (await userHttp.GetAsync($"/api/custom-exams/{view.ExamId}")).StatusCode);
             var review = await userHttp.GetAsync($"/api/exam-attempts/{score.AttemptId}");
             review.EnsureSuccessStatusCode(); Assert.Contains("Synthetic question?", await review.Content.ReadAsStringAsync());
             Assert.Contains("animations.example.org", await review.Content.ReadAsStringAsync());
+            var typedReview = (await userHttp.GetFromJsonAsync<ExamAttemptReview>($"/api/exam-attempts/{score.AttemptId}/review"))!;
+            Assert.Equal(bank.Id, typedReview.BankId);
+            Assert.Equal("1", typedReview.BankVersion);
+            var reviewedQuestion = Assert.Single(typedReview.Questions);
+            Assert.Equal("a", reviewedQuestion.SelectedOptionId);
+            Assert.Equal("a", reviewedQuestion.CorrectOptionId);
+            Assert.Equal("Secret explanation", reviewedQuestion.Explanation);
+            Assert.Equal("https://animations.example.org/fixture.html", reviewedQuestion.ExplanationAnimationUrl);
             userHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(bob).Token);
             Assert.Equal(HttpStatusCode.NotFound, (await userHttp.GetAsync($"/api/exam-attempts/{score.AttemptId}")).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await userHttp.GetAsync($"/api/exam-attempts/{score.AttemptId}/review")).StatusCode);
             userHttp.DefaultRequestHeaders.Authorization = new("Bearer", tokens.CreateAccessToken(alice).Token);
             var progress = await userHttp.GetStringAsync($"/api/learning/progress/{bank.Id}");
             Assert.Contains("\"answeredQuestions\":1", progress);

@@ -8,5 +8,6 @@
     <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.20.1" />
     <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.20.1" />
     <Compile Include="../Presentation/Infrastructure/SafeFileLoggerProvider.cs" Link="Infrastructure/SafeFileLoggerProvider.cs" />
+    <Compile Include="../Presentation/Infrastructure/RequestTelemetryMiddleware.cs" Link="Infrastructure/RequestTelemetryMiddleware.cs" />
   </ItemGroup>
 </Project>

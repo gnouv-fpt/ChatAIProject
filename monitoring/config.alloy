@@ -5,6 +5,13 @@ loki.source.file "application" {
   targets    = local.file_match.application.targets
   forward_to = [loki.write.local.receiver]
 }
+local.file_match "native" {
+  path_targets = [{__path__ = "/native-logs/*.jsonl", job = "traffic-rag-native"}]
+}
+loki.source.file "native" {
+  targets    = local.file_match.native.targets
+  forward_to = [loki.write.local.receiver]
+}
 loki.write "local" {
   endpoint {
     url = "http://loki:3100/loki/api/v1/push"

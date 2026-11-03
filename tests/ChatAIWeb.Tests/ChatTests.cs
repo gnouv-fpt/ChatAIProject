@@ -124,6 +124,13 @@ public sealed class ChatTests : IAsyncLifetime
         await Assert.ThrowsAsync<ConflictException>(() => service.SendMessageAsync(userId, sessionId, Request()));
         Assert.DoesNotContain(await db.ChatMessages.ToListAsync(), m => m.Citations.Any(c => c.DocumentChunkId == chunkId));
     }
+    [Fact] public async Task EditionTitleChangeKeepsHashBoundCitationValid()
+    {
+        content.Chunks.Single(c => c.Id == chunkId).Document.Title = "Test law · expanded edition";
+        inference.Result = Answer();
+        var result = await service.SendMessageAsync(userId, sessionId, Request());
+        Assert.Equal("Test law · expanded edition", result.Citations.Single().DocumentTitle);
+    }
     [Theory] [InlineData("Answered", false)] [InlineData("Invalid", true)]
     public async Task InvalidAiResponseIsNotSuccessful(string status, bool verified)
     {

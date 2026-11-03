@@ -155,7 +155,7 @@ public class GrpcInferenceService(
         try
         {
             var response = await grpcClient.IndexDocumentAsync(
-                request, deadline: DateTime.UtcNow.AddSeconds(settings.InferenceTimeoutSeconds), cancellationToken: cancellationToken);
+                request, deadline: DateTime.UtcNow.AddSeconds(settings.IndexingTimeoutSeconds), cancellationToken: cancellationToken);
 
             return new IndexDocumentResultDto
             {
@@ -172,6 +172,38 @@ public class GrpcInferenceService(
         {
             logger.LogWarning("Index RPC failed: {Status}", ex.StatusCode);
             throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ lập chỉ mục tạm thời không khả dụng.");
+        }
+    }
+
+    public async Task<bool> VerifyDocumentIndexAsync(
+        IEnumerable<DocumentChunkInputDto> chunks,
+        CancellationToken cancellationToken = default)
+    {
+        var request = new IndexDocumentRequest();
+        request.Chunks.AddRange(chunks.Select(c => new DocumentChunkItem
+        {
+            Point = c.Point, ContentHash = c.ContentHash, DocumentId = c.DocumentId, DocumentVersion = c.DocumentVersion,
+            ChunkId = c.ChunkId, DocumentTitle = c.DocumentTitle, DocumentNumber = c.DocumentNumber,
+            Chapter = c.Chapter, Article = c.Article, Clause = c.Clause, Content = c.Content,
+            SourceUrl = c.SourceUrl, IsVerified = c.IsVerified, IsActive = c.IsActive
+        }));
+        try
+        {
+            var response = await grpcClient.VerifyDocumentIndexAsync(request,
+                deadline: DateTime.UtcNow.AddSeconds(settings.IndexingTimeoutSeconds), cancellationToken: cancellationToken);
+            if (!response.Matches || response.MatchedCount != request.Chunks.Count)
+                logger.LogWarning("Index parity check failed: {Message}; matched {Count}/{Expected}",
+                    response.Message, response.MatchedCount, request.Chunks.Count);
+            return response.Matches && response.MatchedCount == request.Chunks.Count;
+        }
+        catch (RpcException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw new OperationCanceledException(cancellationToken);
+        }
+        catch (RpcException ex)
+        {
+            logger.LogWarning("Index parity RPC failed: {Status}", ex.StatusCode);
+            throw new BusinessLogic.Exceptions.ServiceUnavailableException("Chưa thể đối soát toàn bộ chỉ mục vector.");
         }
     }
 }

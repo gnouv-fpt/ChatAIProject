@@ -16,11 +16,11 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
         var issues = new List<ContentValidationIssueDto>();
         if (request.Bank is null)
             return new(null, 0, 0, [new("bank", "Thiếu ngân hàng câu hỏi.")]);
-        issues.AddRange(QuestionBankService.Validate(request.Bank).Select(message => new ContentValidationIssueDto("bank", message)));
+        issues.AddRange(QuestionBankService.Validate(request.Bank, settings.LocalAssetOrigin).Select(message => new ContentValidationIssueDto("bank", message)));
         var questions = request.Bank.Questions;
         if (questions is not null)
             foreach (var question in questions.Where(q => q is not null && q.ExplanationAnimationUrl is not null))
-                if (!IsAllowedAnimationUrl(question.ExplanationAnimationUrl, settings.AllowedHosts))
+                if (!IsAllowedAnimationUrl(question.ExplanationAnimationUrl, settings.AllowedHosts, settings.LocalAssetOrigin))
                     issues.Add(new("bank.questions", "Animation cần URL HTTPS trên host được cấu hình."));
         var ids = questions?.Where(q => q is not null).Select(q => q.Id).ToHashSet() ?? [];
         var animations = request.Animations;
@@ -37,7 +37,7 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
                 if (animation is null) { issues.Add(new(path, "Animation không được null.")); continue; }
                 if (!ids.Contains(animation.QuestionId)) issues.Add(new(path + ".questionId", "Animation phải tham chiếu câu trong cùng bank/version."));
                 if (!seen.Add(animation.QuestionId)) issues.Add(new(path + ".questionId", "Mỗi câu chỉ có một ExplanationAnimationUrl."));
-                if (!IsAllowedAnimationUrl(animation.ExplanationAnimationUrl, settings.AllowedHosts))
+                if (!IsAllowedAnimationUrl(animation.ExplanationAnimationUrl, settings.AllowedHosts, settings.LocalAssetOrigin))
                     issues.Add(new(path + ".explanationAnimationUrl", "Animation cần URL HTTPS trên host được cấu hình, không chứa credentials/query/fragment hoặc đường dẫn bất thường."));
             }
         }
@@ -46,12 +46,14 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
         return new(hash, questions?.Count ?? 0, animations?.Count ?? 0, issues);
     }
 
-    public static bool IsAllowedAnimationUrl(string? value, IEnumerable<string> allowedHosts)
+    public static bool IsAllowedAnimationUrl(string? value, IEnumerable<string> allowedHosts, string? localAssetOrigin = null)
     {
         if (string.IsNullOrWhiteSpace(value) || value.Length > 2048 || value.Any(char.IsWhiteSpace) || value.Contains('\\') ||
-            !Uri.TryCreate(value, UriKind.Absolute, out var uri) || uri.Scheme != Uri.UriSchemeHttps ||
-            !uri.IsDefaultPort || !string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment) ||
-            uri.HostNameType != UriHostNameType.Dns || !allowedHosts.Contains(uri.IdnHost, StringComparer.OrdinalIgnoreCase)) return false;
+            !Uri.TryCreate(value, UriKind.Absolute, out var uri) ||
+            !string.IsNullOrEmpty(uri.UserInfo) || !string.IsNullOrEmpty(uri.Query) || !string.IsNullOrEmpty(uri.Fragment)) return false;
+        var hosted = uri.Scheme == Uri.UriSchemeHttps && uri.IsDefaultPort && uri.HostNameType == UriHostNameType.Dns &&
+            allowedHosts.Contains(uri.IdnHost, StringComparer.OrdinalIgnoreCase);
+        if (!hosted && !AnimationSettings.IsLocalAssetUrl(value, localAssetOrigin)) return false;
         var unescaped = Uri.UnescapeDataString(value);
         if (unescaped.Any(char.IsControl) || unescaped.Contains('\\') || unescaped.Contains('%') ||
             unescaped.Split('/').Any(segment => segment is "." or "..")) return false;

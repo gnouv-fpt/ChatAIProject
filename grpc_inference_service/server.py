@@ -5,6 +5,7 @@ import sys
 from concurrent import futures
 import logging
 import grpc
+from telemetry import RpcMetrics, configure
 
 # Add service directory to sys.path so local imports work seamlessly
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -84,12 +85,13 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response.violation_keywords.extend(keywords)
             return response
         vision_tokens = 0
+        budget = request.max_tokens or 4096
         observations = []
         for image in request.images:
             if not context.is_active():
                 context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
             observation, clarify, query = self.vision_engine.analyze_traffic_image(
-                base64.b64encode(image.content).decode(), image.mime_type, prompt)
+                base64.b64encode(image.content).decode(), image.mime_type, prompt, max(0, budget - vision_tokens))
             usage = getattr(self.vision_engine, "last_tokens", None)
             vision_tokens = -1 if usage is None or vision_tokens < 0 else vision_tokens + usage
             if clarify:
@@ -97,8 +99,12 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             observations.append(observation + " " + query)
         history = "\n".join(f"{h.role}: {h.content}" for h in request.history[-10:])
         query = "\n".join([history, *observations, prompt]).strip()
-        chunks = self.vector_store.search_verified_chunks(query, top_k=3, score_threshold=0.20)
-        text, citations, tokens, verified = self.rag_generator.generate(query, chunks)
+        # Keep old assistant wording out of retrieval so a changed subject (red -> yellow light)
+        # can retrieve new evidence. History remains available to grounded answer generation.
+        retrieval_query = "\n".join([*observations, prompt]).strip()
+        chunks = self.vector_store.search_verified_chunks(retrieval_query, top_k=5, score_threshold=0.20)
+        text, citations, tokens, verified = self.rag_generator.generate(
+            query, chunks, max(0, budget - vision_tokens), current_question=prompt)
         if not context.is_active():
             context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
         allowed = {"document_title", "article_number", "clause_number", "source_url", "excerpt",
@@ -136,9 +142,18 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
     @rpc_errors
     def IndexDocument(self, request, context):
         logger.info(f"[IndexDocument] Received {len(request.chunks)} chunks to index.")
-        chunks_to_index = []
-        for ch in request.chunks:
-            chunk_dict = {
+        chunks_to_index = [self._chunk_payload(ch) for ch in request.chunks]
+
+        count = self.vector_store.upsert_chunks(chunks_to_index, is_active=context.is_active)
+        return chat_inference_pb2.IndexDocumentResponse(
+            success=True,
+            indexed_count=count,
+            message=f"Successfully indexed {count} chunks into Qdrant."
+        )
+
+    @staticmethod
+    def _chunk_payload(ch):
+        return {
                 "chunk_id": ch.chunk_id,
                 "document_title": ch.document_title,
                 "document_number": ch.document_number,
@@ -154,14 +169,13 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
                 "is_verified": ch.is_verified,
                 "is_active": ch.is_active
             }
-            chunks_to_index.append(chunk_dict)
 
-        count = self.vector_store.upsert_chunks(chunks_to_index)
-        return chat_inference_pb2.IndexDocumentResponse(
-            success=True,
-            indexed_count=count,
-            message=f"Successfully indexed {count} chunks into Qdrant."
-        )
+    @rpc_errors
+    def VerifyDocumentIndex(self, request, context):
+        matches, matched_count, message = self.vector_store.verify_document_index(
+            [self._chunk_payload(ch) for ch in request.chunks])
+        return chat_inference_pb2.VerifyDocumentIndexResponse(
+            matches=matches, matched_count=matched_count, message=message)
 
     @rpc_errors
     def DeactivateDocument(self, request, context):
@@ -187,7 +201,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         key = request.correct_answer_key
         official_exp = request.official_explanation
 
-        logger.info(f"[ExplainQuestion] Explaining question: '{content[:80]}...', Key: '{key}'")
+        logger.info("ExplainQuestion requested")
 
         # 1. Retrieve legal backing
         query = f"{content} {key} {official_exp}".strip()
@@ -230,12 +244,14 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
 
 def serve():
     port = os.getenv("GRPC_PORT", "50051")
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    configure()
+    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10), interceptors=[RpcMetrics()])
     chat_inference_pb2_grpc.add_TrafficRagInferenceServicer_to_server(
         TrafficRagInferenceServicer(), server
     )
-    bind_addr = f"0.0.0.0:{port}"
-    server.add_insecure_port(bind_addr)
+    bind_addr = f"{os.getenv('GRPC_BIND_HOST', '0.0.0.0')}:{port}"
+    if not server.add_insecure_port(bind_addr):
+        raise RuntimeError("Could not bind the configured gRPC endpoint")
     server.start()
     logger.info(f"Traffic Law RAG gRPC Inference Service started on {bind_addr}")
     try:

@@ -72,6 +72,19 @@ public sealed class QuestionBankTests : IDisposable
     }
 
     [Fact]
+    public async Task SourceTheoryCategoriesRoundTripWithoutBeingRelabelledAsScenarios()
+    {
+        var bank = Fixture();
+        bank = bank with { Questions = new[] { "RULES", "CULTURE", "DRIVING", "MECHANICS", "SIGN", "SCENARIO" }
+            .Select((kind, index) => bank.Questions[0] with { Id = Guid.NewGuid(), Number = index + 1,
+                CategoryType = kind, Topic = kind }).ToList() };
+        var preview = await Service().ImportAsync(bank, Guid.NewGuid());
+        Assert.Equal(bank.Questions.Select(q => q.CategoryType), preview.Bank.Questions.Select(q => q.CategoryType));
+        Assert.NotEmpty(QuestionBankService.Validate(bank with {
+            Questions = [bank.Questions[0] with { CategoryType = "UNKNOWN" }] }));
+    }
+
+    [Fact]
     public async Task TopicRangeAndPagingAreAppliedBeforeProjection()
     {
         var bank = Fixture(); var q = bank.Questions[0];

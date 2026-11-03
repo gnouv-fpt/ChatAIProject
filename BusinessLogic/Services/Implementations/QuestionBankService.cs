@@ -11,7 +11,7 @@ namespace BusinessLogic.Services.Implementations;
 
 public sealed class QuestionBankService(IContentBankRepository repository, BusinessLogic.Infrastructure.Settings.AnimationSettings? animationSettings = null) : IQuestionBankService
 {
-    public static IReadOnlyList<string> Validate(ContentBank bank)
+    public static IReadOnlyList<string> Validate(ContentBank bank, string? localAssetOrigin = null)
     {
         var errors = new List<string>();
         void Require(bool condition, string message) { if (!condition) errors.Add(message); }
@@ -24,6 +24,8 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
         Require(profile is not null, "Thiếu profile.");
         if (profile is not null)
         {
+            try { BusinessLogic.Exams.OfficialExamRules.ValidateProfile(profile); }
+            catch (AppException ex) { errors.Add(ex.Message); }
             Require(!string.IsNullOrWhiteSpace(profile.Id) && ValidVersion(profile.Version) && Https(profile.SourceUrl), "Profile cần ID, version và URL nguồn.");
             Require(profile.QuestionCount > 0 && profile.DurationSeconds > 0 && profile.DurationSeconds <= 86400 &&
                 profile.PassCount > 0 && profile.PassCount <= profile.QuestionCount, "Số câu, thời gian hoặc điểm đạt của profile không hợp lệ.");
@@ -41,14 +43,15 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
             var prefix = $"Câu {q.Number}: ";
             Require(!string.IsNullOrWhiteSpace(q.Text) && q.Text.Length <= 20000 &&
                 !string.IsNullOrWhiteSpace(q.Topic) && q.Topic.Length <= 255 && !string.IsNullOrWhiteSpace(q.Explanation) && Https(q.SourceUrl), prefix + "thiếu nội dung/chủ đề/giải thích/nguồn.");
-            Require(q.CategoryType is "SIGN" or "SCENARIO", prefix + "CategoryType phải là SIGN hoặc SCENARIO theo nguồn.");
+            Require(q.CategoryType is "RULES" or "CULTURE" or "DRIVING" or "MECHANICS" or "SIGN" or "SCENARIO",
+                prefix + "CategoryType phải thuộc một trong sáu nhóm nội dung nguồn đã hỗ trợ.");
             Require(q.Options is { Count: >= 2 and <= 10 } && q.Options.All(o => o is not null &&
                 !string.IsNullOrWhiteSpace(o.Id) && o.Id.Length <= 30 && !string.IsNullOrWhiteSpace(o.Text)) &&
                 q.Options.Select(o => o.Id).Distinct(StringComparer.Ordinal).Count() == q.Options.Count, prefix + "phương án thiếu hoặc trùng ID.");
             Require(q.CorrectOptionIds is { Count: 1 } && q.CorrectOptionIds.Distinct().Count() == q.CorrectOptionIds.Count &&
                 q.CorrectOptionIds.All(key => q.Options?.Any(o => o is not null && o.Id == key) == true), prefix + "đáp án không thuộc phương án hoặc bị trùng.");
             Require(q.Assets is not null && q.Assets.All(a => a is not null && !string.IsNullOrWhiteSpace(a.Id) &&
-                Https(a.Url) && Regex.IsMatch(a.Sha256 ?? "", "^[A-Fa-f0-9]{64}$") &&
+                (Https(a.Url) || BusinessLogic.Infrastructure.Settings.AnimationSettings.IsLocalAssetUrl(a.Url, localAssetOrigin)) && Regex.IsMatch(a.Sha256 ?? "", "^[A-Fa-f0-9]{64}$") &&
                 a.MimeType is "image/png" or "image/jpeg" or "image/webp" && !string.IsNullOrWhiteSpace(a.AltText)) &&
                 q.Assets.Select(a => a.Id).Distinct().Count() == q.Assets.Count, prefix + "metadata ảnh không hợp lệ.");
             var labelReferences = q.Options?.Any(o => o is not null && Regex.IsMatch(o.Text ?? "",
@@ -60,11 +63,11 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
 
     public async Task<BankPreviewDto> ImportAsync(ContentBank bank, Guid adminId, CancellationToken cancellationToken = default)
     {
-        var errors = Validate(bank);
+        var errors = Validate(bank, animationSettings?.LocalAssetOrigin);
         if (errors.Count > 0) throw new BadRequestException(string.Join(" ", errors.Take(30)));
         var questions = bank.Questions ?? throw new BadRequestException("Thiếu danh sách câu hỏi.");
         if (questions.Any(q => q.ExplanationAnimationUrl is not null &&
-            !ContentManifestService.IsAllowedAnimationUrl(q.ExplanationAnimationUrl, animationSettings?.AllowedHosts ?? [])))
+            !ContentManifestService.IsAllowedAnimationUrl(q.ExplanationAnimationUrl, animationSettings?.AllowedHosts ?? [], animationSettings?.LocalAssetOrigin)))
             throw new BadRequestException("Animation cần URL HTTPS trên host được cấu hình.");
         var hash = Hash(bank);
         var package = new QuestionBankPackage(bank, hash, DateTime.UtcNow, adminId);
@@ -80,14 +83,14 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
     public async Task<BankPreviewDto> PreviewAsync(Guid id, string version, CancellationToken cancellationToken = default)
     {
         var package = await GetAsync(id, version, cancellationToken);
-        return new(Summary(package), package.Bank, Validate(package.Bank));
+        return new(Summary(package), package.Bank, Validate(package.Bank, animationSettings?.LocalAssetOrigin));
     }
 
     public async Task<BankSummaryDto> PublishAsync(Guid id, string version, PublishBankRequestDto request, CancellationToken cancellationToken = default)
     {
         var package = await GetAsync(id, version, cancellationToken);
         if (!request.SourceAndAnswersReviewed) throw new BadRequestException("Cần kiểm tra nguồn, ảnh và đáp án trước khi xuất bản.");
-        var errors = Validate(package.Bank);
+        var errors = Validate(package.Bank, animationSettings?.LocalAssetOrigin);
         if (errors.Count > 0) throw new BadRequestException(string.Join(" ", errors.Take(30)));
         if (!string.Equals(package.Hash, request.ExpectedHash, StringComparison.OrdinalIgnoreCase) || Hash(package.Bank) != package.Hash)
             throw new ConflictException("Nội dung đã thay đổi hoặc hash không khớp bản xem trước.");

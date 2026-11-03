@@ -4,6 +4,7 @@ COPY ApiGateway/ApiGateway.csproj ApiGateway/
 RUN dotnet restore ApiGateway/ApiGateway.csproj
 COPY ApiGateway/ ApiGateway/
 COPY Presentation/Infrastructure/SafeFileLoggerProvider.cs Presentation/Infrastructure/
+COPY Presentation/Infrastructure/RequestTelemetryMiddleware.cs Presentation/Infrastructure/
 RUN dotnet publish ApiGateway/ApiGateway.csproj -c Release -o /out --no-restore
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app

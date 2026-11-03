@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$Stop)
+param([switch]$Stop, [switch]$Ai)
 $ErrorActionPreference = 'Stop'
 Push-Location (Split-Path -Parent $PSScriptRoot)
 $previous = @{}
@@ -13,8 +13,10 @@ try {
         }
     }
     $composeArgs = @('compose','-p','prn-c2-localtest','-f','docker-compose.yml','-f','docker-compose.c2-test.yml')
-    if ($Stop) { docker @composeArgs stop redis kafka kafka-init }
-    else { docker @composeArgs up -d redis kafka kafka-init }
+    $services = @('redis', 'kafka', 'kafka-init')
+    if ($Ai) { $services += 'qdrant' }
+    if ($Stop) { docker @composeArgs stop @services }
+    else { docker @composeArgs up -d @services }
     if ($LASTEXITCODE) { throw 'Could not start/stop the isolated C2 test infrastructure.' }
 }
 finally {

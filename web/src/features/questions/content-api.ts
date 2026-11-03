@@ -18,6 +18,7 @@ export function createContentApi(token: string): ContentApi {
       const problem = await response.json().catch(() => null);
       throw new Error(problem?.detail ?? (response.status === 401 ? 'Phiên đăng nhập không hợp lệ.' : `Yêu cầu thất bại (${response.status}).`));
     }
+    if (response.status === 204) return undefined as T;
     return response.json() as Promise<T>;
   };
 }

@@ -35,7 +35,7 @@ public sealed class SplitDatabaseTests
     {
         using var user = new UserDbContextFactory().CreateDbContext([]);
         using var content = new ContentDbContextFactory().CreateDbContext([]);
-        Assert.Equal(new[] { "ExamAttempts", "UserChatMessages", "UserChatSessions", "Users" },
+        Assert.Equal(new[] { "ExamAttempts", "QuestionBookmarks", "UserChatMessages", "UserChatSessions", "Users" },
             user.Model.GetEntityTypes().Select(e => e.GetTableName()).Order().ToArray());
         Assert.Equal(new[] { "ExamTemplateItems", "ExamTemplates", "LegalDocumentChunks", "LegalDocuments", "TrafficQuestionCategories", "TrafficQuestions" },
             content.Model.GetEntityTypes().Select(e => e.GetTableName()).Order().ToArray());
@@ -44,7 +44,11 @@ public sealed class SplitDatabaseTests
         Assert.DoesNotContain("LegalDocument", userSql);
         Assert.Contains("CitationsJson", userSql);
         Assert.DoesNotContain("UserChat", content.Database.GenerateCreateScript());
-        Assert.Single(user.Database.GetMigrations());
+        Assert.Equal(2, user.Database.GetMigrations().Count());
+        var bookmarks = user.Model.FindEntityType(typeof(QuestionBookmark))!;
+        Assert.Single(bookmarks.GetForeignKeys());
+        Assert.Equal(typeof(User), bookmarks.GetForeignKeys().Single().PrincipalEntityType.ClrType);
+        Assert.Contains(bookmarks.GetIndexes(), i => i.IsUnique && i.Properties.Select(p => p.Name).SequenceEqual(new[] { "UserId", "QuestionId" }));
         Assert.Equal(2, content.Database.GetMigrations().Count());
     }
 

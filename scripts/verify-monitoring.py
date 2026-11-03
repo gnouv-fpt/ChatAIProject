@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--grafana', default='http://127.0.0.1:3000')
     parser.add_argument('--gateway', default='http://127.0.0.1:8080')
+    parser.add_argument('--native', action='store_true', help='Use the host-process logs in the hybrid local stack')
     args = parser.parse_args()
     password = os.environ.get('GRAFANA_PASSWORD')
     if not password:
@@ -29,7 +30,8 @@ def main():
     assert get('/api/health')['database'] == 'ok', 'Grafana database is unavailable'
     values = get('/api/datasources/proxy/uid/prometheus/api/v1/query?query=up')['data']['result']
     targets = {entry['metric']['job']: entry['value'][1] for entry in values}
-    assert all(targets.get(job) == '1' for job in ('user-api', 'content-api', 'gateway')), 'User/Content/Gateway scrape failed'
+    required = ('user-api', 'content-api', 'gateway', 'worker', 'grpc-inference', 'kafka')
+    assert all(targets.get(job) == '1' for job in required), f'Scrape failed: {targets}'
     assert any(d['uid'] == 'traffic-rag' for d in get('/api/search')), 'Dashboard was not provisioned'
     trace_id = uuid.uuid4().hex
     request = urllib.request.Request(args.gateway.rstrip('/') + '/api/chats',
@@ -52,11 +54,20 @@ def main():
             pass
         time.sleep(1)
     assert {'api-gateway', 'user-service'} <= services, 'Cross-service trace was not found'
-    query = urllib.parse.quote('{job="traffic-rag"}')
-    logs = get('/api/datasources/proxy/uid/loki/loki/api/v1/query_range?query=' + query + '&limit=5')
-    assert logs['data']['result'], 'Loki has no application file-log streams'
+    job = 'traffic-rag-native' if args.native else 'traffic-rag'
+    query = urllib.parse.quote('{job="' + job + '"} | json | traceId="' + trace_id + '"')
+    logs = None
+    for _ in range(20):
+        logs = get('/api/datasources/proxy/uid/loki/loki/api/v1/query_range?query=' + query + '&limit=20')
+        if logs['data']['result']:
+            break
+        time.sleep(1)
+    assert logs and logs['data']['result'], 'Loki has no matching file log for the real request trace'
+    alerts = get('/api/datasources/proxy/uid/prometheus/api/v1/rules')['data']['groups']
+    assert any(group['name'] == 'traffic-rag-local' for group in alerts), 'Prometheus alert rules unavailable'
     print(json.dumps({'grafana': 'healthy', 'prometheus_targets': targets, 'trace_services': sorted(services),
-                      'loki_streams': len(logs['data']['result']), 'worker_end_to_end': 'not checked'}, indent=2))
+                      'loki_trace_streams': len(logs['data']['result']), 'alert_rule_groups': len(alerts),
+                      'worker_end_to_end': 'not checked'}, indent=2))
 
 
 if __name__ == '__main__':

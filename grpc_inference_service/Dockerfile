@@ -15,7 +15,7 @@ COPY . .
 # Generate gRPC protobuf code
 RUN python generate_protos.py
 
-EXPOSE 50051
+EXPOSE 50051 8000
 
 ENV PYTHONUNBUFFERED=1
 ENV GRPC_PORT=50051

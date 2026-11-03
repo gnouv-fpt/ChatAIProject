@@ -10,6 +10,14 @@ namespace Presentation.Controllers;
 [Route("api/custom-exams")]
 public sealed class CustomExamsController(CustomExamService exams) : ControllerBase
 {
+    [HttpPost("from-template")]
+    public async Task<ActionResult<CustomExamView>> CreateFromTemplate([FromBody] CreateTemplateExam request,
+        CancellationToken cancellationToken)
+    {
+        var created = await exams.CreateTemplateAsync(User.GetUserId(), request, cancellationToken);
+        return CreatedAtAction(nameof(Get), new { examId = created.ExamId }, created);
+    }
+
     [HttpPost]
     public async Task<ActionResult<CustomExamView>> Create([FromBody] CreateCustomExam request,
         CancellationToken cancellationToken)

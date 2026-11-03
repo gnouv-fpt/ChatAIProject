@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, BookMarked, ChevronRight, CircleAlert, History, LoaderCircle, Target, Trash2 } from 'lucide-react';
 import { api } from '../../api';
 import './progress.css';
@@ -27,7 +28,8 @@ const dateTime = (value: string) => new Date(value).toLocaleString('vi-VN', { da
 
 export function ProgressPage() {
   const [banks, setBanks] = useState<BankProgress[] | null>(null);
-  const [selected, setSelected] = useState<string | null>(null);
+  const [search, setSearch] = useSearchParams();
+  const selected = search.get('bank');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -37,7 +39,7 @@ export function ProgressPage() {
     return () => controller.abort();
   }, []);
 
-  if (selected) return <BankDetail bankId={selected} onBack={() => setSelected(null)}/>;
+  if (selected) return <BankDetail bankId={selected} onBack={() => setSearch({})}/>;
   return <main className="progress-page">
     <span className="eyebrow">TIẾN ĐỘ HỌC</span>
     <h1>Bạn đã đi được bao xa?</h1>
@@ -46,7 +48,7 @@ export function ProgressPage() {
     {!banks && !error && <p className="muted progress-loading"><LoaderCircle size={14} className="spin"/>Đang tải tiến độ…</p>}
     {banks?.length === 0 && <div className="progress-empty"><Target size={22}/><strong>Chưa có bộ câu hỏi nào được xuất bản.</strong><span>Khi bộ câu hỏi được xuất bản và bạn bắt đầu ôn luyện, tiến độ sẽ hiện ở đây.</span></div>}
     <div className="bank-list">
-      {banks?.map(bank => <button key={bank.bankId} className="bank-card" onClick={() => setSelected(bank.bankId)}>
+      {banks?.map(bank => <button key={bank.bankId} className="bank-card" onClick={() => setSearch({ bank: bank.bankId })}>
         <div className="bank-title"><strong>{bank.bankName}</strong><small>{bank.licenseClass ? `Hạng ${bank.licenseClass} · ` : ''}phiên bản {bank.bankVersion}{bank.bankStatus === 'Retired' ? ' · đã ngừng dùng' : ''}</small></div>
         <ProgressBar correct={bank.correctQuestions} wrong={bank.wrongQuestions} total={bank.totalQuestions}/>
         <div className="bank-numbers">
@@ -69,7 +71,10 @@ function ProgressBar({ correct, wrong, total }: { correct: number; wrong: number
 
 function BankDetail({ bankId, onBack }: { bankId: string; onBack: () => void }) {
   const [bank, setBank] = useState<BankProgress | null>(null);
-  const [tab, setTab] = useState<Tab>('wrong');
+  const [search, setSearch] = useSearchParams();
+  const requestedTab = search.get('tab');
+  const tab: Tab = requestedTab === 'unseen' || requestedTab === 'bookmarks' || requestedTab === 'history' ? requestedTab : 'wrong';
+  const setTab = (value: Tab) => setSearch({ bank: bankId, tab: value }, { replace: true });
   const [error, setError] = useState('');
   const [version, setVersion] = useState(0);
 
@@ -160,7 +165,8 @@ function TabContent({ tab, bankId, onChanged }: { tab: Tab; bankId: string; onCh
             <div><strong>{attempt.examTemplateName ?? `${attempt.questionCount} câu`}</strong>
               <small>{dateTime(attempt.startedAt)} · {statusLabels[attempt.status] ?? attempt.status} · đã trả lời {attempt.answeredCount}/{attempt.questionCount}</small></div>
             <span className="attempt-result">{attempt.score != null ? `${attempt.score}/${attempt.questionCount}` : '—'}
-              {attempt.isPassed != null && <em className={attempt.isPassed ? 'passed' : 'failed'}>{attempt.isPassed ? 'Đạt' : 'Chưa đạt'}</em>}</span>
+              {attempt.isPassed != null && <em className={attempt.isPassed ? 'passed' : 'failed'}>{attempt.isPassed ? 'Đạt' : 'Chưa đạt'}</em>}
+              {attempt.status === 'Submitted' && <Link className="link-button" to={'/ket-qua/' + attempt.attemptId}>Xem bài làm</Link>}</span>
           </li>)
         : (data.items as (QuestionItem | BookmarkItem)[]).map(question => <li key={question.questionId}>
             <span className="question-number">{question.number}</span>

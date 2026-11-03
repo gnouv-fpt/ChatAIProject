@@ -74,6 +74,8 @@ services:
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
       EMBEDDING_DIMENSION: ${EMBEDDING_DIMENSION:-0}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+      LOG_FILE_PATH: /logs/grpc.jsonl
+    volumes: [app_logs:/logs]
     depends_on: [qdrant]
     healthcheck:
       test: [CMD, python, -c, 'import socket; socket.create_connection(("127.0.0.1",50051),2).close()']
@@ -165,6 +167,9 @@ services:
       Exams__SaveResultPath: internal/user/exam-results
       Jwt__SecretKey: ${JWT_SECRET_KEY:?Set JWT_SECRET_KEY in .env}
       OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4317
+      ASPNETCORE_URLS: http://+:8080
+      Logging__FilePath: /logs/worker.jsonl
+    volumes: [app_logs:/logs]
     depends_on:
       sqlserver: {condition: service_healthy}
       kafka-init: {condition: service_completed_successfully}
@@ -173,26 +178,27 @@ services:
   prometheus:
     image: prom/prometheus:v3.2.1
     profiles: [monitoring]
-    command: [--config.file=/etc/prometheus/prometheus.yml]
-    volumes: [./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro, prometheus_data:/prometheus]
+    command: [--config.file=/etc/prometheus/prometheus.yml, --storage.tsdb.retention.time=7d, --storage.tsdb.retention.size=1GB]
+    volumes: ['./monitoring/${PROMETHEUS_CONFIG_FILE:-prometheus.yml}:/etc/prometheus/prometheus.yml:ro', ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro, prometheus_data:/prometheus]
     networks: [backend]
   loki:
     image: grafana/loki:3.4.2
     profiles: [monitoring]
-    command: [-config.file=/etc/loki/local-config.yaml]
-    volumes: [loki_data:/loki]
+    command: [-config.file=/etc/loki/config.yml]
+    volumes: [./monitoring/loki.yml:/etc/loki/config.yml:ro, loki_data:/loki]
     networks: [backend]
   alloy:
     image: grafana/alloy:v1.8.2
     profiles: [monitoring]
-    command: [run, /etc/alloy/config.alloy]
-    volumes: [./monitoring/config.alloy:/etc/alloy/config.alloy:ro, app_logs:/logs:ro]
+    command: [run, /etc/alloy/config.alloy, --storage.path=/var/lib/alloy]
+    volumes: [./monitoring/config.alloy:/etc/alloy/config.alloy:ro, ./logs:/native-logs:ro, app_logs:/logs:ro, alloy_data:/var/lib/alloy]
     networks: [backend]
   tempo:
     image: grafana/tempo:2.7.2
     profiles: [monitoring]
     command: [-config.file=/etc/tempo.yml]
     volumes: [./monitoring/tempo.yml:/etc/tempo.yml:ro, tempo_data:/var/tempo]
+    ports: ['127.0.0.1:14317:4317']
     networks: [backend]
   kafka-exporter:
     image: danielqsj/kafka-exporter:v1.9.0
@@ -223,3 +229,4 @@ volumes:
   loki_data:
   tempo_data:
   grafana_data:
+  alloy_data:

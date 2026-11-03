@@ -15,6 +15,9 @@ public sealed record BankQuestion(
     string? Explanation = null, string? ExplanationAnimationUrl = null);
 
 public sealed record CreateCustomExam(string CategoryId, string BankVersion, int QuestionCount, int DurationMinutes);
+public sealed record CreateTemplateExam(string ExamCode, int Version);
+public sealed record TemplateQuestionSet(string BankVersion, int DurationMinutes, int PassingScore,
+    IReadOnlyList<BankQuestion> Questions);
 
 public sealed record ExamQuestion(string Id, string Text, IReadOnlyList<ExamOption> Options, IReadOnlyList<ExamAsset>? Assets = null);
 
@@ -25,9 +28,14 @@ public sealed record CustomExamView(
     long Revision,
     string Status,
     IReadOnlyList<ExamQuestion> Questions,
-    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false);
+    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false,
+    Guid? AttemptId = null);
 
 public sealed record ExamScore(Guid AttemptId, Guid ExamId, int Correct, int Total, DateTimeOffset SubmittedAtUtc);
+
+public sealed record ExamAttemptReview(Guid AttemptId, Guid ExamId, Guid BankId, string BankVersion,
+    int Correct, int Total, bool IsPassed, DateTimeOffset SubmittedAtUtc,
+    IReadOnlyList<GradedQuestion> Questions, IReadOnlyList<string> AnimationAllowedHosts, string? LocalAssetOrigin = null);
 
 public sealed record SaveExamResult(
     Guid AttemptId,
@@ -38,7 +46,8 @@ public sealed record SaveExamResult(
     int Correct,
     int Total,
     IReadOnlyList<GradedQuestion> Questions, Guid BankId = default, DateTimeOffset? StartedAtUtc = null,
-    DateTimeOffset? DeadlineUtc = null, int PassingScore = 0, bool FailOnCriticalWrong = false);
+    DateTimeOffset? DeadlineUtc = null, int PassingScore = 0, bool FailOnCriticalWrong = false,
+    string? TemplateCode = null, int? TemplateVersion = null);
 
 public sealed record GradedQuestion(
     string QuestionId,
@@ -54,6 +63,8 @@ public interface IExamQuestionSource
 {
     Task<IReadOnlyList<BankQuestion>> GetQuestionsAsync(
         string categoryId, string bankVersion, int count, CancellationToken cancellationToken);
+    Task<TemplateQuestionSet> GetTemplateAsync(string code, int version, CancellationToken cancellationToken) =>
+        throw new NotSupportedException("Template questions are not configured.");
 }
 
 // User service must enforce a unique AttemptId and return success for an identical retry.
@@ -109,4 +120,5 @@ public sealed record StoredExam(
     string Status,
     DateTimeOffset? SubmittedAtUtc,
     IReadOnlyList<StoredQuestion> Questions,
-    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false);
+    IReadOnlyDictionary<string, string> Answers, Guid BankId = default, int PassingScore = 0, bool FailOnCriticalWrong = false,
+    string? TemplateCode = null, int? TemplateVersion = null);

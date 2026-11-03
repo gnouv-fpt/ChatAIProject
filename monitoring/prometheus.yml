@@ -1,5 +1,7 @@
 global:
   scrape_interval: 15s
+rule_files:
+  - /etc/prometheus/alerts.yml
 scrape_configs:
   - job_name: user-api
     static_configs:
@@ -13,4 +15,9 @@ scrape_configs:
   - job_name: kafka
     static_configs:
       - targets: ['kafka-exporter:9308']
-  # Worker/Khoi add their real metrics endpoints here when delivered.
+  - job_name: worker
+    static_configs:
+      - targets: ['worker-service:8080']
+  - job_name: grpc-inference
+    static_configs:
+      - targets: ['grpc-inference-service:8000']

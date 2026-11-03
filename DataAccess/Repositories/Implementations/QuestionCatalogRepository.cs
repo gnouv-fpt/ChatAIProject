@@ -6,6 +6,9 @@ namespace DataAccess.Repositories.Implementations;
 
 public sealed class QuestionCatalogRepository(ContentDbContext db) : IQuestionCatalogRepository
 {
+    public async Task<IReadOnlyList<TrafficQuestion>> GetByIdsAsync(IReadOnlyList<Guid> ids, CancellationToken ct) =>
+        await db.TrafficQuestions.AsNoTracking().Where(q => ids.Contains(q.Id)).ToListAsync(ct);
+
     public async Task<IReadOnlyList<TrafficQuestion>> GetPublishedAsync(string bankCode, int bankVersion,
         Guid? categoryId, CancellationToken ct) =>
         await db.TrafficQuestions.AsNoTracking().Where(q => q.BankCode == bankCode && q.BankVersion == bankVersion &&

@@ -74,7 +74,7 @@
     },
     {
       "id": 4,
-      "title": "Chat latency p95",
+      "title": "HTTP latency p95 by service",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -88,7 +88,7 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95,sum by(le)(rate(chat_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (job,le) (rate(http_server_request_duration_seconds_bucket[5m])))",
           "refId": "A"
         }
       ]
@@ -116,7 +116,7 @@
     },
     {
       "id": 6,
-      "title": "Durable events waiting for relay",
+      "title": "Exam events confirmed by Kafka",
       "type": "stat",
       "datasource": {
         "type": "prometheus",
@@ -130,15 +130,15 @@
       },
       "targets": [
         {
-          "expr": "chat_outbox_pending",
+          "expr": "sum(increase(exam_event_broker_confirmed_total[30m]))",
           "refId": "A"
         }
       ]
     },
     {
       "id": 7,
-      "title": "Quota waiting for settlement",
-      "type": "stat",
+      "title": "Exam events processed / duplicate / retry / failed",
+      "type": "timeseries",
       "datasource": {
         "type": "prometheus",
         "uid": "prometheus"
@@ -151,8 +151,24 @@
       },
       "targets": [
         {
-          "expr": "chat_quota_unsettled",
+          "expr": "sum by (job) (rate(exam_event_processed_total[5m]))",
+          "legendFormat": "processed",
           "refId": "A"
+        },
+        {
+          "expr": "sum by (job) (rate(exam_event_duplicate_total[5m]))",
+          "legendFormat": "duplicate",
+          "refId": "B"
+        },
+        {
+          "expr": "sum by (job) (rate(exam_event_retry_total[5m]))",
+          "legendFormat": "retry",
+          "refId": "C"
+        },
+        {
+          "expr": "sum by (job) (rate(exam_event_failed_total[5m]))",
+          "legendFormat": "failed",
+          "refId": "D"
         }
       ]
     },
@@ -172,8 +188,9 @@
       },
       "targets": [
         {
-          "expr": "sum by(consumergroup,topic)(kafka_consumergroup_lag)",
-          "refId": "A"
+          "expr": "kafka_consumergroup_lag",
+          "refId": "A",
+          "legendFormat": "{{consumergroup}} / {{topic}} / {{partition}}"
         }
       ]
     },
@@ -193,7 +210,91 @@
       },
       "targets": [
         {
-          "expr": "{job=\"traffic-rag\"}",
+          "expr": "{job=\"traffic-rag\"} | json",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "gRPC request rate",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 37,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum by (method,status) (rate(grpc_requests_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "gRPC latency p95",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 37,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95,sum by (method,le) (rate(grpc_request_duration_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Kafka events received",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 44,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "sum by (topic) (rate(exam_event_received_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Kafka exporter available",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 44,
+        "w": 12,
+        "h": 7
+      },
+      "targets": [
+        {
+          "expr": "up{job=\"kafka\"}",
           "refId": "A"
         }
       ]

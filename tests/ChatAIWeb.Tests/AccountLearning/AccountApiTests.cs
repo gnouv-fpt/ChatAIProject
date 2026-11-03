@@ -159,9 +159,10 @@ public sealed class AccountApiTests : IClassFixture<SqlServerDatabase>, IAsyncLi
         var user = await RegisterAsync(client);
         var userId = Guid.Parse(user.GetProperty("user").GetProperty("id").GetString()!);
         // The complete Content -> Redis -> User history/progress flow is covered by C2.Integration.Tests.
-        // Legacy bank/bookmark tables are intentionally absent from this host.
-        Assert.Equal(HttpStatusCode.NotImplemented,
-            (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/bookmarks", user))).StatusCode);
+        // An empty User bookmark list does not require a reachable Content service.
+        var bookmarks = await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/bookmarks", user));
+        Assert.Equal(HttpStatusCode.OK, bookmarks.StatusCode);
+        Assert.Equal(0, (await bookmarks.Content.ReadFromJsonAsync<JsonElement>()).GetProperty("totalCount").GetInt32());
         var history = await (await client.SendAsync(Authorized(HttpMethod.Get, "/api/learning/history?mode=Exam", user)))
             .Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(0, history.GetProperty("totalCount").GetInt32());

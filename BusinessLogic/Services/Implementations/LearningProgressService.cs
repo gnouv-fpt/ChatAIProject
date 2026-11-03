@@ -149,10 +149,12 @@ public sealed class LearningProgressService : ILearningProgressService
     {
         if (_bookmarkRepository is null) throw new AppException(501, "Bookmark chưa thuộc schema C2 hiện hành.");
         (pageIndex, pageSize) = NormalizePage(pageIndex, pageSize);
-        IReadOnlyCollection<Guid>? bankQuestionIds = null;
+        var bookmarkedIds = await _bookmarkRepository.GetQuestionIdsAsync(userId, cancellationToken);
+        var visibleQuestions = await _contentCatalog.GetQuestionsByIdsAsync(bookmarkedIds, cancellationToken);
+        IReadOnlyCollection<Guid> bankQuestionIds = visibleQuestions.Select(q => q.Id).ToList();
         if (bankId is { } id)
         {
-            bankQuestionIds = (await _contentCatalog.GetQuestionsAsync(id, cancellationToken)).Select(q => q.Id).ToList();
+            bankQuestionIds = visibleQuestions.Where(q => q.BankId == id).Select(q => q.Id).ToList();
         }
 
         var (rows, totalCount) = await _bookmarkRepository.GetPagedAsync(
@@ -226,7 +228,12 @@ public sealed class LearningProgressService : ILearningProgressService
         }
 
         _bookmarkRepository.Remove(bookmark);
-        await _bookmarkRepository.SaveChangesAsync(cancellationToken);
+        try { await _bookmarkRepository.SaveChangesAsync(cancellationToken); }
+        catch (DbUpdateConcurrencyException)
+        {
+            // A concurrent request already removed this user's bookmark.
+            if (await _bookmarkRepository.AnyAsync(b => b.UserId == userId && b.QuestionId == questionId, cancellationToken)) throw;
+        }
     }
 
     private async Task<BankProgressDto> BuildProgressAsync(

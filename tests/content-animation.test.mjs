@@ -27,3 +27,13 @@ test('review links only use an exact configured HTTPS host without answer/query 
     'https://animations.example.org:8443/lesson.html']) assert.equal(isAllowedAnimationUrl(url, hosts), false, url);
   assert.equal(isAllowedAnimationUrl('https://animations.example.org/lesson.html', []), false);
 });
+
+test('local review links need the exact loopback origin supplied by the development server', () => {
+  const local = 'http://localhost:8765';
+  assert.equal(isAllowedAnimationUrl(local + '/q544.html', []), false);
+  assert.equal(isAllowedAnimationUrl(local + '/q544.html', [], local), true);
+  for (const value of ['http://localhost:8766/q544.html', 'http://127.0.0.1:8765/q544.html',
+    'http://localhost.evil.org:8765/q544.html', local + '/q544.html?answer=1', local + '/%2e%2e/q544.html'])
+    assert.equal(isAllowedAnimationUrl(value, [], local), false, value);
+  assert.equal(isAllowedAnimationUrl('http://example.org/q544.html', [], 'http://example.org'), false);
+});

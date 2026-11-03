@@ -13,13 +13,15 @@ public static class ContentServiceCollectionExtensions
     {
         var path = configuration["Content:CrawlJobStoragePath"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "crawl-jobs");
         services.AddScoped<IContentBankRepository, SqlContentBankRepository>();
+        services.AddScoped<IExamTemplateRepository, ExamTemplateRepository>();
+        services.AddScoped<ExamTemplateService>();
         services.AddSingleton<ICrawlJobRepository>(new FileCrawlJobRepository(path));
         services.AddScoped<ICrawlJobService, CrawlJobService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
         services.AddScoped<IContentMaintenanceService, ContentMaintenanceService>();
         services.AddScoped<IDocumentIndexService, DocumentIndexService>();
-        services.AddSingleton(new AnimationSettings {
-            AllowedHosts = configuration.GetSection("Content:AnimationAllowedHosts").Get<string[]>() ?? [] });
+        services.AddScoped<LegalCorpusService>();
+        services.AddScoped<LegalCorpusExtensionService>();
         services.AddScoped<IContentManifestService, ContentManifestService>();
         services.AddHttpClient<ILegalSourcePreviewService, LegalSourcePreviewService>(client => {
             client.Timeout = TimeSpan.FromSeconds(30);

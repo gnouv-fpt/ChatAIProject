@@ -28,10 +28,13 @@ builder.Services.AddOpenTelemetry().ConfigureResource(r => r.AddService("api-gat
     .WithTracing(t => t.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddOtlpExporter())
     .WithMetrics(m => m.AddAspNetCoreInstrumentation().AddHttpClientInstrumentation().AddPrometheusExporter());
 builder.Logging.AddProvider(new Presentation.Infrastructure.SafeFileLoggerProvider(
-    builder.Configuration["Logging:FilePath"] ?? "logs/gateway.jsonl"));
+    builder.Configuration["Logging:FilePath"] ?? "logs/gateway.jsonl",
+    builder.Configuration.GetValue<long?>("Logging:MaxFileBytes") ?? 10 * 1024 * 1024,
+    builder.Configuration.GetValue<int?>("Logging:RetentionDays") ?? 7));
 builder.WebHost.ConfigureKestrel(k => k.Limits.MaxRequestBodySize = 6 * 1024 * 1024);
 var app = builder.Build();
 app.UseExceptionHandler();
+app.UseMiddleware<Presentation.Infrastructure.RequestTelemetryMiddleware>();
 app.Use(async (context, next) =>
 {
     // Internal service contracts are never exposed through the public Gateway.
