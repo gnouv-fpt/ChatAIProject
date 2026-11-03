@@ -2,11 +2,13 @@
 
 Owner: **Vương**. Đây là contract P0 đã có code trên PRN-VUONG-dev; không suy ra PRN-dev hoặc nhánh cá nhân khác đã có schema này trước khi merge. Plan và ownership vẫn ở [task.md](../task.md).
 
+**Bổ sung local 02/11/2026:** người dùng đã cho phép thực hiện phần User schema của Vương để hoàn thiện bookmark. Có migration tăng thêm `20261102035546_UserQuestionBookmarks`; không thay migration cũ hoặc Content schema. Bằng chứng và phạm vi: [C2 finalization local](C2-FINALIZATION-LOCAL-2026-11-02.md).
+
 ## 1. Hai SQL DB độc lập
 
 | Kho | Context / connection | Bảng vật lý |
 | --- | --- | --- |
-| TrafficUserDb | UserDbContext / UserConnection | Users, UserChatSessions, UserChatMessages, ExamAttempts |
+| TrafficUserDb | UserDbContext / UserConnection | Users, UserChatSessions, UserChatMessages, ExamAttempts, QuestionBookmarks |
 | TrafficContentDb | ContentDbContext / ContentConnection | LegalDocuments, LegalDocumentChunks, TrafficQuestionCategories, TrafficQuestions, ExamTemplates, ExamTemplateItems |
 | Qdrant | AI service Khôi | Vectors, IDs và metadata theo proto/index contract |
 | Redis | Module đề custom Khánh | User-owned exam snapshots/state/deadline/TTL; SQL bank là nguồn chính |
@@ -26,12 +28,13 @@ UserDbContext/ContentDbContext là contexts runtime. ChatAIWebDbContext và migr
 - ExamAttempts: Id (stable attempt/idempotency key), UserId, ExamCode, ExamVersion, Score, IsPassed, TimeSpentSeconds, UserAnswersJson, ExamSnapshotJson, SubmissionHash, SubmittedAt.
 - Attempt chỉ FK UserId; ExamCode/version tham chiếu logic tới đề mẫu/custom. Score/time không âm; version dương; hai JSON fields phải hợp lệ. Cùng attempt ID không được insert lần hai.
 - Attempt JSON phải giữ đủ câu/options/permutation/answer/profile/version cần xem lại sau Redis expiry. Bảo/Khánh định nghĩa DTO sinh viên; không trả server answer snapshot qua API làm bài.
+- QuestionBookmarks: Id, UserId, QuestionId, CreatedAt (UTC); unique (UserId, QuestionId), index (UserId, CreatedAt). Chỉ FK UserId → Users; QuestionId là ID logic của Content, không navigation/FK xuyên DB. PUT/DELETE idempotent, truy vấn theo user; chỉ hiển thị câu thuộc catalog đang xuất bản.
 - Token quota source đang được quyết toán cùng transaction hoàn tất chat trong User DB, không cần Kafka/Worker. Replay không trừ lại. Legacy event columns được giữ để review dữ liệu cũ; chat mới không phát ChatCompletedEvent trừ quota.
 
 ### Content/Exam DB
 
 - LegalDocuments/LegalDocumentChunks giữ field crawler/RAG sẵn có, thêm document Version (mặc định CLR 1), ContentHash. DocumentNumber unique, version dương. Chunk.VectorId là ID tương ứng Qdrant.
-- TrafficQuestionCategories: Id, Type (SIGN/SCENARIO theo nguồn), SubCategoryCode unique, Name. TotalQuestions derive bằng COUNT, không lưu số đếm dễ lệch.
+- TrafficQuestionCategories: Id, Type (RULES/CULTURE/DRIVING/MECHANICS/SIGN/SCENARIO theo sáu chương nguồn CSGT 2025), SubCategoryCode unique, Name. Type vẫn là string trong schema; whitelist sáu giá trị nằm ở nghiệp vụ import. TotalQuestions derive bằng COUNT, không lưu số đếm dễ lệch.
 - TrafficQuestions: Id, CategoryId, nullable LegalDocumentChunkId (hai FK nội bộ), BankCode, BankVersion, QuestionCode, IsParalysisQuestion, AllowOptionShuffle, QuestionPayloadJson, CorrectAnswerKey, ExplanationText, ExplanationAnimationUrl, SourceUrl, IsPublished, CreatedAt.
 - Unique (BankCode, BankVersion, QuestionCode); BankVersion > 0; payload là JSON hợp lệ. Animation là URL HTTPS tới HTML được host riêng. Business service Phúc validate URL/key/assets trước publish; có column chưa có nghĩa đã deploy.
 - Payload đề xuất: content, options [{key,text}], img_url hoặc assets và metadata nguồn. Key phương án ổn định, không dùng vị trí hiển thị để chấm.
