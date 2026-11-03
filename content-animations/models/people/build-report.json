@@ -1,0 +1,14 @@
+[
+  {
+    "profile": "pedestrian",
+    "maxLimbTargetErrorMetres": 0
+  },
+  {
+    "profile": "cyclist",
+    "maxLimbTargetErrorMetres": 1.9989784166495806e-06
+  },
+  {
+    "profile": "motorcyclist",
+    "maxLimbTargetErrorMetres": 1.0088867473489497e-06
+  }
+]

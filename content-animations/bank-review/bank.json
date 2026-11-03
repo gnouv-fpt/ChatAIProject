@@ -1,0 +1,4958 @@
+{
+  "id": "csgt-600-2025-sa-hinh-review-v1",
+  "title": "115 câu sa hình · Bản nháp để duyệt",
+  "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf",
+  "sourceSha256": "d473be679b53458a33acc52057f3a4fe532ea489e91d88fb86789073cd98a9c5",
+  "questions": [
+    {
+      "number": 486,
+      "prompt": "Theo hướng mũi tên, xe nào chấp hành đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Chỉ xe con.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/486/image-1.jpeg",
+          "width": 541,
+          "height": 303,
+          "pdfPage": 129,
+          "pdfBBox": [
+            85.05000305175781,
+            136.74998474121094,
+            545.4500122070312,
+            346.79998779296875
+          ],
+          "sha256": "5bed2890841dfdf45a5e51cc7b12ab1b8eab472df18b1f38fd26bce798d8edc5"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/486/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=129",
+      "pdfPage": 129,
+      "status": "draft"
+    },
+    {
+      "number": 487,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe khách, xe con, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe mô tô, xe khách, xe con.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe khách, xe tải, xe con, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe mô tô, xe khách, xe tải, xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/487/image-1.jpeg",
+          "width": 638,
+          "height": 362,
+          "pdfPage": 129,
+          "pdfBBox": [
+            85.05000305175781,
+            443.78997802734375,
+            539.5499877929688,
+            662.72998046875
+          ],
+          "sha256": "9da3bb1097c55647f425270f4dfd3733620ea3d32e993eec9b0803358acd2f70"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/487/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=129",
+      "pdfPage": 129,
+      "status": "draft"
+    },
+    {
+      "number": 488,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe con, xe tải, xe khách.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe khách, xe con, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe tải, xe khách, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe con, xe công an đi làm nhiệm vụ khẩn cấp, xe tải, xe khách.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/488/image-1.jpeg",
+          "width": 497,
+          "height": 281,
+          "pdfPage": 130,
+          "pdfBBox": [
+            85.05000305175781,
+            93.719970703125,
+            539.6500244140625,
+            326.469970703125
+          ],
+          "sha256": "378947225d52a524d37ca9da04f9b048708496cd4eec9ef0d777a71994ca98d3"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/488/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=130",
+      "pdfPage": 130,
+      "status": "draft"
+    },
+    {
+      "number": 489,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe công an đi làm nhiệm vụ khẩn cấp, xe khách, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe khách, xe con, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe con, xe tải, xe khách.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe tải, xe khách, xe con.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/489/image-1.jpeg",
+          "width": 493,
+          "height": 313,
+          "pdfPage": 130,
+          "pdfBBox": [
+            85.05000305175781,
+            441.9699401855469,
+            539.52001953125,
+            666.8199462890625
+          ],
+          "sha256": "a6bf327621a1906c3825a0f01b2ce08d14bf86f8f759f2b7a07e027560a3c29b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/489/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=130",
+      "pdfPage": 130,
+      "status": "draft"
+    },
+    {
+      "number": 490,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe con, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô, xe con, xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Xe con, xe mô tô, xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/490/image-1.jpeg",
+          "width": 496,
+          "height": 280,
+          "pdfPage": 131,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72996520996094,
+            542.7999877929688,
+            340.27996826171875
+          ],
+          "sha256": "0cdcad0e2ce0f8d1e8fe08624cbc04f1a637100d97fbcd557ce740c5a5e269e6"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/490/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=131",
+      "pdfPage": 131,
+      "status": "draft"
+    },
+    {
+      "number": 491,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/491/image-1.jpeg",
+          "width": 496,
+          "height": 297,
+          "pdfPage": 131,
+          "pdfBBox": [
+            85.05000305175781,
+            437.260009765625,
+            542.8300170898438,
+            704.510009765625
+          ],
+          "sha256": "e88436b7f75ef9bb4fc1c03e1d6a369dc8cc3e727f0b64a1dd202f16e53f6756"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/491/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=131",
+      "pdfPage": 131,
+      "status": "draft"
+    },
+    {
+      "number": 492,
+      "prompt": "Trường hợp này xe nào được quyền đi trước?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/492/image-1.jpeg",
+          "width": 498,
+          "height": 278,
+          "pdfPage": 132,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72994995117188,
+            545.9700317382812,
+            353.02996826171875
+          ],
+          "sha256": "714023d109619e8a9fc68ad6ef11812a5adb898b9068f29b28b47a17f3285bf6"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/492/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=132",
+      "pdfPage": 132,
+      "status": "draft"
+    },
+    {
+      "number": 493,
+      "prompt": "Thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (A), xe cứu thương đi làm nhiệm vụ cấp cứu, xe con (B).",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe cứu thương đi làm nhiệm vụ cấp cứu, xe con (B), xe con (A).",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con (B), xe con (A), xe cứu thương đi làm nhiệm vụ cấp cứu.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/493/image-1.jpeg",
+          "width": 498,
+          "height": 277,
+          "pdfPage": 132,
+          "pdfBBox": [
+            85.05000305175781,
+            432.1999816894531,
+            546.010009765625,
+            688.5999755859375
+          ],
+          "sha256": "b801060daa9859a01c0b46f4ff2d2cafdca7f43a279c89f62979ccfe4759729e"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/493/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=132",
+      "pdfPage": 132,
+      "status": "draft"
+    },
+    {
+      "number": 494,
+      "prompt": "Thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe cứu thương đi làm nhiệm vụ cấp cứu, xe chữa cháy đi làm nhiệm vụ chữa cháy, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe chữa cháy đi làm nhiệm vụ chữa cháy, xe cứu thương đi làm nhiệm vụ cấp cứu, xe con.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe cứu thương đi làm nhiệm vụ cấp cứu, xe con, xe chữa cháy đi làm nhiệm vụ chữa cháy.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/494/image-1.jpeg",
+          "width": 496,
+          "height": 279,
+          "pdfPage": 133,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            543.6300048828125,
+            333.15997314453125
+          ],
+          "sha256": "9f7eafd420341c55c4cbf0fb83b0569a33c0a4343eaed4acb4c343e276b06425"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/494/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=133",
+      "pdfPage": 133,
+      "status": "draft"
+    },
+    {
+      "number": 495,
+      "prompt": "Xe nào được quyền đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe cứu thương đi làm nhiệm vụ cấp cứu.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/495/image-1.jpeg",
+          "width": 495,
+          "height": 259,
+          "pdfPage": 133,
+          "pdfBBox": [
+            85.05000305175781,
+            432.20001220703125,
+            543.5800170898438,
+            676.75
+          ],
+          "sha256": "782ca08d944bcf0373a6005940ccdff9c07dcff35c6a7575aceb1a413832897d"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/495/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=133",
+      "pdfPage": 133,
+      "status": "draft"
+    },
+    {
+      "number": 496,
+      "prompt": "Theo hướng mũi tên, xe nào phải nhường đường đi cuối cùng qua nơi giao nhau này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/496/image-1.jpeg",
+          "width": 505,
+          "height": 284,
+          "pdfPage": 134,
+          "pdfBBox": [
+            85.05000305175781,
+            93.71994018554688,
+            540.7000122070312,
+            349.969970703125
+          ],
+          "sha256": "ba4a112da967c6187fe7606b5d59af91f2e5e5ee7c6c4f74f4d75cf4ddcab1b2"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/496/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=134",
+      "pdfPage": 134,
+      "status": "draft"
+    },
+    {
+      "number": 497,
+      "prompt": "Theo hướng mũi tên, xe nào phải nhường đường là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/497/image-1.jpeg",
+          "width": 497,
+          "height": 281,
+          "pdfPage": 134,
+          "pdfBBox": [
+            85.05000305175781,
+            447.2099914550781,
+            540.6599731445312,
+            704.8099975585938
+          ],
+          "sha256": "1b4861b1989f03afada8b58597a911d58dac1104645cc5d926a594cf9c8265b9"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/497/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=134",
+      "pdfPage": 134,
+      "status": "draft"
+    },
+    {
+      "number": 498,
+      "prompt": "Xe nào được quyền đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe chữa cháy đi làm nhiệm vụ chữa cháy.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/498/image-1.jpeg",
+          "width": 636,
+          "height": 342,
+          "pdfPage": 135,
+          "pdfBBox": [
+            85.05000305175781,
+            95.71998596191406,
+            545.4000244140625,
+            343.2699890136719
+          ],
+          "sha256": "fa8db758f92f2ff09f46fcbcfa8074084004922b5fa29d0074cd8efd8664865a"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/498/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=135",
+      "pdfPage": 135,
+      "status": "draft"
+    },
+    {
+      "number": 499,
+      "prompt": "Theo tín hiệu đèn, xe nào được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con và xe khách.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe mô tô.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/499/image-1.jpeg",
+          "width": 634,
+          "height": 356,
+          "pdfPage": 135,
+          "pdfBBox": [
+            85.05000305175781,
+            421.7499694824219,
+            545.3699951171875,
+            680.1499633789062
+          ],
+          "sha256": "cbcc68f36d8a8b91fef2de9ba3add8d56ce66e874b1653b4083b76edbc2a9478"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/499/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=135",
+      "pdfPage": 135,
+      "status": "draft"
+    },
+    {
+      "number": 500,
+      "prompt": "Theo tín hiệu đèn, xe nào đi là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe tải, xe mô tô.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/500/image-1.jpeg",
+          "width": 607,
+          "height": 341,
+          "pdfPage": 136,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            543.6500244140625,
+            346.3599853515625
+          ],
+          "sha256": "57c1f4fae483a3a4b930526d6abb348e05c0449de2074a57f6d5015fba8de260"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/500/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=136",
+      "pdfPage": 136,
+      "status": "draft"
+    },
+    {
+      "number": 501,
+      "prompt": "Trong trường hợp này xe nào được quyền đi trước?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe quân sự đi làm nhiệm vụ khẩn cấp.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/501/image-1.jpeg",
+          "width": 482,
+          "height": 269,
+          "pdfPage": 136,
+          "pdfBBox": [
+            85.05000305175781,
+            443.3600158691406,
+            543.5800170898438,
+            699.260009765625
+          ],
+          "sha256": "43c6fc4652f59a1d243f3576b5da1cf2f8c180f280528faf073cd95392b47522"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/501/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=136",
+      "pdfPage": 136,
+      "status": "draft"
+    },
+    {
+      "number": 502,
+      "prompt": "Theo tín hiệu đèn, xe tải đi theo hướng nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 2, 3, 4.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Chỉ hướng 1.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 2.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Hướng 3 và 4.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/502/image-1.jpeg",
+          "width": 632,
+          "height": 355,
+          "pdfPage": 137,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            539.6400146484375,
+            330.5599670410156
+          ],
+          "sha256": "2c1e03fcc3ae4f16dd2e06547c5fbb6e207d1ab2849acdbb8fb754a8cabea44f"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/502/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=137",
+      "pdfPage": 137,
+      "status": "draft"
+    },
+    {
+      "number": 503,
+      "prompt": "Các xe đi theo hướng mũi tên, những xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe tải, xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe con, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe khách, xe con, xe mô tô.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/503/image-1.jpeg",
+          "width": 541,
+          "height": 303,
+          "pdfPage": 137,
+          "pdfBBox": [
+            85.05000305175781,
+            427.5499572753906,
+            539.6300048828125,
+            682.1499633789062
+          ],
+          "sha256": "5bed2890841dfdf45a5e51cc7b12ab1b8eab472df18b1f38fd26bce798d8edc5"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/503/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=137",
+      "pdfPage": 137,
+      "status": "draft"
+    },
+    {
+      "number": 504,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe tải, xe mô tô, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe khách, xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô, xe tải, xe khách, xe con.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Xe mô tô, xe tải, xe con, xe khách.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/504/image-1.jpeg",
+          "width": 440,
+          "height": 248,
+          "pdfPage": 138,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            525.780029296875,
+            332.3799743652344
+          ],
+          "sha256": "14b40fa43d4c5221525d8df5b1aabd62c38586aa52d3725015ad081548c7750c"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/504/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=138",
+      "pdfPage": 138,
+      "status": "draft"
+    },
+    {
+      "number": 505,
+      "prompt": "Trong trường hợp này xe nào đỗ vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe con và mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cả ba xe.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe con và xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/505/image-1.jpeg",
+          "width": 439,
+          "height": 246,
+          "pdfPage": 138,
+          "pdfBBox": [
+            85.05000305175781,
+            429.3599853515625,
+            525.8300170898438,
+            676.3599853515625
+          ],
+          "sha256": "aabd83fff8d10ad5a72a90a308e2461ce9ae04c157ebd5a2d9ba70fdb7a87280"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/505/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=138",
+      "pdfPage": 138,
+      "status": "draft"
+    },
+    {
+      "number": 506,
+      "prompt": "Theo hướng mũi tên, xe nào được quyền đi trước?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con (B).",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe con (A).",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/506/image-1.jpeg",
+          "width": 435,
+          "height": 248,
+          "pdfPage": 139,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            532.7999877929688,
+            349.0599670410156
+          ],
+          "sha256": "02f4f59e18b0e0c3d66af1b1de69dc40ac51ef0f02a9d366298cf047ad337c06"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/506/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=139",
+      "pdfPage": 139,
+      "status": "draft"
+    },
+    {
+      "number": 507,
+      "prompt": "Theo hướng mũi tên, những hướng nào xe gắn máy được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả ba hướng.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Chỉ hướng 1 và 3.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Chỉ hướng 1.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/507/image-1.jpeg",
+          "width": 555,
+          "height": 300,
+          "pdfPage": 139,
+          "pdfBBox": [
+            85.05000305175781,
+            446.699951171875,
+            532.75,
+            688.699951171875
+          ],
+          "sha256": "e6592b97f70ab14791141474718187e7a3190f80ed30c4599de6b69efac58ec5"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/507/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=139",
+      "pdfPage": 139,
+      "status": "draft"
+    },
+    {
+      "number": 508,
+      "prompt": "Xe nào đỗ vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả hai xe.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Không xe nào vi phạm.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Chỉ xe mô tô vi phạm.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Chỉ xe tải vi phạm.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/508/image-1.jpeg",
+          "width": 441,
+          "height": 244,
+          "pdfPage": 140,
+          "pdfBBox": [
+            85.05000305175781,
+            87.78997802734375,
+            525.3300170898438,
+            331.3899841308594
+          ],
+          "sha256": "03a9b44774c27f61f0a20a6c23ae9e2bcbc9dc59ff8bc053d1dc5f09a53876c8"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/508/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=140",
+      "pdfPage": 140,
+      "status": "draft"
+    },
+    {
+      "number": 509,
+      "prompt": "Xe nào đỗ vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chỉ xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Chỉ xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cả ba xe.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Chỉ xe mô tô và xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/509/image-1.jpeg",
+          "width": 438,
+          "height": 247,
+          "pdfPage": 140,
+          "pdfBBox": [
+            85.05000305175781,
+            438.30999755859375,
+            519.9500122070312,
+            683.5599975585938
+          ],
+          "sha256": "9878690eb44548dae68e84d7cdd2f71bec8d6d593fce0b245ea38578f259a7c1"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/509/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=140",
+      "pdfPage": 140,
+      "status": "draft"
+    },
+    {
+      "number": 510,
+      "prompt": "Xe tải kéo xe mô tô ba bánh như hình này có đúng quy tắc giao thông không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đúng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Không đúng.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/510/image-1.jpeg",
+          "width": 438,
+          "height": 245,
+          "pdfPage": 141,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72999572753906,
+            542.6300048828125,
+            349.67999267578125
+          ],
+          "sha256": "2d21f5950cdc91f4a9888a0cf86dd2d24edc70702f2e58f50dd8811cac7b6a13"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/510/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=141",
+      "pdfPage": 141,
+      "status": "draft"
+    },
+    {
+      "number": 511,
+      "prompt": "Theo hướng mũi tên, hướng nào xe không được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 2 và 5.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Chỉ hướng 1.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/511/image-1.jpeg",
+          "width": 441,
+          "height": 249,
+          "pdfPage": 141,
+          "pdfBBox": [
+            85.05000305175781,
+            428.70001220703125,
+            542.6400146484375,
+            696.25
+          ],
+          "sha256": "2769ee2d34787cd820c669b2a271226061c3de491f2800739c15857d84946e1b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/511/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=141",
+      "pdfPage": 141,
+      "status": "draft"
+    },
+    {
+      "number": 512,
+      "prompt": "Theo hướng mũi tên, những hướng nào xe ô tô không được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 1 và 2.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 3.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Hướng 2 và 3.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/512/image-1.jpeg",
+          "width": 442,
+          "height": 248,
+          "pdfPage": 142,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20997619628906,
+            539.6099853515625,
+            330.2599792480469
+          ],
+          "sha256": "789d8afd2c97a9bfa2109657e2ff6fcd70d303f71bc6949b1d697856dcd78ccd"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/512/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=142",
+      "pdfPage": 142,
+      "status": "draft"
+    },
+    {
+      "number": 513,
+      "prompt": "Xe nào vượt đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả hai xe đều đúng.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe khách.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/513/image-1.jpeg",
+          "width": 441,
+          "height": 250,
+          "pdfPage": 142,
+          "pdfBBox": [
+            85.05000305175781,
+            427.25,
+            539.5700073242188,
+            676.75
+          ],
+          "sha256": "b7197c91d658aba80ddabc74b7b47a6cc55bc37425b1131253876a728e771956"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/513/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=142",
+      "pdfPage": 142,
+      "status": "draft"
+    },
+    {
+      "number": 514,
+      "prompt": "Theo hướng mũi tên, gặp biển hướng đi phải theo đặt trước ngã tư, những hướng nào xe được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 2 và 3.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1, 2 và 3.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 3.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/514/image-1.jpeg",
+          "width": 438,
+          "height": 247,
+          "pdfPage": 143,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72994995117188,
+            541.6699829101562,
+            351.22998046875
+          ],
+          "sha256": "986b92820d001a4171377acb2a824dd36fae899e6ac8a9205f3d2fe7e911fa67"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/514/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=143",
+      "pdfPage": 143,
+      "status": "draft"
+    },
+    {
+      "number": 515,
+      "prompt": "Xe kéo nhau như hình này có vi phạm quy tắc giao thông không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Không.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Vi phạm.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/515/image-1.jpeg",
+          "width": 440,
+          "height": 243,
+          "pdfPage": 143,
+          "pdfBBox": [
+            85.05000305175781,
+            448.7099914550781,
+            541.6199951171875,
+            700.8599853515625
+          ],
+          "sha256": "10dee194d1df2e62da539f4a0f54fad2722578fd24acd92c411d34c91dc4461d"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/515/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=143",
+      "pdfPage": 143,
+      "status": "draft"
+    },
+    {
+      "number": 516,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/516/image-1.jpeg",
+          "width": 424,
+          "height": 240,
+          "pdfPage": 144,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            540.5700073242188,
+            349.3599853515625
+          ],
+          "sha256": "82c2fdc9245dd599ea2ea868574f64b6f367c726e1a3483cd6055f53f2830207"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/516/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=144",
+      "pdfPage": 144,
+      "status": "draft"
+    },
+    {
+      "number": 517,
+      "prompt": "Xe nào được quyền đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe mô tô.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/517/image-1.jpeg",
+          "width": 571,
+          "height": 322,
+          "pdfPage": 144,
+          "pdfBBox": [
+            85.05000305175781,
+            430.17999267578125,
+            540.6199951171875,
+            693.47998046875
+          ],
+          "sha256": "fb6b0047a278530b04e8c483078657cbc7bc968397c976fcf385a958a1e0ae1c"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/517/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=144",
+      "pdfPage": 144,
+      "status": "draft"
+    },
+    {
+      "number": 518,
+      "prompt": "Xe kéo nhau trong trường hợp này đúng quy định không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Không đúng.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Đúng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/518/image-1.jpeg",
+          "width": 559,
+          "height": 314,
+          "pdfPage": 145,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            539.7000122070312,
+            351.1099853515625
+          ],
+          "sha256": "56c3cbbd3a8e8b8f66889f74d1f29a13d64d25a15c70abcb1a65c1d24d74def3"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/518/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=145",
+      "pdfPage": 145,
+      "status": "draft"
+    },
+    {
+      "number": 519,
+      "prompt": "Theo hướng mũi tên, những hướng nào xe ô tô con được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 1.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1, 3 và 4.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Hướng 2, 3 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Cả bốn hướng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/519/image-1.jpeg",
+          "width": 441,
+          "height": 248,
+          "pdfPage": 145,
+          "pdfBBox": [
+            85.05000305175781,
+            411.0799865722656,
+            539.6500244140625,
+            666.72998046875
+          ],
+          "sha256": "f4b94e7607fa26e998ee5a16c9a7cc9d13f7f4ddec44c91d8edc54bba5d02e73"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/519/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=145",
+      "pdfPage": 145,
+      "status": "draft"
+    },
+    {
+      "number": 520,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (A), xe mô tô, xe con (B), xe đạp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con (B), xe đạp, xe mô tô, xe con (A).",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con (A), xe con (B), xe mô tô + xe đạp.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe mô tô + xe đạp, xe con (A), xe con (B).",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/520/image-1.jpeg",
+          "width": 441,
+          "height": 250,
+          "pdfPage": 146,
+          "pdfBBox": [
+            85.05000305175781,
+            93.719970703125,
+            538.6500244140625,
+            338.3199768066406
+          ],
+          "sha256": "a6790c44e59fc01793db5850d35f12d74ba9798166a96d8727e5c772b99a623d"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/520/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=146",
+      "pdfPage": 146,
+      "status": "draft"
+    },
+    {
+      "number": 521,
+      "prompt": "Theo hướng mũi tên, những hướng nào xe tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chỉ hướng 1.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1, 3 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1, 2 và 3.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Cả bốn hướng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/521/image-1.jpeg",
+          "width": 440,
+          "height": 246,
+          "pdfPage": 146,
+          "pdfBBox": [
+            85.05000305175781,
+            435.3099670410156,
+            538.5599975585938,
+            676.9099731445312
+          ],
+          "sha256": "055ec8abfa55c47b1d942f1b6da8bdcecf160839469a766c499bb84bd37aac5b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/521/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=146",
+      "pdfPage": 146,
+      "status": "draft"
+    },
+    {
+      "number": 522,
+      "prompt": "Những hướng nào xe tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả ba hướng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 2 và 3.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/522/image-1.jpeg",
+          "width": 440,
+          "height": 249,
+          "pdfPage": 147,
+          "pdfBBox": [
+            85.05000305175781,
+            75.219970703125,
+            544.6500244140625,
+            335.3099670410156
+          ],
+          "sha256": "8f21cbcef3de1b90d36e9ff49df180bb24061832190168d988dc061a7340f2ea"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/522/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=147",
+      "pdfPage": 147,
+      "status": "draft"
+    },
+    {
+      "number": 523,
+      "prompt": "Những hướng nào xe ô tô tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chỉ hướng 1.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 5.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Hướng 1, 4 và 5.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/523/image-1.jpeg",
+          "width": 415,
+          "height": 236,
+          "pdfPage": 147,
+          "pdfBBox": [
+            85.05000305175781,
+            413.7799987792969,
+            544.6300048828125,
+            675.1300048828125
+          ],
+          "sha256": "5fbb55e81e569ed28c6b13c0f23af0b3b6606fd434ed4ddb6e2a1a833ee8a975"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/523/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=147",
+      "pdfPage": 147,
+      "status": "draft"
+    },
+    {
+      "number": 524,
+      "prompt": "Những hướng nào xe ô tô tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả bốn hướng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Trừ hướng 2.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Hướng 2, 3 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Trừ hướng 4.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/524/image-1.jpeg",
+          "width": 443,
+          "height": 247,
+          "pdfPage": 148,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72000122070312,
+            550.5499877929688,
+            355.2699890136719
+          ],
+          "sha256": "462b0fd1fed97adf45b15b2b63f4a02fbf6bd6a598e5c46ded21282bf241b29f"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/524/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=148",
+      "pdfPage": 148,
+      "status": "draft"
+    },
+    {
+      "number": 525,
+      "prompt": "Xe nào được quyền đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/525/image-1.jpeg",
+          "width": 436,
+          "height": 247,
+          "pdfPage": 148,
+          "pdfBBox": [
+            85.05000305175781,
+            452.2599792480469,
+            540.6400146484375,
+            710.3599853515625
+          ],
+          "sha256": "b0d79a1beafba14477bf76277ce09de51ef137ad0b61c4f52fc9ef32c243fd5b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/525/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=148",
+      "pdfPage": 148,
+      "status": "draft"
+    },
+    {
+      "number": 526,
+      "prompt": "Xe ô tô con đi theo chiều mũi tên có vi phạm quy tắc giao thông không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Không vi phạm.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Vi phạm.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/526/image-1.jpeg",
+          "width": 441,
+          "height": 247,
+          "pdfPage": 149,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72000122070312,
+            542.6500244140625,
+            350.0199890136719
+          ],
+          "sha256": "dfde037697e05e7c0b53d2eb15be415e0dd58260852ed8be03aeca2ce3f85458"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/526/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=149",
+      "pdfPage": 149,
+      "status": "draft"
+    },
+    {
+      "number": 527,
+      "prompt": "Xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Xe con và xe mô tô.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/527/image-1.jpeg",
+          "width": 441,
+          "height": 245,
+          "pdfPage": 149,
+          "pdfBBox": [
+            85.05000305175781,
+            410.17999267578125,
+            542.6099853515625,
+            664.3800048828125
+          ],
+          "sha256": "c039e533b321fc0d8df1ff7e62b97df810df73369894db20e0cefda66ff792ae"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/527/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=149",
+      "pdfPage": 149,
+      "status": "draft"
+    },
+    {
+      "number": 528,
+      "prompt": "Các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Các xe ở phía tay phải và tay trái của người điều khiển được phép đi thẳng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Cho phép các xe ở mọi hướng được phép rẽ phải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Tất cả các xe phải dừng lại trước ngã tư, trừ những xe đã ở trong ngã tư được phép tiếp tục đi.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/528/image-1.jpeg",
+          "width": 427,
+          "height": 240,
+          "pdfPage": 150,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            533.6500244140625,
+            324.7099609375
+          ],
+          "sha256": "a06896dfefa9243cc86969941a53f83836f00d7c0ac3ebbab0b02706193bdbfd"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/528/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=150",
+      "pdfPage": 150,
+      "status": "draft"
+    },
+    {
+      "number": 529,
+      "prompt": "Theo hướng mũi tên, xe nào được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe mô tô, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô, xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Cả ba xe.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/529/image-1.jpeg",
+          "width": 423,
+          "height": 237,
+          "pdfPage": 150,
+          "pdfBBox": [
+            85.05000305175781,
+            440.2099609375,
+            533.7000122070312,
+            676.9099731445312
+          ],
+          "sha256": "60a16503e717cd7184d11a8bafdd754afd83e22507ce59482fc7a5ff651c8119"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/529/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=150",
+      "pdfPage": 150,
+      "status": "draft"
+    },
+    {
+      "number": 530,
+      "prompt": "Xe con vượt xe tải như trường hợp này có đúng không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đúng.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Không đúng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/530/image-1.jpeg",
+          "width": 440,
+          "height": 244,
+          "pdfPage": 151,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            544.6199951171875,
+            350.5799865722656
+          ],
+          "sha256": "f4f56af3417e41e1d42a09c8ae7eb5f25f148e52062a685de6f18d080a3f2fef"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/530/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=151",
+      "pdfPage": 151,
+      "status": "draft"
+    },
+    {
+      "number": 531,
+      "prompt": "Xe nào vượt đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Cả hai xe.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/531/image-1.jpeg",
+          "width": 440,
+          "height": 245,
+          "pdfPage": 151,
+          "pdfBBox": [
+            85.05000305175781,
+            431.1999816894531,
+            544.6300048828125,
+            687.0999755859375
+          ],
+          "sha256": "901ee59028a477f625af3da3de276a685fd2a51c82b509191db1a19abaa59e86"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/531/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=151",
+      "pdfPage": 151,
+      "status": "draft"
+    },
+    {
+      "number": 532,
+      "prompt": "Đi theo hướng mũi tên, xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe chữa cháy đi làm nhiệm vụ chữa cháy.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Cả hai xe.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/532/image-1.jpeg",
+          "width": 438,
+          "height": 246,
+          "pdfPage": 152,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            541.6599731445312,
+            352.17999267578125
+          ],
+          "sha256": "7aa832cfaac4f821ea9b43ea5d60916d8c7bc8d87df482363eb8b0868159e9f7"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/532/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=152",
+      "pdfPage": 152,
+      "status": "draft"
+    },
+    {
+      "number": 533,
+      "prompt": "Thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe tải, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe tải, xe khách.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe tải, xe khách, xe con.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/533/image-1.jpeg",
+          "width": 439,
+          "height": 249,
+          "pdfPage": 152,
+          "pdfBBox": [
+            85.05000305175781,
+            430.699951171875,
+            541.6799926757812,
+            689.699951171875
+          ],
+          "sha256": "4803c1b6c2797f17bd28e637c3f8aa11ececbd845a701b27b7b8d25334658f27"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/533/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=152",
+      "pdfPage": 152,
+      "status": "draft"
+    },
+    {
+      "number": 534,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách và xe tải, xe con.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe khách, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con, xe khách, xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/534/image-1.jpeg",
+          "width": 436,
+          "height": 249,
+          "pdfPage": 153,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72994995117188,
+            543.6400146484375,
+            355.6299743652344
+          ],
+          "sha256": "b112ec4f38949329d2de08025c707ac3a64144b94686547a422839caef75e30b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/534/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=153",
+      "pdfPage": 153,
+      "status": "draft"
+    },
+    {
+      "number": 535,
+      "prompt": "Những hướng nào xe ô tô tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả bốn hướng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Chỉ hướng 1 và 2.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Trừ hướng 4.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/535/image-1.jpeg",
+          "width": 442,
+          "height": 250,
+          "pdfPage": 153,
+          "pdfBBox": [
+            85.05000305175781,
+            434.6999816894531,
+            543.5800170898438,
+            694.0499877929688
+          ],
+          "sha256": "0b3fb7a1ab38a4f1260adcf6c7fe280e231b4eb38f4e1704c47a7eadfb29a610"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/535/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=153",
+      "pdfPage": 153,
+      "status": "draft"
+    },
+    {
+      "number": 536,
+      "prompt": "Theo hướng mũi tên, thứ tự các xe đi như thế nào là đúng?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe con, xe tải, xe khách.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe khách và xe công an đi làm nhiệm vụ khẩn cấp, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe con, xe khách, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe con, xe tải, xe khách, xe công an đi làm nhiệm vụ khẩn cấp.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/536/image-1.jpeg",
+          "width": 440,
+          "height": 246,
+          "pdfPage": 154,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20994567871094,
+            540.6500244140625,
+            321.75994873046875
+          ],
+          "sha256": "62e613e288d4854fea8b35243d2e06dd6ad4072469a6e3f3ffc26f816771884a"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/536/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=154",
+      "pdfPage": 154,
+      "status": "draft"
+    },
+    {
+      "number": 537,
+      "prompt": "Những hướng nào ô tô tải được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả bốn hướng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1, 2 và 3.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 4.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Hướng 1, 3 và 4.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/537/image-1.jpeg",
+          "width": 442,
+          "height": 247,
+          "pdfPage": 154,
+          "pdfBBox": [
+            85.05000305175781,
+            418.74993896484375,
+            545.5499877929688,
+            655.449951171875
+          ],
+          "sha256": "75ac4e19b9cd986b632836596b8825af171c477099f5e8e519528bd7734edda4"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/537/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=154",
+      "pdfPage": 154,
+      "status": "draft"
+    },
+    {
+      "number": 538,
+      "prompt": "Trong hình dưới đây, xe nào chấp hành đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chỉ xe khách, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Tất cả các loại xe trên.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Không xe nào chấp hành đúng quy tắc giao thông.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/538/image-1.jpeg",
+          "width": 423,
+          "height": 241,
+          "pdfPage": 155,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20997619628906,
+            545.5999755859375,
+            330.65997314453125
+          ],
+          "sha256": "5cbb0cc290180a96eda165c4b89e33cec64aa1720a8340cdfa16ed126b8bce56"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/538/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=155",
+      "pdfPage": 155,
+      "status": "draft"
+    },
+    {
+      "number": 539,
+      "prompt": "Theo hướng mũi tên, những hướng nào xe mô tô được phép đi?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cả ba hướng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1 và 2.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Hướng 1 và 3.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Hướng 2 và 3.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/539/image-1.jpeg",
+          "width": 437,
+          "height": 247,
+          "pdfPage": 155,
+          "pdfBBox": [
+            85.05000305175781,
+            407.12994384765625,
+            545.5,
+            659.5799560546875
+          ],
+          "sha256": "1fd0a84a0593ef35b4529a85ad04b40dd8887c26c8c346e4be3e7258bc82ac36"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/539/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=155",
+      "pdfPage": 155,
+      "status": "draft"
+    },
+    {
+      "number": 540,
+      "prompt": "Trong trường hợp này, thứ tự xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe công an đi làm nhiệm vụ khẩn cấp, xe quân sự đi làm nhiệm vụ khẩn cấp, xe con + xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe quân sự đi làm nhiệm vụ khẩn cấp, xe công an đi làm nhiệm vụ khẩn cấp, xe con + xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô + xe con, xe quân sự đi làm nhiệm vụ khẩn cấp, xe công an đi làm nhiệm vụ khẩn cấp.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/540/image-1.jpeg",
+          "width": 439,
+          "height": 249,
+          "pdfPage": 156,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72994995117188,
+            541.6799926757812,
+            352.72998046875
+          ],
+          "sha256": "835ab2cc718fd089c80e4a15043e3f8447efff6e464cb1b2cb6ae2c080654818"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/540/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=156",
+      "pdfPage": 156,
+      "status": "draft"
+    },
+    {
+      "number": 541,
+      "prompt": "Xe nào phải nhường đường là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe A.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe B.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/541/image-1.jpeg",
+          "width": 419,
+          "height": 239,
+          "pdfPage": 156,
+          "pdfBBox": [
+            85.05000305175781,
+            487.239990234375,
+            511.04998779296875,
+            730.22998046875
+          ],
+          "sha256": "d3b755ee6409b3370bcd724b2bfaeaeac1352e02b99660381294141d9057feaa"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/541/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=156",
+      "pdfPage": 156,
+      "status": "draft"
+    },
+    {
+      "number": 542,
+      "prompt": "Xe con quay đầu đi ngược lại như hình vẽ dưới có vi phạm quy tắc giao thông không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Không vi phạm.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Vi phạm.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/542/image-1.jpeg",
+          "width": 440,
+          "height": 248,
+          "pdfPage": 157,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            539.6500244140625,
+            333.3799743652344
+          ],
+          "sha256": "b603eae7bd3da9e5b5e49401179a3c39248c2e2d39f4c479addfe6d153e4555a"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/542/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=157",
+      "pdfPage": 157,
+      "status": "draft"
+    },
+    {
+      "number": 543,
+      "prompt": "Trong hình dưới, những xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (E), xe mô tô (C).",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe tải (A), xe mô tô (D).",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe khách (B), xe mô tô (C).",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe khách (B), xe mô tô (D).",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/543/image-1.jpeg",
+          "width": 423,
+          "height": 240,
+          "pdfPage": 157,
+          "pdfBBox": [
+            85.05000305175781,
+            412.20001220703125,
+            539.6199951171875,
+            640.0
+          ],
+          "sha256": "c1b5cc33485133e219bf520fcf9687ac7c8b95ba8bed55812d1dfeb82fa5e42b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/543/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=157",
+      "pdfPage": 157,
+      "status": "draft"
+    },
+    {
+      "number": 544,
+      "prompt": "Để điều khiển cho xe đi thẳng, người lái xe phải làm gì là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Nhường xe con rẽ trái trước.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Đi thẳng không nhường.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/544/image-1.jpeg",
+          "width": 442,
+          "height": 246,
+          "pdfPage": 158,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72994995117188,
+            545.6500244140625,
+            350.0799865722656
+          ],
+          "sha256": "913692b7df329261091816057180e1fb0fffe7c42bdbb93902c1566ed59895fc"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/544/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=158",
+      "pdfPage": 158,
+      "status": "draft"
+    },
+    {
+      "number": 545,
+      "prompt": "Người lái xe điều khiển xe đi theo hướng nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chỉ hướng 2.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Hướng 1 và 2.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Tất cả các hướng trừ hướng 3.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Tất cả các hướng trừ hướng 4.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/545/image-1.jpeg",
+          "width": 442,
+          "height": 246,
+          "pdfPage": 158,
+          "pdfBBox": [
+            85.05000305175781,
+            426.70001220703125,
+            540.6199951171875,
+            680.25
+          ],
+          "sha256": "a0606c9b9935fdb0247c6a4511dc3132bd3cf9a01bcad2fd608c39d8e4326706"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/545/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=158",
+      "pdfPage": 158,
+      "status": "draft"
+    },
+    {
+      "number": 546,
+      "prompt": "Xe nào phải nhường đường là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (A).",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con (B).",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/546/image-1.jpeg",
+          "width": 439,
+          "height": 247,
+          "pdfPage": 159,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            541.6500244140625,
+            352.6299743652344
+          ],
+          "sha256": "0984f0bc0fee1feb1b720ddacf3a20728e0cbd4a4e8e8ed4a855244ab732eb5f"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/546/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=159",
+      "pdfPage": 159,
+      "status": "draft"
+    },
+    {
+      "number": 547,
+      "prompt": "Người lái xe điều khiển xe rẽ trái như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Rẽ trái ngay trước xe buýt.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Rẽ trái trước xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Nhường đường cho xe buýt và xe tải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/547/image-1.jpeg",
+          "width": 438,
+          "height": 247,
+          "pdfPage": 159,
+          "pdfBBox": [
+            85.05000305175781,
+            431.0999755859375,
+            541.6699829101562,
+            688.5999755859375
+          ],
+          "sha256": "ef059c206c63335ae3ea0bab79be0d5c32f9e8ebe04fb1d4b61ec560722a23db"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/547/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=159",
+      "pdfPage": 159,
+      "status": "draft"
+    },
+    {
+      "number": 548,
+      "prompt": "Trong hình dưới, những xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (B), xe mô tô (C).",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con (A), xe mô tô (C).",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con (E), xe mô tô (D).",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Tất cả các loại xe trên.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/548/image-1.jpeg",
+          "width": 422,
+          "height": 238,
+          "pdfPage": 160,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20994567871094,
+            545.5700073242188,
+            321.75994873046875
+          ],
+          "sha256": "af47b65a2afe277ea7e68322f9e69ea39a44b821258c2d2fb74a8728fd9cee21"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/548/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=160",
+      "pdfPage": 160,
+      "status": "draft"
+    },
+    {
+      "number": 549,
+      "prompt": "Xe nào đi trước là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/549/image-1.jpeg",
+          "width": 439,
+          "height": 301,
+          "pdfPage": 160,
+          "pdfBBox": [
+            85.05000305175781,
+            418.7400207519531,
+            545.5499877929688,
+            695.8900146484375
+          ],
+          "sha256": "26cbe04cfd81b5b46c07dd591fc5ae0debf98eb85f666805276563c08fec1b98"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/549/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=160",
+      "pdfPage": 160,
+      "status": "draft"
+    },
+    {
+      "number": 550,
+      "prompt": "Người lái xe có thể quay đầu xe như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Quay đầu theo hướng A.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Quay đầu theo hướng B.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cấm quay đầu.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/550/image-1.jpeg",
+          "width": 442,
+          "height": 246,
+          "pdfPage": 161,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            542.5999755859375,
+            326.47998046875
+          ],
+          "sha256": "f7501929075ba203cbb3ce6c8200fef18fc3bb09f039a266f117ed07d056d0b4"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/550/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=161",
+      "pdfPage": 161,
+      "status": "draft"
+    },
+    {
+      "number": 551,
+      "prompt": "Thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con và xe tải, xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn, xe tải, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe của bạn và xe con, xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Xe của bạn, xe tải + xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/551/image-1.jpeg",
+          "width": 440,
+          "height": 250,
+          "pdfPage": 161,
+          "pdfBBox": [
+            85.05000305175781,
+            423.4599609375,
+            542.6199951171875,
+            677.9099731445312
+          ],
+          "sha256": "13ff87ab7ce3c9ea47414f0b1b8c7ca265aaaae7febbeae825de71a7a9345070"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/551/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=161",
+      "pdfPage": 161,
+      "status": "draft"
+    },
+    {
+      "number": 552,
+      "prompt": "Khi muốn vượt xe tải, người lái xe phải làm gì là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc cho xe chạy vượt qua.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Bật tín hiệu báo hiệu bằng đèn hoặc còi, khi đủ điều kiện an toàn, tăng tốc cho xe chạy vượt qua.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Đánh lái sang làn bên trái và tăng tốc cho xe chạy vượt qua.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/552/image-1.jpeg",
+          "width": 438,
+          "height": 247,
+          "pdfPage": 162,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72994995117188,
+            539.7000122070312,
+            350.1199645996094
+          ],
+          "sha256": "24aee85f23d9b07623cb687b730f1558340618442f348da3e4c776d2ae8852a9"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/552/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=162",
+      "pdfPage": 162,
+      "status": "draft"
+    },
+    {
+      "number": 553,
+      "prompt": "Theo tín hiệu đèn, xe nào phải dừng lại là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con, xe tải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/553/image-1.jpeg",
+          "width": 425,
+          "height": 237,
+          "pdfPage": 162,
+          "pdfBBox": [
+            85.05000305175781,
+            447.2099609375,
+            539.6400146484375,
+            700.7099609375
+          ],
+          "sha256": "04441c5ed762e04928241b82e840d4ed5aa726266156479b3bdf7ca7baa9f652"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/553/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=162",
+      "pdfPage": 162,
+      "status": "draft"
+    },
+    {
+      "number": 554,
+      "prompt": "Trong hình dưới, những xe nào chấp hành quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải ( D), xe con (B).",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con (A), xe con (C), xe con (E), xe buýt (G).",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe con (A), xe con (B), xe tải (D).",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/554/image-1.jpeg",
+          "width": 440,
+          "height": 252,
+          "pdfPage": 163,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            544.6099853515625,
+            356.92999267578125
+          ],
+          "sha256": "0bf95183126c4b00cae536ce4c449f32c606f33155ddb3920aab813928172e72"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/554/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=163",
+      "pdfPage": 163,
+      "status": "draft"
+    },
+    {
+      "number": 555,
+      "prompt": "Người lái xe có được phép vượt xe tải để đi thẳng trong trường hợp này không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Được vượt.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Cấm vượt.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/555/image-1.jpeg",
+          "width": 436,
+          "height": 242,
+          "pdfPage": 163,
+          "pdfBBox": [
+            85.05000305175781,
+            453.90997314453125,
+            544.5599975585938,
+            708.9599609375
+          ],
+          "sha256": "aacb622d379cd6cd76e312ce591dd492e3cc212c079cf97cdb92b707185732d3"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/555/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=163",
+      "pdfPage": 163,
+      "status": "draft"
+    },
+    {
+      "number": 556,
+      "prompt": "Bạn có được phép vượt xe mô tô phía trước không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Cho phép.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Không được vượt.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/556/image-1.jpeg",
+          "width": 440,
+          "height": 248,
+          "pdfPage": 164,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            542.5800170898438,
+            325.7099609375
+          ],
+          "sha256": "257a6af19976b35a68f947cff72276df577ef1a93204e97925a121c459f25f66"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/556/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=163",
+      "pdfPage": 163,
+      "status": "draft"
+    },
+    {
+      "number": 557,
+      "prompt": "Người lái xe dừng tại vị trí nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Vị trí A và B.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Vị trí A và C.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Vị trí B và C.",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Cả ba vị trí A, B, C.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/557/image-1.jpeg",
+          "width": 438,
+          "height": 250,
+          "pdfPage": 164,
+          "pdfBBox": [
+            85.05000305175781,
+            406.17999267578125,
+            542.5700073242188,
+            656.72998046875
+          ],
+          "sha256": "fbcf638865d45a9eee3f6a012e57873d2c0a6821f84ba122c0e952a67a477e1c"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/557/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=164",
+      "pdfPage": 164,
+      "status": "draft"
+    },
+    {
+      "number": 558,
+      "prompt": "Bạn được dừng xe ở vị trí nào trong tình huống này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Được phép dừng ở vị trí A.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Được phép dừng ở vị trí B.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Được phép dừng ở vị trí A và B.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Không được dừng.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/558/image-1.jpeg",
+          "width": 438,
+          "height": 249,
+          "pdfPage": 165,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72996520996094,
+            545.5,
+            329.469970703125
+          ],
+          "sha256": "24cf0338602ad55ee6c5742391818cce6dcbefe8bea0b7aa4ff17205604f6aa3"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/558/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=165",
+      "pdfPage": 165,
+      "status": "draft"
+    },
+    {
+      "number": 559,
+      "prompt": "Theo tín hiệu đèn của xe cơ giới, xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe ô tô con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Không xe nào vi phạm.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Cả hai xe.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/559/image-1.jpeg",
+          "width": 440,
+          "height": 249,
+          "pdfPage": 165,
+          "pdfBBox": [
+            85.05000305175781,
+            426.71002197265625,
+            545.5,
+            659.510009765625
+          ],
+          "sha256": "3b13bdbb2575ccefeaf75b9fe7a604c5b059819a6c78220f124537cdf2520c03"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/559/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=165",
+      "pdfPage": 165,
+      "status": "draft"
+    },
+    {
+      "number": 560,
+      "prompt": "Các xe đi theo hướng mũi tên, xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe con, xe tải.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/560/image-1.jpeg",
+          "width": 427,
+          "height": 239,
+          "pdfPage": 166,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            546.4299926757812,
+            342.97998046875
+          ],
+          "sha256": "49539e01009a31196d5d45ac372990e1ef660679facabf691add8b5001c38d09"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/560/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=166",
+      "pdfPage": 166,
+      "status": "draft"
+    },
+    {
+      "number": 561,
+      "prompt": "Các xe đi theo hướng mũi tên, những xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe khách, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe khách, xe tải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/561/image-1.jpeg",
+          "width": 426,
+          "height": 240,
+          "pdfPage": 166,
+          "pdfBBox": [
+            85.05000305175781,
+            440.21002197265625,
+            546.489990234375,
+            687.760009765625
+          ],
+          "sha256": "616d302d1b42d8368b94b37ef121ffa442ea392620c8e19e8e5ebe89f4f77dfb"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/561/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=166",
+      "pdfPage": 166,
+      "status": "draft"
+    },
+    {
+      "number": 562,
+      "prompt": "Các xe đi theo hướng mũi tên, xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con, xe tải, xe khách.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe khách, xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe khách, xe mô tô, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Cả bốn xe.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/562/image-1.jpeg",
+          "width": 425,
+          "height": 238,
+          "pdfPage": 167,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            545.4500122070312,
+            336.3599853515625
+          ],
+          "sha256": "5f8885337b4da71815f24566138eb705de5a18eaa5b6a88eb6988d0204a4eb47"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/562/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=167",
+      "pdfPage": 167,
+      "status": "draft"
+    },
+    {
+      "number": 563,
+      "prompt": "Các xe đi theo hướng mũi tên, xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe khách, xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe khách, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe con, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe khách, xe tải, xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/563/image-1.jpeg",
+          "width": 424,
+          "height": 238,
+          "pdfPage": 167,
+          "pdfBBox": [
+            85.05000305175781,
+            433.3599548339844,
+            545.489990234375,
+            658.2099609375
+          ],
+          "sha256": "250370eed9155524e406f525b18a41b618e9a79137e7b068dd69eeef469c2b8d"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/563/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=167",
+      "pdfPage": 167,
+      "status": "draft"
+    },
+    {
+      "number": 564,
+      "prompt": "Trong tình huống dưới đây, để tránh xe phía trước bị hỏng đột xuất trên đường, người lái xe phải làm gì?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đánh lái sang trái cho xe vượt qua.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Quan sát phía trước, phía sau, khi đủ điều kiện an toàn, bật tín hiệu bằng đèn hoặc còi rồi cho xe chạy vượt qua.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Cấm vượt.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/564/image-1.jpeg",
+          "width": 441,
+          "height": 250,
+          "pdfPage": 168,
+          "pdfBBox": [
+            85.05000305175781,
+            93.72998046875,
+            540.5399780273438,
+            325.47998046875
+          ],
+          "sha256": "a6d38adbe9d3cfe406f6c7bbd9d68c9a90c50dbf3b53187deadeb5ff4645329a"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/564/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=168",
+      "pdfPage": 168,
+      "status": "draft"
+    },
+    {
+      "number": 565,
+      "prompt": "Các xe đi theo hướng mũi tên, xe nào chấp hành đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe khách, xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe tải, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe mô tô, xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/565/image-1.jpeg",
+          "width": 425,
+          "height": 238,
+          "pdfPage": 168,
+          "pdfBBox": [
+            85.05000305175781,
+            441.719970703125,
+            545.3200073242188,
+            676.4199829101562
+          ],
+          "sha256": "a8e46124ef3a79fa969d44e0bf385543eeb4461b531f85f089ef4ba22d8ed0e1"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/565/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=168",
+      "pdfPage": 168,
+      "status": "draft"
+    },
+    {
+      "number": 566,
+      "prompt": "Trong hình dưới, những xe nào vi phạm quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con (A), xe con (B), xe tải (D).",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải (D), xe con (E), xe buýt (G).",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe tải ( D), xe con (B).",
+          "underlined": true
+        },
+        {
+          "id": 4,
+          "text": "Xe con (B), xe con (C).",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/566/image-1.jpeg",
+          "width": 440,
+          "height": 252,
+          "pdfPage": 169,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            542.5399780273438,
+            328.47998046875
+          ],
+          "sha256": "0bf95183126c4b00cae536ce4c449f32c606f33155ddb3920aab813928172e72"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/566/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=169",
+      "pdfPage": 169,
+      "status": "draft"
+    },
+    {
+      "number": 567,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn, xe mô tô, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe của bạn, xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô, xe con, xe của bạn.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/567/image-1.jpeg",
+          "width": 433,
+          "height": 247,
+          "pdfPage": 169,
+          "pdfBBox": [
+            85.05000305175781,
+            443.9700012207031,
+            542.4500122070312,
+            683.6199951171875
+          ],
+          "sha256": "d5cede28be4d422e747b0d5cceda080111daa26eed0191694bc1482fef6e000c"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/567/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=169",
+      "pdfPage": 169,
+      "status": "draft"
+    },
+    {
+      "number": 568,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn, xe mô tô, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe của bạn, xe mô tô.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe mô tô, xe con, xe của bạn.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/568/image-1.jpeg",
+          "width": 438,
+          "height": 246,
+          "pdfPage": 170,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72998046875,
+            546.5499877929688,
+            354.92999267578125
+          ],
+          "sha256": "fe972608c29835c554444818e6b8969687a775fb54c99bc5dde672c2f8b44b48"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/568/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=170",
+      "pdfPage": 170,
+      "status": "draft"
+    },
+    {
+      "number": 569,
+      "prompt": "Xe nào phải dừng lại trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cả hai xe.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/569/image-1.jpeg",
+          "width": 440,
+          "height": 248,
+          "pdfPage": 170,
+          "pdfBBox": [
+            85.05000305175781,
+            433.6899719238281,
+            546.5999755859375,
+            693.8399658203125
+          ],
+          "sha256": "58c7e875163551ced03026306f8d1dca57647a4e721e2dbd5becc7936e87603e"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/569/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=170",
+      "pdfPage": 170,
+      "status": "draft"
+    },
+    {
+      "number": 570,
+      "prompt": "Xe của bạn được đi theo hướng nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đi thẳng, rẽ trái.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Đi thẳng, rẽ phải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Rẽ trái.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Đi thẳng, rẽ phải, rẽ trái.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/570/image-1.jpeg",
+          "width": 439,
+          "height": 249,
+          "pdfPage": 171,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20994567871094,
+            541.6500244140625,
+            326.699951171875
+          ],
+          "sha256": "ff274abfb3fe96be04ad8932c0389acf0564895676bdf1eac8ec7a110e532ad0"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/570/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=171",
+      "pdfPage": 171,
+      "status": "draft"
+    },
+    {
+      "number": 571,
+      "prompt": "Xe của bạn được đi theo hướng nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chuyển sang làn đường bên phải và rẽ phải.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Dừng lại trước vạch dừng và rẽ phải khi đèn xanh.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Dừng lại trước vạch dừng và đi thẳng hoặc rẽ trái khi đèn xanh.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/571/image-1.jpeg",
+          "width": 439,
+          "height": 246,
+          "pdfPage": 171,
+          "pdfBBox": [
+            85.05000305175781,
+            424.1999816894531,
+            541.6300048828125,
+            680.0499877929688
+          ],
+          "sha256": "2aaa5574dd8bda6bb81cfd464563accef37336cd955b2dee5403d2e49d273575"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/571/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=171",
+      "pdfPage": 171,
+      "status": "draft"
+    },
+    {
+      "number": 572,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ, rẽ phải trước xe tải và xe đạp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giảm tốc độ, rẽ phải sau xe tải và xe đạp.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Tăng tốc độ, rẽ phải trước xe đạp.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/572/image-1.jpeg",
+          "width": 438,
+          "height": 249,
+          "pdfPage": 172,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            545.5700073242188,
+            337.0099792480469
+          ],
+          "sha256": "17c575586b1c8902bd1ae987b01674912f9163a248587768d141c35ff81c9469"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/572/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=172",
+      "pdfPage": 172,
+      "status": "draft"
+    },
+    {
+      "number": 573,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ, rẽ phải trước xe con màu xanh phía trước và người đi bộ.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giảm tốc độ, để người đi bộ qua đường và rẽ phải trước xe con màu xanh.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Giảm tốc độ, để người đi bộ qua đường và rẽ phải sau xe con màu xanh.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/573/image-1.jpeg",
+          "width": 425,
+          "height": 236,
+          "pdfPage": 172,
+          "pdfBBox": [
+            85.05000305175781,
+            416.17999267578125,
+            545.6199951171875,
+            671.9299926757812
+          ],
+          "sha256": "e082808912ca97e718a2fd4e210d0a5399e2bd79a739e454cb44d509f06864c8"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/573/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=172",
+      "pdfPage": 172,
+      "status": "draft"
+    },
+    {
+      "number": 574,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Nhường đường cho xe khách và đi trước xe đạp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Nhường đường cho xe đạp và đi trước xe khách.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Nhường đường cho xe đạp và xe khách.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/574/image-1.jpeg",
+          "width": 438,
+          "height": 247,
+          "pdfPage": 173,
+          "pdfBBox": [
+            85.05000305175781,
+            75.21995544433594,
+            544.5499877929688,
+            326.699951171875
+          ],
+          "sha256": "41e69fe478c7fcc4a831dca09c5df96e3c01ee09ba286000d6bb208a78f6e460"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/574/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=173",
+      "pdfPage": 173,
+      "status": "draft"
+    },
+    {
+      "number": 575,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe của bạn.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/575/image-1.jpeg",
+          "width": 439,
+          "height": 249,
+          "pdfPage": 173,
+          "pdfBBox": [
+            85.05000305175781,
+            424.199951171875,
+            544.47998046875,
+            673.3999633789062
+          ],
+          "sha256": "9f61ad75d75ac7b1abff86fc3a05f1ec8d92c537b910ecaf1939c694e82feaa1"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/575/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=173",
+      "pdfPage": 173,
+      "status": "draft"
+    },
+    {
+      "number": 576,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe đi ngược chiều.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/576/image-1.jpeg",
+          "width": 438,
+          "height": 244,
+          "pdfPage": 174,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            547.47998046875,
+            338.5099792480469
+          ],
+          "sha256": "8cf4f16d6690562dc00a79fb85f18f93ec0658373cbca433983697af6f281a10"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/576/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=174",
+      "pdfPage": 174,
+      "status": "draft"
+    },
+    {
+      "number": 577,
+      "prompt": "Bạn xử lý như thế nào khi lái xe ô tô vượt qua đoàn người đi xe đạp có tổ chức?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ, chuyển sang làn đường bên trái để vượt.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Không được vượt những người đi xe đạp.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/577/image-1.jpeg",
+          "width": 437,
+          "height": 245,
+          "pdfPage": 174,
+          "pdfBBox": [
+            85.05000305175781,
+            438.20001220703125,
+            547.530029296875,
+            703.5
+          ],
+          "sha256": "6861491a6b966b3f113276e9eb361d713b48455e37a57736492fc42c504c40da"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/577/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=174",
+      "pdfPage": 174,
+      "status": "draft"
+    },
+    {
+      "number": 578,
+      "prompt": "Phía trước có một xe đang lùi vào nơi đỗ, xe con phía trước đang chuyển sang làn đường bên trái, bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Nếu phía sau không có xe xin vượt, chuyển sang làn đường bên trái.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Nếu phía sau có xe xin vượt, thì giảm tốc độ, ở lại làn đường, dừng lại khi cần thiết.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Tăng tốc độ trên làn đường của mình và vượt xe con.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Ý 1 và ý 2.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/578/image-1.jpeg",
+          "width": 442,
+          "height": 247,
+          "pdfPage": 175,
+          "pdfBBox": [
+            85.05000305175781,
+            112.24000549316406,
+            527.6400146484375,
+            329.19000244140625
+          ],
+          "sha256": "c19e7705076f52bd2d925c88391342601419263f3797091c114b7a7520b72787"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/578/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=175",
+      "pdfPage": 175,
+      "status": "draft"
+    },
+    {
+      "number": 579,
+      "prompt": "Bạn xử lý như thế nào khi xe phía trước đang lùi ra khỏi nơi đỗ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Chuyển sang nửa đường bên trái để đi tiếp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Bấm còi, nháy đèn báo hiệu và đi tiếp.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Giảm tốc độ, dừng lại nhường đường.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/579/image-1.jpeg",
+          "width": 436,
+          "height": 252,
+          "pdfPage": 175,
+          "pdfBBox": [
+            85.05000305175781,
+            463.75,
+            520.9000244140625,
+            679.75
+          ],
+          "sha256": "370021d562d1def171ec775838aefc9833ba1c3ff4d55be9f3761a7fecfa1747"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/579/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=175",
+      "pdfPage": 175,
+      "status": "draft"
+    },
+    {
+      "number": 580,
+      "prompt": "Phía trước có một xe màu xanh đang vượt xe màu vàng trên làn đường của bạn, bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Phanh xe giảm tốc độ và đi sát lề đường bên phải.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Bấm còi, nháy đèn báo hiệu, giữ nguyên tốc độ và đi tiếp.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Phanh xe giảm tốc độ và đi sát vào lề đường bên trái.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/580/image-1.jpeg",
+          "width": 437,
+          "height": 250,
+          "pdfPage": 176,
+          "pdfBBox": [
+            85.05000305175781,
+            93.71998596191406,
+            545.5999755859375,
+            341.2599792480469
+          ],
+          "sha256": "804717afc83d6f63c54f33619d9bab8dc787f8e6820433d2651a0ce09b19003c"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/580/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=176",
+      "pdfPage": 176,
+      "status": "draft"
+    },
+    {
+      "number": 581,
+      "prompt": "Xe tải phía trước có tín hiệu xin chuyển làn đường, bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Bật tín hiệu xin chuyển làn đường sang trái để vượt xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Phanh xe giảm tốc độ chờ xe tải phía trước chuyển làn đường.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Bấm còi báo hiệu và vượt qua xe tải trên làn đường của mình.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/581/image-1.jpeg",
+          "width": 439,
+          "height": 249,
+          "pdfPage": 176,
+          "pdfBBox": [
+            85.05000305175781,
+            438.2599792480469,
+            545.5,
+            680.8599853515625
+          ],
+          "sha256": "a964d7d6bcce20012bec0497c51b1abbb63907ace094c2e40cee9b4b2d0bbecc"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/581/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=176",
+      "pdfPage": 176,
+      "status": "draft"
+    },
+    {
+      "number": 582,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ và đi thẳng qua ngã tư.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Dừng xe trước vạch dừng.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Giảm tốc độ và đi thẳng qua ngã tư.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/582/image-1.jpeg",
+          "width": 440,
+          "height": 293,
+          "pdfPage": 177,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            511.0,
+            332.6099853515625
+          ],
+          "sha256": "902afea32c43ed333272d4b689c8ab46bb8d03a28f6aeec7fa5951b9513a578f"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/582/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=177",
+      "pdfPage": 177,
+      "status": "draft"
+    },
+    {
+      "number": 583,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn, xe mô tô, xe đạp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe mô tô, xe đạp, xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe đạp, xe mô tô, xe của bạn.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/583/image-1.jpeg",
+          "width": 441,
+          "height": 293,
+          "pdfPage": 177,
+          "pdfBBox": [
+            85.05000305175781,
+            428.199951171875,
+            511.0,
+            686.5799560546875
+          ],
+          "sha256": "328310cb56fe748bd6a03aa4c787d63b7f18617e71e37ddd418bf1f47bb57f23"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/583/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=177",
+      "pdfPage": 177,
+      "status": "draft"
+    },
+    {
+      "number": 584,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn, xe tải, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe con, xe tải, xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe tải, xe của bạn, xe con.",
+          "underlined": false
+        },
+        {
+          "id": 4,
+          "text": "Xe của bạn, xe con, xe tải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        4
+      ],
+      "images": [
+        {
+          "url": "bank-review/584/image-1.jpeg",
+          "width": 442,
+          "height": 289,
+          "pdfPage": 178,
+          "pdfBBox": [
+            85.05000305175781,
+            75.2099609375,
+            545.5999755859375,
+            363.1899719238281
+          ],
+          "sha256": "080ff9d2dd1dbcf45abf3bafda7d41c40dbe4d3977f8e5f13e9077af0f8a2bf7"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/584/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=178",
+      "pdfPage": 178,
+      "status": "draft"
+    },
+    {
+      "number": 585,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe của bạn.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/585/image-1.jpeg",
+          "width": 440,
+          "height": 248,
+          "pdfPage": 178,
+          "pdfBBox": [
+            85.05000305175781,
+            458.1999816894531,
+            540.5800170898438,
+            699.7999877929688
+          ],
+          "sha256": "d50af4d1fb67dcd129e6af84a6f1de57e2abf92eea2a640536ae46d53a2fdffd"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/585/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=178",
+      "pdfPage": 178,
+      "status": "draft"
+    },
+    {
+      "number": 586,
+      "prompt": "Xe nào phải nhường đường trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/586/image-1.jpeg",
+          "width": 439,
+          "height": 291,
+          "pdfPage": 179,
+          "pdfBBox": [
+            85.05000305175781,
+            95.72999572753906,
+            490.260009765625,
+            330.42999267578125
+          ],
+          "sha256": "b558ca09e13ea4c9298e41f71696d6f2117d918f67c563e3794a7899dbed684e"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/586/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=179",
+      "pdfPage": 179,
+      "status": "draft"
+    },
+    {
+      "number": 587,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ, đi qua vạch người đi bộ sang đường, để người đi bộ sang đường sau.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giảm tốc độ, đi qua vạch người đi bộ sang đường, để người đi bộ sang đường sau.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Giảm tốc độ, để người đi bộ sang đường trước, sau đó cho xe đi qua vạch người đi bộ sang đường.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/587/image-1.jpeg",
+          "width": 435,
+          "height": 288,
+          "pdfPage": 179,
+          "pdfBBox": [
+            85.05000305175781,
+            400.3799743652344,
+            490.30999755859375,
+            639.0299682617188
+          ],
+          "sha256": "f5a3572ad2fa77100018b5c224c7f18b8b36207283c319d78bf996d6f61e7146"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/587/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=179",
+      "pdfPage": 179,
+      "status": "draft"
+    },
+    {
+      "number": 588,
+      "prompt": "Xe nào được đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/588/image-1.jpeg",
+          "width": 439,
+          "height": 289,
+          "pdfPage": 180,
+          "pdfBBox": [
+            85.05000305175781,
+            95.71998596191406,
+            541.5999755859375,
+            350.16998291015625
+          ],
+          "sha256": "5b4ccf19cf919307793fd42314daa27d24a7e6c7f6ef82b0ef9915f31dbd70c7"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/588/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=180",
+      "pdfPage": 180,
+      "status": "draft"
+    },
+    {
+      "number": 589,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con, xe tải, xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe tải, xe con, xe của bạn.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Xe tải, xe của bạn, xe con.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/589/image-1.jpeg",
+          "width": 443,
+          "height": 290,
+          "pdfPage": 180,
+          "pdfBBox": [
+            85.05000305175781,
+            431.1999816894531,
+            541.6400146484375,
+            693.5499877929688
+          ],
+          "sha256": "22d9962de9fc58c0d22af5eead6a995c449ff697d67ac225a992fb6cde72c96d"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/589/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=180",
+      "pdfPage": 180,
+      "status": "draft"
+    },
+    {
+      "number": 590,
+      "prompt": "Bạn xử lý như thế nào trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Tăng tốc độ cho xe lấn sang phần đường bên trái.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giảm tốc độ cho xe lấn sang phần đường bên trái.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Giảm tốc độ cho xe đi sát phần đường bên phải.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/590/image-1.jpeg",
+          "width": 439,
+          "height": 294,
+          "pdfPage": 181,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            540.5900268554688,
+            342.4599914550781
+          ],
+          "sha256": "2de59a867187e4072a2c31383a5270e3e489ea4c0c57e91fdcc141f4e39d5ffd"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/590/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=181",
+      "pdfPage": 181,
+      "status": "draft"
+    },
+    {
+      "number": 591,
+      "prompt": "Xe nào được đi trước trong trường hợp này?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/591/image-1.jpeg",
+          "width": 438,
+          "height": 294,
+          "pdfPage": 181,
+          "pdfBBox": [
+            85.05000305175781,
+            439.4499816894531,
+            534.6799926757812,
+            696.8499755859375
+          ],
+          "sha256": "4baa6c71c77a0191dfd894d99e0791b53de9a14c150b92332acc0beee3eea057"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/591/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=181",
+      "pdfPage": 181,
+      "status": "draft"
+    },
+    {
+      "number": 592,
+      "prompt": "Xe nào dừng đúng theo quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe con.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Xe mô tô.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cả 2 xe đều đúng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/592/image-1.jpeg",
+          "width": 440,
+          "height": 270,
+          "pdfPage": 182,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            543.530029296875,
+            338.5099792480469
+          ],
+          "sha256": "184bb99089aa3c56590cbb45ac3663663e58f2c9a91c22564fcd4590ed378296"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/592/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=182",
+      "pdfPage": 182,
+      "status": "draft"
+    },
+    {
+      "number": 593,
+      "prompt": "Các xe đi theo thứ tự nào là đúng quy tắc giao thông đường bộ?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Xe tải, xe đạp, xe của bạn.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Xe của bạn, xe đạp, xe tải.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Xe của bạn, xe tải, xe đạp.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        3
+      ],
+      "images": [
+        {
+          "url": "bank-review/593/image-1.jpeg",
+          "width": 426,
+          "height": 238,
+          "pdfPage": 182,
+          "pdfBBox": [
+            85.05000305175781,
+            456.7099914550781,
+            543.5599975585938,
+            695.3599853515625
+          ],
+          "sha256": "a3ffbd9e4097253bb52446a2ce39cd3312fa54404003f9bc533028cd345d5fd8"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/593/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=182",
+      "pdfPage": 182,
+      "status": "draft"
+    },
+    {
+      "number": 594,
+      "prompt": "Để điều khiển xe rẽ trái, bạn chọn hướng đi nào dưới đây?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Hướng 1.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Hướng 2.",
+          "underlined": false
+        },
+        {
+          "id": 3,
+          "text": "Cả hai hướng đều được.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/594/image-1.jpeg",
+          "width": 439,
+          "height": 293,
+          "pdfPage": 183,
+          "pdfBBox": [
+            85.05000305175781,
+            75.20999145507812,
+            543.6400146484375,
+            336.4599914550781
+          ],
+          "sha256": "90617c3b35ddd4aa049ac67ecd261c96c9166d158138afe9e4968b3c628de0f9"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/594/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=183",
+      "pdfPage": 183,
+      "status": "draft"
+    },
+    {
+      "number": 595,
+      "prompt": "Khi gặp xe ngược chiều bật đèn pha trong tình huống dưới dây, bạn xử lý như thế nào?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Bật đèn chiếu xa, tăng tốc độ vượt xe cùng chiều.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giữ nguyên đèn chiếu gần, giảm tốc độ, đi sau xe phía trước.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Giữ nguyên đèn chiếu gần, tăng tốc độ vượt xe cùng chiều.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/595/image-1.jpeg",
+          "width": 438,
+          "height": 295,
+          "pdfPage": 183,
+          "pdfBBox": [
+            85.05000305175781,
+            433.45001220703125,
+            543.6300048828125,
+            682.0
+          ],
+          "sha256": "7df3744ec9d85015a13ead273f69775ffa86c2bd20a43eaba3b11d081972fe4a"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/595/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=183",
+      "pdfPage": 183,
+      "status": "draft"
+    },
+    {
+      "number": 596,
+      "prompt": "Xe của bạn đang di chuyển gần đến khu vực giao cắt với đường sắt, khi rào chắn đang dịch chuyển, bạn điều khiển xe như thế nào là đúng quy tắc giao thông?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Quan sát nếu thấy không có tàu thì tăng tốc cho xe vượt qua đường sắt.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Dừng lại trước rào chắn một khoảng cách an toàn.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Ra tín hiệu, yêu cầu người gác chắn tàu kéo chậm barie để xe bạn qua.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/596/image-1.jpeg",
+          "width": 565,
+          "height": 296,
+          "pdfPage": 184,
+          "pdfBBox": [
+            85.05000305175781,
+            112.23997497558594,
+            541.530029296875,
+            322.28997802734375
+          ],
+          "sha256": "fd941897a2503db5fc613513f4c6add82cef27bcd784db94a5575def7aab2c8b"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/596/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=184",
+      "pdfPage": 184,
+      "status": "draft"
+    },
+    {
+      "number": 597,
+      "prompt": "Trong tình huống dưới đây, xe con màu đỏ nhập làn đường cao tốc theo hướng mũi tên là đúng hay sai?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đúng.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Sai.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/597/image-1.jpeg",
+          "width": 444,
+          "height": 265,
+          "pdfPage": 184,
+          "pdfBBox": [
+            85.05000305175781,
+            437.78997802734375,
+            541.5599975585938,
+            691.5399780273438
+          ],
+          "sha256": "9e62afcef2a7742ff95af3f61364971da09ff1f480fc2a6387e68c13bddb72c7"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/597/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=184",
+      "pdfPage": 184,
+      "status": "draft"
+    },
+    {
+      "number": 598,
+      "prompt": "Trong tình huống dưới đây, xe con màu đỏ có được phép vượt khi xe con màu xanh đang vượt xe tải hay không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Được vượt.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Không được vượt.",
+          "underlined": true
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/598/image-1.jpeg",
+          "width": 389,
+          "height": 232,
+          "pdfPage": 185,
+          "pdfBBox": [
+            85.05000305175781,
+            114.23995971679688,
+            542.5399780273438,
+            373.5899658203125
+          ],
+          "sha256": "44db3397813afb7bcb2e7ba70c45a9366a35cd1bc0835fd548d29d4a44697d92"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/598/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=185",
+      "pdfPage": 185,
+      "status": "draft"
+    },
+    {
+      "number": 599,
+      "prompt": "Trong tình huống dưới đây, xe con màu vàng vượt xe con màu đỏ là đúng quy tắc giao thông hay không?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Đúng.",
+          "underlined": true
+        },
+        {
+          "id": 2,
+          "text": "Không đúng.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        1
+      ],
+      "images": [
+        {
+          "url": "bank-review/599/image-1.jpeg",
+          "width": 409,
+          "height": 241,
+          "pdfPage": 185,
+          "pdfBBox": [
+            85.05000305175781,
+            450.2099914550781,
+            542.5,
+            709.5599975585938
+          ],
+          "sha256": "37420adfb22092817b6995234a87f62e7bf97ae0f65a1e7e4cae4a3bfdbe69ae"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/599/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=185",
+      "pdfPage": 185,
+      "status": "draft"
+    },
+    {
+      "number": 600,
+      "prompt": "Trong tình huống dưới đây, xe đầu kéo kéo rơ moóc (xe container) đang rẽ phải, xe con màu xanh và xe máy phía sau xe container đi như thế nào để bảo đảm an toàn?",
+      "options": [
+        {
+          "id": 1,
+          "text": "Vượt về phía bên phải để đi tiếp.",
+          "underlined": false
+        },
+        {
+          "id": 2,
+          "text": "Giảm tốc độ chờ xe container rẽ xong rồi tiếp tục đi.",
+          "underlined": true
+        },
+        {
+          "id": 3,
+          "text": "Vượt về phía bên trái để đi tiếp.",
+          "underlined": false
+        }
+      ],
+      "correctOptionIds": [
+        2
+      ],
+      "images": [
+        {
+          "url": "bank-review/600/image-1.jpeg",
+          "width": 517,
+          "height": 309,
+          "pdfPage": 186,
+          "pdfBBox": [
+            85.05000305175781,
+            112.239990234375,
+            545.5800170898438,
+            387.489990234375
+          ],
+          "sha256": "18e8776b78187334af714b3178b4d842b81c5e5c67e390cbdffb7b351673fb96"
+        }
+      ],
+      "sourceQuestionUrl": "bank-review/600/question.webp",
+      "sourceUrl": "https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=186",
+      "pdfPage": 186,
+      "status": "draft"
+    }
+  ]
+}

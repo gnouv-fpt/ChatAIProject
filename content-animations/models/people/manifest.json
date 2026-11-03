@@ -1,0 +1,36 @@
+{
+  "date": "2026-11-01",
+  "name": "Man",
+  "creator": "Quaternius",
+  "license": "CC0-1.0",
+  "source": "https://poly.pizza/m/HMnuH5geEG",
+  "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+  "download": "https://static.poly.pizza/3746be88-6799-4817-929b-6bc067c47caa.glb.br",
+  "blender": "5.1.2",
+  "files": [
+    {
+      "file": "man-casual-source.glb",
+      "bytes": 493196,
+      "sha256": "dad8fa3ca2bc7760892f9ff47f544941179e50acb2aa772cf9f035154a37fc58",
+      "modified": false
+    },
+    {
+      "file": "traffic-pedestrian.glb",
+      "bytes": 269776,
+      "sha256": "ccdd92e4ead40d9f621bfae6beba13e29789e63e7854aa49a376545629794ac3",
+      "modified": true
+    },
+    {
+      "file": "traffic-cyclist.glb",
+      "bytes": 229568,
+      "sha256": "814f672a4517126797aa789370cb8d54c9f2ae54ed950a9b295845847c6fb041",
+      "modified": true
+    },
+    {
+      "file": "traffic-motorcyclist.glb",
+      "bytes": 267196,
+      "sha256": "c9056ddd7c579af46eec25e9a4faf8335f897df3de9472b486779965e8d07fb8",
+      "modified": true
+    }
+  ]
+}

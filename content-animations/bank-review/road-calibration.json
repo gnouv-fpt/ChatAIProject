@@ -1,0 +1,513 @@
+{
+  "486": {
+    "angles": [
+      -26,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "487": {
+    "angles": [
+      -16,
+      29
+    ],
+    "method": "image-line-fit"
+  },
+  "488": {
+    "angles": [
+      -18,
+      25
+    ],
+    "method": "image-line-fit"
+  },
+  "489": {
+    "angles": [
+      -21,
+      36
+    ],
+    "method": "image-line-fit"
+  },
+  "490": {
+    "angles": [
+      -35,
+      12
+    ],
+    "method": "image-line-fit"
+  },
+  "491": {
+    "angles": [
+      -27,
+      32
+    ],
+    "method": "source-entry-axes"
+  },
+  "492": {
+    "angles": [
+      -19,
+      22
+    ],
+    "method": "image-line-fit"
+  },
+  "493": {
+    "angles": [
+      -16,
+      25
+    ],
+    "method": "image-line-fit"
+  },
+  "494": {
+    "angles": [
+      -27,
+      17
+    ],
+    "method": "image-line-fit"
+  },
+  "495": {
+    "angles": [
+      -22,
+      22
+    ],
+    "method": "image-line-fit"
+  },
+  "496": {
+    "angles": [
+      -17,
+      22
+    ],
+    "method": "image-line-fit"
+  },
+  "497": {
+    "angles": [
+      -21,
+      23
+    ],
+    "method": "image-line-fit"
+  },
+  "498": {
+    "angles": [
+      -27,
+      21
+    ],
+    "method": "image-line-fit"
+  },
+  "499": {
+    "angles": [
+      -20,
+      24
+    ],
+    "method": "image-line-fit"
+  },
+  "500": {
+    "angles": [
+      -27,
+      27
+    ],
+    "method": "image-line-fit"
+  },
+  "501": {
+    "angles": [
+      -22,
+      22
+    ],
+    "method": "image-line-fit"
+  },
+  "502": {
+    "angles": [
+      -40,
+      19
+    ],
+    "method": "image-line-fit"
+  },
+  "503": {
+    "angles": [
+      -26,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "504": {
+    "angles": [
+      -30,
+      42
+    ],
+    "method": "source-entry-axes"
+  },
+  "505": {
+    "angles": [
+      -26,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "506": {
+    "angles": [
+      -18,
+      21
+    ],
+    "method": "image-line-fit"
+  },
+  "507": {
+    "angles": [
+      -17,
+      24
+    ],
+    "method": "image-line-fit"
+  },
+  "508": {
+    "angles": [
+      -14,
+      45
+    ],
+    "method": "image-line-fit"
+  },
+  "509": {
+    "angles": [
+      -12,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "510": {
+    "angles": [
+      -30,
+      25
+    ],
+    "method": "image-line-fit"
+  },
+  "511": {
+    "angles": [
+      -22,
+      27
+    ],
+    "method": "source-entry-axes"
+  },
+  "512": {
+    "angles": [
+      -12,
+      33
+    ],
+    "method": "image-line-fit"
+  },
+  "513": {
+    "angles": [
+      -66,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "514": {
+    "angles": [
+      -12,
+      33
+    ],
+    "method": "image-line-fit"
+  },
+  "515": {
+    "angles": [
+      -15,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "516": {
+    "angles": [
+      -12,
+      42
+    ],
+    "method": "image-line-fit"
+  },
+  "517": {
+    "angles": [
+      -21,
+      16
+    ],
+    "method": "image-line-fit"
+  },
+  "518": {
+    "angles": [
+      -13,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "519": {
+    "angles": [
+      -12,
+      33
+    ],
+    "method": "image-line-fit"
+  },
+  "520": {
+    "angles": [
+      -16,
+      25
+    ],
+    "method": "image-line-fit"
+  },
+  "521": {
+    "angles": [
+      -12,
+      44
+    ],
+    "method": "image-line-fit"
+  },
+  "522": {
+    "angles": [
+      -12,
+      38
+    ],
+    "method": "image-line-fit"
+  },
+  "523": {
+    "angles": [
+      -40,
+      17
+    ],
+    "method": "image-line-fit"
+  },
+  "524": {
+    "angles": [
+      -12,
+      44
+    ],
+    "method": "image-line-fit"
+  },
+  "525": {
+    "angles": [
+      -20,
+      20
+    ],
+    "method": "image-line-fit"
+  },
+  "526": {
+    "angles": [
+      -12,
+      44
+    ],
+    "method": "image-line-fit"
+  },
+  "527": {
+    "angles": [
+      -22,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "528": {
+    "angles": [
+      -15,
+      33
+    ],
+    "method": "image-line-fit"
+  },
+  "529": {
+    "angles": [
+      -36,
+      14
+    ],
+    "method": "image-line-fit"
+  },
+  "530": {
+    "angles": [
+      -20,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "531": {
+    "angles": [
+      -31,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "532": {
+    "angles": [
+      -29,
+      16
+    ],
+    "method": "image-line-fit"
+  },
+  "533": {
+    "angles": [
+      -24,
+      26
+    ],
+    "method": "image-line-fit"
+  },
+  "534": {
+    "angles": [
+      -26,
+      20
+    ],
+    "method": "image-line-fit"
+  },
+  "535": {
+    "angles": [
+      -12,
+      45
+    ],
+    "method": "image-line-fit"
+  },
+  "536": {
+    "angles": [
+      -24,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "537": {
+    "angles": [
+      -12,
+      43
+    ],
+    "method": "image-line-fit"
+  },
+  "538": {
+    "angles": [
+      -27,
+      27
+    ],
+    "method": "image-line-fit"
+  },
+  "539": {
+    "angles": [
+      -15,
+      20
+    ],
+    "method": "image-line-fit"
+  },
+  "540": {
+    "angles": [
+      -22,
+      22
+    ],
+    "method": "image-line-fit"
+  },
+  "541": {
+    "angles": [
+      -26,
+      29
+    ],
+    "method": "source-entry-axes"
+  },
+  "542": {
+    "angles": [
+      -25,
+      18
+    ],
+    "method": "image-line-fit"
+  },
+  "543": {
+    "angles": [
+      -21,
+      18
+    ],
+    "method": "image-line-fit"
+  },
+  "546": {
+    "angles": [
+      -17,
+      20
+    ],
+    "method": "source-entry-axes"
+  },
+  "548": {
+    "angles": [
+      -21,
+      19
+    ],
+    "method": "image-line-fit"
+  },
+  "553": {
+    "angles": [
+      -24,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "554": {
+    "angles": [
+      -19,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "560": {
+    "angles": [
+      -25,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "561": {
+    "angles": [
+      -26,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "562": {
+    "angles": [
+      -27,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "563": {
+    "angles": [
+      -25,
+      29
+    ],
+    "method": "image-line-fit"
+  },
+  "565": {
+    "angles": [
+      -27,
+      28
+    ],
+    "method": "image-line-fit"
+  },
+  "566": {
+    "angles": [
+      -19,
+      30
+    ],
+    "method": "image-line-fit"
+  },
+  "592": {
+    "angles": [
+      -22,
+      15
+    ],
+    "method": "image-line-fit"
+  },
+  "597": {
+    "angles": [
+      -25,
+      33
+    ],
+    "method": "source-entry-axes"
+  },
+  "598": {
+    "angles": [
+      -26,
+      35
+    ],
+    "method": "source-entry-axes"
+  },
+  "599": {
+    "angles": [
+      -28,
+      36
+    ],
+    "method": "source-entry-axes"
+  },
+  "600": {
+    "angles": [
+      -34,
+      30
+    ],
+    "method": "source-entry-axes"
+  }
+}

@@ -1,0 +1,1159 @@
+{
+  "format": "csgt-animation-review",
+  "version": 1,
+  "bankId": "csgt-600-2025-sa-hinh-review-v1",
+  "sourceSha256": "d473be679b53458a33acc52057f3a4fe532ea489e91d88fb86789073cd98a9c5",
+  "exportedAt": "2026-11-01T14:33:16.645Z",
+  "records": [
+    {
+      "number": 486,
+      "revision": "2170cec99d1e4764",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:08:18.437Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 487,
+      "revision": "9a34b94f32132a31",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:08:46.331Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 488,
+      "revision": "6efd6670b78997d3",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:13:15.655Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 489,
+      "revision": "43ff62a1a2e304e5",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:13:42.638Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 490,
+      "revision": "33be793b23e062c2",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:10:58.140Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 491,
+      "revision": "bd3fd797ce6a0f70",
+      "status": "approved",
+      "notes": "2 xe đã nhầm line của nhau \nrẽ sai nhánh của nhau ",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:36:24.221Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 492,
+      "revision": "d9907ff3dcf93b17",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:11:44.993Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 493,
+      "revision": "3cf826bbaf3bfe4a",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:12:06.628Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 494,
+      "revision": "cd13275278f9c4fe",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:12:23.822Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 495,
+      "revision": "9d61c75498843b4e",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:12:40.976Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 496,
+      "revision": "be87af7849c26678",
+      "status": "approved",
+      "notes": "xe tải phải rẽ phải",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:37:08.433Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 497,
+      "revision": "36c5dce9e3598d1f",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:14:40.896Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 498,
+      "revision": "28b35c6e1ff5346c",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:14:58.015Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 499,
+      "revision": "47388b9f97630144",
+      "status": "approved",
+      "notes": "khoanh vùng đèn tín hiệu chưa đúng",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:38:01.795Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 500,
+      "revision": "3681c931c8f18fa4",
+      "status": "approved",
+      "notes": "xe tải, xe con và xe máy bị đẩy ra bên trái một làn làm cho xe máy đứng trên dãi phân cách\nđối diện xe khách và xe tải còn chưa xóa hết ảnh phương tiện trong ảnh gốc",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:14:36.667Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 501,
+      "revision": "17eb33593703b3cd",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:17:10.358Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 502,
+      "revision": "c0500cb35c76d4b2",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:17:26.823Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 503,
+      "revision": "becd03722f781f1f",
+      "status": "approved",
+      "notes": "vị trí của xe máy không nằm trên làm đường\nxe con rẽ phải sai line, quá rộng",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:15:15.651Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 504,
+      "revision": "4aa299dbe59d4088",
+      "status": "approved",
+      "notes": "xe tải rẽ hơi rộng",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:15:08.865Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 505,
+      "revision": "9272763ef1b6075d",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:42:00.801Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 506,
+      "revision": "2b62eae05bc2f244",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:20:50.487Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 507,
+      "revision": "8e5efee88694074a",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:21:14.013Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 508,
+      "revision": "add6f1b075b837aa",
+      "status": "approved",
+      "notes": "xe tải không thẳng bị xéo \nvà xe máy thì nằm trên vỉa hè",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:16:43.730Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 509,
+      "revision": "62c2bc5fc48327f2",
+      "status": "approved",
+      "notes": "đặt model không thẳng",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:42:48.644Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 510,
+      "revision": "50970c2d79985993",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:43:07.065Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 511,
+      "revision": "75fd2c3e692145fd",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:23:05.906Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 512,
+      "revision": "434b3ecc202916e4",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:23:24.497Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 513,
+      "revision": "fb8a906d61cf104d",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:23:50.282Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 514,
+      "revision": "1f48510cfd0cd471",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:24:07.050Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 515,
+      "revision": "29f70ca3b49a2456",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:43:16.394Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 516,
+      "revision": "bd398a79fc65881e",
+      "status": "approved",
+      "notes": "xe tải đi không thẳng bị nghiêng hướng bên phải",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:17:08.498Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 517,
+      "revision": "7005ed10005513d6",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:25:17.246Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 518,
+      "revision": "d4a5c264f7a503e6",
+      "status": "approved",
+      "notes": "xe container bị xéo không thẳng",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:17:26.460Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 519,
+      "revision": "4a482643c03b17f2",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:26:03.250Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 520,
+      "revision": "1cfbcc78641451a5",
+      "status": "approved",
+      "notes": "xe con B rẽ trái không thẳng bị lệch khỏi làn đường",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:18:06.301Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 521,
+      "revision": "44a23678718cdd85",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:27:26.211Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 522,
+      "revision": "56ef3e8fbed389bb",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:27:42.950Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 523,
+      "revision": "81d1003bcf040312",
+      "status": "approved",
+      "notes": "xe không chạy hướng số 1 như đáp án \nchỉ chạy hướng số 5",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:15:34.597Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 524,
+      "revision": "69e9f289c796ba66",
+      "status": "approved",
+      "notes": "xe tải không thẳng với làn đường đang bị xéo",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:19:32.896Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 525,
+      "revision": "330e63024993c35a",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:29:35.319Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 526,
+      "revision": "b9220118eb5b9a4a",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:29:52.226Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 527,
+      "revision": "f26e7891d0586e4e",
+      "status": "approved",
+      "notes": "xe máy không di chuyển\nkhoanh vùng chướng ngại vật sai vị trí",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:47:22.793Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 528,
+      "revision": "ef921b1f2f7ea2d2",
+      "status": "approved",
+      "notes": "xe tải đặt lệch không thẳng",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:19:51.312Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 529,
+      "revision": "aa672ac9ca4d17bd",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:31:32.133Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 530,
+      "revision": "f7638f4bc11cbcc3",
+      "status": "approved",
+      "notes": "xe tải rẽ trái lệch phần đường \nvà model bị xéo",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:20:09.846Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 531,
+      "revision": "14487411c7e218ee",
+      "status": "approved",
+      "notes": "xóa đường đó đi để đường đỏ như trong ảnh gốc",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:15:56.489Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 532,
+      "revision": "2e8b1ec354564c04",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:49:36.068Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 533,
+      "revision": "258df47d716739f4",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:33:35.881Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 534,
+      "revision": "a83071ed541ddf84",
+      "status": "approved",
+      "notes": "xe tải đặt lệch so với phần đường, rẽ phải cũng lệch không thẳng\nxe khách lệch so với phần đường, rẽ phải không theo line đỏ leo lên vỉa hè\nxe con đi không theo line đỏ",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:16:18.295Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 535,
+      "revision": "645ef34e6ad1fcaa",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:34:45.569Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 536,
+      "revision": "5388769ea1e900ef",
+      "status": "approved",
+      "notes": "xe con và xe khách di chuyển sai line \nxe con rẽ trái, xe khách rẽ trái",
+      "markers": [],
+      "updatedAt": "2026-11-01T09:51:41.123Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 537,
+      "revision": "37b1e43456b16632",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:36:02.580Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 538,
+      "revision": "4b37898c6a033966",
+      "status": "approved",
+      "notes": "xe moto không được di chuyển\n",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:16:44.067Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 539,
+      "revision": "fd114d8cc7bc3776",
+      "status": "approved",
+      "notes": "hướng đi thứ 3 bị lệch khỏi phần đường",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:22:18.913Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 540,
+      "revision": "e74664cc8c48138f",
+      "status": "approved",
+      "notes": "xe máy đặt không nằm trên làn đường, di chuyển không theo line đã vẽ\nđi lệch khỏi làn đường",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:23:42.130Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 541,
+      "revision": "0ed4b42ade4b1c4b",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:39:16.703Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 542,
+      "revision": "541b6f108365482f",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:39:29.604Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 543,
+      "revision": "310e681c81d45709",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T02:39:43.304Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 544,
+      "revision": "bf5f278101b95984",
+      "status": "approved",
+      "notes": "đây là ngã ba \nvẽ lại biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:17:02.899Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 545,
+      "revision": "285a81221b04ded9",
+      "status": "approved",
+      "notes": "không vẽ line đường như trên đề",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:17:17.382Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 546,
+      "revision": "cb9c29016c80c213",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T06:21:32.444Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 547,
+      "revision": "1ed22cf70e869b6f",
+      "status": "approved",
+      "notes": "xe con đi hướng rẽ trái không phải đi thẳng",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:18:27.022Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 548,
+      "revision": "01de5b6db9d46442",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T06:22:40.996Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 549,
+      "revision": "6745203cf3006fb2",
+      "status": "approved",
+      "notes": "tô màu vàng cho biển báo như hình trong đề",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:18:58.408Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 550,
+      "revision": "30bb045914f8a86d",
+      "status": "approved",
+      "notes": "vẽ lại biển báo \nvà thêm line hướng A B như đề\nquay đầu sai, phải quay đầu sau khi qua vạch kẻ cho người đi bộ",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:19:13.547Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 551,
+      "revision": "1f399be68fd67693",
+      "status": "approved",
+      "notes": "vẽ lại biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:19:26.960Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 552,
+      "revision": "cf0af9f5a3074d00",
+      "status": "approved",
+      "notes": "xe pov không có di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:19:44.126Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 553,
+      "revision": "c12d416c088ba9c1",
+      "status": "approved",
+      "notes": "xe tải xe con đặt không thẳng với làn đường\nxe máy đặt không thẳng với làn đường\nkhoanh vùng xe khách và xe mô tô là đỏ",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:28:20.713Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 554,
+      "revision": "5397848a8af08564",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T06:26:39.955Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 555,
+      "revision": "a0abc875c4f60e88",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:20:04.880Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 556,
+      "revision": "4f1479a35cf74c61",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:20:30.808Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 557,
+      "revision": "2431c4f780e33441",
+      "status": "approved",
+      "notes": "đặt hướng model vị trí A sai",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:21:10.263Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 558,
+      "revision": "60439c111428e21e",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:21:26.580Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 559,
+      "revision": "241df28b7f850cbb",
+      "status": "approved",
+      "notes": "đèn xi nhan bị tách ra khỏi xe",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:21:48.592Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 560,
+      "revision": "8b51201bd811acd6",
+      "status": "approved",
+      "notes": "xe khách và xe máy đứng yên không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:22:32.699Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 561,
+      "revision": "3662ca2b0673bd19",
+      "status": "approved",
+      "notes": "xóa ảnh 2 chiếc xe máy gốc",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:23:05.907Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 562,
+      "revision": "4b50171195b6984d",
+      "status": "approved",
+      "notes": "đặt moto ở làn giữa",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:23:35.950Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 563,
+      "revision": "442828d990b52e59",
+      "status": "approved",
+      "notes": "model xe con đặt sai vị trí, cả 2 xe di chuyển đều sai hướng theo đề",
+      "markers": [],
+      "updatedAt": "2026-11-01T10:07:33.877Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 564,
+      "revision": "7ddf02e8b3288290",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:23:50.140Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 565,
+      "revision": "e17c19ebb7b41cd2",
+      "status": "approved",
+      "notes": "xe máy không nằm trên làn đường rẽ trái và rẽ hơi rộng\nxe khách rẽ hơi hẹp",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:32:24.286Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 566,
+      "revision": "69d4fb8e527d8a91",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T06:35:39.404Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 567,
+      "revision": "f66db33386ae7440",
+      "status": "approved",
+      "notes": "xe pov không di chuyển, xe máy phải rẽ trái",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:24:14.786Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 568,
+      "revision": "ef2d5e0b9c341a56",
+      "status": "approved",
+      "notes": "xê ô tô phải rẽ phải, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:24:35.805Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 569,
+      "revision": "d0afd991979a7b2f",
+      "status": "approved",
+      "notes": "vẽ sai cấu trúc tiểu đảo giao thông ",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:24:49.240Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 570,
+      "revision": "87f2af7aa60e5466",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:25:15.723Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 571,
+      "revision": "e3c0198762ba34db",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:25:26.578Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 572,
+      "revision": "5f8d9648f4e16aa5",
+      "status": "approved",
+      "notes": "model xe tải đặt không đúng vị trí, xe tải và xe đạp va chạm nhau khi di chuyển, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:25:56.330Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 573,
+      "revision": "8e68fde87956b4df",
+      "status": "approved",
+      "notes": "xe màu xanh đã rẽ không đứng dừng chờ người đi bộ",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:26:18.355Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 574,
+      "revision": "3625488fa1f931fe",
+      "status": "approved",
+      "notes": "xe khách và xe đạp va chạm khi di chuyển\nxe khách di chuyển sai hướng \nxe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:26:41.918Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 575,
+      "revision": "65a448519368483d",
+      "status": "approved",
+      "notes": "vẽ sai biển báo giao nhau với đường không ưu tiên",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:26:55.463Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 576,
+      "revision": "01e4925a9e0bb386",
+      "status": "approved",
+      "notes": "xe ngược chiều di chuyển sai hướng, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:27:14.058Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 577,
+      "revision": "52820ab4c0fdeba3",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:27:26.310Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 578,
+      "revision": "6f2b4cddebd2148c",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:27:45.967Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 579,
+      "revision": "555a0804b38d0b9d",
+      "status": "approved",
+      "notes": "các model xe đặt sai hướng",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:28:01.146Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 580,
+      "revision": "b2a91ea3f9ffe091",
+      "status": "approved",
+      "notes": "di chuyển tiếp sau khi xe xanh đã vượt\n",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:28:18.657Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 581,
+      "revision": "a64ce94bf42ac9e6",
+      "status": "approved",
+      "notes": "xe pov vẫn di chuyển chậm",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:28:32.750Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 582,
+      "revision": "a7aa4dad4c63b716",
+      "status": "approved",
+      "notes": "vẽ lại biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:28:44.741Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 583,
+      "revision": "8d91617011c67ff0",
+      "status": "approved",
+      "notes": "model xe đặt sai vị trí \ncác xe di chuyển sai hướng xe đạp đi thẳng, xe máy đi thẳng, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:29:09.063Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 584,
+      "revision": "412624d858ebe14d",
+      "status": "approved",
+      "notes": "vẽ thiếu biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:29:24.863Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 585,
+      "revision": "418e2af254962ddf",
+      "status": "approved",
+      "notes": "vẽ thiếu biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:29:38.950Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 586,
+      "revision": "f19c4cc363e6dbc4",
+      "status": "approved",
+      "notes": "vẽ thiếu biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:30:00.756Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 587,
+      "revision": "6144328c57f66cff",
+      "status": "approved",
+      "notes": "vẽ sai biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:30:27.900Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 588,
+      "revision": "5a38f661e84ccda6",
+      "status": "approved",
+      "notes": "vẽ sai biển báo",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:30:41.558Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 589,
+      "revision": "50a1b4d28ab19dd6",
+      "status": "approved",
+      "notes": "model xe đặt sai vị trí, xe tải di chuyển không thẳng, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:31:06.394Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 590,
+      "revision": "406457c07d63d8ad",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:31:28.393Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 591,
+      "revision": "8511b1fe57e7265f",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:31:49.857Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 592,
+      "revision": "352c042a9569d0e3",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T06:50:51.711Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 593,
+      "revision": "689e817c36651d40",
+      "status": "approved",
+      "notes": "",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:32:03.255Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 594,
+      "revision": "debeff855882adf4",
+      "status": "approved",
+      "notes": "vẽ thiếu line đỏ theo đề",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:32:19.232Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 595,
+      "revision": "e976f94e3e58711d",
+      "status": "approved",
+      "notes": "xe phía trước bay lên trời, xe ngược chiều di chuyển không thẳng, xe pov không di chuyển",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:32:30.517Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 596,
+      "revision": "ec85f5ffaeafd35f",
+      "status": "approved",
+      "notes": "xe con phải dừng không được di chuyển, người kéo barem chứ không phải người đi bộ băng qua đường sắt",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:32:40.575Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 597,
+      "revision": "6b0b0a20c13bcbf5",
+      "status": "approved",
+      "notes": "nhập làn xong rẽ vào 1 làn lần nữa",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:33:00.772Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 598,
+      "revision": "4e0ba89930c9da26",
+      "status": "approved",
+      "notes": "xe xanh vượt nhanh hơn",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:36:55.313Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 599,
+      "revision": "0ba2d9ac014a9374",
+      "status": "approved",
+      "notes": "xe đỏ đi không thẳng",
+      "markers": [],
+      "updatedAt": "2026-11-01T14:33:12.747Z",
+      "previousRevision": null,
+      "previousStatus": null
+    },
+    {
+      "number": 600,
+      "revision": "2b02476f2db95d67",
+      "status": "approved",
+      "notes": "các xe còn lại không cần di chuyển\nsửa model xe máy đối diện cho thẳng với làn đường",
+      "markers": [],
+      "updatedAt": "2026-11-01T11:37:42.784Z",
+      "previousRevision": null,
+      "previousStatus": null
+    }
+  ]
+}

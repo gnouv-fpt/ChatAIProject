@@ -1,0 +1,92 @@
+[
+  {
+    "name": "box-truck",
+    "file": "box-truck.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/7-5-t-class-box-truck-with-roll-up-door-12baea66",
+    "download": "https://files.innerscene.com/library/7-5-t-class-box-truck-with-roll-up-door-12baea66/286c7a3a7174b81d13ed/7-5-t-class-box-truck-with-roll-up-door.glb",
+    "sha256": "6b983b515ee6bf044489a88cccab0ba4cbdb8d9b873b0c023098f9ecd15f4115",
+    "bytes": 6063296,
+    "license": "CC0-1.0",
+    "description": "7.5 t class box truck with roll-up door. Overall size 7.190 x 2.800 x 3.300 m; original unbranded model. Overall 7.4 x 2.7 x 3.3 m.\n\nNominal size: 7.1 m.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "city-bus",
+    "file": "city-bus.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/12-m-low-floor-city-bus-8e3c7229",
+    "download": "https://files.innerscene.com/library/12-m-low-floor-city-bus-8e3c7229/acda033692cb5b750a2c/12-m-low-floor-city-bus.glb",
+    "sha256": "3caace56ce491b8d2b1535f3362a5a413f3ccb2a8c831361d9341d1990e1e4f0",
+    "bytes": 6367628,
+    "license": "CC0-1.0",
+    "description": "12 m low-floor city bus. Overall size 12.138 x 2.880 x 3.415 m; original unbranded model. Overall 12.2 x 3.1 x 3.4 m.\n\nNominal size: 12 m.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "delivery-van",
+    "file": "delivery-van.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/high-roof-cargo-panel-van-c4d5145f",
+    "download": "https://files.innerscene.com/library/high-roof-cargo-panel-van-c4d5145f/256d8780edfab1ed4014/high-roof-cargo-panel-van.glb",
+    "sha256": "38a606e9399ddcf59648c4f7724f9b28f8954f77a1118f937ae95b70c56ffcf7",
+    "bytes": 5483628,
+    "license": "CC0-1.0",
+    "description": "High-roof cargo panel van. Overall size 5.675 x 2.420 x 2.480 m; original unbranded model. Overall 5.7 x 2.6 x 2.7 m.\n\nNominal size: 5.6 m.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "ambulance",
+    "file": "ambulance.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/box-body-ambulance-dc8d7b19",
+    "download": "https://files.innerscene.com/library/box-body-ambulance-dc8d7b19/8e25286411e0455e54a3/box-body-ambulance.glb",
+    "sha256": "c654d5f05a4029b9ffca9d97b145ff2223ed3e4e7c2e0d196e5bc8a62bdb378d",
+    "bytes": 6955580,
+    "license": "CC0-1.0",
+    "description": "Box-body ambulance. Overall size 7.780 x 2.782 x 2.968 m; original unbranded model. Overall 7.8 x 2.8 x 3 m.\n\nNominal size: 7780.00 x 2782.00 x 2968.00 mm overall.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "fire-engine",
+    "file": "fire-engine.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/fire-engine-pumper-ad69949b",
+    "download": "https://files.innerscene.com/library/fire-engine-pumper-ad69949b/48038f8e38154a379f87/fire-engine-pumper.glb",
+    "sha256": "01b9f05a1a55ff1e3de1c20dabf4dee75ed4ab08d3f5524e8b95a2c0bd48f9a5",
+    "bytes": 7269828,
+    "license": "CC0-1.0",
+    "description": "Fire engine pumper. Overall size 9.280 x 3.102 x 3.035 m; original unbranded model. Overall 9.3 x 3.1 x 3 m.\n\nNominal size: 9280.00 x 3102.00 x 3035.00 mm overall.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "military-truck",
+    "file": "military-truck.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/generic-1940s-2-5-t-cargo-truck-6e78cb4a",
+    "download": "https://files.innerscene.com/library/generic-1940s-2-5-t-cargo-truck-6e78cb4a/d4ec079917351ff910c7/generic-1940s-2-5-t-cargo-truck.glb",
+    "sha256": "87efc3443d4a6183aeeb4694a696bec3db3d45e9f65f9045832918b91750fa3d",
+    "bytes": 6919816,
+    "license": "CC0-1.0",
+    "description": "Generic 1940s 2.5 t cargo truck. Overall size 2.320 x 6.424 x 2.754 m; original unbranded model. Overall 2.3 x 6.4 x 2.8 m.\n\nNominal size: 2320.00 x 6423.50 x 2753.75 mm overall.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "semi-trailer",
+    "file": "semi-trailer.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/semi-tractor-and-box-trailer-bc0bdac8",
+    "download": "https://files.innerscene.com/library/semi-tractor-and-box-trailer-bc0bdac8/5f48204fad7fbc6f98fd/semi-trailer-original.glb",
+    "sha256": "54fcf2d834e022f96831bed94cc7b5c98f458559b9398934c736a24639483dad",
+    "bytes": 1394012,
+    "license": "CC0-1.0",
+    "description": "Semi tractor and box trailer. Overall 3.3 x 17 x 4 m.\n\nKey dimensions: trailer length 13600 mm; trailer width 2500 mm; trailer box height 2800 mm; tractor axles 3; trailer axles 3.\n\nOriginal cab-over tractor and three-axle box trailer, with separate wheel, landing gear, fifth-wheel and rear-door components. Nominal layout geometry; coupling kinematics, drivetrain, air hoses and detailed chassis internals are omitted. Landing legs are shown partially extended for static display.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nA nominal-scale visualization model, not manufacturer CAD. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "city-bicycle",
+    "file": "city-bicycle.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/city-bicycle-58a2a324",
+    "download": "https://files.innerscene.com/library/city-bicycle-58a2a324/b2c6f964782dd212ba7f/bicycle-original.glb",
+    "sha256": "991f3defc3827f30b0521df257b33f243bf86398f26691a46733e9ef54b1b74a",
+    "bytes": 430176,
+    "license": "CC0-1.0",
+    "description": "City bicycle. Overall 580.1 x 1780 x 1076 mm.\n\nKey dimensions: wheelbase 1080 mm; tire outer diameter 700 mm; nominal tire width 35 mm; chainring teeth 48; rear sprockets 7.\n\nOriginal diamond-frame bicycle with individual spokes, controls, fork, crank, pedals, chain and seven-speed cassette. Nominal scale visualization; chain rollers, bearing internals, cable actuation and manufacturer component interfaces are simplified.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nA nominal-scale visualization model, not manufacturer CAD. Original Innerscene model, released CC0."
+  },
+  {
+    "name": "locomotive",
+    "file": "locomotive.glb",
+    "source": "https://www.innerscene.com/tools/library/3d-parts/small-diesel-shunting-locomotive-d53d1994",
+    "download": "https://files.innerscene.com/library/small-diesel-shunting-locomotive-d53d1994/2253885daeb322f3014d/small-diesel-shunting-locomotive.glb",
+    "sha256": "fab5401a0d8c5447abc7413c9ad7df240bc048d9e81d6188f91f801ebdf1c84b",
+    "bytes": 20866596,
+    "license": "CC0-1.0",
+    "description": "Small diesel shunting locomotive on standard-gauge track: yellow end cab and long hood with louvred side doors, radiator grille and exhaust stack, black frame with two rod-coupled 1,000 mm wheelsets, walkways with handrails, corner steps, black and yellow striped buffer beams with side buffers and screw couplings, headlights and a roof beacon. Overall 4200 x 11700 x 4730 mm. Overall 4.2 x 11.7 x 4.7 m.\n\nNominal size: 4200.00 x 11700.00 x 4730.00 mm overall.\n\nglTF binary (GLB) mesh with materials, modeled in meters at real-world scale. Export to other formats from the viewer.\n\nNominal dimensions for layout, fit checks and visualization; they do not establish a manufacturing tolerance class, load rating or standards certification. Original Innerscene model, released CC0."
+  }
+]

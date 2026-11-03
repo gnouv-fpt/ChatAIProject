@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Câu 490 · Cho xe trong ảnh chạy</title>
+  <link rel="stylesheet" href="q490.css">
+  <link rel="stylesheet" href="q490-moving.css?v=2">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">Bản xem thử · Sa hình câu 490</span>
+      <h1>Xe nào đi trước?</h1>
+      <p>Bấm <strong>Phát thứ tự</strong> để xem xe trong ảnh chạy chậm theo từng lượt. Bạn có thể <strong>Tạm dừng</strong> hoặc kéo thanh vị trí để xem từng đoạn; xe sẽ giữ ở cuối đường khi hết lượt.</p>
+    </header>
+    <div class="layout">
+      <section class="card stage-card" aria-labelledby="stage-title">
+        <div class="card-top"><div><span class="section-label">01 / Ảnh câu hỏi</span><h2 id="stage-title">Thứ tự qua giao lộ</h2></div><span class="tag">Câu 490</span></div>
+        <div class="stage">
+          <svg id="scene" viewBox="0 0 496 280" role="img" aria-labelledby="scene-title scene-desc">
+            <title id="scene-title">Sa hình Câu 490 với các xe cắt từ ảnh gốc chuyển động</title>
+            <desc id="scene-desc">Ảnh gốc có mô tô bên trái, xe con phía trên và xe tải bên phải. Các xe được tách thành lớp ảnh và lần lượt di chuyển trên giao lộ.</desc>
+            <defs>
+              <filter id="soft-edge" x="-15%" y="-15%" width="130%" height="130%"><feGaussianBlur stdDeviation="2" /></filter>
+              <linearGradient id="truck-tail-fade" gradientUnits="userSpaceOnUse" x1="465" y1="0" x2="496" y2="0"><stop offset="0" stop-color="white"/><stop offset="1" stop-color="black"/></linearGradient>
+              <mask id="truck-moving-mask" maskUnits="userSpaceOnUse" x="0" y="0" width="496" height="280"><rect width="465" height="280" fill="white"/><rect x="465" width="31" height="280" fill="url(#truck-tail-fade)"/></mask>
+              <mask id="erase-vehicles" maskUnits="userSpaceOnUse" x="0" y="0" width="496" height="280">
+                <rect width="496" height="280" fill="black" />
+                <ellipse cx="30" cy="89" rx="37" ry="33" fill="white" filter="url(#soft-edge)" />
+                <ellipse cx="259" cy="54" rx="35" ry="28" fill="white" filter="url(#soft-edge)" />
+                <path d="M375 88 Q410 77 444 83 L502 94 L502 195 L430 188 L366 170 L366 126 Z" fill="white" filter="url(#soft-edge)" />
+              </mask>
+              <clipPath id="clip-moto" clipPathUnits="userSpaceOnUse"><path d="M3 69 L22 64 L37 70 L52 84 L58 101 L52 111 L36 110 L18 101 L5 92 Z" /></clipPath>
+              <clipPath id="clip-car" clipPathUnits="userSpaceOnUse"><path d="M231 39 L246 33 L268 30 L287 40 L289 53 L279 67 L263 74 L241 68 L230 58 Z" /></clipPath>
+              <clipPath id="clip-truck" clipPathUnits="userSpaceOnUse"><path d="M382 94 L406 84 L450 88 L496 100 L496 187 L443 184 L396 174 L374 160 L371 127 Z" /></clipPath>
+            </defs>
+            <image href="q490-original.jpg" width="496" height="280" />
+            <image href="q490-empty-corrected.png" width="496" height="280" preserveAspectRatio="none" mask="url(#erase-vehicles)" />
+            <path id="route-moto" class="route" d="M 33 88 C 95 106, 139 123, 187 130 C 237 143, 276 136, 308 111 C 327 97, 342 83, 356 67" />
+            <path id="route-car" class="route" d="M 260 51 C 234 79, 205 109, 174 144 C 136 181, 92 210, 35 233" />
+            <path id="route-truck" class="route" d="M 433 138 C 374 143, 318 136, 259 139 C 207 148, 145 182, 55 229" />
+            <g id="vehicle-moto" class="vehicle"><image href="q490-original.jpg" width="496" height="280" clip-path="url(#clip-moto)" /></g>
+            <g id="vehicle-car" class="vehicle"><image href="q490-original.jpg" width="496" height="280" clip-path="url(#clip-car)" /></g>
+            <g id="vehicle-truck" class="vehicle"><image href="q490-original.jpg" width="496" height="280" clip-path="url(#clip-truck)" /></g>
+          </svg>
+        </div>
+        <p class="image-note">Xe được cắt từ đúng ảnh gốc. Vùng đường phía sau xe được phục dựng nên có thể khác nhẹ ảnh nguồn. <a href="demo-q490.html">Xem bản lớp vẽ để đối chiếu ↗</a></p>
+        <div class="controls"><button id="play" class="primary" type="button">▶ Phát thứ tự</button><button id="pause" type="button" disabled>Tạm dừng</button><button id="reset" type="button">Về đầu</button></div>
+        <label class="scrub" for="progress">Vị trí xe đang xem <output id="progress-value" for="progress">0%</output><input id="progress" type="range" min="0" max="100" value="0" step="1" aria-label="Vị trí xe trên đường minh họa"></label>
+        <div class="turns" role="group" aria-label="Xem từng lượt xe"><button type="button" data-vehicle="moto"><span>01</span> Xe mô tô</button><button type="button" data-vehicle="car"><span>02</span> Xe con</button><button type="button" data-vehicle="truck"><span>03</span> Xe tải</button></div>
+      </section>
+      <aside class="card explanation" aria-labelledby="explanation-title">
+        <span class="section-label">02 / Đáp án và lý do</span>
+        <h2 id="explanation-title">Mô tô → xe con → xe tải</h2>
+        <p id="status" role="status" aria-live="polite">Chọn Phát thứ tự để bắt đầu từ xe mô tô.</p>
+        <ol class="order"><li><b>1. Xe mô tô</b><span>Bên phải trống, đi trước.</span></li><li><b>2. Xe con</b><span>Đi sau khi mô tô qua giao lộ.</span></li><li><b>3. Xe tải</b><span>Nhường hai xe còn lại, đi cuối.</span></li></ol>
+        <div class="source"><strong>Nguồn đối chiếu</strong><p>PDF bộ 600 câu do Cục CSGT biên soạn, Câu 490, trang PDF 131. Phương án 3 được gạch chân trong bản PDF. <a href="https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=131" target="_blank" rel="noopener noreferrer">Mở trang nguồn ↗</a></p></div>
+        <p class="small">Đây là bản thử thủ công cho một câu; chưa tự động tạo cho toàn bộ bank. Chuyển động 2D theo góc nhìn ảnh tĩnh.</p>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="q490-moving.js?v=3"></script>
+</body>
+</html>

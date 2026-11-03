@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Câu 490 · Xe nào đi trước?</title>
+  <link rel="stylesheet" href="q490.css">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">Bản xem thử · Sa hình câu 490</span>
+      <h1>Xe nào đi trước?</h1>
+      <p>Ảnh sa hình bên dưới được trích nguyên từ bộ 600 câu. Bấm <strong>Phát thứ tự</strong> để thấy từng xe đi ngay trên ảnh, hoặc chọn một xe để xem riêng lượt đó.</p>
+    </header>
+    <div class="layout">
+      <section class="card stage-card" aria-labelledby="stage-title">
+        <div class="card-top"><div><span class="section-label">01 / Ảnh câu hỏi</span><h2 id="stage-title">Thứ tự qua giao lộ</h2></div><span class="tag">Câu 490</span></div>
+        <div class="stage">
+          <svg id="scene" viewBox="0 0 496 280" role="img" aria-labelledby="scene-title scene-desc">
+            <title id="scene-title">Sa hình giao lộ Câu 490 với lớp mô phỏng thứ tự di chuyển</title>
+            <desc id="scene-desc">Ảnh gốc có xe mô tô từ bên trái, xe con phía trên và xe tải bên phải. Lớp vẽ phủ sẽ lần lượt cho mô tô, xe con, xe tải đi theo đường mũi tên.</desc>
+            <image href="q490-original.jpg" width="496" height="280" />
+            <path id="route-moto" class="route" d="M 33 88 C 95 106, 139 123, 187 130 C 237 143, 276 136, 308 111 C 327 97, 342 83, 356 67" />
+            <path id="route-car" class="route" d="M 260 51 C 234 79, 205 109, 174 144 C 136 181, 92 210, 35 233" />
+            <path id="route-truck" class="route" d="M 433 138 C 374 143, 318 136, 259 139 C 207 148, 145 182, 55 229" />
+            <g id="marker-moto" class="marker"><circle cx="-12" cy="7" r="5"/><circle cx="12" cy="7" r="5"/><path d="M-12 7L-2-2L7 7L12 7M-2-2L2-9L8-7"/><circle cx="0" cy="-12" r="3"/></g>
+            <g id="marker-car" class="marker"><rect x="-17" y="-9" width="34" height="17" rx="6"/><path d="M-10-9L-4-16H8L14-9"/><circle cx="-10" cy="9" r="4"/><circle cx="11" cy="9" r="4"/></g>
+            <g id="marker-truck" class="marker"><rect x="-23" y="-11" width="31" height="19" rx="2"/><path d="M8-8H19L25-1V8H8Z"/><circle cx="-12" cy="9" r="4"/><circle cx="15" cy="9" r="4"/></g>
+          </svg>
+        </div>
+        <p class="image-note">Ảnh gốc được giữ nguyên. Hình xe có viền sáng là lớp mô phỏng di chuyển; các xe trong ảnh nền vẫn ở vị trí ban đầu để bạn đối chiếu. <a href="demo-q490-3d.html">Xem bản xe dựng 3D theo mặt đường ↗</a></p>
+        <div class="controls"><button id="play" class="primary" type="button">▶ Phát thứ tự</button><button id="reset" type="button">Về đầu</button></div>
+        <div class="turns" role="group" aria-label="Xem từng lượt xe"><button type="button" data-vehicle="moto"><span>01</span> Xe mô tô</button><button type="button" data-vehicle="car"><span>02</span> Xe con</button><button type="button" data-vehicle="truck"><span>03</span> Xe tải</button></div>
+      </section>
+      <aside class="card explanation" aria-labelledby="explanation-title">
+        <span class="section-label">02 / Đáp án và lý do</span>
+        <h2 id="explanation-title">Mô tô → xe con → xe tải</h2>
+        <p id="status" role="status" aria-live="polite">Chọn Phát thứ tự để bắt đầu từ xe mô tô.</p>
+        <ol class="order"><li><b>1. Xe mô tô</b><span>Bên phải trống, đi trước.</span></li><li><b>2. Xe con</b><span>Đi sau khi mô tô qua giao lộ.</span></li><li><b>3. Xe tải</b><span>Nhường hai xe còn lại, đi cuối.</span></li></ol>
+        <div class="source"><strong>Nguồn đối chiếu</strong><p>PDF bộ 600 câu do Cục CSGT biên soạn, Câu 490, trang PDF 131. Phương án 3 được gạch chân trong bản PDF. <a href="https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=131" target="_blank" rel="noopener noreferrer">Mở trang nguồn ↗</a></p></div>
+        <p class="small">Đây là ví dụ cách gắn animation lên một ảnh sa hình. Chưa phải chức năng tự động tạo cho toàn bộ bank.</p>
+      </aside>
+    </div>
+  </main>
+  <script type="module" src="q490.js"></script>
+</body>
+</html>

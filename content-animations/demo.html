@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Ví dụ Câu 14 · Dừng xe</title>
+  <link rel="stylesheet" href="demo.css">
+</head>
+<body>
+  <main>
+    <header>
+      <span class="eyebrow">Bản xem thử · Câu 14 trong bộ 600 câu</span>
+      <h1>“Dừng xe” nghĩa là gì?</h1>
+      <p>Chọn một phương án, rồi xem tình huống chuyển động. Các phương án bên dưới được diễn giải ngắn để minh họa; <a href="https://www.csgt.vn/upload/services/273963059_B%E1%BB%99%20600%20c%C3%A2u%20h%E1%BB%8Fi%20d%C3%B9ng%20cho%20s%C3%A1t%20h%E1%BA%A1ch%20l%C3%A1i%20xe%20c%C6%A1%20gi%E1%BB%9Bi%20%C4%91%C6%B0%E1%BB%9Dng%20b%E1%BB%99.pdf" target="_blank" rel="noopener noreferrer">mở bản gốc của Cục CSGT</a> hoặc <a href="https://cdn.tailieu.vn/files/samples/2025/20250827/laphong0906/bo600cauhoi.pdf" target="_blank" rel="noopener noreferrer">bản sao PDF</a> để đọc toàn văn.</p>
+      <p><a href="demo-q490.html">Xem thêm: xe đi theo thứ tự ngay trên ảnh sa hình Câu 490 →</a></p>
+    </header>
+    <section class="layout">
+      <section class="card question" aria-labelledby="question-title">
+        <div class="section-label">01 / Câu hỏi</div>
+        <h2 id="question-title">Khi nào một xe được coi là đang dừng?</h2>
+        <div class="choices" role="group" aria-label="Chọn đáp án">
+          <button type="button" class="choice" data-answer="1"><span>A</span> Đứng yên không giới hạn thời gian để đón hoặc trả người.</button>
+          <button type="button" class="choice" data-answer="2"><span>B</span> Đứng yên tạm thời trong thời gian cần thiết để đón, trả người hoặc làm việc cần thiết.</button>
+          <button type="button" class="choice" data-answer="3"><span>C</span> Đứng yên không giới hạn giữa hai chuyến vận chuyển.</button>
+        </div>
+        <div id="feedback" class="feedback" role="status" aria-live="polite">Chọn đáp án để xem giải thích.</div>
+        <p class="source-note">Nguồn: Cục CSGT, bộ 600 câu (2025), Câu 14, bản PDF trang 6. Nội dung gốc có thêm điều kiện an toàn; hãy đối chiếu trước khi dùng để sát hạch.</p>
+      </section>
+      <section class="card animation" aria-labelledby="animation-title">
+        <div class="section-label">02 / Minh họa chuyển động</div>
+        <h2 id="animation-title">Dừng tạm, rồi tiếp tục đi</h2>
+        <div class="scene" role="img" aria-label="Xe đi trên đường, giảm tốc, dừng cạnh lề để hành khách lên xe rồi tiếp tục đi">
+          <div class="sky"><span>Đường phố</span><div class="tree"></div></div>
+          <div class="sidewalk"><div id="person" class="person" aria-hidden="true"><i></i><b></b></div><div class="stop-marker">Điểm đón</div></div>
+          <div class="road"><div class="lane-line"></div><div id="car" class="car" aria-hidden="true"><div class="window"></div><div class="wheel first"></div><div class="wheel second"></div></div></div>
+        </div>
+        <div class="step-meta"><span id="step-number">Bước 1 / 4</span><span id="step-time">Đang chạy</span></div>
+        <p id="caption" class="caption" role="status" aria-live="polite"></p>
+        <div class="controls"><button id="previous" type="button">Bước trước</button><button id="play" type="button" class="primary">Phát</button><button id="next" type="button">Bước sau</button><button id="reset" type="button">Về đầu</button></div>
+        <p class="source-note">Sơ đồ để học khái niệm, không mô tả đầy đủ quy tắc dừng, đỗ hoặc chỉ dẫn vị trí dừng xe.</p>
+      </section>
+    </section>
+  </main>
+  <script type="module" src="demo.js"></script>
+</body>
+</html>

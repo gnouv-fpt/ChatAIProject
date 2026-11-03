@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' blob:; img-src 'self' blob: data:; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Minh họa lời giải sa hình · lộ trình</title>
+  <link rel="icon" href="learn-icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="review.css">
+  <link rel="stylesheet" href="review-v2.css">
+  <link rel="stylesheet" href="learn.css">
+</head>
+<body data-question="568">
+  <header class="topbar"><a class="brand" href="learn.html">lộ trình<span> · sa hình</span></a><span>Minh họa lời giải</span></header>
+  <main class="learner">
+    <div class="lesson-nav">
+      <a id="previous-question" aria-label="Câu trước">← Câu trước</a>
+      <label for="question-choice">Chọn câu <select id="question-choice" disabled><option>Đang tải…</option></select></label>
+      <a id="next-question" aria-label="Câu tiếp">Câu tiếp →</a>
+    </div>
+    <div id="load-error" role="alert" hidden><p id="error-text"></p><button id="retry" type="button">Thử lại</button></div>
+    <article id="lesson" class="question-card" hidden>
+      <span id="question-number" class="eyebrow"></span>
+      <h1 id="prompt"></h1>
+      <div class="scene-toolbar">
+        <div class="modes" role="group" aria-label="Kiểu xem">
+          <button id="mode-3d" data-mode="3d" type="button" aria-pressed="true">Mô phỏng 3D</button>
+          <button id="mode-original" data-mode="original" type="button" aria-pressed="false">Ảnh gốc</button>
+        </div>
+        <label><input id="guides" type="checkbox" checked> Đường minh họa</label>
+      </div>
+      <div id="scene" class="scene" role="img" aria-label="Minh họa sa hình"></div>
+      <p id="player-message" role="status" aria-live="polite">Đang tải mô hình…</p>
+      <button id="retry-model" type="button" hidden>Thử tải lại mô phỏng</button>
+      <div class="playback">
+        <button id="play" class="primary" type="button" disabled>▶ Phát</button>
+        <button id="previous-step" type="button" disabled>Bước trước</button>
+        <button id="next-step" type="button" disabled>Bước sau</button>
+        <button id="reset" type="button" disabled>Về đầu</button>
+        <label>Tốc độ <select id="speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label>
+      </div>
+      <label class="timeline" for="timeline"><span id="step-position">Bước 1</span><output id="time-output">0:00</output><input id="timeline" aria-label="Tua mô phỏng" type="range" min="0" max="1" step="0.01" value="0" disabled></label>
+      <ol id="steps" class="steps" aria-label="Các bước mô phỏng"></ol>
+      <section aria-labelledby="answer-title"><h2 id="answer-title">Đáp án và phương án</h2><ol id="options" class="options"></ol></section>
+      <p class="small">Mô phỏng diễn giải tình huống trong đề. Chọn Ảnh gốc để đối chiếu hình sa hình.</p>
+      <a id="source-link" target="_blank" rel="noopener noreferrer">Mở tài liệu nguồn ↗</a>
+    </article>
+    <p id="loading" role="status">Đang tải câu hỏi…</p>
+  </main>
+  <script type="module" src="learn.js"></script>
+</body>
+</html>

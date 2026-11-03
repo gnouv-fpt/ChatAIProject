@@ -1,0 +1,22 @@
+{
+  "status": "SourceAuthenticatedLegalMappingCandidate",
+  "questionSourceEdition": "CSGT-600-2025-CV2262",
+  "questionSourcePdfSha256": "d473be679b53458a33acc52057f3a4fe532ea489e91d88fb86789073cd98a9c5",
+  "legalSourceDocument": "55/VBHN-VPQH",
+  "legalSourceUrl": "https://thuvienphapluat.vn/van-ban/Giao-thong-Van-tai/Van-ban-hop-nhat-55-VBHN-VPQH-2026-Luat-Trat-tu-an-toan-giao-thong-duong-bo-698683.aspx",
+  "asOfDate": "2026-11-03",
+  "cases": [
+    {"questionNumber": 2, "topic": "khái niệm", "kind": "single-provision", "expected": [{"article": "2", "clause": "6"}]},
+    {"questionNumber": 23, "topic": "chế tài ma túy", "kind": "out-of-corpus", "expectedStatus": "NoMatch", "expected": []},
+    {"questionNumber": 25, "topic": "chế tài nồng độ cồn", "kind": "out-of-corpus", "expectedStatus": "NoMatch", "expected": []},
+    {"questionNumber": 34, "topic": "người đi bộ", "kind": "single-provision", "expected": [{"article": "12", "clause": "3", "point": "a"}]},
+    {"questionNumber": 56, "topic": "chuyển hướng", "kind": "single-provision", "expected": [{"article": "15", "clause": "2"}]},
+    {"questionNumber": 75, "topic": "chế tài mũ bảo hiểm", "kind": "out-of-corpus", "expectedStatus": "NoMatch", "expected": []},
+    {"questionNumber": 118, "topic": "GPLX và tuổi", "kind": "multiple-articles", "expected": [{"article": "57", "clause": "1", "point": "đ"}, {"article": "59", "clause": "1", "point": "b"}]},
+    {"questionNumber": 119, "topic": "GPLX và tuổi", "kind": "multiple-articles", "expected": [{"article": "57", "clause": "1", "point": "a"}, {"article": "57", "clause": "1", "point": "d"}, {"article": "59", "clause": "1", "point": "b"}]},
+    {"questionNumber": 125, "topic": "GPLX A1 sau 2025", "kind": "current-rule", "expected": [{"article": "57", "clause": "1", "point": "a"}]},
+    {"questionNumber": 140, "topic": "phục hồi điểm GPLX", "kind": "single-provision", "expected": [{"article": "58", "clause": "2"}]},
+    {"questionNumber": 141, "topic": "phục hồi điểm GPLX", "kind": "single-provision", "expected": [{"article": "58", "clause": "3"}]},
+    {"questionNumber": 194, "topic": "trách nhiệm tai nạn", "kind": "multiple-points", "expected": [{"article": "80", "clause": "1", "point": "a"}, {"article": "80", "clause": "1", "point": "b"}, {"article": "80", "clause": "1", "point": "c"}]}
+  ]
+}

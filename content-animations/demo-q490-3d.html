@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self' blob:; img-src 'self' blob: data:; base-uri 'none'; object-src 'none'">
+  <meta name="referrer" content="no-referrer">
+  <title>Câu 490 · Xe quay theo mặt đường</title>
+  <link rel="stylesheet" href="q490.css"><link rel="stylesheet" href="q490-3d.css">
+</head>
+<body>
+<main>
+  <header><span class="eyebrow">Sa hình Câu 490 · Model xe chi tiết</span><h1>Nhìn xe đi qua giao lộ</h1><p>Ô tô đô thị thân ngắn và mô tô thể thao dùng model có chi tiết thân xe, đèn, vành và phanh. Thân xe và bánh lái đổi hướng khi đi theo quỹ đạo. <a href="models.html?v=city-1">Xem cận cảnh, xoay và phóng to model ↗</a></p></header>
+  <div class="layout">
+    <section class="card stage-card" aria-labelledby="stage-title">
+      <div class="card-top"><div><span class="section-label">01 / Quan sát chuyển động</span><h2 id="stage-title">Xe nào đi trước?</h2></div><button id="compare" type="button" aria-pressed="false">Đối chiếu ảnh gốc</button></div>
+      <div id="stage" class="stage">
+        <svg id="scene" viewBox="0 0 496 280" role="img" aria-labelledby="scene-title scene-desc">
+          <title id="scene-title">Sa hình gốc với xe mô tô, xe con và xe tải được dựng 3D</title><desc id="scene-desc">Bấm phát để mô tô, xe con, xe tải lần lượt qua giao lộ. Có thể dừng hoặc kéo thanh vị trí.</desc>
+          <defs>
+            <filter id="soft"><feGaussianBlur stdDeviation="2"/></filter>
+            <mask id="empty" maskUnits="userSpaceOnUse" x="0" y="0" width="496" height="280"><rect width="496" height="280" fill="black"/><ellipse cx="30" cy="89" rx="37" ry="33" fill="white" filter="url(#soft)"/><ellipse cx="259" cy="54" rx="35" ry="28" fill="white" filter="url(#soft)"/><path d="M375 88 Q410 77 444 83 L502 94 L502 195 L430 188 L366 170 L366 126 Z" fill="white" filter="url(#soft)"/></mask>
+          </defs>
+          <image href="q490-original.jpg" width="496" height="280"/>
+          <image class="clean-plate" href="q490-empty-corrected.png" width="496" height="280" preserveAspectRatio="none" mask="url(#empty)"/>
+          <path id="guide-moto" class="guide" d="M 31 99 C 90 112, 164 140, 204 142 C 257 146, 281 115, 327 74"/>
+          <path id="guide-car" class="guide" d="M 259 65 L 22 210"/>
+          <path id="guide-truck" class="guide" d="M 437 158 C 363 140, 286 119, 251 116 C 210 111, 177 134, 145 155 L 52 220"/>
+          <path id="drive-moto" class="drive" d="M 31 99 C 90 112, 164 140, 204 142 C 257 146, 281 115, 327 74 L 440 -27"/>
+          <path id="drive-car" class="drive" d="M 259 65 L -90 279"/>
+          <path id="drive-truck" class="drive" d="M 437 158 C 363 140, 286 119, 251 116 C 210 111, 177 134, 145 155 L -96 323"/>
+        </svg>
+        <canvas id="vehicles" aria-hidden="true"></canvas>
+        <span class="scene-badge" id="scene-badge">Sẵn sàng</span>
+      </div>
+      <p id="error" role="alert" hidden></p>
+      <div class="controls"><button id="play" class="primary" type="button" disabled>▶ Phát thứ tự</button><button id="pause" type="button" disabled>Tạm dừng</button><button id="reset" type="button">Về đầu</button><label class="speed">Tốc độ <select id="speed"><option value="0.5">0,5×</option><option value="1" selected>1×</option><option value="1.5">1,5×</option></select></label></div>
+      <label class="scrub" for="progress"><span id="scrub-label">Vị trí xe mô tô</span><output id="progress-value" for="progress">0%</output><input id="progress" type="range" min="0" max="100" value="0" step="0.1"></label>
+      <div class="turns" role="group" aria-label="Xem từng xe"><button data-vehicle="moto" type="button"><span>01</span>Xe mô tô</button><button data-vehicle="car" type="button"><span>02</span>Xe con</button><button data-vehicle="truck" type="button"><span>03</span>Xe tải</button></div>
+      <label class="guide-toggle"><input id="guides" type="checkbox" checked> Hiện đường bánh xe đi trên mặt đường</label>
+      <p class="image-note">Model ô tô và mô tô: Innerscene, CC0 — <a href="https://www.innerscene.com/tools/library/3d-parts/silver-five-door-compact-hatchback-6bf4a878" target="_blank" rel="noopener noreferrer">ô tô</a>, <a href="https://www.innerscene.com/tools/library/3d-parts/sport-motorcycle-e21e8303" target="_blank" rel="noopener noreferrer">mô tô</a>. Màu ô tô được đổi thành đỏ để dễ đối chiếu với đề. Nền đường được phục dựng ở vị trí xe cũ.</p>
+    </section>
+    <aside class="card explanation"><span class="section-label">02 / Thứ tự minh họa</span><h2>Mô tô → xe con → xe tải</h2><p id="status" role="status" aria-live="polite">Bấm Phát thứ tự hoặc chọn một xe.</p><ol class="order"><li data-order="moto"><b>1. Xe mô tô</b><span>Đi từ trái, rẽ về nhánh phía trên bên phải.</span></li><li data-order="car"><b>2. Xe con</b><span>Đi thẳng từ nhánh trên xuống nhánh dưới bên trái.</span></li><li data-order="truck"><b>3. Xe tải</b><span>Đi từ bên phải, rẽ về nhánh dưới bên trái.</span></li></ol><div class="source"><strong>Nguồn đối chiếu</strong><p>Câu 490, trang PDF 131, phương án 3 trong bộ 600 câu. <a href="https://khodulieu.sohoa.tuyenquang.gov.vn/congthongtin/media/edb12a6ad8ecfde537ec02cbb7e2a1b1.pdf#page=131" target="_blank" rel="noopener noreferrer">Mở trang nguồn ↗</a></p></div><p class="small">Bản thử cho một câu, chưa gắn vào bank SQL. <a href="demo-q490-cropped.html">Đối chiếu bản cắt ảnh cũ</a>.</p></aside>
+  </div>
+</main>
+<script type="module" src="q490-3d.js?v=city-1"></script>
+</body></html>

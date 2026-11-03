@@ -1,0 +1,5 @@
+.vehicle{opacity:1;filter:drop-shadow(0 1px 2px #20362b80)}
+.scrub{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px;font-size:.85rem;color:#315a49}
+.scrub output{margin-left:auto;font-variant-numeric:tabular-nums}
+.scrub input{width:100%;accent-color:#126c51;min-height:32px}
+.image-note a{color:#12634b;font-weight:700}
