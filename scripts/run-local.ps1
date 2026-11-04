@@ -114,6 +114,23 @@ $launcher = Join-Path $PSScriptRoot 'start-local-learning.ps1'
 $alreadyUp = $false
 try { $alreadyUp = (Invoke-WebRequest 'http://127.0.0.1:18080/health/live' -TimeoutSec 2 -UseBasicParsing).StatusCode -eq 200 } catch {}
 if ($alreadyUp) {
+    $localRuntime = Get-Content (Join-Path $work 'runtime.json') -Raw | ConvertFrom-Json
+    $loginBody = @{ email = $localRuntime.adminEmail; password = $localRuntime.adminPassword } | ConvertTo-Json
+    $loginReady = $false
+    try {
+        $loginReady = (Invoke-WebRequest ($localRuntime.user + '/api/auth/login') -Method Post `
+            -ContentType 'application/json' -Body $loginBody -TimeoutSec 10 -UseBasicParsing).StatusCode -eq 200
+    } catch {}
+    if (!$loginReady) {
+        if (!(Test-Path (Join-Path $work 'processes.json'))) {
+            throw 'Backend dang chay nhung khong thuoc launcher local; khong the cap nhat tai khoan demo.'
+        }
+        & $pwsh -NoProfile -File $launcher -Stop
+        if ($LASTEXITCODE) { throw 'Khong dung duoc backend local cu de cap nhat tai khoan demo.' }
+        $alreadyUp = $false
+    }
+}
+if ($alreadyUp) {
     Ok 'Backend da chay san, bo qua'
 } else {
     if (!$dockerSql) {

@@ -36,8 +36,17 @@ public sealed class AdminSeeder : IAdminSeeder
         }
 
         var email = seed.Email.Trim().ToLowerInvariant();
-        if (await _userRepository.EmailExistsAsync(email, cancellationToken))
+        var existing = await _userRepository.GetByEmailAsync(email, cancellationToken);
+        if (existing is not null)
         {
+            if (seed.ResetPasswordIfExists &&
+                !_passwordHasher.VerifyPassword(seed.Password, existing.PasswordHash))
+            {
+                existing.PasswordHash = _passwordHasher.HashPassword(seed.Password);
+                _userRepository.Update(existing);
+                await _userRepository.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("Updated configured admin password for {Email}", email);
+            }
             return;
         }
 

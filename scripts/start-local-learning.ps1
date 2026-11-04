@@ -7,6 +7,8 @@ $work = Join-Path $root 'artifacts/local-learning'
 [void][IO.Directory]::CreateDirectory($work)
 $runtimePath = Join-Path $work 'runtime.json'
 $processPath = Join-Path $work 'processes.json'
+$localAdminEmail = 'admin@local-learning.test'
+$localAdminPassword = 'LocalDemo@123456'
 if ($Stop) {
     if (Test-Path -LiteralPath $processPath) {
         $saved = Get-Content -LiteralPath $processPath -Raw | ConvertFrom-Json
@@ -30,13 +32,20 @@ if (!(Test-Path -LiteralPath $runtimePath)) {
         userDatabase = "TrafficUser_WebLearning_$suffix"; contentDatabase = "TrafficContent_WebLearning_$suffix"
         jwt = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
         sqlPassword = 'C2a!' + [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(20))
-        adminEmail = 'admin@local-learning.test'; adminPassword = 'Local@' + [Guid]::NewGuid().ToString('N')
+        adminEmail = $localAdminEmail; adminPassword = $localAdminPassword
         gateway = 'http://127.0.0.1:18080'; user = 'http://127.0.0.1:15039'; content = 'http://127.0.0.1:15040'
         web = 'http://127.0.0.1:15173'; assets = 'http://localhost:8765'
     }
     $runtime | ConvertTo-Json | Set-Content -LiteralPath $runtimePath -Encoding utf8
 }
 $runtime = Get-Content -LiteralPath $runtimePath -Raw | ConvertFrom-Json
+if ($runtime.adminEmail -ne $localAdminEmail) {
+    throw 'Unexpected local admin account; refusing to update this runtime.'
+}
+if ($runtime.adminPassword -ne $localAdminPassword) {
+    $runtime.adminPassword = $localAdminPassword
+    $runtime | ConvertTo-Json | Set-Content -LiteralPath $runtimePath -Encoding utf8
+}
 $requestedSqlMode = if ($DockerSql) { 'docker' } else { 'host' }
 if (!$runtime.sqlMode) {
     $runtime | Add-Member -NotePropertyName sqlMode -NotePropertyValue $requestedSqlMode
@@ -102,6 +111,7 @@ try {
         Exams__Kafka__BootstrapServers = 'localhost:19092'; Exams__Kafka__Topic = 'local-learning-exam-submitted-v1'
         Exams__Kafka__DeadLetterTopic = 'local-learning-exam-submitted-dlq-v1'; Exams__Kafka__GroupId = 'local-learning-notifications-v1'
         Auth__SeedAdmin__Email = $runtime.adminEmail; Auth__SeedAdmin__Password = $runtime.adminPassword
+        Auth__SeedAdmin__ResetPasswordIfExists = 'true'
         Auth__SeedAdminOnStartup = 'false'; Database__MigrateOnStartup = 'false'; Jobs__EnableLegacyMidnight = 'false'
     }
     $old = @{}

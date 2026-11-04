@@ -16,4 +16,6 @@ public sealed class SeedAdminSettings
     public string Email { get; set; } = string.Empty;
 
     public string Password { get; set; } = string.Empty;
+
+    public bool ResetPasswordIfExists { get; set; }
 }
