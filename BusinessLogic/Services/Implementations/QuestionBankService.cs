@@ -11,7 +11,8 @@ namespace BusinessLogic.Services.Implementations;
 
 public sealed class QuestionBankService(IContentBankRepository repository, BusinessLogic.Infrastructure.Settings.AnimationSettings? animationSettings = null) : IQuestionBankService
 {
-    public static IReadOnlyList<string> Validate(ContentBank bank, string? localAssetOrigin = null)
+    public static IReadOnlyList<string> Validate(ContentBank bank, string? localAssetOrigin = null,
+        IEnumerable<string>? animationAllowedHosts = null)
     {
         var errors = new List<string>();
         void Require(bool condition, string message) { if (!condition) errors.Add(message); }
@@ -54,6 +55,9 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
                 (Https(a.Url) || BusinessLogic.Infrastructure.Settings.AnimationSettings.IsLocalAssetUrl(a.Url, localAssetOrigin)) && Regex.IsMatch(a.Sha256 ?? "", "^[A-Fa-f0-9]{64}$") &&
                 a.MimeType is "image/png" or "image/jpeg" or "image/webp" && !string.IsNullOrWhiteSpace(a.AltText)) &&
                 q.Assets.Select(a => a.Id).Distinct().Count() == q.Assets.Count, prefix + "metadata ảnh không hợp lệ.");
+            Require(q.ExplanationAnimationUrl is null || ContentManifestService.IsAllowedAnimationUrl(
+                q.ExplanationAnimationUrl, animationAllowedHosts ?? [], localAssetOrigin),
+                prefix + "animation cần URL HTTPS trên host được cấu hình.");
             var labelReferences = q.Options?.Any(o => o is not null && Regex.IsMatch(o.Text ?? "",
                 @"(?i)(tất cả|cả .+ và|phương án\s+[A-D1-4]|đáp án\s+[A-D1-4]|all of|both .+ and)")) == true;
             Require(!q.AllowOptionShuffle || (q.Assets?.Count == 0 && !labelReferences), prefix + "có tham chiếu nhãn/ảnh, cần tắt trộn phương án.");
@@ -63,12 +67,8 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
 
     public async Task<BankPreviewDto> ImportAsync(ContentBank bank, Guid adminId, CancellationToken cancellationToken = default)
     {
-        var errors = Validate(bank, animationSettings?.LocalAssetOrigin);
+        var errors = Validate(bank, animationSettings?.LocalAssetOrigin, animationSettings?.AllowedHosts);
         if (errors.Count > 0) throw new BadRequestException(string.Join(" ", errors.Take(30)));
-        var questions = bank.Questions ?? throw new BadRequestException("Thiếu danh sách câu hỏi.");
-        if (questions.Any(q => q.ExplanationAnimationUrl is not null &&
-            !ContentManifestService.IsAllowedAnimationUrl(q.ExplanationAnimationUrl, animationSettings?.AllowedHosts ?? [], animationSettings?.LocalAssetOrigin)))
-            throw new BadRequestException("Animation cần URL HTTPS trên host được cấu hình.");
         var hash = Hash(bank);
         var package = new QuestionBankPackage(bank, hash, DateTime.UtcNow, adminId);
         if (!await repository.AddAsync(package, cancellationToken))
@@ -83,14 +83,14 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
     public async Task<BankPreviewDto> PreviewAsync(Guid id, string version, CancellationToken cancellationToken = default)
     {
         var package = await GetAsync(id, version, cancellationToken);
-        return new(Summary(package), package.Bank, Validate(package.Bank, animationSettings?.LocalAssetOrigin));
+        return new(Summary(package), package.Bank, Validate(package.Bank, animationSettings?.LocalAssetOrigin, animationSettings?.AllowedHosts));
     }
 
     public async Task<BankSummaryDto> PublishAsync(Guid id, string version, PublishBankRequestDto request, CancellationToken cancellationToken = default)
     {
         var package = await GetAsync(id, version, cancellationToken);
         if (!request.SourceAndAnswersReviewed) throw new BadRequestException("Cần kiểm tra nguồn, ảnh và đáp án trước khi xuất bản.");
-        var errors = Validate(package.Bank, animationSettings?.LocalAssetOrigin);
+        var errors = Validate(package.Bank, animationSettings?.LocalAssetOrigin, animationSettings?.AllowedHosts);
         if (errors.Count > 0) throw new BadRequestException(string.Join(" ", errors.Take(30)));
         if (!string.Equals(package.Hash, request.ExpectedHash, StringComparison.OrdinalIgnoreCase) || Hash(package.Bank) != package.Hash)
             throw new ConflictException("Nội dung đã thay đổi hoặc hash không khớp bản xem trước.");

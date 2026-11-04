@@ -7,6 +7,12 @@ public sealed class ImportQuestionBankRequestDto
 {
     [Required(ErrorMessage = "Thiếu gói ngân hàng câu hỏi.")]
     public ContentBank Bank { get; set; } = null!;
+
+    [Required(ErrorMessage = "Danh sách animation không được null.")]
+    public List<QuestionAnimationDto> Animations { get; set; } = [];
+
+    [RegularExpression("^[A-Fa-f0-9]{64}$", ErrorMessage = "Hash bản kiểm tra không hợp lệ.")]
+    public string? ExpectedManifestHash { get; set; }
 }
 
 public sealed class PublishBankRequestDto

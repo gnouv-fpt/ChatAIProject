@@ -18,6 +18,7 @@ public static class ContentServiceCollectionExtensions
         services.AddSingleton<ICrawlJobRepository>(new FileCrawlJobRepository(path));
         services.AddScoped<ICrawlJobService, CrawlJobService>();
         services.AddScoped<IQuestionBankService, QuestionBankService>();
+        services.AddScoped<ContentBankImportService>();
         services.AddScoped<IContentMaintenanceService, ContentMaintenanceService>();
         services.AddScoped<IDocumentIndexService, DocumentIndexService>();
         services.AddScoped<LegalCorpusService>();

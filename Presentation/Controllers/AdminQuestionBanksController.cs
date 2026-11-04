@@ -1,6 +1,7 @@
 using Presentation.Infrastructure;
 using BusinessLogic.DTOs;
 using BusinessLogic.Services.Interfaces;
+using BusinessLogic.Services.Implementations;
 using BusinessObject.Entities;
 using BusinessObject.Enums;
 using Microsoft.AspNetCore.Authorization;
@@ -11,14 +12,14 @@ namespace Presentation.Controllers;
 
 [ApiController, Route("api/admin/question-banks"), Authorize(Roles = nameof(UserRole.Admin))]
 [ServiceModule("Content")]
-public sealed class AdminQuestionBanksController(IQuestionBankService service) : ControllerBase
+public sealed class AdminQuestionBanksController(IQuestionBankService service, ContentBankImportService imports) : ControllerBase
 {
     [HttpGet]
     public async Task<IActionResult> List(CancellationToken cancellationToken) => Ok(await service.ListAsync(true, cancellationToken));
 
     [HttpPost("import"), RequestSizeLimit(10 * 1024 * 1024)]
     public async Task<IActionResult> Import(ImportQuestionBankRequestDto request, CancellationToken cancellationToken) =>
-        Ok(await service.ImportAsync(request.Bank, User.GetUserId(), cancellationToken));
+        Ok(await imports.ImportAsync(request, User.GetUserId(), cancellationToken));
 
     [HttpGet("{id:guid}/versions/{version}/preview")]
     public async Task<IActionResult> Preview(Guid id, string version, CancellationToken cancellationToken) =>

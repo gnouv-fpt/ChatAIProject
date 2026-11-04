@@ -22,6 +22,27 @@ namespace Content.Tests;
 public sealed class ContentApiTests
 {
     [Fact]
+    public async Task ImportRouteUsesReviewedManifestAndPersistsMappingsServerSide()
+    {
+        using var app = new ContentApp(); using var client = app.CreateClient();
+        client.DefaultRequestHeaders.Add("TestRole", "Admin");
+        var bank = QuestionBankTests.Fixture();
+        var animations = new[] { new QuestionAnimationDto(bank.Questions[0].Id, "https://animations.example.org/q1.html") };
+        var preflight = await client.PostAsJsonAsync("/api/admin/content-previews/question-banks", new { bank, animations });
+        preflight.EnsureSuccessStatusCode();
+        var reviewed = (await preflight.Content.ReadFromJsonAsync<ContentManifestPreviewDto>())!;
+        Assert.True(reviewed.CanImport);
+        var mismatch = await client.PostAsJsonAsync("/api/admin/question-banks/import", new { bank, animations, expectedManifestHash = new string('0', 64) });
+        Assert.Equal(HttpStatusCode.Conflict, mismatch.StatusCode);
+        var badMapping = await client.PostAsJsonAsync("/api/admin/question-banks/import", new { bank,
+            animations = new[] { new QuestionAnimationDto(Guid.NewGuid(), animations[0].ExplanationAnimationUrl) } });
+        Assert.Equal(HttpStatusCode.BadRequest, badMapping.StatusCode);
+        var imported = await client.PostAsJsonAsync("/api/admin/question-banks/import", new { bank, animations, expectedManifestHash = reviewed.ManifestHash });
+        imported.EnsureSuccessStatusCode();
+        Assert.Equal(animations[0].ExplanationAnimationUrl, (await imported.Content.ReadFromJsonAsync<BankPreviewDto>())!.Bank.Questions[0].ExplanationAnimationUrl);
+    }
+
+    [Fact]
     public async Task C2ProductionDoesNotUseFileBankAndPreviewsRemainAvailableForAdmin()
     {
         using var app = new ContentApp(false); using var client = app.CreateClient();
@@ -72,7 +93,7 @@ public sealed class ContentApiTests
         {
             builder.ConfigureHostConfiguration(config => config.AddInMemoryCollection(new Dictionary<string, string?> {
                 ["Service:Module"] = "Content", ["Database:MigrateOnStartup"] = "false", ["Jwt:SecretKey"] = Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)),
-                ["Content:BankStoragePath"] = _root }));
+                ["Content:BankStoragePath"] = _root, ["Content:AnimationAllowedHosts:0"] = "animations.example.org" }));
             return base.CreateHost(builder);
         }
         protected override void ConfigureWebHost(IWebHostBuilder builder)

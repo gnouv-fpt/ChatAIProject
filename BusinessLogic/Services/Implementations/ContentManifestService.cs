@@ -16,13 +16,12 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
         var issues = new List<ContentValidationIssueDto>();
         if (request.Bank is null)
             return new(null, 0, 0, [new("bank", "Thiếu ngân hàng câu hỏi.")]);
-        issues.AddRange(QuestionBankService.Validate(request.Bank, settings.LocalAssetOrigin).Select(message => new ContentValidationIssueDto("bank", message)));
+        issues.AddRange(QuestionBankService.Validate(request.Bank, settings.LocalAssetOrigin, settings.AllowedHosts)
+            .Select(message => new ContentValidationIssueDto("bank", message)));
         var questions = request.Bank.Questions;
-        if (questions is not null)
-            foreach (var question in questions.Where(q => q is not null && q.ExplanationAnimationUrl is not null))
-                if (!IsAllowedAnimationUrl(question.ExplanationAnimationUrl, settings.AllowedHosts, settings.LocalAssetOrigin))
-                    issues.Add(new("bank.questions", "Animation cần URL HTTPS trên host được cấu hình."));
         var ids = questions?.Where(q => q is not null).Select(q => q.Id).ToHashSet() ?? [];
+        var animatedIds = questions?.Where(q => q is not null && q.ExplanationAnimationUrl is not null)
+            .Select(q => q.Id).ToHashSet() ?? [];
         var animations = request.Animations;
         if (animations is null)
             issues.Add(new("animations", "Danh sách animation không được null."));
@@ -37,13 +36,17 @@ public sealed class ContentManifestService(AnimationSettings settings) : IConten
                 if (animation is null) { issues.Add(new(path, "Animation không được null.")); continue; }
                 if (!ids.Contains(animation.QuestionId)) issues.Add(new(path + ".questionId", "Animation phải tham chiếu câu trong cùng bank/version."));
                 if (!seen.Add(animation.QuestionId)) issues.Add(new(path + ".questionId", "Mỗi câu chỉ có một ExplanationAnimationUrl."));
+                var question = questions?.FirstOrDefault(q => q is not null && q.Id == animation.QuestionId);
+                if (question?.ExplanationAnimationUrl is string embedded && embedded != animation.ExplanationAnimationUrl)
+                    issues.Add(new(path + ".explanationAnimationUrl", "URL animation trong câu và trong danh sách ánh xạ không khớp."));
+                if (ids.Contains(animation.QuestionId)) animatedIds.Add(animation.QuestionId);
                 if (!IsAllowedAnimationUrl(animation.ExplanationAnimationUrl, settings.AllowedHosts, settings.LocalAssetOrigin))
                     issues.Add(new(path + ".explanationAnimationUrl", "Animation cần URL HTTPS trên host được cấu hình, không chứa credentials/query/fragment hoặc đường dẫn bất thường."));
             }
         }
         // Include source/profile/keys/assets/animations in the reviewed hash. Order of questions/options is meaningful.
         var hash = issues.Count == 0 ? Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(request))) : null;
-        return new(hash, questions?.Count ?? 0, animations?.Count ?? 0, issues);
+        return new(hash, questions?.Count ?? 0, animatedIds.Count, issues);
     }
 
     public static bool IsAllowedAnimationUrl(string? value, IEnumerable<string> allowedHosts, string? localAssetOrigin = null)

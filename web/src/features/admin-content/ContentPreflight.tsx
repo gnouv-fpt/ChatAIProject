@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { type ContentApi } from '../questions/content-api';
+import { parseBankFile, reviewedImportBody, type BankImportManifest } from './content-import';
 
 type ManifestPreview = { manifestHash: string | null; questionCount: number; animationCount: number;
   canImport: boolean; issues: { path: string; message: string }[] };
@@ -10,7 +11,8 @@ type Evidence = { sourceUrl: string; retrievedAtUtc: string; htmlSha256: string;
 
 export function ContentPreflight({ api }: { api: ContentApi }) {
   const [capabilities, setCapabilities] = useState<Capabilities>();
-  const [preview, setPreview] = useState<ManifestPreview>(); const [manifest, setManifest] = useState<unknown>();
+  const [preview, setPreview] = useState<ManifestPreview>(); const [manifest, setManifest] = useState<BankImportManifest>();
+  const [templateCount, setTemplateCount] = useState(0);
   const [source, setSource] = useState(''); const [evidence, setEvidence] = useState<Evidence>();
   const [saved, setSaved] = useState(false);
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
@@ -26,14 +28,12 @@ export function ContentPreflight({ api }: { api: ContentApi }) {
   }
   async function check(file?: File) {
     if (!file) return;
-    setPreview(undefined); setManifest(undefined); setSaved(false);
+    setPreview(undefined); setManifest(undefined); setSaved(false); setTemplateCount(0);
     await run(async () => {
       if (file.size > 10 * 1024 * 1024) throw new Error('Gói JSON phải nhỏ hơn 10 MB.');
-      const json: unknown = JSON.parse(await file.text());
-      if (!json || typeof json !== 'object' || Array.isArray(json)) throw new Error('Gói import phải là JSON object.');
-      const body = 'bank' in json ? json : { bank: json, animations: [] };
-      const result = await api<ManifestPreview>('/api/admin/content-previews/question-banks', { method: 'POST', body: JSON.stringify(body) });
-      setManifest(body); setPreview(result);
+      const parsed = parseBankFile(await file.text());
+      const result = await api<ManifestPreview>('/api/admin/content-previews/question-banks', { method: 'POST', body: JSON.stringify(parsed.manifest) });
+      setManifest(parsed.manifest); setTemplateCount(parsed.templateCount); setPreview(result);
     });
   }
   async function inspectSource() {
@@ -51,13 +51,10 @@ export function ContentPreflight({ api }: { api: ContentApi }) {
         {preview.manifestHash && <p>Hash bản kiểm tra: <code>{preview.manifestHash}</code></p>}
         <ul>{preview.issues.map((issue, i) => <li key={i}><code>{issue.path}</code>: {issue.message}</li>)}</ul>
         <details><summary>Xem gói đầy đủ (gồm đáp án, chỉ Admin)</summary><pre>{JSON.stringify(manifest, null, 2)}</pre></details>
+        {templateCount > 0 && <p>Gói có {templateCount} đề mẫu. Bước này chỉ nhập ngân hàng; đề mẫu được nhập riêng sau khi ngân hàng đã xuất bản.</p>}
         <button disabled={busy || saved || !preview.canImport || !capabilities?.canPersistBank} onClick={() => void run(async () => {
-          const body = manifest as { bank: { questions: { id: string }[] }; animations: { questionId: string; explanationAnimationUrl: string }[] };
-          const bank = { ...body.bank, questions: body.bank.questions.map(q => {
-            const animation = body.animations.find(a => a.questionId === q.id);
-            return animation ? { ...q, explanationAnimationUrl: animation.explanationAnimationUrl } : q;
-          }) };
-          await api('/api/admin/question-banks/import', { method: 'POST', body: JSON.stringify({ bank }) });
+          if (!manifest) throw new Error('Cần chọn lại gói nội dung.');
+          await api('/api/admin/question-banks/import', { method: 'POST', body: JSON.stringify(reviewedImportBody(manifest, preview.manifestHash)) });
           setSaved(true);
         })}>{saved ? 'Đã lưu bản nháp' : 'Lưu bản nháp'}</button></>}
     </article>

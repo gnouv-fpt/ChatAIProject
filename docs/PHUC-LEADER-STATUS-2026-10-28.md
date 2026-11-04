@@ -1,5 +1,7 @@
 # Báo cáo Phúc gửi leader — 28/10/2026
 
+> Báo cáo lịch sử, không dùng số task chờ ở đây cho nền mới. Xem [cập nhật 04/11/2026](PHUC-PROGRESS-2026-11-04.md): bank/schema/115 animation HTTPS đã được tích hợp và có thêm bằng chứng SQL/hosting trên máy nhận.
+
 Nhánh: **PRN_Phúc_ASM**, theo task IDs của plan 27/10. Đã đồng bộ nền `origin/PRN-dev` tại `e0d53bb`.
 
 **Còn 6 task lớn có phần chưa hoàn tất (P01–P06).** Cả 6 đã có code/thành phần nền; chưa có task nào được nghiệm thu đầy đủ theo kiến trúc C2 mới. Không quy đổi số file/tests thành phần trăm hoàn thành.

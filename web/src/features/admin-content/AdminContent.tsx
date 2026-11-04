@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { type Bank, type ContentApi, type Preview } from '../questions/content-api';
+import { parseBankFile, reviewedImportBody } from './content-import';
 
 export function AdminContent({ api }: { api: ContentApi }) {
   const [banks, setBanks] = useState<Bank[]>([]); const [preview, setPreview] = useState<Preview>();
@@ -14,11 +15,18 @@ export function AdminContent({ api }: { api: ContentApi }) {
   }
   async function importFile(file?: File) {
     if (!file) return;
+    setPreview(undefined); setReviewed(false);
     await run(async () => {
       if (file.size > 10 * 1024 * 1024) throw new Error('Gói JSON phải nhỏ hơn 10 MB.');
-      const bank = JSON.parse(await file.text());
-      setPreview(await api<Preview>('/api/admin/question-banks/import', { method: 'POST', body: JSON.stringify({ bank }) }));
+      const parsed = parseBankFile(await file.text());
+      const preflight = await api<{ manifestHash: string | null; canImport: boolean; issues: { path: string; message: string }[] }>(
+        '/api/admin/content-previews/question-banks', { method: 'POST', body: JSON.stringify(parsed.manifest) });
+      if (!preflight.canImport) throw new Error(preflight.issues.slice(0, 30).map(i => `${i.path}: ${i.message}`).join(' '));
+      setPreview(await api<Preview>('/api/admin/question-banks/import', { method: 'POST',
+        body: JSON.stringify(reviewedImportBody(parsed.manifest, preflight.manifestHash)) }));
       setReviewed(false); setBanks(await api<Bank[]>('/api/admin/question-banks'));
+      setMessage('Đã lưu ngân hàng để xem trước.' + (parsed.templateCount > 0
+        ? ` Gói có ${parsed.templateCount} đề mẫu; nhập đề mẫu riêng sau khi xuất bản ngân hàng.` : ''));
     });
   }
   async function show(bank: Bank) { await run(async () => {
