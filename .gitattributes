@@ -1,0 +1,3 @@
+# Reviewed releases include SHA-256 checks of JSON, renderer code and learner HTML.
+# Preserve the approved original bytes (mixed LF/CRLF) on every platform.
+/content-animations/** -text whitespace=trailing-space,space-before-tab,cr-at-eol

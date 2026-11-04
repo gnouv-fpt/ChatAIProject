@@ -10,7 +10,8 @@ import * as THREE from '../content-animations/vendor/three/three.module.min.js';
 const read=p=>JSON.parse(fs.readFileSync(new URL(p,import.meta.url),'utf8'));
 const bank=read('../content-animations/bank-review/bank.json');
 const scenes=read('../content-animations/bank-review/scenes.json').scenes;
-const feedback=read('../output/animation-review/user-feedback-2026-10-31.json');
+// Use the tracked historical review; output/ is machine-local and absent in a fresh clone.
+const feedback=read('../content-animations/bank-review/review-feedback-v2-input.json');
 const playerFor=n=>{
   const player=Object.create(ReviewPlayer.prototype),q=bank.questions.find(q=>q.number===n);
   Object.assign(player,{recipe:scenes[n],width:q.images[0].width,height:q.images[0].height,curves:new Map(),time:0});
@@ -19,7 +20,7 @@ const playerFor=n=>{
 
 test('the complete user review survives changed revisions and repeated imports',()=>{
   assert.equal(feedback.records.length,115);
-  assert.equal(feedback.records.filter(r=>r.status==='approved').length,12);
+  assert.equal(feedback.records.filter(r=>r.status==='approved').length,44);
   const first=importReview(feedback,bank,scenes);
   const again=importReview({...feedback,records:Object.values(first)},bank,scenes);
   for(const original of feedback.records){
@@ -30,11 +31,14 @@ test('the complete user review survives changed revisions and repeated imports',
   }
 });
 
-test('non-POV recipes from the original 44 approvals retain their accepted content',()=>{
-  const before=read('../output/animation-review/scenes-before-feedback-2026-11-01.json').scenes;
-  const latest=read('../output/animation-review/user-feedback-2026-11-01.json');
+test('original approvals still frozen in the latest review retain their accepted non-POV content',()=>{
+  const before=read('../content-animations/bank-review/review-approved-2026-11-01.json').scenes;
+  const latest=read('../content-animations/bank-review/review-feedback-v2-input.json');
+  const frozen=new Set(read('../content-animations/bank-review/review-approved-lock-v4.json').approved);
   assert.equal(latest.records.filter(r=>r.status==='approved').length,44);
-  for(const r of latest.records.filter(r=>r.status==='approved'&&scenes[r.number].perspective!=='driver')){
+  const retained=latest.records.filter(r=>r.status==='approved'&&frozen.has(r.number)&&scenes[r.number].perspective!=='driver');
+  assert.ok(retained.length>0);
+  for(const r of retained){
     for(const field of ['actors','steps','note','roadCalibration','learningMode','perspective','cleanBackground']){
       assert.deepEqual(scenes[r.number][field],before[r.number][field],`Q${r.number} ${field}`);
     }
