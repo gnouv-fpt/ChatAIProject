@@ -4,7 +4,16 @@ Phạm vi: 600 câu CSGT 2025, 115 animation đã duyệt, profile thi thử B �
 
 ## Trước khi chạy
 
-- Windows PowerShell 7, .NET 8 SDK + `dotnet-ef`, SQL Server instance `.\MSSQLSERVER_VUON`, Docker Desktop, Python, Node/npm và `sqlcmd`. Docker cần đủ dung lượng cho Qdrant/Kafka/monitoring. Máy khác dùng tên SQL instance khác cần chỉnh cấu hình local trước khi chạy.
+### Chạy nhanh trên máy Windows với SQL Server trong Docker
+
+Từ thư mục gốc, chạy `CHAY-LOCAL.bat` hoặc `pwsh -NoProfile -File scripts/run-local.ps1`.
+Lần đầu script tạo hai database riêng trong container SQL Server, tải và kiểm SHA các PDF nguồn đã ghim, chạy migration có sẵn, rồi nạp 115 câu sa hình, bộ 600 câu ôn tập và bộ 600 câu thi thử B. Redis, Kafka và Qdrant cũng chạy trong Docker. Web mở tại `http://127.0.0.1:15173`; thông tin đăng nhập được lưu trên máy trong `artifacts/local-learning/DANG-NHAP.txt` (Git ignore). Để dừng các tiến trình do script tạo, chạy `pwsh -NoProfile -File scripts/run-local.ps1 -Stop`. Không dùng `docker compose down -v`, vì lệnh đó xóa dữ liệu DB.
+
+Máy mới chỉ cần cài Docker Desktop (đang chạy), .NET 8 SDK, Node.js/npm, Python có pip và PowerShell 7. Script tự cài `dotnet-ef`, `PyMuPDF 2.0` và thư viện web khi thiếu. DB, mật khẩu và tài khoản admin được tạo riêng cho từng máy; không commit `artifacts/`, `.env` hoặc Docker volume. Nhớ commit cả `CHAY-LOCAL.bat`, `scripts/run-local.ps1`, các script sửa đổi, `content-bank/`, `content-animations/` và migration trước khi push.
+
+Phần hỏi đáp AI và lập chỉ mục văn bản cần cấu hình Gemini key cùng môi trường Python AI theo các bước đầy đủ bên dưới. Khi chưa có khóa, câu hỏi và thi thử vẫn chạy, còn Văn bản và Chat chưa có dữ liệu pháp luật đã kích hoạt. Tất cả host ứng dụng và cổng Docker được mở trong máy local; không có bước deploy.
+
+- Trình tự thủ công bên dưới dành cho stack cũ dùng SQL Server trên Windows: PowerShell 7, .NET 8 SDK + `dotnet-ef`, instance `.\MSSQLSERVER_VUON`, Docker Desktop, Python, Node/npm và `sqlcmd`. Đường chạy nhanh Docker ở trên không cần SQL Server hoặc `sqlcmd` cài trên máy.
 - Python cần `PyMuPDF` bản **2.0** để đối chiếu lại PDF pháp luật; các script cũng tìm package tại `%TEMP%/prn_pdf_tools`. Python AI dùng venv `artifacts/c2-python/.venv` cài từ `grpc_inference_service/requirements.txt`.
 - Gemini key nằm trong Presentation user-secrets (`Llm:Gemini:ApiKey`) hoặc `GEMINI_API_KEY` của phiên shell. Groq generation đọc `GROQ_API_KEYS`/`GROQ_API_KEY` từ biến môi trường hoặc `.env` local (Git ignore); mặc định dùng `openai/gpt-oss-120b`. Không đưa key vào repo. Vision/embedding và import vẫn cần quota Gemini; 429 khi import sẽ giữ trạng thái staging để chạy lại, không coi là hoàn thành.
 - Clone phải chứa cả `content-bank/`, `content-animations/`, `scripts/`, migrations và source app. `artifacts/` được Git ignore, chỉ giữ cache, bằng chứng và runtime/secrets local.

@@ -47,6 +47,10 @@ def write_once(path, data):
 
 
 def write_json(path, value):
+    # Git can check JSON out with CRLF on Windows. Preserve the existing file
+    # when its parsed content is identical to the verified package.
+    if path.exists() and json.loads(path.read_text(encoding='utf-8')) == value:
+        return
     write_once(path, (json.dumps(value, ensure_ascii=False, indent=2) + '\n').encode('utf-8'))
 
 

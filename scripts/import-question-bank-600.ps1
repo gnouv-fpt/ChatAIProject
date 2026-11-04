@@ -45,8 +45,13 @@ try {
     $old = $before | Where-Object { $_.id -eq $oldId -and $_.version -eq '1' }
     if (!$old -or $old.questionCount -ne 115 -or !$old.isPublished) { throw 'Expected preserved 115-question bank is missing.' }
     $oldCode = ([Guid]$oldId).ToString('N')
-    $sqlCount = & sqlcmd -S '.\MSSQLSERVER_VUON' -E -d $runtime.contentDatabase -h -1 -W -b `
-        -Q "SET NOCOUNT ON; SELECT COUNT(*) FROM TrafficQuestions WHERE BankCode = '$oldCode' AND BankVersion = 1;"
+    $countQuery = "SET NOCOUNT ON; SELECT COUNT(*) FROM TrafficQuestions WHERE BankCode = '$oldCode' AND BankVersion = 1;"
+    if ($runtime.sqlMode -eq 'docker') {
+        $sqlCount = & docker exec -e "SQLCMDPASSWORD=$($runtime.sqlPassword)" prn-c2-localtest-sqlserver-1 `
+            /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -C -d $runtime.contentDatabase -h -1 -W -b -Q $countQuery
+    } else {
+        $sqlCount = & sqlcmd -S '.\MSSQLSERVER_VUON' -E -d $runtime.contentDatabase -h -1 -W -b -Q $countQuery
+    }
     if ($LASTEXITCODE -or ($sqlCount | Out-String).Trim() -ne '115') { throw 'Isolated SQL database does not contain the expected source bank.' }
     # Preflight every existing template before importing anything. A rerun never edits existing rows.
     foreach ($template in $package.templates) {

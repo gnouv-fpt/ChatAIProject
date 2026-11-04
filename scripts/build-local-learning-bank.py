@@ -15,6 +15,12 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def sha_review_feedback(path):
+    # Git may check this text file out with CRLF on Windows; the approved digest
+    # was recorded from the same JSON with LF line endings.
+    return hashlib.sha256(path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
+
+
 def build(asset_root, version='1'):
     parsed = urlsplit(asset_root)
     if (parsed.scheme != 'http' or parsed.hostname not in ('localhost', '127.0.0.1') or
@@ -25,7 +31,7 @@ def build(asset_root, version='1'):
     source = json.loads((folder / 'bank.json').read_text(encoding='utf-8'))
     scenes = json.loads((folder / 'scenes.json').read_text(encoding='utf-8'))['scenes']
     accepted = json.loads((folder / 'accepted-release.json').read_text(encoding='utf-8'))
-    if sha(folder / 'scenes.json') != accepted['scenesSha256'] or sha(folder / 'review-feedback-accepted-2026-11-01.json') != accepted['sourceFeedbackSha256']:
+    if sha(folder / 'scenes.json') != accepted['scenesSha256'] or sha_review_feedback(folder / 'review-feedback-accepted-2026-11-01.json') != accepted['sourceFeedbackSha256']:
         raise ValueError('Dữ liệu không khớp bản mô phỏng đã duyệt.')
     if [q['number'] for q in source['questions']] != list(range(486, 601)):
         raise ValueError('Nguồn phải có đúng 115 câu 486–600 theo thứ tự, không trùng/thiếu.')

@@ -1,5 +1,6 @@
 [CmdletBinding()]
-param([switch]$Stop, [switch]$SkipBuild, [switch]$EnableAi, [switch]$InitOnly)
+param([switch]$Stop, [switch]$SkipBuild, [switch]$EnableAi, [switch]$InitOnly,
+    [switch]$DockerSql, [string]$SqlServer = '.\MSSQLSERVER_VUON')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $work = Join-Path $root 'artifacts/local-learning'
@@ -28,6 +29,7 @@ if (!(Test-Path -LiteralPath $runtimePath)) {
     $runtime = [ordered]@{
         userDatabase = "TrafficUser_WebLearning_$suffix"; contentDatabase = "TrafficContent_WebLearning_$suffix"
         jwt = [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+        sqlPassword = 'C2a!' + [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(20))
         adminEmail = 'admin@local-learning.test'; adminPassword = 'Local@' + [Guid]::NewGuid().ToString('N')
         gateway = 'http://127.0.0.1:18080'; user = 'http://127.0.0.1:15039'; content = 'http://127.0.0.1:15040'
         web = 'http://127.0.0.1:15173'; assets = 'http://localhost:8765'
@@ -35,6 +37,18 @@ if (!(Test-Path -LiteralPath $runtimePath)) {
     $runtime | ConvertTo-Json | Set-Content -LiteralPath $runtimePath -Encoding utf8
 }
 $runtime = Get-Content -LiteralPath $runtimePath -Raw | ConvertFrom-Json
+$requestedSqlMode = if ($DockerSql) { 'docker' } else { 'host' }
+if (!$runtime.sqlMode) {
+    $runtime | Add-Member -NotePropertyName sqlMode -NotePropertyValue $requestedSqlMode
+    $runtime | ConvertTo-Json | Set-Content -LiteralPath $runtimePath -Encoding utf8
+} elseif ($runtime.sqlMode -ne $requestedSqlMode) {
+    throw 'This isolated runtime already uses a different SQL mode.'
+}
+if ($DockerSql -and !$runtime.sqlPassword) {
+    $runtime | Add-Member -NotePropertyName sqlPassword -NotePropertyValue ('C2a!' +
+        [Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(20)))
+    $runtime | ConvertTo-Json | Set-Content -LiteralPath $runtimePath -Encoding utf8
+}
 if ($runtime.gateway -ne 'http://127.0.0.1:18080' -or $runtime.user -ne 'http://127.0.0.1:15039' -or
     $runtime.content -ne 'http://127.0.0.1:15040' -or $runtime.web -ne 'http://127.0.0.1:15173' -or $runtime.assets -ne 'http://localhost:8765') {
     throw 'Unexpected local endpoint configuration.'
@@ -70,8 +84,16 @@ try {
     $common = @{
         ASPNETCORE_ENVIRONMENT = 'Development'; DOTNET_ENVIRONMENT = 'Development'
         Jwt__SecretKey = $runtime.jwt
-        ConnectionStrings__UserConnection = "Server=.\MSSQLSERVER_VUON;Database=$($runtime.userDatabase);Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
-        ConnectionStrings__ContentConnection = "Server=.\MSSQLSERVER_VUON;Database=$($runtime.contentDatabase);Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+        ConnectionStrings__UserConnection = $(if ($DockerSql) {
+            "Server=$SqlServer;Database=$($runtime.userDatabase);User Id=sa;Password=$($runtime.sqlPassword);Encrypt=True;TrustServerCertificate=True"
+        } else {
+            "Server=$SqlServer;Database=$($runtime.userDatabase);Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+        })
+        ConnectionStrings__ContentConnection = $(if ($DockerSql) {
+            "Server=$SqlServer;Database=$($runtime.contentDatabase);User Id=sa;Password=$($runtime.sqlPassword);Encrypt=True;TrustServerCertificate=True"
+        } else {
+            "Server=$SqlServer;Database=$($runtime.contentDatabase);Trusted_Connection=True;TrustServerCertificate=True;Encrypt=False"
+        })
         ConnectionStrings__Redis = 'localhost:16379,defaultDatabase=3'
         Content__LocalAssetOrigin = $runtime.assets
         GrpcService__Address = $(if ($EnableAi) { 'http://127.0.0.1:15051' } else { 'http://localhost:50051' })

@@ -25,11 +25,14 @@ def norm(text):
 
 
 def prepare():
+    WORK.mkdir(parents=True, exist_ok=True)
     lines = {}
     captures = {}
     for name in CAPTURE_NAMES:
         path = CAPTURES / name
-        captures[path.name] = hashlib.sha256(path.read_bytes()).hexdigest()
+        # The reviewed capture digests were recorded from LF text; Windows Git
+        # checkouts may use CRLF without changing the captured legal content.
+        captures[path.name] = hashlib.sha256(path.read_bytes().replace(b'\r\n', b'\n')).hexdigest()
         for line in path.read_text(encoding='utf8').splitlines():
             match = re.match(r'L(\d+): (.*)', line)
             if match:
@@ -90,7 +93,10 @@ def prepare():
     target = ROOT / 'content-bank/legal/55-2026-articles-1-33.json'
     target.parent.mkdir(parents=True, exist_ok=True)
     data = (json.dumps(manifest, ensure_ascii=False, indent=2)+'\n').encode()
-    if target.exists() and target.read_bytes() != data: raise ValueError('Immutable corpus differs; review a new edition')
+    if target.exists():
+        previous = json.loads(target.read_text(encoding='utf8'))
+        changed = [key for key in manifest if previous.get(key) != manifest[key]]
+        if changed: raise ValueError(f'Immutable corpus differs in {changed}; review a new edition')
     if not target.exists(): target.write_bytes(data)
     print(f'Prepared {len(articles)} articles: official PDF comparison passed, with one visually reviewed accent difference recorded.')
 
