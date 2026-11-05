@@ -5,6 +5,7 @@ import {
   ArrowUpRight,
   BookOpen,
   ChartNoAxesColumn,
+  Clapperboard,
   ClipboardList,
   Eye,
   EyeOff,
@@ -24,6 +25,7 @@ import type { Profile } from './api';
 import { QuestionLibrary } from './features/questions/QuestionLibrary';
 import { LegalLibrary } from './features/questions/LegalLibrary';
 import { AdminContent } from './features/admin-content/AdminContent';
+import { AdminAnimationReview } from './features/admin-content/AdminAnimationReview';
 import { ContentPreflight } from './features/admin-content/ContentPreflight';
 import type { ContentApi } from './features/questions/content-api';
 import { ChatPage } from './features/chat/ChatPage';
@@ -385,6 +387,10 @@ function App() {
                 <Settings size={18} />
                 <span>Quản trị nội dung</span>
               </NavLink>
+              <NavLink aria-label="Duyệt mô phỏng" to="/duyet-mo-phong">
+                <Clapperboard size={18} />
+                <span>Duyệt mô phỏng</span>
+              </NavLink>
             </nav>
           </div>
         )}
@@ -431,6 +437,10 @@ function App() {
                   <Navigate to="/hoc" replace />
                 )
               }
+            />
+            <Route
+              path="/duyet-mo-phong"
+              element={user.role === 'Admin' ? <AdminAnimationReview /> : <Navigate to="/hoc" replace />}
             />
             <Route path="/tien-do" element={<ProgressPage />} />
             <Route path="/tai-khoan" element={<AccountPage user={user} />} />
@@ -503,9 +513,14 @@ function App() {
                 <UserRound size={18} /> Tài khoản &amp; Hạn mức
               </NavLink>
               {user.role === 'Admin' && (
-                <NavLink to="/noi-dung" onClick={() => setMobileMenuOpen(false)}>
-                  <Settings size={18} /> Quản trị nội dung (Admin)
-                </NavLink>
+                <>
+                  <NavLink to="/noi-dung" onClick={() => setMobileMenuOpen(false)}>
+                    <Settings size={18} /> Quản trị nội dung (Admin)
+                  </NavLink>
+                  <NavLink to="/duyet-mo-phong" onClick={() => setMobileMenuOpen(false)}>
+                    <Clapperboard size={18} /> Duyệt mô phỏng (Admin)
+                  </NavLink>
+                </>
               )}
               <button type="button" onClick={() => void logout()}>
                 <LogOut size={18} /> Đăng xuất khỏi hệ thống

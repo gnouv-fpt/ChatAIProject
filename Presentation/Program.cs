@@ -177,6 +177,7 @@ if (module == "User")
     builder.Services.AddScoped<IChatTurnRepository, ChatTurnRepository>();
     builder.Services.AddScoped<IExamAttemptRepository, ExamAttemptRepository>();
     builder.Services.AddSingleton<IExamAnimationCatalog, FileExamAnimationCatalog>();
+    builder.Services.AddScoped<AdminAnimationReviewService>();
     builder.Services.AddScoped<ExamResultService>();
     builder.Services.AddC2AccountLearningModule();
     builder.Services.AddCustomExamModule(builder.Configuration);

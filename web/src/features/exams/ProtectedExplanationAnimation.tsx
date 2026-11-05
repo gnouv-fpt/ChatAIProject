@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { api } from '../../api';
 
-type AnimationPayload = {
+export type AnimationPayload = {
   assetBaseUrl: string;
   number: number;
   images: { url: string; width: number; height: number }[];
@@ -26,10 +26,11 @@ type Player = {
   reset(): void;
 };
 
-export function ProtectedExplanationAnimation({ attemptId, questionId }: {
-  attemptId: string;
-  questionId: string;
-}) {
+type ProtectedAnimationProps =
+  | { attemptId: string; questionId: string; payload?: never }
+  | { attemptId?: never; questionId?: never; payload: AnimationPayload };
+
+export function ProtectedExplanationAnimation({ attemptId, questionId, payload }: ProtectedAnimationProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Player | null>(null);
   const mountedRef = useRef(true);
@@ -38,7 +39,9 @@ export function ProtectedExplanationAnimation({ attemptId, questionId }: {
   const [ready, setReady] = useState(false);
   const [mode, setMode] = useState('3d');
   const [playing, setPlaying] = useState(false);
-  const [message, setMessage] = useState('Mô phỏng chỉ được tải sau khi máy chủ xác nhận lượt thi đã nộp.');
+  const [message, setMessage] = useState(payload
+    ? 'Nhấn xem để tải mô phỏng đã được máy chủ cấp cho quản trị viên.'
+    : 'Mô phỏng chỉ được tải sau khi máy chủ xác nhận lượt thi đã nộp.');
   const [error, setError] = useState('');
 
   useEffect(() => {
@@ -54,12 +57,12 @@ export function ProtectedExplanationAnimation({ attemptId, questionId }: {
     setBusy(true);
     setError('');
     try {
-      const payload = await api<AnimationPayload>(
+      const data = payload ?? await api<AnimationPayload>(
         `/exam-attempts/${encodeURIComponent(attemptId)}/review-animations/${encodeURIComponent(questionId)}`
       );
-      const version = Number(payload.recipe.rendererVersion ?? 1);
+      const version = Number(data.recipe.rendererVersion ?? 1);
       const file = version > 1 ? `review-player-v${version}.js` : 'review-player.js';
-      const moduleUrl = new URL(file, payload.assetBaseUrl).href;
+      const moduleUrl = new URL(file, data.assetBaseUrl).href;
       const module = await import(/* @vite-ignore */ moduleUrl) as Record<string, new (
         host: HTMLElement,
         onFrame: (frame: PlayerFrame) => void,
@@ -69,9 +72,9 @@ export function ProtectedExplanationAnimation({ attemptId, questionId }: {
       const PlayerType = module[exportName];
       if (!PlayerType) throw new Error('Phiên bản trình phát mô phỏng không được hỗ trợ.');
 
-      const recipe = structuredClone(payload.recipe);
+      const recipe = structuredClone(data.recipe);
       if (recipe.cleanBackground?.url) {
-        recipe.cleanBackground.url = new URL(recipe.cleanBackground.url, payload.assetBaseUrl).href;
+        recipe.cleanBackground.url = new URL(recipe.cleanBackground.url, data.assetBaseUrl).href;
       }
       const player = new PlayerType(
         hostRef.current,
@@ -90,7 +93,7 @@ export function ProtectedExplanationAnimation({ attemptId, questionId }: {
       );
       playerRef.current = player;
       setLoaded(true);
-      await player.setQuestion({ number: payload.number, images: payload.images }, recipe, '3d');
+      await player.setQuestion({ number: data.number, images: data.images }, recipe, '3d');
     } catch (caught) {
       if (mountedRef.current) setError(caught instanceof Error ? caught.message : 'Không tải được mô phỏng.');
     } finally {

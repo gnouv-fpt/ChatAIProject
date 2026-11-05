@@ -183,3 +183,34 @@ public sealed class ExamResultService(IExamAttemptRepository attempts, IUserRepo
     public async Task<ExamAttempt> GetOwnedAsync(Guid userId, Guid id, CancellationToken ct) =>
         await attempts.GetOwnedAsync(id, userId, ct) ?? throw new NotFoundException("Không tìm thấy lượt thi.");
 }
+
+public sealed class AdminAnimationReviewService(
+    IExamAnimationCatalog catalog,
+    IConfiguration configuration,
+    AnimationSettings animationSettings)
+{
+    public async Task<IReadOnlyList<AdminAnimationSummary>> GetAllAsync(CancellationToken ct) =>
+        (await catalog.GetAllAsync(ct))
+        .OrderBy(item => item.Number)
+        .Select(item => new AdminAnimationSummary(item.Number, item.Prompt, item.Revision))
+        .ToArray();
+
+    public async Task<AdminAnimationPayload> GetAsync(int number, CancellationToken ct)
+    {
+        if (number is < 486 or > 600) throw new BadRequestException("Số câu mô phỏng không hợp lệ.");
+        var source = await catalog.GetAsync(number, ct)
+            ?? throw new NotFoundException("Mô phỏng chưa được phát hành hoặc cần được duyệt lại.");
+        var assetBaseUrl = configuration["Content:AnimationAssetBaseUrl"]?.Trim();
+        if (!Uri.TryCreate(assetBaseUrl, UriKind.Absolute, out var root) || root.Scheme != Uri.UriSchemeHttps ||
+            root.UserInfo.Length != 0 || root.Query.Length != 0 || root.Fragment.Length != 0 ||
+            !animationSettings.AllowedHosts.Contains(root.Host, StringComparer.OrdinalIgnoreCase))
+            throw new ConflictException("Máy chủ tài nguyên mô phỏng chưa được cấu hình hợp lệ.");
+        var baseUrl = root.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/";
+        var images = source.Images.Select(image => image with
+        {
+            Url = new Uri(new Uri(baseUrl), image.Url).AbsoluteUri
+        }).ToArray();
+        return new(baseUrl, source.Number, source.Prompt, source.Options, source.CorrectOptionIds,
+            images, source.Revision, source.Recipe);
+    }
+}

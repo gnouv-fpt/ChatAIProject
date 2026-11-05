@@ -40,13 +40,20 @@ public sealed record ExamAttemptReview(Guid AttemptId, Guid ExamId, Guid BankId,
     IReadOnlyList<GradedQuestion> Questions, IReadOnlyList<string> AnimationAllowedHosts, string? LocalAssetOrigin = null);
 
 public sealed record ExamAnimationImage(string Url, int Width, int Height);
-public sealed record ExamAnimationSource(int Number, IReadOnlyList<ExamAnimationImage> Images, JsonElement Recipe);
+public sealed record ExamAnimationSource(int Number, string Prompt, IReadOnlyList<ExamOption> Options,
+    IReadOnlyList<string> CorrectOptionIds, IReadOnlyList<ExamAnimationImage> Images,
+    string Revision, JsonElement Recipe);
 public sealed record ExamAnimationPayload(string AssetBaseUrl, int Number,
     IReadOnlyList<ExamAnimationImage> Images, JsonElement Recipe);
+public sealed record AdminAnimationSummary(int Number, string Prompt, string Revision);
+public sealed record AdminAnimationPayload(string AssetBaseUrl, int Number, string Prompt,
+    IReadOnlyList<ExamOption> Options, IReadOnlyList<string> CorrectOptionIds,
+    IReadOnlyList<ExamAnimationImage> Images, string Revision, JsonElement Recipe);
 
 public interface IExamAnimationCatalog
 {
     Task<ExamAnimationSource?> GetAsync(int number, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ExamAnimationSource>> GetAllAsync(CancellationToken cancellationToken);
 }
 
 public sealed record SaveExamResult(

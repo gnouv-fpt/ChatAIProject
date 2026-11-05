@@ -2,9 +2,13 @@ using System.Linq.Expressions;
 using System.Text.Json;
 using BusinessLogic.Exams;
 using BusinessLogic.Exceptions;
+using BusinessLogic.Infrastructure.Settings;
 using BusinessObject.Entities;
+using BusinessObject.Enums;
 using DataAccess.Repositories.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
+using Presentation.Controllers;
 
 namespace BusinessLogic.Tests;
 
@@ -55,8 +59,9 @@ public sealed class ExamAttemptReviewTests
     public async Task Review_animation_requires_owned_submitted_question_and_returns_only_approved_recipe()
     {
         using var recipe = JsonDocument.Parse("""{"rendererVersion":4,"revision":"approved"}""");
-        var catalog = new Animations(new ExamAnimationSource(544,
-            [new("bank-review/544/image-1.jpeg", 640, 360)], recipe.RootElement.Clone()));
+        var catalog = new Animations(new ExamAnimationSource(544, "Prompt",
+            [new("b", "Second")], ["b"], [new("bank-review/544/image-1.jpeg", 640, 360)],
+            "approved", recipe.RootElement.Clone()));
         var (service, attempt, snapshot) = Create(catalog: catalog);
 
         var payload = await service.GetReviewAnimationAsync(
@@ -70,6 +75,44 @@ public sealed class ExamAttemptReviewTests
             Guid.NewGuid(), attempt.Id, snapshot.Questions[0].QuestionId, default));
         await Assert.ThrowsAsync<NotFoundException>(() => service.GetReviewAnimationAsync(
             attempt.UserId, attempt.Id, Guid.NewGuid().ToString(), default));
+    }
+
+    [Fact]
+    public async Task Admin_review_returns_question_answer_and_approved_recipe_from_trusted_asset_host()
+    {
+        using var recipe = JsonDocument.Parse("""{"rendererVersion":4}""");
+        var catalog = new Animations(new ExamAnimationSource(544, "Prompt",
+            [new("a", "First"), new("b", "Second")], ["b"],
+            [new("bank-review/544/image-1.jpeg", 640, 360)], "revision-1", recipe.RootElement.Clone()));
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            { ["Content:AnimationAssetBaseUrl"] = "https://animations.example.org/" }).Build();
+        var service = new AdminAnimationReviewService(catalog, configuration,
+            new AnimationSettings { AllowedHosts = ["animations.example.org"] });
+
+        var summaries = await service.GetAllAsync(default);
+        var payload = await service.GetAsync(544, default);
+
+        Assert.Equal(544, Assert.Single(summaries).Number);
+        Assert.Equal("Prompt", payload.Prompt);
+        Assert.Equal("b", Assert.Single(payload.CorrectOptionIds));
+        Assert.Equal("https://animations.example.org/bank-review/544/image-1.jpeg", payload.Images.Single().Url);
+    }
+
+    [Fact]
+    public async Task Admin_review_rejects_untrusted_asset_host_and_controller_requires_admin_role()
+    {
+        using var recipe = JsonDocument.Parse("{}" );
+        var catalog = new Animations(new ExamAnimationSource(544, "Prompt", [], [],
+            [new("image.jpeg", 1, 1)], "revision-1", recipe.RootElement.Clone()));
+        var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+            { ["Content:AnimationAssetBaseUrl"] = "https://untrusted.example/" }).Build();
+        var service = new AdminAnimationReviewService(catalog, configuration,
+            new AnimationSettings { AllowedHosts = ["animations.example.org"] });
+
+        await Assert.ThrowsAsync<ConflictException>(() => service.GetAsync(544, default));
+        var authorize = Assert.Single(typeof(AdminAnimationReviewsController)
+            .GetCustomAttributes(typeof(AuthorizeAttribute), true).Cast<AuthorizeAttribute>());
+        Assert.Equal(nameof(UserRole.Admin), authorize.Roles);
     }
 
     private static (ExamResultService, ExamAttempt, SaveExamResult) Create(
@@ -93,6 +136,8 @@ public sealed class ExamAttemptReviewTests
     {
         public Task<ExamAnimationSource?> GetAsync(int number, CancellationToken cancellationToken) =>
             Task.FromResult(number == source.Number ? source : null);
+        public Task<IReadOnlyList<ExamAnimationSource>> GetAllAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<ExamAnimationSource>>([source]);
     }
 
     private sealed class Attempts(ExamAttempt attempt) : IExamAttemptRepository

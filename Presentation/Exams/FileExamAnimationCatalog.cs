@@ -32,7 +32,15 @@ public sealed class FileExamAnimationCatalog : IExamAnimationCatalog
                     image.GetProperty("width").GetInt32(),
                     image.GetProperty("height").GetInt32()))
                 .ToArray();
-            if (images.Length > 0) result[number] = new(number, images, property.Value.Clone());
+            var options = question.GetProperty("options").EnumerateArray()
+                .Select(option => new ExamOption(
+                    option.GetProperty("id").ToString(), option.GetProperty("text").GetString()!))
+                .ToArray();
+            var correctOptionIds = question.GetProperty("correctOptionIds").EnumerateArray()
+                .Select(option => option.ToString()).ToArray();
+            if (images.Length > 0) result[number] = new(number,
+                question.GetProperty("prompt").GetString()!, options, correctOptionIds, images,
+                revision.GetString()!, property.Value.Clone());
         }
 
         _items = result;
@@ -42,6 +50,12 @@ public sealed class FileExamAnimationCatalog : IExamAnimationCatalog
     {
         cancellationToken.ThrowIfCancellationRequested();
         return Task.FromResult(_items.GetValueOrDefault(number));
+    }
+
+    public Task<IReadOnlyList<ExamAnimationSource>> GetAllAsync(CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.FromResult<IReadOnlyList<ExamAnimationSource>>(_items.Values.OrderBy(item => item.Number).ToArray());
     }
 
     private static string ResolveDirectory(string contentRoot)
