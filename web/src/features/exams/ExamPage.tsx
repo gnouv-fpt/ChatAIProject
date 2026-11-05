@@ -79,7 +79,7 @@ export function ExamPage() {
   const [notifications, setNotifications] = useState<ExamNotification[]>([]);
   const [loadingSetup, setLoadingSetup] = useState(true);
   const [setupError, setSetupError] = useState('');
-  const [showScene, setShowScene] = useState(true);
+  const [showScene, setShowScene] = useState(false);
 
   // Mode: 'template' (Thi thử theo đề chuẩn) vs 'custom' (Luyện tập theo số câu)
   const initialMode = searchParams.get('bank') ? 'custom' : 'template';

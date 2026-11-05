@@ -1,11 +1,36 @@
 export type Profile = { id: string; username: string; email: string; role: string; tokenBalance: number; tokenQuota: number };
 type Auth = { accessToken: string; refreshToken: string; user: Profile };
+const authStorageKey = 'csgt_auth_session';
 export class ApiError extends Error {
   constructor(public status: number, message: string) { super(message); }
 }
-let auth: Auth | null = null;
+function readStoredAuth(): Auth | null {
+  if (typeof window === 'undefined') return null;
+  const saved = window.sessionStorage.getItem(authStorageKey);
+  if (!saved) return null;
+  try {
+    const parsed = JSON.parse(saved) as Partial<Auth>;
+    if (
+      typeof parsed.accessToken === 'string' &&
+      typeof parsed.refreshToken === 'string' &&
+      parsed.user &&
+      typeof parsed.user === 'object'
+    ) {
+      return parsed as Auth;
+    }
+  } catch {
+    window.sessionStorage.removeItem(authStorageKey);
+  }
+  return null;
+}
+let auth: Auth | null = readStoredAuth();
 let refreshing: Promise<void> | null = null;
-export function setAuth(value: Auth | null) { auth = value; }
+export function setAuth(value: Auth | null) {
+  auth = value;
+  if (typeof window === 'undefined') return;
+  if (value) window.sessionStorage.setItem(authStorageKey, JSON.stringify(value));
+  else window.sessionStorage.removeItem(authStorageKey);
+}
 export function getAuth() { return auth; }
 export async function api<T>(path: string, options: RequestInit = {}, retry = true): Promise<T> {
   const headers = new Headers(options.headers);

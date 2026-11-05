@@ -18,4 +18,12 @@ function ContentPreview() {
       {view === 'preflight' ? <ContentPreflight api={api}/> : view === 'admin' ? <AdminContent api={api}/> : view === 'laws' ? <LegalLibrary api={api}/> : <QuestionLibrary api={api}/>}</>}
   </main>;
 }
-createRoot(document.getElementById('root')!).render(<ContentPreview/>);
+declare global {
+  interface Window {
+    __content_app_root__?: ReturnType<typeof createRoot>;
+  }
+}
+
+const container = document.getElementById('root')!;
+window.__content_app_root__ ??= createRoot(container);
+window.__content_app_root__.render(<ContentPreview/>);
