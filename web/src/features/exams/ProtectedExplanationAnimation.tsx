@@ -107,6 +107,19 @@ export function ProtectedExplanationAnimation({ attemptId, questionId, payload }
     await playerRef.current.setMode(nextMode);
   }
 
+  function togglePlayback() {
+    const player = playerRef.current;
+    if (!player) return;
+    if (player.playing) {
+      player.pause();
+      setPlaying(false);
+      return;
+    }
+    hostRef.current?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    player.play();
+    setPlaying(player.playing);
+  }
+
   return (
     <section className="protected-animation" aria-label="Mô phỏng lời giải được bảo vệ">
       {!loaded && (
@@ -119,7 +132,7 @@ export function ProtectedExplanationAnimation({ attemptId, questionId, payload }
         <div className="protected-animation-controls">
           <button type="button" aria-pressed={mode === '3d'} onClick={() => void changeMode('3d')}>Mô phỏng 3D</button>
           <button type="button" aria-pressed={mode === 'original'} onClick={() => void changeMode('original')}>Ảnh gốc</button>
-          <button type="button" disabled={!ready || mode !== '3d'} onClick={() => playing ? playerRef.current?.pause() : playerRef.current?.play()}>
+          <button type="button" disabled={!ready || mode !== '3d'} onClick={togglePlayback}>
             {playing ? 'Tạm dừng' : 'Phát'}
           </button>
           <button type="button" disabled={!ready || mode !== '3d'} onClick={() => playerRef.current?.step(-1)}>Bước trước</button>

@@ -54,16 +54,22 @@ export function AdminAnimationReview() {
     return () => controller.abort();
   }, [selected]);
 
+  function statusOf(item: Summary): Status {
+    const record = records[item.number];
+    return record?.revision === item.revision ? record.status : 'approved';
+  }
+
   const visible = useMemo(() => items.filter(item => {
-    const status = records[item.number]?.status ?? 'pending';
+    const status = statusOf(item);
     return (filter === 'all' || status === filter) &&
       (!search || `${item.number} ${item.prompt}`.toLowerCase().includes(search.toLowerCase()));
   }), [items, records, filter, search]);
 
-  const current = records[selected] ?? {
+  const saved = records[selected];
+  const current = saved?.revision === detail?.revision ? saved : {
     number: selected,
     revision: detail?.revision ?? '',
-    status: 'pending' as Status,
+    status: 'approved' as Status,
     notes: '',
     updatedAt: '',
   };
@@ -78,7 +84,10 @@ export function AdminAnimationReview() {
   }
 
   function exportJson() {
-    const blob = new Blob([JSON.stringify({ format: 'admin-animation-review', version: 1, records: Object.values(records) }, null, 2)], { type: 'application/json' });
+    const exportedRecords = items.map(item => records[item.number]?.revision === item.revision
+      ? records[item.number]
+      : { number: item.number, revision: item.revision, status: 'approved' as Status, notes: '', updatedAt: '' });
+    const blob = new Blob([JSON.stringify({ format: 'admin-animation-review', version: 1, records: exportedRecords }, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob), link = document.createElement('a');
     link.href = url; link.download = `duyet-mo-phong-${new Date().toISOString().slice(0, 10)}.json`; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -100,14 +109,14 @@ export function AdminAnimationReview() {
   }
 
   const counts = { approved: 0, changes: 0, pending: 0 };
-  for (const item of items) counts[records[item.number]?.status ?? 'pending'] += 1;
+  for (const item of items) counts[statusOf(item)] += 1;
 
   return (
     <main className="admin-animation-page">
       <header>
         <span className="eyebrow">QUẢN TRỊ · KIỂM DUYỆT NỘI DUNG</span>
         <h1>Duyệt mô phỏng sa hình</h1>
-        <p>Chỉ tài khoản Admin tải được recipe. Ghi chú được lưu trên trình duyệt; hãy xuất JSON để bàn giao hoặc sao lưu.</p>
+        <p>Các recipe trong catalog này đã được phát hành và mặc định là Đã duyệt. Ghi chú thay đổi được lưu trên trình duyệt; hãy xuất JSON để bàn giao hoặc sao lưu.</p>
       </header>
       {error && <p role="alert" className="error">{error}</p>}
       <div className="admin-animation-counts">
@@ -123,7 +132,7 @@ export function AdminAnimationReview() {
       </div>
       <div className="admin-animation-layout">
         <nav aria-label="Danh sách mô phỏng">
-          {visible.map(item => <button key={item.number} className={`${records[item.number]?.status ?? 'pending'} ${selected === item.number ? 'active' : ''}`} onClick={() => setSelected(item.number)}>Câu {item.number}</button>)}
+          {visible.map(item => <button key={item.number} className={`${statusOf(item)} ${selected === item.number ? 'active' : ''}`} onClick={() => setSelected(item.number)}>Câu {item.number}</button>)}
         </nav>
         <section className="admin-animation-review-card">
           {!detail ? <p role="status">Đang tải mô phỏng…</p> : <>

@@ -406,9 +406,42 @@
   pointer-events: none;
 }
 
+.protected-animation-scene > canvas {
+  z-index: 1;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.protected-animation-scene > svg {
+  z-index: 2;
+}
+
+.protected-animation-scene > .clean-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.protected-animation-scene > [hidden] {
+  display: none;
+}
+
 .protected-animation-scene.mode-3d > img:first-child {
   opacity: 0.42;
   filter: grayscale(0.45);
+}
+
+.protected-animation-scene.mode-3d.has-clean-background > img,
+.protected-animation-scene.mode-3d.no-vehicles > img {
+  opacity: 1;
+  filter: none;
 }
 
 .protected-animation-controls {
