@@ -148,8 +148,25 @@ export function AccountPage({ user }: { user: Profile }) {
           </article>
         </section>
 
-        <UsageSection title="Mức sử dụng của bạn" report={report} loading={loading} />
-        {isAdmin && <UsageSection title="Toàn hệ thống (Quản trị viên)" report={allUsers} loading={loading} showUsers />}
+        <details className="account-details" open>
+          <summary className="account-summary">
+            <span><CalendarDays size={16} /> Mức sử dụng của bạn (Nhấn để thu gọn)</span>
+          </summary>
+          <div className="account-details-content">
+            <UsageSection title="Chi tiết mức sử dụng cá nhân" report={report} loading={loading} />
+          </div>
+        </details>
+
+        {isAdmin && (
+          <details className="account-details">
+            <summary className="account-summary">
+              <span><CalendarDays size={16} /> Thống kê toàn hệ thống (Dành cho Quản trị viên)</span>
+            </summary>
+            <div className="account-details-content">
+              <UsageSection title="Toàn hệ thống" report={allUsers} loading={loading} showUsers />
+            </div>
+          </details>
+        )}
       </div>
     </main>
   );

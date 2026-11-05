@@ -77,9 +77,9 @@ function DashboardTopbar({ user }: { user: Profile }) {
 
   return (
     <header className="dash-topbar" aria-label="Thanh công cụ">
-      <Link to="/hoc" className="dash-mobile-brand" aria-label="Lộ trình – trang chủ">
+      <Link to="/hoc" className="dash-mobile-brand" aria-label="TrafficHub – trang chủ">
         <span className="brand-mark">↗</span>
-        <span>lộ trình<span className="brand-dot">.</span></span>
+        <span>Traffic<span className="brand-accent">Hub</span></span>
       </Link>
 
       <form className="dash-search-box" role="search" onSubmit={handleQuickSearch}>
@@ -120,6 +120,8 @@ function DashboardTopbar({ user }: { user: Profile }) {
 
 function App() {
   const [user, setUser] = useState<Profile | null>(() => {
+    const persistedAuth = getAuth();
+    if (persistedAuth) return persistedAuth.user;
     if (typeof window !== 'undefined') {
       const saved = window.localStorage.getItem('csgt_preview_user');
       if (saved) {
@@ -146,7 +148,16 @@ function App() {
     event.preventDefault();
     setError('');
     setBusy(true);
-    const data = Object.fromEntries(new FormData(event.currentTarget));
+    const formData = new FormData(event.currentTarget);
+    const data = Object.fromEntries(formData);
+    if (register) {
+      if (data.password !== data.confirmPassword) {
+        setError('Mật khẩu xác nhận không khớp.');
+        setBusy(false);
+        return;
+      }
+      delete data.confirmPassword;
+    }
     try {
       const result = await api<NonNullable<ReturnType<typeof getAuth>>>(
         register ? '/auth/register' : '/auth/login',
@@ -183,9 +194,9 @@ function App() {
   if (!user) {
     return (
       <main className="login-page">
-        <section className="login-hero" aria-label="Giới thiệu Lộ trình">
+        <section className="login-hero" aria-label="Giới thiệu TrafficHub">
           <div className="login-brand">
-            <span className="brand-mark">↗</span> lộ trình<span className="brand-dot">.</span>
+            <span className="brand-mark">↗</span> Traffic<span className="brand-accent">Hub</span>
           </div>
 
           <div className="login-copy">
@@ -276,6 +287,26 @@ function App() {
                 </span>
                 {register && <small className="muted">Sử dụng ít nhất 8 ký tự.</small>}
               </label>
+              {register && (
+                <label>
+                  Xác nhận mật khẩu
+                  <span className="password-field">
+                    <input
+                      disabled={busy}
+                      type={showPassword ? 'text' : 'password'}
+                      name="confirmPassword"
+                      required
+                      minLength={8}
+                      autoComplete="new-password"
+                    />
+                  </span>
+                </label>
+              )}
+              {!register && (
+                <p style={{ margin: '-6px 0 0', textAlign: 'right', fontSize: '12px', color: 'var(--text-muted)' }}>
+                  <span>Quên mật khẩu? Vui lòng liên hệ Quản trị viên để đặt lại.</span>
+                </p>
+              )}
               {error && (
                 <p role="alert" className="error">
                   {error}
@@ -339,12 +370,13 @@ function App() {
       {/* Desktop Left Sidebar */}
       <aside className="navigation" aria-label="Điều hướng chính">
         <div className="brand">
-          <span className="brand-mark">↗</span> lộ trình<span className="brand-dot">.</span>
+          <span className="brand-mark">↗</span> Traffic<span className="brand-accent">Hub</span>
         </div>
         <div className="brand-subtitle">
           Học luật &amp; thi sát hạch
         </div>
 
+        <div className="nav-scroll-area">
         <span className="nav-caption">HÀNH TRÌNH HỌC &amp; THI</span>
         <nav>
           <NavLink aria-label="Học luật" to="/hoc">
@@ -395,6 +427,8 @@ function App() {
           </div>
         )}
 
+        </div>
+
         <div className="sidebar-bottom">
           <div className="avatar">{user.username?.slice(0, 1).toUpperCase()}</div>
           <div>
@@ -444,7 +478,7 @@ function App() {
             />
             <Route path="/tien-do" element={<ProgressPage />} />
             <Route path="/tai-khoan" element={<AccountPage user={user} />} />
-            <Route path="*" element={<Navigate to="/chat" replace />} />
+            <Route path="*" element={<Navigate to="/hoc" replace />} />
           </Routes>
         </div>
       </div>
@@ -457,11 +491,11 @@ function App() {
         </NavLink>
         <NavLink to="/hoc" onClick={() => setMobileMenuOpen(false)}>
           <BookOpen size={19} />
-          <span>Học luật</span>
+          <span>Học</span>
         </NavLink>
         <NavLink to="/thi" onClick={() => setMobileMenuOpen(false)}>
           <ClipboardList size={19} />
-          <span>Thi thử</span>
+          <span>Thi</span>
         </NavLink>
         <NavLink to="/tien-do" onClick={() => setMobileMenuOpen(false)}>
           <ChartNoAxesColumn size={19} />
@@ -533,7 +567,11 @@ function App() {
   );
 }
 
-createRoot(document.getElementById('root')!).render(
+const container = document.getElementById('root')!;
+const rootKey = '__react_app_root__';
+const appRoot = (window as unknown as Record<string, ReturnType<typeof createRoot>>)[rootKey] ??= createRoot(container);
+
+appRoot.render(
   <React.StrictMode>
     <BrowserRouter>
       <App />

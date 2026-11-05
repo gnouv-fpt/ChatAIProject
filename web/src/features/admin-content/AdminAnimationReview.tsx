@@ -132,7 +132,16 @@ export function AdminAnimationReview() {
       </div>
       <div className="admin-animation-layout">
         <nav aria-label="Danh sách mô phỏng">
-          {visible.map(item => <button key={item.number} className={`${statusOf(item)} ${selected === item.number ? 'active' : ''}`} onClick={() => setSelected(item.number)}>Câu {item.number}</button>)}
+          {visible.map(item => (
+            <button
+              key={item.number}
+              className={`${statusOf(item)} ${selected === item.number ? 'active' : ''}`}
+              aria-label={`Câu ${item.number}`}
+              onClick={() => setSelected(item.number)}
+            >
+              {item.number}
+            </button>
+          ))}
         </nav>
         <section className="admin-animation-review-card">
           {!detail ? <p role="status">Đang tải mô phỏng…</p> : <>

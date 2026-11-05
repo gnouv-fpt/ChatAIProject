@@ -76,7 +76,7 @@ export function QuestionLibrary({
   const [loginRequired, setLoginRequired] = useState(false);
   const [loading, setLoading] = useState(false);
   const [reload, setReload] = useState(0);
-  const [showScene, setShowScene] = useState(true);
+  const [showScene, setShowScene] = useState(() => typeof window !== 'undefined' ? window.innerWidth > 900 : true);
   const [bookmarks, setBookmarks] = useState<Set<string>>(new Set());
   const [bookmarkItems, setBookmarkItems] = useState<BookmarkRecord[]>([]);
   const [bookmarkBusy, setBookmarkBusy] = useState<Set<string>>(new Set());

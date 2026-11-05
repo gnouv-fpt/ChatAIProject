@@ -311,7 +311,7 @@ export function ChatPage() {
               <div className="welcome-symbol">↗</div>
               <span className="eyebrow">HỎI ĐÁP PHÁP LUẬT · SONG HÀNH CÙNG ÔN THI</span>
               <h1>
-                Hôm nay bạn muốn
+                Hôm nay bạn muốn{' '}
                 <br />
                 tra cứu tình huống giao thông nào?
               </h1>
@@ -319,40 +319,6 @@ export function ChatPage() {
                 Đặt câu hỏi bằng ngôn ngữ tự nhiên hoặc đính kèm ảnh biển báo/tình huống. Hệ thống trả lời kèm Điều,
                 Khoản, Điểm và đoạn trích nguyên văn.
               </p>
-
-              {/* Pinterest 3-Card Bento Legal Quick-Consult Strip */}
-              <div className="bento-kpi-row" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', width: '100%', maxWidth: '760px', textAlign: 'left', margin: '10px 0 18px' }}>
-                <div className="bento-kpi-card is-hero" style={{ padding: '14px 16px' }}>
-                  <div className="bkc-top">
-                    <span>Mức xử phạt &amp; Điểm GPLX</span>
-                    <span className="bkc-icon-circle"><ShieldCheck size={14} /></span>
-                  </div>
-                  <div className="bkc-value" style={{ fontSize: '18px' }}>Nghị định xử phạt</div>
-                  <div className="bkc-foot">
-                    <span className="bkc-badge">Trích dẫn Điều / Khoản</span>
-                  </div>
-                </div>
-                <div className="bento-kpi-card" style={{ padding: '14px 16px' }}>
-                  <div className="bkc-top">
-                    <span>Quy tắc &amp; Làn đường</span>
-                    <span className="bkc-icon-circle"><Check size={14} /></span>
-                  </div>
-                  <div className="bkc-value" style={{ fontSize: '18px' }}>Luật TTATGT Đường bộ</div>
-                  <div className="bkc-foot">
-                    <span className="bkc-trend up">● Đối chiếu nguồn gốc</span>
-                  </div>
-                </div>
-                <div className="bento-kpi-card is-dark-telemetry" style={{ padding: '14px 16px' }}>
-                  <div className="bkc-top">
-                    <span>Nhận diện Biển báo AI</span>
-                    <span className="bkc-live-dot" />
-                  </div>
-                  <div className="bkc-value" style={{ fontSize: '18px' }}>QCVN 41 · Ảnh chụp</div>
-                  <div className="bkc-foot">
-                    <span style={{ color: '#9ed8c0', fontSize: '11px', fontWeight: 600 }}>● Hỗ trợ đính kèm ảnh</span>
-                  </div>
-                </div>
-              </div>
 
               <div className="suggestions">
                 {[
@@ -383,7 +349,7 @@ export function ChatPage() {
                 return (
                   <article key={message.id} className={`message ${isUser ? 'from-user' : 'from-assistant'}`}>
                     <div className="message-author">
-                      <span>{isUser ? '1. Câu hỏi của bạn' : '2. Câu trả lời tư vấn · ↗ Lộ trình'}</span>
+                      <span>{isUser ? '1. Câu hỏi của bạn' : '2. Câu trả lời tư vấn · ↗ TrafficHub'}</span>
                       <span className="message-role-tag">{isUser ? 'Tình huống' : 'Giải đáp'}</span>
                       {!isUser && message.status !== 'Answered' && (
                         <span className={`status-chip status-${message.status}`}>
