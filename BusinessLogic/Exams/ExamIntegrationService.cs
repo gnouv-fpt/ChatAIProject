@@ -75,7 +75,8 @@ public sealed class ExamIntegrationService(IContentBankRepository banks, IQuesti
 }
 
 public sealed class ExamResultService(IExamAttemptRepository attempts, IUserRepository users,
-    IConfiguration configuration, AnimationSettings? animationSettings = null) : IExamResultSink
+    IConfiguration configuration, AnimationSettings? animationSettings = null,
+    IExamAnimationCatalog? animationCatalog = null) : IExamResultSink
 {
     public async Task<ExamAttemptReview> GetReviewAsync(Guid userId, Guid id, CancellationToken ct)
     {
@@ -92,6 +93,40 @@ public sealed class ExamResultService(IExamAttemptRepository attempts, IUserRepo
         }).ToArray();
         return new(attempt.Id, snapshot.ExamId, snapshot.BankId, snapshot.BankVersion,
             attempt.Score, questions.Length, attempt.IsPassed, snapshot.SubmittedAtUtc, questions, hosts, animationSettings?.LocalAssetOrigin);
+    }
+
+    public async Task<ExamAnimationPayload> GetReviewAnimationAsync(
+        Guid userId, Guid attemptId, string questionId, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(questionId))
+            throw new BadRequestException("Mã câu hỏi không hợp lệ.");
+
+        var attempt = await GetOwnedAsync(userId, attemptId, ct);
+        var snapshot = JsonSerializer.Deserialize<SaveExamResult>(attempt.ExamSnapshotJson)
+            ?? throw new ConflictException("Không đọc được nội dung lượt thi đã lưu.");
+        var question = snapshot.Questions.SingleOrDefault(q => q.QuestionId == questionId)
+            ?? throw new NotFoundException("Không tìm thấy câu hỏi trong lượt thi này.");
+        var hosts = configuration.GetSection("Content:AnimationAllowedHosts").GetChildren()
+            .Select(item => item.Value).OfType<string>().ToArray();
+        if (!ContentManifestService.IsAllowedAnimationUrl(
+                question.ExplanationAnimationUrl, hosts, animationSettings?.LocalAssetOrigin) ||
+            !Uri.TryCreate(question.ExplanationAnimationUrl, UriKind.Absolute, out var animationUri) ||
+            !System.Text.RegularExpressions.Regex.IsMatch(animationUri.AbsolutePath, "^/q([0-9]{3})\\.html$",
+                System.Text.RegularExpressions.RegexOptions.CultureInvariant))
+            throw new NotFoundException("Câu hỏi này chưa có mô phỏng được phép sử dụng.");
+
+        var match = System.Text.RegularExpressions.Regex.Match(animationUri.AbsolutePath, "^/q([0-9]{3})\\.html$");
+        var number = int.Parse(match.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+        var source = animationCatalog is null ? null : await animationCatalog.GetAsync(number, ct);
+        if (source is null)
+            throw new NotFoundException("Mô phỏng chưa được phát hành hoặc cần được duyệt lại.");
+
+        var assetBaseUrl = animationUri.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/";
+        var images = source.Images.Select(image => image with
+        {
+            Url = new Uri(new Uri(assetBaseUrl), image.Url).AbsoluteUri
+        }).ToArray();
+        return new(assetBaseUrl, source.Number, images, source.Recipe);
     }
 
     public async Task<IReadOnlyList<ExamSubmittedEvent>> GetRecentNotificationsAsync(Guid userId, CancellationToken ct)

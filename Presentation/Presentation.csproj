@@ -29,4 +29,13 @@
     <ProjectReference Include="..\BusinessObject\BusinessObject.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\content-animations\bank-review\bank.json" Link="ExamAnimations\bank.json"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\content-animations\bank-review\scenes.json" Link="ExamAnimations\scenes.json"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\content-animations\bank-review\accepted-release.json" Link="ExamAnimations\accepted-release.json"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

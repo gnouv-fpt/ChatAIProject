@@ -51,7 +51,29 @@ public sealed class ExamAttemptReviewTests
         Assert.All(review.Questions, q => Assert.Null(q.ExplanationAnimationUrl));
     }
 
-    private static (ExamResultService, ExamAttempt, SaveExamResult) Create(string url = "https://animations.example.org/q544.html")
+    [Fact]
+    public async Task Review_animation_requires_owned_submitted_question_and_returns_only_approved_recipe()
+    {
+        using var recipe = JsonDocument.Parse("""{"rendererVersion":4,"revision":"approved"}""");
+        var catalog = new Animations(new ExamAnimationSource(544,
+            [new("bank-review/544/image-1.jpeg", 640, 360)], recipe.RootElement.Clone()));
+        var (service, attempt, snapshot) = Create(catalog: catalog);
+
+        var payload = await service.GetReviewAnimationAsync(
+            attempt.UserId, attempt.Id, snapshot.Questions[0].QuestionId, default);
+
+        Assert.Equal(544, payload.Number);
+        Assert.Equal("https://animations.example.org/", payload.AssetBaseUrl);
+        Assert.Equal("https://animations.example.org/bank-review/544/image-1.jpeg", payload.Images.Single().Url);
+        Assert.Equal(4, payload.Recipe.GetProperty("rendererVersion").GetInt32());
+        await Assert.ThrowsAsync<NotFoundException>(() => service.GetReviewAnimationAsync(
+            Guid.NewGuid(), attempt.Id, snapshot.Questions[0].QuestionId, default));
+        await Assert.ThrowsAsync<NotFoundException>(() => service.GetReviewAnimationAsync(
+            attempt.UserId, attempt.Id, Guid.NewGuid().ToString(), default));
+    }
+
+    private static (ExamResultService, ExamAttempt, SaveExamResult) Create(
+        string url = "https://animations.example.org/q544.html", IExamAnimationCatalog? catalog = null)
     {
         var owner = Guid.NewGuid();
         var options = new ExamOption[] { new("b", "Second"), new("a", "First") };
@@ -64,7 +86,13 @@ public sealed class ExamAttemptReviewTests
             ExamSnapshotJson = JsonSerializer.Serialize(snapshot) };
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             { ["Content:AnimationAllowedHosts:0"] = "animations.example.org" }).Build();
-        return (new ExamResultService(new Attempts(attempt), null!, configuration), attempt, snapshot);
+        return (new ExamResultService(new Attempts(attempt), null!, configuration, animationCatalog: catalog), attempt, snapshot);
+    }
+
+    private sealed class Animations(ExamAnimationSource source) : IExamAnimationCatalog
+    {
+        public Task<ExamAnimationSource?> GetAsync(int number, CancellationToken cancellationToken) =>
+            Task.FromResult(number == source.Number ? source : null);
     }
 
     private sealed class Attempts(ExamAttempt attempt) : IExamAttemptRepository

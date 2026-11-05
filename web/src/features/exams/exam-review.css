@@ -375,6 +375,78 @@
   font-size: 12.5px;
 }
 
+.protected-animation {
+  margin-top: 14px;
+}
+
+.protected-animation-scene {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  min-height: 180px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: #e9eee7;
+}
+
+.protected-animation-scene > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.protected-animation-scene > svg,
+.protected-animation-scene > canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.protected-animation-scene.mode-3d > img:first-child {
+  opacity: 0.42;
+  filter: grayscale(0.45);
+}
+
+.protected-animation-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.protected-animation-controls button {
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  padding: 7px 11px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.protected-animation-controls button[aria-pressed='true'] {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.protected-animation-controls button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.protected-animation-message {
+  margin: 9px 0 0 !important;
+  font-size: 13px !important;
+  font-weight: 650;
+}
+
 @media (max-width: 640px) {
   .review-breakdown-grid {
     grid-template-columns: 1fr;

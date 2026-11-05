@@ -11,7 +11,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { api } from '../../api';
-import { ExplanationAnimationLink } from '../questions/ExplanationAnimationLink';
+import { ProtectedExplanationAnimation } from './ProtectedExplanationAnimation';
 import './exam-review.css';
 
 type Question = {
@@ -334,12 +334,12 @@ export function ExamReviewPage() {
                     <div className="review-explanation">
                       <h3>Lời giải & Căn cứ</h3>
                       <p>{q.explanation || 'Bản lưu này chưa có lời giải.'}</p>
-                      <ExplanationAnimationLink
-                        url={q.explanationAnimationUrl ?? undefined}
-                        allowedHosts={review.animationAllowedHosts}
-                        localAssetOrigin={review.localAssetOrigin}
-                        canReview
-                      />
+                      {q.explanationAnimationUrl && (
+                        <ProtectedExplanationAnimation
+                          attemptId={review.attemptId}
+                          questionId={q.questionId}
+                        />
+                      )}
                       {!q.explanationAnimationUrl && <small>Chưa có mô phỏng cho câu này trong bản lưu.</small>}
                     </div>
                   </article>

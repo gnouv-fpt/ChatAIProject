@@ -40,6 +40,11 @@ public sealed class ExamAttemptsController(ExamResultService service) : Controll
     public async Task<ActionResult<ExamAttemptReview>> Review(Guid id, CancellationToken ct) =>
         Ok(await service.GetReviewAsync(User.GetUserId(), id, ct));
 
+    [HttpGet("{id:guid}/review-animations/{questionId}")]
+    public async Task<ActionResult<ExamAnimationPayload>> ReviewAnimation(
+        Guid id, string questionId, CancellationToken ct) =>
+        Ok(await service.GetReviewAnimationAsync(User.GetUserId(), id, questionId, ct));
+
     [HttpGet("{id:guid}")]
     public async Task<IActionResult> Get(Guid id, CancellationToken ct) =>
         Ok(await service.GetOwnedAsync(User.GetUserId(), id, ct));
