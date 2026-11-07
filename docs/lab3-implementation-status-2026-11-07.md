@@ -94,3 +94,7 @@ Crashlytics hay Remote Config before/after trên thiết bị. Không push Git.
   lại `3/Bật`, `remoteconfig:get` xác nhận version 6 với đúng hai giá trị cũ.
 - `flutter analyze --no-pub` sạch; `flutter test --exclude-tags live
   --concurrency=1` đạt 238/238. Chưa có 30 lượt ARTEMIS thực thi.
+- Kiểm lại Crashlytics Console sau khi mở app: issue
+  `FlutterFirebaseCrashlyticsPlugin.crash / FirebaseCrashlyticsTestCrash`
+  xuất hiện riêng với hai issue FCM cũ. Non-fatal demo đã ghi ở log thiết bị,
+  nhưng chưa lọc và xác nhận issue non-fatal trên Console.
