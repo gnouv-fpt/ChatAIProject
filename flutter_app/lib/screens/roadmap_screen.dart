@@ -617,10 +617,10 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
   final double screenHeight;
 
   @override
-  double get minExtent => 52.0;
+  double get minExtent => 64.0;
 
   @override
-  double get maxExtent => 52.0;
+  double get maxExtent => 64.0;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
@@ -630,7 +630,7 @@ class _SemesterStickyHeaderDelegate extends SliverPersistentHeaderDelegate {
       elevation: overlapsContent ? 2.0 : 0.0,
       shadowColor: colorScheme.shadow.withValues(alpha: 0.15),
       child: Container(
-        height: 52.0,
+        height: 64.0,
         decoration: BoxDecoration(
           color: colorScheme.surface,
           border: Border(

@@ -84,6 +84,7 @@ class ServerStatusBar extends StatelessWidget {
     final onWarning = customColors.onWarningContainer;
 
     final isChecking = isOnline == null;
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.5;
     final dotColor = isChecking ? Theme.of(context).colorScheme.outline : warningColor;
     final labelText = isChecking ? 'Đang kiểm tra kết nối trợ lý…' : 'Trợ lý ngoại tuyến';
 
@@ -121,6 +122,8 @@ class ServerStatusBar extends StatelessWidget {
             Expanded(
               child: Text(
                 labelText,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   fontSize: 12.5,
                   fontWeight: FontWeight.w600,
@@ -132,21 +135,26 @@ class ServerStatusBar extends StatelessWidget {
                 ),
               ),
             ),
-            TextButton(
-              onPressed: provider.checkServerHealth,
-              style: TextButton.styleFrom(
-                foregroundColor: isChecking ? null : warningColor,
-                visualDensity: VisualDensity.compact,
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                minimumSize: const Size(48, 48),
+            if (largeText)
+              IconButton(
+                onPressed: provider.checkServerHealth,
+                tooltip: 'Thử lại',
+                icon: const Icon(Icons.refresh_rounded),
+              )
+            else
+              TextButton(
+                onPressed: provider.checkServerHealth,
+                style: TextButton.styleFrom(
+                  foregroundColor: isChecking ? null : warningColor,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                  minimumSize: const Size(48, 48),
+                ),
+                child: const Text('Thử lại', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
               ),
-              child: const Text('Thử lại', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700)),
-            ),
             if (!kReleaseMode) ...[
               const SizedBox(width: 4),
               IconButton(
                 icon: const Icon(Icons.settings_outlined, size: 16),
-                visualDensity: VisualDensity.compact,
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                 tooltip: 'Cài đặt kết nối máy chủ (Debug)',

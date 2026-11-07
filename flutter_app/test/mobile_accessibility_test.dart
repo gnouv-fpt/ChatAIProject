@@ -76,7 +76,7 @@ void main() {
     (tester) async {
       await openCurriculum(tester, width: 360, home: const ChatScreen());
       await tester.pumpAndSettle();
-      await tester.tap(find.byTooltip('Cài đặt kết nối'));
+      await tester.tap(find.byTooltip('Cài đặt kết nối máy chủ (Debug)'));
       await tester.pumpAndSettle();
       await tester.enterText(find.byType(TextFormField), 'khong-phai-dia-chi');
       await tester.tap(find.text('Lưu & Kết nối'));
@@ -110,7 +110,9 @@ void main() {
         .element(find.byType(ContextualChatPanel))
         .read<ChatProvider>();
     final ids = chat.messages.map((message) => message.id).toList();
-    await tester.tap(find.byTooltip('Xóa hội thoại'));
+    await tester.tap(find.byTooltip('Tùy chọn'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Xóa hội thoại'));
     await tester.pumpAndSettle();
     expect(find.text('Xóa hội thoại này?'), findsOneWidget);
     await tester.tap(find.text('Hủy'));
@@ -134,7 +136,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 100));
     expect(tester.binding.hasScheduledFrame, isFalse);
-    expect(find.text('Danh sách môn'), findsOneWidget);
+    expect(find.byTooltip('Xem danh sách (Trợ năng)'), findsOneWidget);
   });
   test('small status text colors meet 4.5:1 contrast', () {
     final pairs = [
@@ -170,14 +172,14 @@ void main() {
         home: const Scaffold(body: GraphViewScreen()),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Danh sách môn'));
+      await tester.tap(find.byTooltip('Xem danh sách (Trợ năng)'));
       await tester.pumpAndSettle();
-      expect(find.text('Môn học trong sơ đồ'), findsOneWidget);
-      await tester.tap(find.textContaining('PRF192 ·'));
+      expect(find.textContaining('Danh sách môn học trong sơ đồ'), findsOneWidget);
+      await tester.tap(find.text('PRF192').first);
       await tester.pumpAndSettle();
-      expect(find.text('Tiên quyết: Không có'), findsOneWidget);
-      expect(find.text('Môn phụ thuộc: Không có'), findsOneWidget);
-      await tester.tap(find.byTooltip('Đóng thông tin môn'));
+      expect(find.text('Không có môn tiên quyết'), findsOneWidget);
+      expect(find.text('Không có môn phụ thuộc'), findsOneWidget);
+      await tester.tap(find.byTooltip('Đóng'));
       await tester.pumpAndSettle();
     },
   );

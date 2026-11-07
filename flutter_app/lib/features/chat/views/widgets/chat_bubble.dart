@@ -261,9 +261,8 @@ class ChatBubble extends StatelessWidget {
                         const SizedBox(width: 6),
                         IconButton(
                           tooltip: 'Sao chép tin nhắn',
-                          visualDensity: VisualDensity.compact,
                           padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                          constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
                           onPressed: () {
                             Clipboard.setData(ClipboardData(text: message.text));
                             ScaffoldMessenger.of(context).showSnackBar(

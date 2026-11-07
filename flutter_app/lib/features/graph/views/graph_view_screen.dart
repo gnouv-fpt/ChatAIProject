@@ -556,7 +556,10 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             Text(
                               node.course.code,
@@ -565,7 +568,6 @@ class _GraphViewScreenState extends State<GraphViewScreen>
                                 fontWeight: FontWeight.w800,
                               ),
                             ),
-                            const SizedBox(width: 8),
                             if (entries.isNotEmpty) ...[
                               if (entries.last.inProgress)
                                 StatusChip.info(label: 'Đang học')

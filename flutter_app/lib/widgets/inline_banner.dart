@@ -101,7 +101,6 @@ class InlineBanner extends StatelessWidget {
               TextButton(
                 onPressed: onAction,
                 style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
                   foregroundColor: fg,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
                   minimumSize: const Size(48, 48),

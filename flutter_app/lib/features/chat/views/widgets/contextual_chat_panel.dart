@@ -301,8 +301,10 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
         (_textController.text.trim().isNotEmpty || _pendingImages.isNotEmpty);
     final hasUserMessage = provider.messages.any((m) => m.sender == ChatSender.user);
 
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final isCompactHeight = screenHeight < 450;
+    final mediaQuery = MediaQuery.of(context);
+    final usableHeight = mediaQuery.size.height - mediaQuery.viewInsets.bottom;
+    final textScale = mediaQuery.textScaler.scale(1);
+    final isCompactHeight = usableHeight < 450 || textScale > 1.5;
 
     return Container(
       decoration: BoxDecoration(
@@ -365,22 +367,23 @@ class _ContextualChatPanelState extends State<ContextualChatPanel> {
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 1),
-                      Text(
-                        widget.subtitle ??
-                            widget.contextHint ??
-                            formatContextScopeLabel(
-                              scope: widget.scope,
-                              scopeId: widget.scopeId,
-                              title: widget.title,
-                              semesterNumber: widget.semesterNumber,
-                            ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: colorScheme.onSurfaceVariant,
+                      if (!isCompactHeight)
+                        Text(
+                          widget.subtitle ??
+                              widget.contextHint ??
+                              formatContextScopeLabel(
+                                scope: widget.scope,
+                                scopeId: widget.scopeId,
+                                title: widget.title,
+                                semesterNumber: widget.semesterNumber,
+                              ),
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
                     ],
                   ),
                 ),
