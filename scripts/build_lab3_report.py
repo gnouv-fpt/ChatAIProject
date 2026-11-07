@@ -108,7 +108,7 @@ story += [p('5. Analytics và Crashlytics', 'H1Lab'),
           p('Evidence còn thiếu', 'H2Lab'), p('Analytics DebugView cho từng event, một nonfatal và một crash test trong Crashlytics Console cùng user ID/key. Không coi config source là evidence Console.'), PageBreak()]
 
 story += [p('6. Remote Config', 'H1Lab'),
-          p('FeatureConfig tách Remote Config khỏi widget. Template firebase/remoteconfig.template.json có hai tham số hành vi: home_show_daily_tip và home_recommendation_limit. Home screen dùng chúng để đổi nội dung gợi ý và giới hạn kết quả mà không cần build mới.'),
+          p('FeatureConfig tách Remote Config khỏi widget. Template firebase/remoteconfig.template.json có hai tham số hành vi: enable_pe_tips và next_course_preview_limit. Home screen dùng chúng để bật/tắt mẹo PE và giới hạn số môn xem trước mà không cần build mới.'),
           table([['Yêu cầu', 'Hiện thực local', 'Evidence còn thiếu'], ['Tối thiểu hai parameter', '2 parameter trong template và default local', 'Ảnh Console'], ['Thay đổi quan sát được', 'Daily tip và recommendation limit ảnh hưởng Home', 'Before/after publish'], ['Offline fallback', 'Default local còn khi fetch/activate lỗi', 'Device network-off demo']], [3.1*cm, 5.3*cm, 5.8*cm]),
           Spacer(1, 0.5*cm), p('Kết luận phần này: source chứng minh mapping từ parameter tới hành vi; chỉ Console publish và device before/after mới chứng minh được remote delivery.'), PageBreak()]
 

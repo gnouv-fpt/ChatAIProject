@@ -85,7 +85,7 @@ const deck = Presentation.create({slideSize: {width: 1280, height: 720}});
   evidenceNote(s, 'Cần chèn trước nộp: Console evidence của nonfatal, intentional crash, user/key.', 7);
 }
 { const s = deck.slides.add(); header(s, 8, 'Remote Config');
-  bulletList(s, ['Template định nghĩa home_show_daily_tip và home_recommendation_limit.', 'FeatureConfig fetch/activate ngoài widget.', 'Hai parameter đổi hành vi Home; default local dùng khi mất mạng.'], 84, 205, 1010, 22);
+  bulletList(s, ['Template định nghĩa enable_pe_tips và next_course_preview_limit.', 'FeatureConfig fetch/activate ngoài widget.', 'Hai parameter đổi hành vi Home; default local dùng khi mất mạng.'], 84, 205, 1010, 22);
   evidenceNote(s, 'Cần chèn trước nộp: Console publish và before/after app behavior không build lại.', 8);
 }
 { const s = deck.slides.add(); header(s, 9, 'Firebase Security Rules');
