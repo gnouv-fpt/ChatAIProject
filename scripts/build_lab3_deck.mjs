@@ -53,7 +53,7 @@ const deck = Presentation.create({slideSize: {width: 1280, height: 720}});
   textbox(s, 'Báo cáo hiện thực cục bộ và evidence cần xác minh trên Firebase Console / Android', 72, 292, 900, 64, {fontSize: 22, color: '475569'});
   line(s, 72, 410, 240, '2563EB');
   textbox(s, 'Ngày rà soát: 07/11/2026', 72, 438, 500, 30, {fontSize: 17, color: '475569'});
-  textbox(s, 'Không tuyên bố deploy, publish hoặc device result nếu chưa có evidence thật.', 72, 505, 980, 34, {fontSize: 16, color: '9A3412'});
+  textbox(s, 'Rules và Remote Config đã deploy qua CLI; Storage và device evidence còn mở.', 72, 505, 980, 34, {fontSize: 16, color: '9A3412'});
   footer(s, 1);
 }
 { const s = deck.slides.add(); header(s, 2, 'Phạm vi và ranh giới kiến trúc');
@@ -105,7 +105,7 @@ const deck = Presentation.create({slideSize: {width: 1280, height: 720}});
 }
 { const s = deck.slides.add(); header(s, 12, 'Verification và việc còn mở');
   textbox(s, '238/238 Flutter tests   •   14/14 Rules tests   •   Debug APK built', 72, 205, 1100, 42, {fontSize: 25, bold:true, color:'166534'});
-  bulletList(s, ['Đã có report PDF, recording script và slide plan local.', 'Cần deploy/publish Firebase và chạy Android thật để đóng Google login, FCM, DebugView, Crashlytics, Remote Config, ARTEMIS và video evidence.', 'Branch PRM-dev chưa push.'], 84, 300, 1040, 20);
+  bulletList(s, ['Đã có report PDF, recording script và slide plan local.', 'Firestore Rules và Remote Config deploy qua CLI. Cần setup Storage và chạy Android thật cho Google login, FCM, DebugView, Crashlytics, Remote Config, ARTEMIS.', 'Branch PRM-dev chưa push; video evidence còn thiếu.'], 84, 300, 1040, 20);
   textbox(s, 'Kết luận: source và local checks sẵn sàng cho evidence pass có giám sát.', 84, 560, 1050, 30, {fontSize: 17, color:'0B2E59'});
 }
 

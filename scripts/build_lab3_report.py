@@ -67,7 +67,7 @@ story += [Spacer(1, 4.2*cm), p('PRM393 Lab 3', 'CoverTitle'), p('Cloud Enabled M
           Spacer(1, 0.7*cm), p('Báo cáo hiện thực cục bộ và kiểm chứng kỹ thuật', 'CoverSub'),
           Spacer(1, 0.5*cm), p('Dự án: FLM Student Assistant<br/>Ngày rà soát: 07/11/2026<br/>Phạm vi: Firebase, ARTEMIS preparation, AI code review và chất lượng Flutter', 'CoverSub'),
           Spacer(1, 2.2*cm), p('Tuyên bố phạm vi', 'H2Lab'),
-          p('Báo cáo này phân biệt evidence local với evidence cần Firebase Console hoặc Android thật. Log 29/10 ghi Firestore Rules và Remote Config từng deploy; Storage deploy thất bại. Bản tích hợp 07/11 chưa được deploy hay push.'), PageBreak()]
+          p('Báo cáo này phân biệt evidence local với evidence cần Firebase Console hoặc Android thật. Ngày 07/11, Firestore Rules và Remote Config đã deploy qua CLI; Storage vẫn chưa được khởi tạo. Chưa push Git.'), PageBreak()]
 
 story += [p('1. Tóm tắt kiểm chứng', 'H1Lab'),
           p('Ứng dụng Flutter đã có source integration cho sáu dịch vụ Firebase: Authentication, Cloud Storage, Cloud Messaging, Analytics, Crashlytics và Remote Config. Ranh giới service và Provider giữ Firebase SDK ngoài widget.'),
@@ -137,7 +137,7 @@ story += [p('11. Reproduction checklist', 'H1Lab'),
           p('1. Install the debug APK on an Android 13+ emulator or device.<br/>2. Configure the Firebase project and confirm Google sign-in SHA/authorized domains.<br/>3. Capture each required Console/device observation while executing the matching scenario.<br/>4. Attach logs and screenshots to the evidence folder with date, device, app build and case ID.<br/>5. Re-run the commands below after any source change.'),
           p('Local commands', 'H2Lab'),
           table([['Purpose', 'Command'], ['Flutter checks', 'flutter analyze; flutter test --exclude-tags live --concurrency=1'], ['APK', 'flutter build apk --debug'], ['Rules', 'firebase emulators:exec --only firestore,storage --project demo-flm-lab3 --config firebase.json "npm --prefix firebase test"'], ['ARTEMIS catalogue', '.venv\\Scripts\\python.exe -m pytest e2e_test\\test_checks.py -q']], [4.5*cm, 9.9*cm]),
-          Spacer(1, 0.7*cm), p('Final status', 'H2Lab'), p('Local implementation and regression checks are complete. The current Firebase Console state, application of the 07/11 rules/template, real-device execution, remote pull request/push and recording remain unverified in this report.')]
+          Spacer(1, 0.7*cm), p('Final status', 'H2Lab'), p('Local implementation and regression checks are complete. The 07/11 Firestore Rules and Remote Config CLI deploys succeeded. Storage initialization, real-device execution, remote pull request/push and recording remain unverified in this report.')]
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 doc = SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=1.8*cm, rightMargin=1.8*cm, topMargin=1.7*cm, bottomMargin=1.8*cm)
