@@ -62,6 +62,7 @@ void main() {
     (tester) async {
       final catalog = CourseCatalog();
       List<TranscriptEntry>? saved;
+      await tester.runAsync(catalog.load);
       await tester.pumpWidget(
         ChangeNotifierProvider.value(
           value: catalog,
@@ -81,9 +82,8 @@ void main() {
           ),
         ),
       );
-      await tester.runAsync(catalog.load);
       await tester.pump();
-      expect(find.text('Kiểm tra tín chỉ'), findsOneWidget);
+    expect(find.textContaining('thiếu số tín chỉ'), findsOneWidget);
       await tester.tap(find.byTooltip('Lưu bảng điểm'));
       await tester.pump();
       expect(saved, isNull);
@@ -136,7 +136,7 @@ void main() {
     await tester.runAsync(catalog.load);
     await tester.pump();
     expect(find.text('Mã chưa khớp'), findsNothing);
-    expect(find.textContaining('Kỳ 0 • 0 tín chỉ'), findsOneWidget);
+    expect(find.textContaining('Kỳ 0 · 0 tín chỉ'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -168,7 +168,7 @@ void main() {
       );
       await tester.runAsync(catalog.load);
       await tester.pump();
-      await tester.tap(find.byIcon(Icons.delete_outline));
+    await tester.tap(find.byTooltip('Xóa môn học'));
       await tester.pump();
       await tester.tap(find.byTooltip('Lưu bảng điểm'));
       await tester.pumpAndSettle();

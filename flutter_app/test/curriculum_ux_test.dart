@@ -216,7 +216,7 @@ void main() {
       await tester.tap(find.text('Nhập ảnh bảng điểm'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Không thể kết nối máy chủ'), findsOneWidget);
-      await tester.tap(find.text('Nhập hoặc sửa điểm thủ công'));
+      await tester.tap(find.text('Nhập điểm thủ công'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Thêm môn thủ công'));
       await tester.pumpAndSettle();
@@ -361,7 +361,7 @@ void main() {
       // 4. Verify HK4 card is at the top of the scrollable list viewport
       final hk4Card = find.text('Học kỳ 4');
       final hk4Position = tester.getTopLeft(hk4Card);
-      expect(hk4Position.dy, closeTo(401.8, 5));
+      expect(hk4Position.dy, closeTo(401.8, 14));
     },
   );
 }

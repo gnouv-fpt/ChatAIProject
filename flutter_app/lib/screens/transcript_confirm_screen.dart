@@ -379,9 +379,11 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
         ),
         bottomNavigationBar: SafeArea(
           minimum: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-          child: SizedBox(
-            height: 48,
-            child: FilledButton.icon(
+          child: Tooltip(
+            message: 'Lưu bảng điểm',
+            child: SizedBox(
+              height: 48,
+              child: FilledButton.icon(
               onPressed: _saving ? null : _save,
               icon: _saving
                   ? SizedBox(
@@ -398,6 +400,9 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     ? 'Đang lưu bảng điểm...'
                     : 'Xác nhận & Lưu bảng điểm (${_entries.length} môn)',
                 style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               ),
             ),
           ),
@@ -412,7 +417,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                     // Manual Add Button
                     SizedBox(
                       width: double.infinity,
-                      height: 44,
+                      height: 48,
                       child: OutlinedButton.icon(
                         onPressed: _saving ? null : () => _editEntry(),
                         icon: const Icon(Icons.add_rounded, size: 20),
@@ -505,6 +510,7 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                       item.courseCode,
                     );
                     final palette = SemesterPalette.of(item.semester);
+                    final isLargeText = MediaQuery.textScalerOf(context).scale(1) > 1.4;
 
                     return Padding(
                       padding: const EdgeInsets.only(bottom: 8),
@@ -602,7 +608,27 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
-                                    if (item.inProgress)
+                                    if (isLargeText)
+                                      Tooltip(
+                                        message: item.inProgress
+                                            ? 'Đang học'
+                                            : item.isPassed
+                                                ? 'Đạt (${item.score.toStringAsFixed(1)})'
+                                                : 'Trượt (${item.score.toStringAsFixed(1)})',
+                                        child: Icon(
+                                          item.inProgress
+                                              ? Icons.schedule_rounded
+                                              : item.isPassed
+                                                  ? Icons.check_circle_rounded
+                                                  : Icons.cancel_rounded,
+                                          color: item.inProgress
+                                              ? colorScheme.primary
+                                              : item.isPassed
+                                                  ? AppTheme.success
+                                                  : colorScheme.error,
+                                        ),
+                                      )
+                                    else if (item.inProgress)
                                       StatusChip.info(label: 'Đang học')
                                     else if (item.isPassed)
                                       StatusChip.success(

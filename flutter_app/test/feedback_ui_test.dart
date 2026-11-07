@@ -119,15 +119,14 @@ void main() {
         await tester.pumpWidget(app(const AppShell()));
         await tester.pumpAndSettle();
         expect(
-          find.text('1/${catalog.courses.length} môn đã hoàn thành'),
+          find.text('${transcript.entries.where((entry) => entry.isPassed).length}/${catalog.courses.length} môn'),
           findsOneWidget,
         );
         expect(
-          find.text('Còn lại: ${catalog.courses.length - 1}'),
+          find.text('${transcript.evaluation.totalAccumulatedCredits}/${catalog.totalCredits} TC'),
           findsOneWidget,
         );
-        expect(find.text('Đang học: 1'), findsOneWidget);
-        expect(find.text('Cần học lại: 1'), findsOneWidget);
+        expect(find.text('GPA hiện tại'), findsOneWidget);
         expect(tester.takeException(), isNull);
         await capture(tester, 'home-fixture-${width.toInt()}');
 
@@ -150,7 +149,7 @@ void main() {
         await transcript.save([]);
         await tester.pumpWidget(app(const AppShell()));
         await tester.pumpAndSettle();
-        expect(find.text('Bắt đầu từ kết quả của bạn'), findsOneWidget);
+        expect(find.text('Nhập bảng điểm ngay'), findsOneWidget);
         expect(
           find.text('0/${catalog.courses.length} môn đã hoàn thành'),
           findsNothing,

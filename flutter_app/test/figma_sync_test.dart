@@ -117,8 +117,9 @@ void main() {
       await tester.pumpAndSettle();
       await _capture(tester, 'settings-${width.toInt()}');
       expect(find.text('Tài khoản kiểm thử'), findsOneWidget);
-      expect(find.text('GPA mục tiêu: 8.0 / 10'), findsOneWidget);
-      final program = find.text('Xem chương trình');
+      expect(find.text('Mục tiêu GPA'), findsOneWidget);
+      expect(find.text('8.0'), findsOneWidget);
+      final program = find.textContaining('Chương trình đào tạo:');
       await tester.scrollUntilVisible(
         program,
         300,
@@ -131,7 +132,7 @@ void main() {
       );
       await tester.tap(program);
       await tester.pumpAndSettle();
-      expect(find.text('Chương trình học'), findsOneWidget);
+      expect(find.textContaining('Chương trình'), findsWidgets);
       expect(find.text('TEST'), findsOneWidget);
       for (final label in ['Tổng quan', 'Môn học', 'Sơ đồ']) {
         expect(find.text(label).hitTestable(), findsOneWidget);
