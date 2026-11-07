@@ -8,7 +8,9 @@ import 'package:flm_courses/models/load_status.dart';
 import 'package:flm_courses/screens/settings_screen.dart';
 import 'package:flm_courses/services/auth_service.dart';
 import 'package:flm_courses/state/auth_view_model.dart';
+import 'package:flm_courses/state/course_catalog.dart';
 import 'package:flm_courses/state/learning_profile_provider.dart';
+import 'package:flm_courses/state/transcript_provider.dart';
 
 class OfflineChat extends ChatApiService {
   @override
@@ -38,12 +40,16 @@ void main() {
       final auth = AuthViewModel(service);
       final profile = LearningProfileProvider()..status = status;
       final chat = ChatProvider(apiService: OfflineChat());
+      final transcript = TranscriptProvider();
+      final catalog = CourseCatalog();
       await tester.pumpWidget(
         MultiProvider(
           providers: [
             ChangeNotifierProvider.value(value: auth),
             ChangeNotifierProvider.value(value: profile),
             ChangeNotifierProvider.value(value: chat),
+            ChangeNotifierProvider.value(value: transcript),
+            ChangeNotifierProvider.value(value: catalog),
           ],
           child: const MaterialApp(home: SettingsScreen()),
         ),
@@ -52,6 +58,8 @@ void main() {
       expect(find.text('Đăng xuất'), findsOneWidget);
       await tester.tap(find.text('Đăng xuất'));
       await tester.pump();
+      expect(find.text('Đăng xuất tài khoản?'), findsOneWidget);
+      await tester.tap(find.text('Đăng xuất').last);
       await tester.pump(const Duration(milliseconds: 20));
       expect(service.signOutCalls, 1);
       expect(tester.takeException(), isNull);
@@ -59,6 +67,8 @@ void main() {
       auth.dispose();
       profile.dispose();
       chat.dispose();
+      transcript.dispose();
+      catalog.dispose();
     });
   }
 }

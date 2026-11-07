@@ -436,6 +436,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ? () => profile.load(retry: true)
               : null,
         ),
+        bottomNavigationBar: auth == null
+            ? null
+            : SafeArea(
+                minimum: const EdgeInsets.all(16),
+                child: OutlinedButton.icon(
+                  onPressed: auth.busy ? null : () => _signOut(auth),
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Đăng xuất'),
+                ),
+              ),
       );
     }
 

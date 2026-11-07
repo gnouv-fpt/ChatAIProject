@@ -76,11 +76,14 @@ class InlineBanner extends StatelessWidget {
             width: 1,
           ),
         ),
-        child: Row(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             Icon(resolvedIcon, size: 20, color: fg),
-            const SizedBox(width: 10),
-            Expanded(
+            ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 120, maxWidth: 420),
               child: Text(
                 message,
                 style: theme.textTheme.bodyMedium?.copyWith(
@@ -89,7 +92,7 @@ class InlineBanner extends StatelessWidget {
                   fontSize: 13.5,
                   height: 1.3,
                 ),
-                maxLines: 2,
+                maxLines: 4,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -101,7 +104,7 @@ class InlineBanner extends StatelessWidget {
                   visualDensity: VisualDensity.compact,
                   foregroundColor: fg,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
-                  minimumSize: const Size(48, 36),
+                  minimumSize: const Size(48, 48),
                 ),
                 child: Text(
                   actionLabel!,
