@@ -148,12 +148,25 @@ class _CloudHubScreenState extends State<CloudHubScreen> {
           ),
           FilledButton.icon(
             onPressed: () async {
-              final settings = await push.requestPermission();
-              if (mounted) {
-                setState(
-                  () => _message =
-                      'Quyền thông báo: ${settings.authorizationStatus.name}',
+              final telemetry = context.read<FirebaseAppTelemetry>();
+              try {
+                final settings = await push.requestPermission();
+                if (mounted) {
+                  setState(
+                    () => _message =
+                        'Quyền thông báo: ${settings.authorizationStatus.name}',
+                  );
+                }
+              } catch (error, stack) {
+                await telemetry.nonFatal(
+                  error,
+                  stack,
+                  flow: 'notification_registration',
                 );
+                if (mounted) {
+                  setState(() => _message =
+                      'Không đăng ký được thiết bị nhận thông báo. Vui lòng thử lại.');
+                }
               }
             },
             icon: const Icon(Icons.notifications_active_outlined),

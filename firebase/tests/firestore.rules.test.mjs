@@ -7,6 +7,7 @@ const [host,portText]=(process.env.FIRESTORE_EMULATOR_HOST ?? '127.0.0.1:8185').
 before(async () => {
   env = await initializeTestEnvironment({projectId:'demo-flm-lab3',firestore:{host,port:Number(portText),
     rules:await readFile(new URL('../firestore.rules',import.meta.url),'utf8')}});
+  await env.clearFirestore();
 });
 after(async () => { if (env) await env.cleanup(); });
 const db = uid => uid ? env.authenticatedContext(uid).firestore() : env.unauthenticatedContext().firestore();
