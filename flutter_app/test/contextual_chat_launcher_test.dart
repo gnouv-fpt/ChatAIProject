@@ -101,7 +101,7 @@ void main() {
     );
     await tester.pump();
 
-    final askSemester = find.byTooltip('Hỏi Trợ lý về học kỳ 1');
+    final askSemester = find.byTooltip('Hỏi trợ lý về học kỳ 1');
     await tester.scrollUntilVisible(askSemester, 100, scrollable: find.byType(Scrollable).first);
     await tester.tap(askSemester);
     await tester.pumpAndSettle();
@@ -123,7 +123,7 @@ void main() {
 
     await tester.tap(find.byTooltip('Đóng Trợ lý AI'));
     await tester.pumpAndSettle();
-    final askNextSemester = find.byTooltip('Hỏi Trợ lý về học kỳ 2');
+    final askNextSemester = find.byTooltip('Hỏi trợ lý về học kỳ 2');
     await tester.scrollUntilVisible(askNextSemester, 100, scrollable: find.byType(Scrollable).first);
     await tester.tap(askNextSemester);
     await tester.pumpAndSettle();
