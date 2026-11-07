@@ -77,3 +77,24 @@ test('unrecognized collections denied even when authenticated',async () => {
   const ref=doc(db('owner'),'unrecognized/item');
   await assertFails(getDoc(ref)); await assertFails(setDoc(ref,{value:1}));
 });
+
+test('notification history is owner-only and schema bounded', async () => {
+  const good = {id:'message-1',title:'Kế hoạch học tập',body:'Mở môn PRM393',
+    receivedAt:'2026-11-07T10:00:00.000Z',destination:'course',courseCode:'PRM393',read:false};
+  const path='users/push-owner/notifications/message-1';
+  await assertSucceeds(setDoc(doc(db('push-owner'),path),good));
+  await assertSucceeds(getDoc(doc(db('push-owner'),path)));
+  await assertFails(getDoc(doc(db('other'),path)));
+  await assertFails(setDoc(doc(db('push-owner'),path),{...good,body:'x'.repeat(1001)}));
+  await assertFails(setDoc(doc(db('push-owner'),path),{...good,ownerUid:'other'}));
+});
+
+test('report metadata is owner-only, scoped and size-limited', async () => {
+  const path='users/report-owner/reports/1234567890123';
+  const good={path:'reports/report-owner/1234567890123.pdf',sizeBytes:2048,createdAt:Timestamp.now()};
+  await assertSucceeds(setDoc(doc(db('report-owner'),path),good));
+  await assertSucceeds(getDoc(doc(db('report-owner'),path)));
+  await assertFails(getDoc(doc(db('other'),path)));
+  await assertFails(setDoc(doc(db('report-owner'),path),{...good,path:'reports/other/1234567890123.pdf'}));
+  await assertFails(setDoc(doc(db('report-owner'),path),{...good,sizeBytes:10485761}));
+});

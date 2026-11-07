@@ -263,6 +263,8 @@ void main() {
       expect(deleteTile.isDestructive, isTrue);
 
       // Tap delete tile
+      await tester.ensureVisible(find.text('Xóa bảng điểm cá nhân'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Xóa bảng điểm cá nhân'));
       await tester.pumpAndSettle();
 

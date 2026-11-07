@@ -5,6 +5,7 @@ import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/load_status.dart';
 import '../services/learning_progress.dart';
 import '../state/course_catalog.dart';
+import '../state/feature_config.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/transcript_provider.dart';
 import '../theme/app_theme.dart';
@@ -22,6 +23,8 @@ class HomeScreen extends StatelessWidget {
     final catalog = context.watch<CourseCatalog>();
     final transcript = context.watch<TranscriptProvider>();
     final profile = context.watch<LearningProfileProvider>();
+    final featureConfig = context.watch<FeatureConfig?>();
+    final previewLimit = featureConfig?.nextCoursePreviewLimit ?? 3;
 
     final progress = LearningProgress(
       catalog.courses,
@@ -86,6 +89,13 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                   ],
+                  if (featureConfig?.enablePeTips == true) ...[
+                    const InlineBanner(
+                      message: 'Mẹo PE: chuẩn bị dữ liệu kiểm thử và kiểm tra luồng lỗi trước khi demo.',
+                      severity: BannerSeverity.info,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
 
                   // 3. Compact Hero Card with Blue Gradient & High-Contrast White CTA
                   _buildHeroCard(
@@ -125,7 +135,7 @@ class HomeScreen extends StatelessWidget {
                         ),
                         child: Column(
                           children: [
-                            for (var i = 0; i < readyNext.take(3).length; i++) ...[
+                            for (var i = 0; i < readyNext.take(previewLimit).length; i++) ...[
                               if (i > 0) const Divider(height: 1, indent: 64),
                               ListTile(
                                 leading: IconTile(

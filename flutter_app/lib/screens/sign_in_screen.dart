@@ -124,11 +124,14 @@ class SignInScreen extends StatelessWidget {
                           color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'Xác thực an toàn qua Google OAuth 2.0',
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                        Flexible(
+                          child: Text(
+                            'Xác thực an toàn qua Google OAuth 2.0',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 11.5,
+                              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.8),
+                            ),
                           ),
                         ),
                       ],

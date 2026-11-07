@@ -1315,6 +1315,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
             child: Column(
               children: [
+                  SettingsTile(
+                    title: 'Firebase Lab 3',
+                    subtitle: 'Thông báo, Remote Config, báo cáo và kiểm tra Crashlytics',
+                    leadingIcon: Icons.cloud_outlined,
+                    leadingColor: colorScheme.primary,
+                    onTap: () => Navigator.pushNamed(context, '/cloud-hub'),
+                  ),
+                  Divider(
+                    height: 1,
+                    indent: 68,
+                    color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+                  ),
                 SettingsTile(
                   title: 'Tải lại dữ liệu môn học',
                   subtitle: 'Cập nhật lại danh mục môn học và điều kiện tiên quyết',

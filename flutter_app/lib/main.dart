@@ -20,6 +20,8 @@ import 'services/grade_import_service.dart';
 import 'services/transcript_image_picker.dart';
 import 'state/transcript_import_view_model.dart';
 import 'widgets/config_error_screen.dart';
+import 'services/app_telemetry.dart';
+import 'screens/cloud_hub_screen.dart';
 
 String? validateReleaseConfig() {
   const configured = String.fromEnvironment('FLM_API_BASE_URL');
@@ -42,12 +44,19 @@ Future<void> main() async {
 }
 
 class FlmApp extends StatelessWidget {
-  const FlmApp({super.key, this.profile, this.storage, this.personalData});
+  const FlmApp({
+    super.key,
+    this.profile,
+    this.storage,
+    this.personalData,
+    this.telemetry,
+  });
 
   final PersonalPreferences? storage;
   final PersonalDataRepository? personalData;
 
   final LearningProfileProvider? profile;
+  final AppTelemetry? telemetry;
 
   @override
   Widget build(BuildContext context) {
@@ -67,12 +76,15 @@ class FlmApp extends StatelessWidget {
           create: (context) => ChatProvider(
             profile: context.read<LearningProfileProvider>(),
             storage: storage,
+            telemetry: telemetry,
           ),
         ),
         ChangeNotifierProvider(
           create: (_) {
-            final tp =
-                TranscriptProvider(storage: storage, repository: personalData);
+            final tp = TranscriptProvider(
+              storage: storage,
+              repository: personalData,
+            );
             if (kIsWeb && Uri.base.queryParameters['demo'] == 'populated') {
               tp.load().then((_) {
                 if (!tp.hasTranscript) {
@@ -153,10 +165,10 @@ class FlmApp extends StatelessWidget {
         builder: (context, themeProvider, _) {
           final effectiveMode =
               (kIsWeb && Uri.base.queryParameters['theme'] == 'dark')
-                  ? ThemeMode.dark
-                  : (kIsWeb && Uri.base.queryParameters['theme'] == 'light')
-                      ? ThemeMode.light
-                      : themeProvider.themeMode;
+              ? ThemeMode.dark
+              : (kIsWeb && Uri.base.queryParameters['theme'] == 'light')
+              ? ThemeMode.light
+              : themeProvider.themeMode;
           return MaterialApp(
             title: 'Cố vấn học tập FLM',
             debugShowCheckedModeBanner: false,
@@ -164,6 +176,7 @@ class FlmApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme(),
             themeMode: effectiveMode,
             home: const AppShell(),
+            routes: {'/cloud-hub': (_) => const CloudHubScreen()},
             onGenerateRoute: (settings) {
               final uri = Uri.tryParse(settings.name ?? '');
               if (uri != null && uri.pathSegments.isNotEmpty) {

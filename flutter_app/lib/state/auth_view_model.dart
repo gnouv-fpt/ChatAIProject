@@ -8,7 +8,7 @@ import '../services/auth_service.dart';
 enum AuthStatus { loading, signedOut, signedIn, error }
 
 class AuthViewModel extends ChangeNotifier {
-  AuthViewModel(this._service) {
+  AuthViewModel(this._service, {this.onIdentityChanged, this.beforeSignOut}) {
     _subscription = _service.changes.listen(
       (account) {
         if (this.account?.uid != account?.uid) {
@@ -17,6 +17,10 @@ class AuthViewModel extends ChangeNotifier {
               : PersonalPreferences(uid: account.uid);
         }
         this.account = account;
+        unawaited(
+          (onIdentityChanged?.call(account?.uid) ?? Future<void>.value())
+              .catchError((_) {}),
+        );
         status = account == null ? AuthStatus.signedOut : AuthStatus.signedIn;
         notifyListeners();
       },
@@ -30,6 +34,8 @@ class AuthViewModel extends ChangeNotifier {
   }
 
   final AuthService _service;
+  final Future<void> Function(String? uid)? onIdentityChanged;
+  final Future<void> Function()? beforeSignOut;
   late final StreamSubscription<AuthAccount?> _subscription;
   AuthAccount? account;
   PersonalPreferences? storage;
@@ -44,6 +50,11 @@ class AuthViewModel extends ChangeNotifier {
     final previousStorage = storage;
     previousStorage?.seal();
     try {
+      try {
+        await beforeSignOut?.call();
+      } catch (_) {
+        // Telemetry must never prevent the user from signing out.
+      }
       await _service.signOut();
     } catch (_) {
       previousStorage?.reopen();

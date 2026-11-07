@@ -539,7 +539,10 @@ class _TranscriptConfirmScreenState extends State<TranscriptConfirmScreen> {
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      Row(
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 4,
+                                        crossAxisAlignment: WrapCrossAlignment.center,
                                         children: [
                                           Text(
                                             item.courseCode,

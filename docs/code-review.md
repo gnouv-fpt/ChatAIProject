@@ -23,3 +23,18 @@ Codex dùng cho phân tích đề, code, test, review và Markdown. Google/Fireb
 
 ## Kiểm tra trước push 22/10/2026
 CR06 (error handling): SettingsScreen che nút logout khi profile đang tải/lỗi. Đã sửa trong bf03501; hai regression tests tại settings_sign_out_test.dart pass. Code cloud/rules đã triển khai, rules emulator Enterprise 9/9 pass; Google production end-to-end vẫn mở. Các nhận xét chưa có Firebase phía trên mô tả thời điểm review 21/10, không phải trạng thái provisioning hiện tại.
+
+## Review bổ sung cho tích hợp Lab 3 — 07/11/2026
+
+Review local bằng Codex trên diff `PRM-dev`; không giả mạo output Copilot/CodeRabbit hay PR remote.
+
+| ID | Nhóm | Phát hiện | Quyết định | Trạng thái |
+|---|---|---|---|---|
+| CR-L3-01 | Error handling | Telemetry có thể làm đăng xuất thất bại dù Auth đã sign out | Chấp nhận; telemetry phải best-effort | Đã cô lập lỗi callback trong `auth_view_model.dart` |
+| CR-L3-02 | Reliability | Listener tiến độ upload không được hủy | Chấp nhận; tránh listener sống lâu | Đã hủy subscription trong `report_service.dart` |
+| CR-L3-03 | Product/architecture | Remote Config chỉ ở màn demo, chưa đổi hành vi thật | Chấp nhận | Hai tham số hiện điều khiển Home |
+| CR-L3-04 | Data consistency | Thông báo nền không lưu lịch sử | Chấp nhận, trong giới hạn nền tảng | Background handler lưu khi còn phiên |
+| CR-L3-05 | Security | Rules thiếu ownership/schema/MIME/size rõ ràng | Chấp nhận | Đã harden và test bằng emulator |
+| CR-L3-06 | Privacy | Analytics có nguy cơ nhận free text/PII | Điều chỉnh bằng allowlist | Service chỉ nhận event/parameter định trước |
+
+Các fix chấp nhận sẽ nằm trong commit local sau khi kiểm tra đạt; không push khi chưa có ủy quyền.

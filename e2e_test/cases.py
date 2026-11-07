@@ -1,0 +1,14 @@
+"""Evidence-oriented ARTEMIS Lab 3 case catalogue."""
+
+CASES = [
+    {"id": "A01", "title": "Google sign-in", "precondition": "Signed out; network available", "steps": ["Open app", "Tap Google sign-in", "Complete account picker"], "expected": ["Home is visible", "UID is present"], "observations": ["screen", "uid_present"]},
+    {"id": "A02", "title": "Cancel Google sign-in", "precondition": "Signed out", "steps": ["Open sign-in", "Tap Google sign-in", "Cancel picker"], "expected": ["Sign-in remains visible", "Cancellation is explained"], "observations": ["screen", "error_message"]},
+    {"id": "A03", "title": "Search course", "precondition": "Signed in; catalogue loaded", "steps": ["Open course list", "Search PRM"], "expected": ["PRM is shown", "Results are filtered"], "observations": ["result_codes", "result_count"]},
+    {"id": "A04", "title": "View course detail", "precondition": "Signed in; PRM visible", "steps": ["Tap PRM course"], "expected": ["Detail opens", "Credits and prerequisites are visible"], "observations": ["screen", "credits", "prerequisites"]},
+    {"id": "A05", "title": "Import transcript", "precondition": "Signed in; valid image available", "steps": ["Open transcript", "Select image", "Confirm parsed rows"], "expected": ["Rows are editable", "Grades persist"], "observations": ["parsed_row_count", "saved_row_count"]},
+    {"id": "A06", "title": "Reject invalid transcript", "precondition": "Signed in; invalid image available", "steps": ["Open transcript", "Select invalid image"], "expected": ["Error is explained", "Existing data is unchanged"], "observations": ["error_message", "row_count_before", "row_count_after"]},
+    {"id": "A07", "title": "Generate and upload PDF", "precondition": "Signed in; transcript has rows", "steps": ["Open Firebase Lab 3", "Generate report", "Upload report"], "expected": ["Progress reaches 100 percent", "Download URL is shown"], "observations": ["progress", "download_url"]},
+    {"id": "A08", "title": "Open push notification", "precondition": "Signed in; permission granted", "steps": ["Background app", "Send notification", "Tap notification"], "expected": ["App opens", "History contains notification"], "observations": ["app_state", "notification_id", "history_count"]},
+    {"id": "A09", "title": "Remote Config changes home", "precondition": "Signed in; parameters published", "steps": ["Record default", "Fetch config", "Reopen home"], "expected": ["Preview or tip changes", "Source is remote"], "observations": ["preview_count", "tip_visible", "config_source"]},
+    {"id": "A10", "title": "Android notification permission", "precondition": "Android 13+; undecided permission", "steps": ["Open Firebase Lab 3", "Request permission", "Deny"], "expected": ["Native dialog appears", "Denied status is shown without crash"], "observations": ["native_dialog", "permission_status", "app_alive"]},
+]
