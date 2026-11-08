@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -62,6 +64,7 @@ class FlmApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<AppTelemetry?>.value(value: telemetry),
         ChangeNotifierProvider(create: (_) => ThemeProvider()..load()),
         ChangeNotifierProvider(create: (_) => CourseCatalog()..load()),
         ChangeNotifierProvider(
@@ -183,6 +186,11 @@ class FlmApp extends StatelessWidget {
                 // Route: /curricula/:id -> Màn 2
                 if (uri.pathSegments.first == 'curricula' &&
                     uri.pathSegments.length >= 2) {
+                  unawaited(
+                    telemetry?.event('view_curriculum', {
+                      'curriculum_id': uri.pathSegments[1],
+                    }),
+                  );
                   return MaterialPageRoute<void>(
                     settings: settings,
                     builder: (_) =>
@@ -192,6 +200,12 @@ class FlmApp extends StatelessWidget {
                 // Route: /courses/:code -> Màn 3
                 if (uri.pathSegments.first == 'courses' &&
                     uri.pathSegments.length >= 2) {
+                  unawaited(
+                    telemetry?.event('view_course', {
+                      'course_code': uri.pathSegments[1],
+                      'entry_point': 'named_route',
+                    }),
+                  );
                   return MaterialPageRoute<void>(
                     settings: settings,
                     builder: (_) => CourseDetailPage(code: uri.pathSegments[1]),

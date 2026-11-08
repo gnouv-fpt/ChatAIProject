@@ -1,13 +1,27 @@
-# Analytics event plan — chưa có DebugView evidence
+# Analytics event plan — DebugView evidence một phần
 
 Không gửi tên, email, ảnh, điểm hoặc nội dung chat trong event. Sau sign in dùng Firebase UID làm user ID; sign out reset user ID. Event gọi qua service inject, không gọi SDK trong widget. Mỗi event bên dưới phải có DebugView trước khi đánh dấu hoàn thành.
 
+## Trạng thái wiring 08/11/2026
+
+Cả 11 event trong bảng đã có call site. Bổ sung ngày 08/11 gồm `search` khi
+submit từ khóa, `view_course`/`view_curriculum` khi mở named route và
+`transcript_import`/`transcript_import_error` cho OCR hoặc nhập tay. Search chỉ
+gửi `query_length` và `result_count`, không gửi nội dung từ khóa.
+
+APK debug đã bật Firebase Analytics debug mode. Ngày 08/11/2026, Firebase
+DebugView nhận 8 event trong 30 phút: `login` (2), `screen_view` (2),
+`view_course` (2), `session_start` (1) và `user_engagement` (1). Log SDK của
+`view_course` xác nhận `course_code=CSD201`, `entry_point=named_route`, cờ
+debug và HTTP 204. Ảnh Console đã cắt bỏ vùng user properties/UID trước khi lưu
+tại `evidence/lab3/2026-11-08/firebase-debugview-redacted.png`.
+
 | Event | Trigger / flow | Parameters (type) | Câu hỏi sản phẩm | Evidence |
 |---|---|---|---|---|
-| login | Google success | method:string | Người dùng có đăng nhập thành công? | Chưa chạy |
+| login | Google success | method:string | Người dùng có đăng nhập thành công? | DebugView: 2 event; chưa mở parameter detail |
 | logout | Sign out | — | Phiên kết thúc ở đâu? | Chưa chạy |
 | search | Tìm môn ở S02/S08 | query_length:int, result_count:int | Có tìm được môn cần xem? | Chưa chạy |
-| view_course | S03, F01/F02 | course_code:string, entry_point:string | Môn nào được mở từ lộ trình? | Chưa chạy |
+| view_course | S03, F01/F02 | course_code:string, entry_point:string | Môn nào được mở từ lộ trình? | DebugView: 2 event; Logcat xác nhận CSD201/named_route |
 | view_curriculum | S08 | curriculum_id:string | Chương trình nào được xem? | Chưa chạy |
 | transcript_import | S05→S06, F03 | source:string, row_count:int | OCR hay nhập tay hữu ích hơn? | Chưa chạy |
 | transcript_import_error | F03 recovery | error_code:string | Lỗi nào làm gián đoạn nhập điểm? | Chưa chạy |

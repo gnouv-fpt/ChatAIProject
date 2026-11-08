@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../models/load_status.dart';
 import '../models/transcript_entry.dart';
+import '../services/app_telemetry.dart';
 import '../state/course_catalog.dart';
 import '../state/transcript_import_view_model.dart';
 import '../state/transcript_provider.dart';
@@ -26,9 +27,28 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   Future<void> _import() async {
     final importer = context.read<TranscriptImportViewModel>();
-    final result = await importer.import();
-    if (!mounted || result == null) return;
     final provider = context.read<TranscriptProvider>();
+    final telemetry = context.read<AppTelemetry?>();
+    final result = await importer.import();
+    if (!mounted) return;
+    if (result == null) {
+      final errorCode = switch (importer.status) {
+        ImportStatus.empty => 'no_rows',
+        ImportStatus.error => 'processing_error',
+        _ => null,
+      };
+      if (errorCode != null) {
+        await telemetry?.event('transcript_import_error', {
+          'error_code': errorCode,
+        });
+      }
+      return;
+    }
+    await telemetry?.event('transcript_import', {
+      'source': 'image_ocr',
+      'row_count': result.entries.length,
+    });
+    if (!mounted) return;
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
@@ -43,13 +63,20 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
 
   Future<void> _editManually() async {
     final provider = context.read<TranscriptProvider>();
+    final telemetry = context.read<AppTelemetry?>();
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (_) => TranscriptConfirmScreen(
           rawExtractedEntries: provider.entries,
           manualEntry: true,
-          onSaved: (entries) => provider.save(entries),
+          onSaved: (entries) async {
+            await provider.save(entries);
+            await telemetry?.event('transcript_import', {
+              'source': 'manual',
+              'row_count': entries.length,
+            });
+          },
         ),
       ),
     );

@@ -8,6 +8,7 @@ import '../features/chat/views/widgets/contextual_chat_launcher.dart';
 import '../features/graph/views/graph_view_screen.dart';
 import '../models/course.dart';
 import '../services/learning_progress.dart';
+import '../services/app_telemetry.dart';
 import '../state/course_catalog.dart';
 import '../state/learning_profile_provider.dart';
 import '../state/transcript_provider.dart';
@@ -275,6 +276,14 @@ class _RoadmapScreenState extends State<RoadmapScreen> {
                                   hintText: 'Tìm theo mã hoặc tên môn...',
                                 ),
                                 onChanged: (value) => setState(() => _query = value),
+                                onSubmitted: (value) {
+                                  final query = value.trim();
+                                  if (query.isEmpty) return;
+                                  context.read<AppTelemetry?>()?.event('search', {
+                                    'query_length': query.length,
+                                    'result_count': visible.length,
+                                  });
+                                },
                               ),
                             ),
                           ),

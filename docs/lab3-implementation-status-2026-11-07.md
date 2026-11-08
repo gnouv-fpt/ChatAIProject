@@ -98,3 +98,30 @@ Crashlytics hay Remote Config before/after trên thiết bị. Không push Git.
   `FlutterFirebaseCrashlyticsPlugin.crash / FirebaseCrashlyticsTestCrash`
   xuất hiện riêng với hai issue FCM cũ. Non-fatal demo đã ghi ở log thiết bị,
   nhưng chưa lọc và xác nhận issue non-fatal trên Console.
+
+## Lượt bổ sung 08/11/2026 — free-only, không video
+
+- Giữ project ở Spark; không liên kết billing, không tạo Storage bucket, không
+  deploy Storage Rules production và không upload cloud. Storage production
+  tiếp tục `Blocked` do Firebase yêu cầu Blaze; rules emulator vẫn 14/14.
+- Nối đủ 11 Analytics event theo `docs/analytics-plan.md`. Các event mới phủ
+  search, view course/curriculum và transcript import success/error; không log
+  query text, điểm hoặc nội dung chat.
+- `flutter analyze --no-pub`: sạch. `flutter test --exclude-tags live
+  --concurrency=1`: 238/238 pass. `flutter build apk --debug`: thành công.
+- Cài APK mới trên `Codex_Lab3_API36`, bật Analytics debug mode và mở chi tiết
+  CSD201. DebugView nhận 8 event: `login` 2, `screen_view` 2, `view_course` 2,
+  `session_start` 1 và `user_engagement` 1. Log SDK xác nhận parameter
+  `course_code=CSD201`, `entry_point=named_route` và HTTP 204.
+- ARTEMIS catalogue validator vẫn 3/3; chưa có runner/credential và chưa có 30
+  lượt device run, nên không tạo kết quả giả. Manual exploratory Android đã chạy
+  15 phút 47 giây và ghi tại `docs/lab3-exploratory-2026-11-08.md`; không đổi
+  nhãn session này thành ARTEMIS.
+- Báo cáo PDF 12 trang đã tạo lại ngày 08/11. Canva deck 14 slide đã tạo từ
+  template 16:9; còn cập nhật evidence và export PDF. Video tiếp tục loại khỏi
+  phạm vi.
+- Console xác nhận Spark $0/tháng và Storage hiển thị bắt buộc Blaze. Remote
+  Config version 6 có 13 fetch/1 user, hai giá trị 3/Bật. Crashlytics có 3 crash,
+  gồm test crash; nonfatal/custom key chưa được xác nhận.
+- Người dùng đã cho phép commit/push nhánh hiện tại và tạo PR trong phần 4;
+  không merge, không nâng billing.
