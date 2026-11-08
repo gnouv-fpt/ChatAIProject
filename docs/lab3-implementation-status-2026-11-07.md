@@ -123,5 +123,7 @@ Crashlytics hay Remote Config before/after trên thiết bị. Không push Git.
 - Console xác nhận Spark $0/tháng và Storage hiển thị bắt buộc Blaze. Remote
   Config version 6 có 13 fetch/1 user, hai giá trị 3/Bật. Crashlytics có 3 crash,
   gồm test crash; nonfatal/custom key chưa được xác nhận.
-- Người dùng đã cho phép commit/push nhánh hiện tại và tạo PR trong phần 4;
-  không merge, không nâng billing.
+- Commit `857afe7` đã push lên `origin/PRM-dev`; PR #5 mở vào `main` tại
+  `https://github.com/gnouv-fpt/ChatAIProject/pull/5`, mergeable clean. Không merge,
+  không nâng billing. Review cuối phát hiện và sửa CR-L3-07: chỉ ghi
+  `transcript_import` sau khi lưu bảng điểm thành công.

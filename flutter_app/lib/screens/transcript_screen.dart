@@ -44,18 +44,19 @@ class _TranscriptScreenState extends State<TranscriptScreen> {
       }
       return;
     }
-    await telemetry?.event('transcript_import', {
-      'source': 'image_ocr',
-      'row_count': result.entries.length,
-    });
-    if (!mounted) return;
     await Navigator.push<void>(
       context,
       MaterialPageRoute(
         builder: (_) => TranscriptConfirmScreen(
           rawExtractedEntries: importer.merge(provider.entries, result.entries),
           importWarning: result.warning,
-          onSaved: provider.save,
+          onSaved: (entries) async {
+            await provider.save(entries);
+            await telemetry?.event('transcript_import', {
+              'source': 'image_ocr',
+              'row_count': entries.length,
+            });
+          },
         ),
       ),
     );

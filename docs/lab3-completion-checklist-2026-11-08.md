@@ -13,9 +13,9 @@ không nâng billing và không đổi evidence local thành evidence production
 | Crashlytics | Console có 3 crash, gồm intentional test crash | Xác nhận nonfatal, user ID và custom key |
 | Remote Config | Version 6: 3/Bật; 13 fetch/1 user; offline fallback đã kiểm | Còn thiếu before/after hành vi thành công không rebuild |
 | ARTEMIS | Catalogue 10 case; validator 3/3; manual exploratory 15:47 đã ghi log | Cần runner/credential thật để chạy 10 case × 3; exploratory không thay thế ARTEMIS |
-| AI review | 6 finding local, các fix có commit local | Tạo PR và gắn review cuối sau khi kiểm regression |
-| Report | PDF 12 trang ngày 08/11 đã tạo và render kiểm tra | Chèn Console evidence thật khi có |
-| Slides | Canva deck 14 slide đã tạo từ template 16:9 | Cập nhật evidence mới, export PDF và visual QA |
+| AI review | PR #5 mở; 7 finding accepted/fixed; review cuối không còn blocking finding trong scope Lab 3 | Không merge; reviewer vẫn cần xem PR lớn 123 commit/539 file |
+| Report | PDF 12 trang ngày 08/11 đã tạo và render kiểm tra | Cập nhật lại nếu bổ sung live evidence |
+| Slides | Canva deck 14 slide đã export PDF và visual QA | Không có video theo yêu cầu |
 | Video | Ngoài phạm vi theo yêu cầu người dùng | Không thực hiện |
 
 ## Canva deck

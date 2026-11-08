@@ -67,7 +67,7 @@ story += [Spacer(1, 4.2*cm), p('PRM393 Lab 3', 'CoverTitle'), p('Cloud Enabled M
           Spacer(1, 0.7*cm), p('Báo cáo hiện thực cục bộ và kiểm chứng kỹ thuật', 'CoverSub'),
           Spacer(1, 0.5*cm), p('Dự án: FLM Student Assistant<br/>Ngày rà soát: 08/11/2026<br/>Phạm vi: Firebase miễn phí, ARTEMIS preparation, AI code review và chất lượng Flutter', 'CoverSub'),
           Spacer(1, 2.2*cm), p('Tuyên bố phạm vi', 'H2Lab'),
-          p('Báo cáo này phân biệt evidence local, Android emulator và evidence cần Firebase Console. Firestore Rules và Remote Config đã deploy ngày 07/11. Project giữ gói Spark; từ 03/02/2026 Storage production yêu cầu Blaze nên không tạo bucket, không deploy Storage Rules và không phát sinh phí. Không push Git; video nằm ngoài phạm vi theo yêu cầu người dùng.'), PageBreak()]
+          p('Báo cáo này phân biệt evidence local, Android emulator và evidence cần Firebase Console. Firestore Rules và Remote Config đã deploy ngày 07/11. Project giữ gói Spark; từ 03/02/2026 Storage production yêu cầu Blaze nên không tạo bucket, không deploy Storage Rules và không phát sinh phí. PR #5 đã mở nhưng chưa merge; video nằm ngoài phạm vi theo yêu cầu người dùng.'), PageBreak()]
 
 story += [p('1. Tóm tắt kiểm chứng', 'H1Lab'),
           p('Ứng dụng Flutter đã có source integration cho sáu dịch vụ Firebase: Authentication, Cloud Storage, Cloud Messaging, Analytics, Crashlytics và Remote Config. Ranh giới service và Provider giữ Firebase SDK ngoài widget.'),
@@ -119,9 +119,9 @@ story += [p('7. ARTEMIS preparation', 'H1Lab'),
           p('Giới hạn còn lại', 'H2Lab'), p('Manual Android exploratory đã chạy 15 phút 47 giây và có log/screenshot riêng. ARTEMIS client/runner và credential chưa có trong workspace nên 30 run thật chưa thể tuyên bố. Ba pytest chỉ kiểm schema catalogue; manual exploratory không phải ARTEMIS automation.'), PageBreak()]
 
 story += [p('8. AI Code Review', 'H1Lab'),
-          p('docs/code-review.md lưu local review trace trên diff PRM-dev với sáu finding mới. Review không được mô tả là output của Copilot, CodeRabbit hoặc PR remote.'),
+          p('PR #5 mở từ PRM-dev vào main và mergeable clean. Codex review sâu phần Lab 3 mới nhất cùng các đường Firebase rủi ro; PR có 123 commit/539 file nên không tuyên bố audit chi tiết toàn bộ lịch sử.'),
           table([['ID', 'Nhóm', 'Quyết định'], ['CR-L3-01', 'Error handling', 'Telemetry best-effort không chặn sign-out'], ['CR-L3-02', 'Reliability', 'Hủy upload progress listener'], ['CR-L3-03', 'Architecture', 'Remote Config đổi hành vi Home'], ['CR-L3-04', 'Data consistency', 'Lưu notification nền trong giới hạn platform'], ['CR-L3-05', 'Security', 'Harden ownership/schema/MIME/size'], ['CR-L3-06', 'Privacy', 'Analytics allowlist không nhận free text']], [2.5*cm, 3.3*cm, 8.6*cm]),
-          p('Traceability', 'H2Lab'), p('Các fix liên quan có commit local, gồm e9a99f5 cho Firebase workflows và 12146cf/d5bf9eb/00569c4/42b7d0c cho reliability, accessibility và regression tests. PR/push chưa thực hiện.'), PageBreak()]
+          p('Traceability', 'H2Lab'), p('Sáu finding cũ đã accept/fix. Review PR bổ sung CR-L3-07: transcript_import từng ghi trước khi người dùng lưu; đã chuyển event vào onSaved sau provider.save. Không còn blocking finding trong scope Lab 3; PR chưa merge.'), PageBreak()]
 
 story += [p('9. Build và regression verification', 'H1Lab'),
           table([['Command', 'Kết quả'], ['flutter analyze --no-pub', 'No issues found'], ['flutter test --exclude-tags live --concurrency=1', '238/238 passed ngày 08/11'], ['flutter build apk --debug', 'Built app-debug.apk ngày 08/11'], ['Firebase emulators:exec', '14/14 rules tests passed'], ['pytest e2e_test/test_checks.py -q', '3/3 passed']], [7.1*cm, 7.3*cm]),
@@ -137,7 +137,7 @@ story += [p('11. Reproduction checklist', 'H1Lab'),
           p('1. Install the debug APK on an Android 13+ emulator or device.<br/>2. Configure the Firebase project and confirm Google sign-in SHA/authorized domains.<br/>3. Capture each required Console/device observation while executing the matching scenario.<br/>4. Attach logs and screenshots to the evidence folder with date, device, app build and case ID.<br/>5. Re-run the commands below after any source change.'),
           p('Local commands', 'H2Lab'),
           table([['Purpose', 'Command'], ['Flutter checks', 'flutter analyze; flutter test --exclude-tags live --concurrency=1'], ['APK', 'flutter build apk --debug'], ['Rules', 'firebase emulators:exec --only firestore,storage --project demo-flm-lab3 --config firebase.json "npm --prefix firebase test"'], ['ARTEMIS catalogue', '.venv\\Scripts\\python.exe -m pytest e2e_test\\test_checks.py -q']], [4.5*cm, 9.9*cm]),
-          Spacer(1, 0.7*cm), p('Final status', 'H2Lab'), p('Local implementation, rules emulator, Android build and regression checks are complete. Firestore Rules và Remote Config deploy ngày 07/11 thành công. Storage production bị khóa bởi quyết định Spark/free-only; ARTEMIS 30 runs, Console evidence, remote pull request/push và Canva deck còn mở. Video không thuộc phạm vi.')]
+          Spacer(1, 0.7*cm), p('Final status', 'H2Lab'), p('Local implementation, rules emulator, Android build, regression checks, report PDF, 14-slide deck và PR #5 đã hoàn tất trong phạm vi được phép. Storage production bị khóa bởi Spark/free-only; FCM ba trạng thái, nonfatal context, Remote Config before/after và ARTEMIS 30 runs còn mở. PR chưa merge; video không thuộc phạm vi.')]
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
 doc = SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=1.8*cm, rightMargin=1.8*cm, topMargin=1.7*cm, bottomMargin=1.8*cm)

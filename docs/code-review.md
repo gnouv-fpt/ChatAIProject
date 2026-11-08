@@ -38,3 +38,20 @@ Review local bằng Codex trên diff `PRM-dev`; không giả mạo output Copilo
 | CR-L3-06 | Privacy | Analytics có nguy cơ nhận free text/PII | Điều chỉnh bằng allowlist | Service chỉ nhận event/parameter định trước |
 
 Các fix chấp nhận sẽ nằm trong commit local sau khi kiểm tra đạt; không push khi chưa có ủy quyền.
+
+## PR review cuối — 08/11/2026
+
+- PR: https://github.com/gnouv-fpt/ChatAIProject/pull/5, `PRM-dev` → `main`.
+- Trạng thái khi review: open, mergeable clean; không merge.
+- PR chứa toàn bộ lịch sử nhánh (123 commit, 539 file), nên lượt này rà sâu commit
+  Lab 3 mới nhất và các đường rủi ro Auth/Storage/Messaging/Analytics/Crashlytics/
+  Remote Config. Đây không phải tuyên bố audit chi tiết mọi file lịch sử.
+
+| ID | Nhóm | Phát hiện | Quyết định | Trạng thái |
+|---|---|---|---|---|
+| CR-L3-07 | Analytics correctness | `transcript_import` được gửi ngay sau OCR, trước khi người dùng xác nhận/lưu; hủy màn vẫn bị tính là thành công | Chấp nhận; chỉ log sau `provider.save` thành công | Đã chuyển event vào callback `onSaved` cho cả OCR và nhập tay |
+
+Sau fix CR-L3-07, không còn finding blocking trong phạm vi Lab 3 đã review.
+Các khoảng trống FCM ba trạng thái, nonfatal context, Remote Config before/after,
+Storage production và ARTEMIS 30 runs là thiếu evidence/runtime, không được đổi
+thành finding code đã khép.
