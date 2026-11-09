@@ -24,6 +24,7 @@ import 'state/transcript_import_view_model.dart';
 import 'widgets/config_error_screen.dart';
 import 'services/app_telemetry.dart';
 import 'screens/cloud_hub_screen.dart';
+import 'widgets/notification_route_listener.dart';
 
 String? validateReleaseConfig() {
   const configured = String.fromEnvironment('FLM_API_BASE_URL');
@@ -178,7 +179,7 @@ class FlmApp extends StatelessWidget {
             theme: AppTheme.lightTheme(),
             darkTheme: AppTheme.darkTheme(),
             themeMode: effectiveMode,
-            home: const AppShell(),
+            home: const NotificationRouteListener(child: AppShell()),
             routes: {'/cloud-hub': (_) => const CloudHubScreen()},
             onGenerateRoute: (settings) {
               final uri = Uri.tryParse(settings.name ?? '');

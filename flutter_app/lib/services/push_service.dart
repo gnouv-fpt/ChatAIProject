@@ -20,8 +20,17 @@ class PushService extends ChangeNotifier {
   StreamSubscription<RemoteMessage>? _opened;
   String? token;
   String? error;
+  CloudNotification? _pendingOpen;
 
   List<CloudNotification> get items => List.unmodifiable(_items);
+
+  /// Thông báo người dùng vừa chạm (app chạy nền hoặc đã đóng) mà giao diện
+  /// chưa điều hướng tới. Lấy ra một lần; lần gọi sau trả null.
+  CloudNotification? takePendingOpen() {
+    final pending = _pendingOpen;
+    _pendingOpen = null;
+    return pending;
+  }
 
   Future<void> start() async {
     _foreground ??= FirebaseMessaging.onMessage.listen(_receive);
@@ -63,6 +72,7 @@ class PushService extends ChangeNotifier {
     );
     _items.removeWhere((value) => value.id == item.id);
     _items.insert(0, item);
+    if (opened) _pendingOpen = item;
     notifyListeners();
     if (uid != null) {
       try {
