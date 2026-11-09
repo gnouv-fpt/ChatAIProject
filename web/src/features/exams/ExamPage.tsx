@@ -70,6 +70,12 @@ type ExamNotification = {
   occurredAtUtc: string;
 };
 
+const categoryNames: Record<string, string> = {
+  RULES: 'Quy tắc giao thông', CULTURE: 'Văn hóa giao thông',
+  DRIVING: 'Kỹ thuật lái xe', MECHANICS: 'Cấu tạo và sửa chữa',
+  SIGN: 'Biển báo', SCENARIO: 'Sa hình',
+};
+
 export function ExamPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -89,6 +95,8 @@ export function ExamPage() {
   const [selectedBankKey, setSelectedBankKey] = useState('');
   const [customCount, setCustomCount] = useState<number>(Number(searchParams.get('count')) || 10);
   const [customMinutes, setCustomMinutes] = useState<number>(20);
+  const [mixByCategory, setMixByCategory] = useState(false);
+  const [categoryCounts, setCategoryCounts] = useState<Record<string, number>>({});
   const [confirmedConfig, setConfirmedConfig] = useState(false);
   const [resumeId, setResumeId] = useState('');
 
@@ -178,9 +186,13 @@ export function ExamPage() {
 
   const validCustomConfig = Boolean(selectedBank) && Number.isInteger(customCount)
     && customCount >= 1 && customCount <= Math.min(100, selectedBank?.questionCount ?? 0)
-    && Number.isInteger(customMinutes) && customMinutes >= 1 && customMinutes <= 180;
+    && Number.isInteger(customMinutes) && customMinutes >= 1 && customMinutes <= 180
+    && (!mixByCategory || (Boolean(selectedBank?.categoryCounts)
+      && Object.entries(categoryCounts).every(([key, count]) => Number.isInteger(count) && count >= 0
+        && count <= (selectedBank?.categoryCounts?.[key] ?? 0))
+      && Object.values(categoryCounts).reduce((sum, count) => sum + count, 0) === customCount));
 
-  useEffect(() => { setConfirmedConfig(false); }, [mode, selectedTemplateKey, selectedBankKey, customCount, customMinutes]);
+  useEffect(() => { setConfirmedConfig(false); }, [mode, selectedTemplateKey, selectedBankKey, customCount, customMinutes, mixByCategory, categoryCounts]);
 
   // Countdown timer & auto-submit on deadline
   useEffect(() => {
@@ -210,6 +222,8 @@ export function ExamPage() {
 
   function handleBankSelectChange(value: string) {
     setSelectedBankKey(value);
+    setMixByCategory(false);
+    setCategoryCounts({});
     const b = banks.find(item => `${item.id}/${item.version}` === value);
     if (b) {
       setCustomCount(b.profile.questionCount);
@@ -234,7 +248,7 @@ export function ExamPage() {
         setSaveMessage('Đề chuẩn đã sẵn sàng · Lưu tự động');
       } else {
         if (!selectedBank) throw new Error('Vui lòng chọn ngân hàng câu hỏi.');
-        if (!validCustomConfig) throw new Error('Kiểm tra lại số câu hỏi và thời gian làm bài.');
+        if (!validCustomConfig) throw new Error('Kiểm tra lại số câu theo nhóm, tổng số câu và thời gian làm bài.');
         const created = await api<CustomExamView>('/custom-exams', {
           method: 'POST',
           body: JSON.stringify({
@@ -242,6 +256,7 @@ export function ExamPage() {
             bankVersion: selectedBank.version,
             questionCount: Number(customCount),
             durationMinutes: Number(customMinutes),
+            ...(mixByCategory ? { categoryCounts } : {}),
           }),
         });
         setExam(created);
@@ -959,6 +974,29 @@ export function ExamPage() {
                         />
                       </label>
                     </div>
+                    {!isSelectedBankOfficial && selectedBank && (
+                      <fieldset className="exam-category-mix">
+                        <legend>Chọn cách lấy câu hỏi</legend>
+                        <label><input type="radio" name="category-mode" checked={!mixByCategory} onChange={() => setMixByCategory(false)} /> Ngẫu nhiên từ toàn bộ ngân hàng</label>
+                        <label><input type="radio" name="category-mode" checked={mixByCategory} onChange={() => setMixByCategory(true)} disabled={!selectedBank.categoryCounts} /> Tự chọn số câu theo nhóm</label>
+                        {mixByCategory && (
+                          <>
+                            <div className="exam-category-grid">
+                              {Object.entries(selectedBank.categoryCounts ?? {}).filter(([, available]) => available > 0).map(([key, available]) => (
+                                <label key={key}>
+                                  {categoryNames[key] ?? key} <small>({available} câu có sẵn)</small>
+                                  <input type="number" min="0" max={Math.min(100, available)} value={categoryCounts[key] ?? 0}
+                                    onChange={e => setCategoryCounts(previous => ({ ...previous, [key]: Number(e.target.value) }))} />
+                                </label>
+                              ))}
+                            </div>
+                            <p role="status" className={validCustomConfig ? 'muted' : 'error'}>
+                              Đã chọn {Object.values(categoryCounts).reduce((sum, count) => sum + count, 0)}/{customCount} câu. Tổng các nhóm phải bằng số câu của đề.
+                            </p>
+                          </>
+                        )}
+                      </fieldset>
+                    )}
                   </>
                 )}
               </section>

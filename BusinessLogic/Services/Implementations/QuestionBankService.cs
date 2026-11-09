@@ -126,5 +126,6 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
     private static bool Https(string? value) => Uri.TryCreate(value, UriKind.Absolute, out var uri) && uri.Scheme == "https" && string.IsNullOrEmpty(uri.UserInfo);
     private static string Hash(ContentBank bank) => Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(bank)));
     private static BankSummaryDto Summary(QuestionBankPackage p) => new(p.Bank.Id, p.Bank.Version, p.Bank.Title,
-        p.Bank.SourceUrl, p.Bank.SourceDescription, p.Bank.Questions.Count, p.Hash, p.IsPublished, p.Bank.Profile);
+        p.Bank.SourceUrl, p.Bank.SourceDescription, p.Bank.Questions.Count, p.Hash, p.IsPublished, p.Bank.Profile,
+        p.Bank.Questions.GroupBy(q => q.CategoryType).ToDictionary(g => g.Key, g => g.Count()));
 }

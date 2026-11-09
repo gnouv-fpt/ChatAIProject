@@ -1,6 +1,6 @@
 export type ContentApi = <T>(path: string, init?: RequestInit) => Promise<T>;
 export type Bank = { id: string; version: string; title: string; sourceUrl: string; sourceDescription: string;
-  questionCount: number; hash: string; isPublished: boolean;
+  questionCount: number; hash: string; isPublished: boolean; categoryCounts?: Record<string, number>;
   profile: { id: string; version: string; questionCount: number; durationSeconds: number; passCount: number } };
 export type Question = { id: string; number: number; topic: string; text: string;
   options: { id: string; text: string }[]; assets: { id: string; url: string; altText: string }[]; sourceUrl: string };

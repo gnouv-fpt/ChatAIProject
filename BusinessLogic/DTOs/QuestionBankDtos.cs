@@ -18,7 +18,8 @@ public sealed class PublishBankRequestDto
 }
 
 public sealed record BankSummaryDto(Guid Id, string Version, string Title, string SourceUrl,
-    string SourceDescription, int QuestionCount, string Hash, bool IsPublished, ExamProfile Profile);
+    string SourceDescription, int QuestionCount, string Hash, bool IsPublished, ExamProfile Profile,
+    IReadOnlyDictionary<string, int>? CategoryCounts = null);
 public sealed record QuestionDto(Guid Id, int Number, string Topic, string Text, bool IsCritical,
     bool AllowOptionShuffle, IReadOnlyList<ContentQuestionOption> Options, IReadOnlyList<QuestionAsset> Assets, string SourceUrl);
 public sealed record BankPreviewDto(BankSummaryDto Summary, ContentBank Bank, IReadOnlyList<string> Errors);

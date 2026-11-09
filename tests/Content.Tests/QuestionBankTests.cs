@@ -80,6 +80,8 @@ public sealed class QuestionBankTests : IDisposable
                 CategoryType = kind, Topic = kind }).ToList() };
         var preview = await Service().ImportAsync(bank, Guid.NewGuid());
         Assert.Equal(bank.Questions.Select(q => q.CategoryType), preview.Bank.Questions.Select(q => q.CategoryType));
+        Assert.Equal(6, preview.Summary.CategoryCounts!.Count);
+        Assert.All(preview.Summary.CategoryCounts.Values, count => Assert.Equal(1, count));
         Assert.NotEmpty(QuestionBankService.Validate(bank with {
             Questions = [bank.Questions[0] with { CategoryType = "UNKNOWN" }] }));
     }

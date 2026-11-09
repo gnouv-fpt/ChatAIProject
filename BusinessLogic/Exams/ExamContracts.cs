@@ -14,9 +14,10 @@ public sealed record BankQuestion(
     string CorrectOptionId,
     bool CanShuffleOptions = false, Guid BankId = default, bool IsCritical = false,
     int PassingScore = 0, bool FailOnCriticalWrong = false, IReadOnlyList<ExamAsset>? Assets = null,
-    string? Explanation = null, string? ExplanationAnimationUrl = null);
+    string? Explanation = null, string? ExplanationAnimationUrl = null, string? CategoryType = null);
 
-public sealed record CreateCustomExam(string CategoryId, string BankVersion, int QuestionCount, int DurationMinutes);
+public sealed record CreateCustomExam(string CategoryId, string BankVersion, int QuestionCount, int DurationMinutes,
+    IReadOnlyDictionary<string, int>? CategoryCounts = null);
 public sealed record CreateTemplateExam(string ExamCode, int Version);
 public sealed record TemplateQuestionSet(string BankVersion, int DurationMinutes, int PassingScore,
     IReadOnlyList<BankQuestion> Questions);

@@ -36,7 +36,7 @@ public sealed class ExamIntegrationService(IContentBankRepository banks, IQuesti
                 row.AllowOptionShuffle, bankId, row.IsParalysisQuestion, template.PassingScore,
                 package.Bank.Profile.FailOnCriticalWrong,
                 q.Assets.Select(a => new ExamAsset(a.Id, a.Url, a.AltText, a.Sha256, a.MimeType)).ToArray(),
-                q.Explanation, row.ExplanationAnimationUrl);
+                q.Explanation, row.ExplanationAnimationUrl, q.CategoryType);
         }).ToArray();
         return new TemplateQuestionSet(bankVersion, template.DurationMinutes, template.PassingScore, questions);
     }
@@ -69,7 +69,7 @@ public sealed class ExamIntegrationService(IContentBankRepository banks, IQuesti
                 row.AllowOptionShuffle, bankId, row.IsParalysisQuestion,
                 passingScore, package.Bank.Profile.FailOnCriticalWrong,
                 question.Assets.Select(a => new ExamAsset(a.Id, a.Url, a.AltText, a.Sha256, a.MimeType)).ToList(),
-                question.Explanation, row.ExplanationAnimationUrl);
+                question.Explanation, row.ExplanationAnimationUrl, question.CategoryType);
         }).ToList();
     }
 }

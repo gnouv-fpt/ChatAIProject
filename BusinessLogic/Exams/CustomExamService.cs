@@ -30,6 +30,22 @@ public sealed class CustomExamService
 
         var bankQuestions = await _questions.GetQuestionsAsync(
             request.CategoryId, request.BankVersion, request.QuestionCount, cancellationToken);
+        if (request.CategoryCounts is { } quotas)
+        {
+            if (quotas.Count is < 1 or > 6 || quotas.Any(pair => pair.Key is not ("RULES" or "CULTURE" or "DRIVING" or "MECHANICS" or "SIGN" or "SCENARIO") || pair.Value is < 0 or > 100) ||
+                quotas.Values.Sum() != request.QuestionCount)
+                throw new BadRequestException("Số câu theo nhóm phải bằng tổng số câu của đề.");
+            var selected = new List<BankQuestion>();
+            foreach (var (category, amount) in quotas)
+            {
+                var pool = bankQuestions.Where(q => q.CategoryType == category).ToArray();
+                if (pool.Length < amount)
+                    throw new BadRequestException($"Nhóm {category} không đủ câu hỏi đã xuất bản.");
+                Random.Shared.Shuffle(pool);
+                selected.AddRange(pool.Take(amount));
+            }
+            bankQuestions = selected;
+        }
         return await CreateFromQuestionsAsync(userId, request.BankVersion, request.QuestionCount,
             request.DurationMinutes, bankQuestions, true, cancellationToken);
     }
