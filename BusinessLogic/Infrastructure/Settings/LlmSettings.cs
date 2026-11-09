@@ -21,7 +21,7 @@ public sealed class LlmSettings
                 BaseUrl = ReadString(configuration, "Llm:Gemini:BaseUrl", "https://generativelanguage.googleapis.com"),
                 ApiKey = ReadString(configuration, "Llm:Gemini:ApiKey", string.Empty),
                 Temperature = ReadDouble(configuration, "Llm:Gemini:Temperature", 0.2),
-                MaxOutputTokens = ReadInt(configuration, "Llm:Gemini:MaxOutputTokens", 1024)
+                MaxOutputTokens = ReadInt(configuration, "Llm:Gemini:MaxOutputTokens", 4096)
             }
         };
     }
@@ -53,5 +53,5 @@ public sealed class GeminiSettings
 
     public double Temperature { get; init; } = 0.2;
 
-    public int MaxOutputTokens { get; init; } = 1024;
+    public int MaxOutputTokens { get; init; } = 4096;
 }

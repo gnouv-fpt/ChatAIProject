@@ -1,0 +1,100 @@
+// Prototype data model (all data is private to users/{uid}):
+// users/{uid}: role string='user', createdAt timestamp (immutable)
+// private/profile: bounded study preference fields
+// private/preferences: targetGpa number [0,10]
+// transcript/{courseCode_semester}: validated course attempt
+// notifications/{messageId}: bounded FCM history owned by uid
+// reports/{reportId}: Storage metadata for reports/{uid}/{reportId}.pdf
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() { return request.auth != null; }
+    function isOwner(uid) { return isAuthenticated() && request.auth.uid == uid; }
+    function uidUnchanged(uid) { return request.auth.uid == uid; }
+    function uidNotModified(uid) { return request.auth.uid == uid; }
+    function hasRequiredFields(data, fields) { return data.keys().hasAll(fields); }
+    function hasOnlyAllowedFields(data, fields) { return data.keys().hasOnly(fields); }
+    function validOptionalString(data, field, maxLength) {
+      return !(field in data) || data[field] == null ||
+        (data[field] is string && data[field].size() <= maxLength);
+    }
+    function isValidUser(data) {
+      return hasRequiredFields(data, ['role','createdAt'])
+        && hasOnlyAllowedFields(data, ['role','createdAt'])
+        && data.role == 'user' && data.createdAt is timestamp;
+    }
+    function isValidProfile(data) {
+      return hasOnlyAllowedFields(data, ['course_goal','learning_style','study_priority','long_term_goal','current_semester','career_goal'])
+        && (!('course_goal' in data) || data.course_goal in ['pass','high_score'])
+        && (!('learning_style' in data) || data.learning_style in ['practice','reading'])
+        && (!('study_priority' in data) || data.study_priority in ['time','depth'])
+        && (!('long_term_goal' in data) || data.long_term_goal in ['graduate','career','study_abroad'])
+        && (!('current_semester' in data) || (data.current_semester is int && data.current_semester >= 0 && data.current_semester <= 12))
+        && validOptionalString(data, 'career_goal', 80);
+    }
+    function isValidPreferences(data) {
+      return hasRequiredFields(data, ['targetGpa']) && hasOnlyAllowedFields(data, ['targetGpa'])
+        && data.targetGpa is number && data.targetGpa >= 0 && data.targetGpa <= 10;
+    }
+    function isValidTranscript(data, id) {
+      return hasRequiredFields(data, ['courseCode','courseName','score','credits','semester','isPassed','inProgress','confidence'])
+        && hasOnlyAllowedFields(data, ['courseCode','courseName','score','credits','semester','isPassed','inProgress','confidence'])
+        && data.courseCode is string && data.courseCode.matches('^[A-Z0-9_]{2,24}$')
+        && data.courseName is string && data.courseName.size() <= 250
+        && data.score is number && data.score >= 0 && data.score <= 10
+        && data.credits is int && data.credits >= 0 && data.credits <= 30
+        && data.semester is int && data.semester >= 0 && data.semester <= 12
+        && data.isPassed is bool && data.inProgress is bool
+        && data.confidence is number && data.confidence >= 0 && data.confidence <= 1
+        && id == data.courseCode + '_' + string(data.semester);
+    }
+    function isValidNotification(data, id) {
+      return hasRequiredFields(data, ['id','title','body','receivedAt','read'])
+        && hasOnlyAllowedFields(data, ['id','title','body','receivedAt','destination','courseCode','read'])
+        && data.id is string && data.id == id && data.id.size() <= 200
+        && data.title is string && data.title.size() <= 160
+        && data.body is string && data.body.size() <= 1000
+        && data.receivedAt is string && data.receivedAt.size() <= 40
+        && validOptionalString(data, 'destination', 80)
+        && validOptionalString(data, 'courseCode', 24)
+        && data.read is bool;
+    }
+    function isValidReport(data, uid, id) {
+      return hasRequiredFields(data, ['path','sizeBytes','createdAt'])
+        && hasOnlyAllowedFields(data, ['path','sizeBytes','createdAt'])
+        && data.path is string && data.path == 'reports/' + uid + '/' + id + '.pdf'
+        && data.path.size() <= 300
+        && data.sizeBytes is int && data.sizeBytes > 0 && data.sizeBytes <= 10485760
+        && data.createdAt is timestamp;
+    }
+    match /users/{uid} {
+      allow get: if isOwner(uid);
+      allow create: if isOwner(uid) && uidUnchanged(uid) && isValidUser(request.resource.data);
+      allow update: if isOwner(uid) && uidNotModified(uid) && isValidUser(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.role == resource.data.role;
+      allow list, delete: if false;
+      match /private/profile {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidProfile(request.resource.data);
+      }
+      match /private/preferences {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidPreferences(request.resource.data);
+      }
+      match /transcript/{id} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidTranscript(request.resource.data, id);
+      }
+      match /notifications/{id} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidNotification(request.resource.data, id);
+      }
+      match /reports/{id} {
+        allow read, delete: if isOwner(uid);
+        allow create, update: if isOwner(uid) && isValidReport(request.resource.data, uid, id);
+      }
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

@@ -18,6 +18,8 @@ mono_crash.*
 
 # Build results
 [Dd]ebug/
+!flutter_app/android/app/src/debug/
+!flutter_app/android/app/src/debug/AndroidManifest.xml
 [Dd]ebugPublic/
 [Rr]elease/
 [Rr]eleases/
@@ -367,3 +369,21 @@ Uploads
 
 # Python virtual environment
 python_services/.venv/
+
+# FLM scraper temporary files & credentials
+scripts/flm_cookie.txt
+flm_raw_syllabi/
+
+# Environment files & caches
+.env
+.venv/
+.rag_cache/
+__pycache__/
+*.py[cod]
+*$py.class
+.vscode/
+**/devtools_options.yaml
+
+
+# Evidence screenshots and QA run artifacts
+evidence/

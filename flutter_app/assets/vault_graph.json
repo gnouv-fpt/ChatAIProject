@@ -1,0 +1,1741 @@
+{
+  "nodes": [
+    "#HK0",
+    "#HK1",
+    "#HK2",
+    "#HK3",
+    "#HK4",
+    "#HK5",
+    "#HK6",
+    "#HK7",
+    "#HK8",
+    "#HK9",
+    "BIT_SE_K19B",
+    "CEA201",
+    "CSD201",
+    "CSI106",
+    "Curriculum_Overview",
+    "DBI202",
+    "ENW493c",
+    "EXE101",
+    "EXE201",
+    "HCM202",
+    "IOT102",
+    "ITE302c",
+    "JPD113",
+    "JPD123",
+    "JPD133",
+    "LAB211",
+    "MAC101",
+    "MAD101",
+    "MAE101",
+    "MAS291",
+    "MLN111",
+    "MLN122",
+    "MLN131",
+    "NWC204",
+    "OJT202",
+    "OSG202",
+    "OTP101",
+    "PMG201c",
+    "PRF192",
+    "PRJ301",
+    "PRM393",
+    "PRN212",
+    "PRN222",
+    "PRN232",
+    "PRO192",
+    "PRU213",
+    "Program_Learning_Outcomes",
+    "SEP490",
+    "SSG104",
+    "SSL101c",
+    "SWD392",
+    "SWE102",
+    "SWE201c",
+    "SWE202c",
+    "SWP391",
+    "SWR302",
+    "SWT301",
+    "TMI101",
+    "TRS601",
+    "VNR202",
+    "VOV114",
+    "VOV124",
+    "VOV134",
+    "WDU203c",
+    "WED201c"
+  ],
+  "edges": [
+    {
+      "from": "BIT_SE_K19B",
+      "to": "OTP101",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "TRS601",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "CEA201",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "CSI106",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MAE101",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRF192",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SSL101c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "TMI101",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "VOV114",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MAD101",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "NWC204",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "OSG202",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRO192",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SSG104",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "VOV124",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "CSD201",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "DBI202",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "JPD113",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "LAB211",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "VOV134",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "WED201c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "IOT102",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "JPD123",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MAS291",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRJ301",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SWE201c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRN212",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SWP391",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SWR302",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SWT301",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "WDU203c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "ENW493c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "OJT202",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "EXE101",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PMG201c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRN222",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRU213",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SWD392",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "EXE201",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "ITE302c",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MLN111",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MLN122",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRM393",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "PRN232",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "HCM202",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "MLN131",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "SEP490",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "VNR202",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "BIT_SE_K19B",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "CEA201",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "CEA201",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "CEA201",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "CSD201",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "CSD201",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "CSD201",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "CSD201",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "CSI106",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "CSI106",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "CSI106",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "DBI202",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "DBI202",
+      "to": "PRJ301",
+      "isHub": false
+    },
+    {
+      "from": "DBI202",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "DBI202",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "ENW493c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "ENW493c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "ENW493c",
+      "to": "#HK6",
+      "isHub": true
+    },
+    {
+      "from": "EXE101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "EXE101",
+      "to": "EXE201",
+      "isHub": false
+    },
+    {
+      "from": "EXE101",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "EXE101",
+      "to": "#HK7",
+      "isHub": true
+    },
+    {
+      "from": "EXE201",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "EXE201",
+      "to": "EXE101",
+      "isHub": false
+    },
+    {
+      "from": "EXE201",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "EXE201",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "HCM202",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "HCM202",
+      "to": "MLN111",
+      "isHub": false
+    },
+    {
+      "from": "HCM202",
+      "to": "MLN122",
+      "isHub": false
+    },
+    {
+      "from": "HCM202",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "HCM202",
+      "to": "#HK9",
+      "isHub": true
+    },
+    {
+      "from": "IOT102",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "IOT102",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "IOT102",
+      "to": "#HK4",
+      "isHub": true
+    },
+    {
+      "from": "ITE302c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "ITE302c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "ITE302c",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "JPD113",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "JPD113",
+      "to": "JPD123",
+      "isHub": false
+    },
+    {
+      "from": "JPD113",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "JPD113",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "JPD123",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "JPD123",
+      "to": "JPD113",
+      "isHub": false
+    },
+    {
+      "from": "JPD123",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "JPD123",
+      "to": "#HK4",
+      "isHub": true
+    },
+    {
+      "from": "JPD133",
+      "to": "JPD113",
+      "isHub": false
+    },
+    {
+      "from": "JPD133",
+      "to": "JPD123",
+      "isHub": false
+    },
+    {
+      "from": "JPD133",
+      "to": "OJT202",
+      "isHub": false
+    },
+    {
+      "from": "JPD133",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "LAB211",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "LAB211",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "LAB211",
+      "to": "SWP391",
+      "isHub": false
+    },
+    {
+      "from": "LAB211",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "LAB211",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "MAC101",
+      "to": "MAE101",
+      "isHub": false
+    },
+    {
+      "from": "MAC101",
+      "to": "MAS291",
+      "isHub": false
+    },
+    {
+      "from": "MAC101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MAD101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MAD101",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MAD101",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "MAE101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MAE101",
+      "to": "MAS291",
+      "isHub": false
+    },
+    {
+      "from": "MAE101",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MAE101",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "MAS291",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MAS291",
+      "to": "MAE101",
+      "isHub": false
+    },
+    {
+      "from": "MAS291",
+      "to": "MAC101",
+      "isHub": false
+    },
+    {
+      "from": "MAS291",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MAS291",
+      "to": "#HK4",
+      "isHub": true
+    },
+    {
+      "from": "MLN111",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MLN111",
+      "to": "HCM202",
+      "isHub": false
+    },
+    {
+      "from": "MLN111",
+      "to": "MLN131",
+      "isHub": false
+    },
+    {
+      "from": "MLN111",
+      "to": "VNR202",
+      "isHub": false
+    },
+    {
+      "from": "MLN111",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MLN111",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "MLN122",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MLN122",
+      "to": "HCM202",
+      "isHub": false
+    },
+    {
+      "from": "MLN122",
+      "to": "MLN131",
+      "isHub": false
+    },
+    {
+      "from": "MLN122",
+      "to": "VNR202",
+      "isHub": false
+    },
+    {
+      "from": "MLN122",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MLN122",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "MLN131",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "MLN131",
+      "to": "MLN111",
+      "isHub": false
+    },
+    {
+      "from": "MLN131",
+      "to": "MLN122",
+      "isHub": false
+    },
+    {
+      "from": "MLN131",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "MLN131",
+      "to": "#HK9",
+      "isHub": true
+    },
+    {
+      "from": "NWC204",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "NWC204",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "NWC204",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "OJT202",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "OJT202",
+      "to": "JPD133",
+      "isHub": false
+    },
+    {
+      "from": "OJT202",
+      "to": "SEP490",
+      "isHub": false
+    },
+    {
+      "from": "OJT202",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "OJT202",
+      "to": "#HK6",
+      "isHub": true
+    },
+    {
+      "from": "OSG202",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "OSG202",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "OSG202",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "OTP101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "OTP101",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "OTP101",
+      "to": "#HK0",
+      "isHub": true
+    },
+    {
+      "from": "PMG201c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PMG201c",
+      "to": "SEP490",
+      "isHub": false
+    },
+    {
+      "from": "PMG201c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PMG201c",
+      "to": "#HK7",
+      "isHub": true
+    },
+    {
+      "from": "PRF192",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRF192",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "PRF192",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRF192",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "PRJ301",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRJ301",
+      "to": "DBI202",
+      "isHub": false
+    },
+    {
+      "from": "PRJ301",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "PRJ301",
+      "to": "SWP391",
+      "isHub": false
+    },
+    {
+      "from": "PRJ301",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRJ301",
+      "to": "#HK4",
+      "isHub": true
+    },
+    {
+      "from": "PRM393",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRM393",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "PRM393",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRM393",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "PRN212",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRN212",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "PRN212",
+      "to": "DBI202",
+      "isHub": false
+    },
+    {
+      "from": "PRN212",
+      "to": "PRN222",
+      "isHub": false
+    },
+    {
+      "from": "PRN212",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRN212",
+      "to": "#HK5",
+      "isHub": true
+    },
+    {
+      "from": "PRN222",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRN222",
+      "to": "PRN212",
+      "isHub": false
+    },
+    {
+      "from": "PRN222",
+      "to": "PRN232",
+      "isHub": false
+    },
+    {
+      "from": "PRN222",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRN222",
+      "to": "#HK7",
+      "isHub": true
+    },
+    {
+      "from": "PRN232",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRN232",
+      "to": "PRN222",
+      "isHub": false
+    },
+    {
+      "from": "PRN232",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRN232",
+      "to": "#HK8",
+      "isHub": true
+    },
+    {
+      "from": "PRO192",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRO192",
+      "to": "PRF192",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "CSD201",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "LAB211",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "PRJ301",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "SWD392",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "PRM393",
+      "isHub": false
+    },
+    {
+      "from": "PRO192",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRO192",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "PRU213",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "PRU213",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "PRU213",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "PRU213",
+      "to": "#HK7",
+      "isHub": true
+    },
+    {
+      "from": "SEP490",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SEP490",
+      "to": "SWP391",
+      "isHub": false
+    },
+    {
+      "from": "SEP490",
+      "to": "SWD392",
+      "isHub": false
+    },
+    {
+      "from": "SEP490",
+      "to": "PMG201c",
+      "isHub": false
+    },
+    {
+      "from": "SEP490",
+      "to": "OJT202",
+      "isHub": false
+    },
+    {
+      "from": "SEP490",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SEP490",
+      "to": "#HK9",
+      "isHub": true
+    },
+    {
+      "from": "SSG104",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SSG104",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SSG104",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "SSL101c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SSL101c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SSL101c",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "SWD392",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWD392",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWD392",
+      "to": "SWE202c",
+      "isHub": false
+    },
+    {
+      "from": "SWD392",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "SWD392",
+      "to": "SEP490",
+      "isHub": false
+    },
+    {
+      "from": "SWD392",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SWD392",
+      "to": "#HK7",
+      "isHub": true
+    },
+    {
+      "from": "SWE102",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWE102",
+      "to": "SWR302",
+      "isHub": false
+    },
+    {
+      "from": "SWE102",
+      "to": "SWT301",
+      "isHub": false
+    },
+    {
+      "from": "SWE102",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWE201c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWE201c",
+      "to": "PRO192",
+      "isHub": false
+    },
+    {
+      "from": "SWE201c",
+      "to": "SWP391",
+      "isHub": false
+    },
+    {
+      "from": "SWE201c",
+      "to": "SWR302",
+      "isHub": false
+    },
+    {
+      "from": "SWE201c",
+      "to": "SWT301",
+      "isHub": false
+    },
+    {
+      "from": "SWE201c",
+      "to": "SWD392",
+      "isHub": false
+    },
+    {
+      "from": "SWE201c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SWE201c",
+      "to": "#HK4",
+      "isHub": true
+    },
+    {
+      "from": "SWE202c",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWE202c",
+      "to": "SWD392",
+      "isHub": false
+    },
+    {
+      "from": "SWE202c",
+      "to": "SWP391",
+      "isHub": false
+    },
+    {
+      "from": "SWE202c",
+      "to": "SWR302",
+      "isHub": false
+    },
+    {
+      "from": "SWE202c",
+      "to": "SWT301",
+      "isHub": false
+    },
+    {
+      "from": "SWE202c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWP391",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWP391",
+      "to": "PRJ301",
+      "isHub": false
+    },
+    {
+      "from": "SWP391",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWP391",
+      "to": "SWE202c",
+      "isHub": false
+    },
+    {
+      "from": "SWP391",
+      "to": "LAB211",
+      "isHub": false
+    },
+    {
+      "from": "SWP391",
+      "to": "SEP490",
+      "isHub": false
+    },
+    {
+      "from": "SWP391",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SWP391",
+      "to": "#HK5",
+      "isHub": true
+    },
+    {
+      "from": "SWR302",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWR302",
+      "to": "SWE102",
+      "isHub": false
+    },
+    {
+      "from": "SWR302",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWR302",
+      "to": "SWE202c",
+      "isHub": false
+    },
+    {
+      "from": "SWR302",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SWR302",
+      "to": "#HK5",
+      "isHub": true
+    },
+    {
+      "from": "SWT301",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "SWT301",
+      "to": "SWE102",
+      "isHub": false
+    },
+    {
+      "from": "SWT301",
+      "to": "SWE201c",
+      "isHub": false
+    },
+    {
+      "from": "SWT301",
+      "to": "SWE202c",
+      "isHub": false
+    },
+    {
+      "from": "SWT301",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "SWT301",
+      "to": "#HK5",
+      "isHub": true
+    },
+    {
+      "from": "TMI101",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "TMI101",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "TMI101",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "TRS601",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "TRS601",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "TRS601",
+      "to": "#HK0",
+      "isHub": true
+    },
+    {
+      "from": "VNR202",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "VNR202",
+      "to": "MLN111",
+      "isHub": false
+    },
+    {
+      "from": "VNR202",
+      "to": "MLN122",
+      "isHub": false
+    },
+    {
+      "from": "VNR202",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "VNR202",
+      "to": "#HK9",
+      "isHub": true
+    },
+    {
+      "from": "VOV114",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "VOV114",
+      "to": "VOV124",
+      "isHub": false
+    },
+    {
+      "from": "VOV114",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "VOV114",
+      "to": "#HK1",
+      "isHub": true
+    },
+    {
+      "from": "VOV124",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "VOV124",
+      "to": "VOV114",
+      "isHub": false
+    },
+    {
+      "from": "VOV124",
+      "to": "VOV134",
+      "isHub": false
+    },
+    {
+      "from": "VOV124",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "VOV124",
+      "to": "#HK2",
+      "isHub": true
+    },
+    {
+      "from": "VOV134",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "VOV134",
+      "to": "VOV124",
+      "isHub": false
+    },
+    {
+      "from": "VOV134",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "VOV134",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "WDU203c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "WDU203c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "WDU203c",
+      "to": "#HK5",
+      "isHub": true
+    },
+    {
+      "from": "WED201c",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    },
+    {
+      "from": "WED201c",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "WED201c",
+      "to": "#HK3",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "Program_Learning_Outcomes",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "OTP101",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "TRS601",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "VOV114",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "TMI101",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "CEA201",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "CSI106",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MAE101",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "VOV124",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRF192",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SSL101c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MAD101",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "NWC204",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "OSG202",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "VOV134",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRO192",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SSG104",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "CSD201",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "DBI202",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "JPD113",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "LAB211",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "WED201c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "IOT102",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "JPD123",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MAS291",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRJ301",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SWE201c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRN212",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SWP391",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SWR302",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SWT301",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "WDU203c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "ENW493c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "OJT202",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "EXE101",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PMG201c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRN222",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRU213",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SWD392",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "EXE201",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "ITE302c",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MLN111",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MLN122",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRM393",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "PRN232",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "HCM202",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "MLN131",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "SEP490",
+      "isHub": true
+    },
+    {
+      "from": "Curriculum_Overview",
+      "to": "VNR202",
+      "isHub": true
+    },
+    {
+      "from": "Program_Learning_Outcomes",
+      "to": "Curriculum_Overview",
+      "isHub": true
+    }
+  ]
+}

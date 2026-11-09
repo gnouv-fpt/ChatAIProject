@@ -1,0 +1,121 @@
+import os
+from pathlib import Path
+from typing import List, Optional
+from pydantic import BaseModel
+from dotenv import load_dotenv
+
+# Search and load .env from current directory, parent directory or repo root
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+env_paths = [
+    Path.cwd() / ".env",
+    Path(__file__).resolve().parent.parent / ".env",
+    BASE_DIR / ".env",
+]
+for env_path in env_paths:
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+        break
+else:
+    load_dotenv()
+
+
+class Settings(BaseModel):
+    # Application Info
+    APP_NAME: str = "FLM Course Knowledge & AI RAG Assistant API"
+    APP_VERSION: str = "1.0.0"
+    APP_DESCRIPTION: str = (
+        "Backend FastAPI server providing RESTful RAG API for FPT University FLM Curriculum & Syllabi. "
+        "Supports query retrieval on Course Learning Outcomes (LOs), Assessments (PE/FE), Credits, Roadmaps, and Prerequisites."
+    )
+    
+    # Server Settings
+    HOST: str = os.getenv("HOST", "0.0.0.0")
+    PORT: int = int(os.getenv("PORT", "8000"))
+    DEBUG: bool = os.getenv("DEBUG", "false").lower() in ("1", "true", "yes")
+
+    # CORS Settings
+    CORS_ORIGINS_RAW: str = os.getenv("CORS_ORIGINS", "*")
+    
+    @property
+    def cors_origins(self) -> List[str]:
+        if self.CORS_ORIGINS_RAW == "*":
+            return ["*"]
+        return [origin.strip() for origin in self.CORS_ORIGINS_RAW.split(",") if origin.strip()]
+
+    # Knowledge Paths
+    KNOWLEDGE_VAULT_DIR: str = os.getenv("KNOWLEDGE_VAULT_DIR", "flm_knowledge_vault")
+    COURSES_DATA_PATH: str = os.getenv("COURSES_DATA_PATH", "flm_flutter_data/courses_data.json")
+
+    # LLM Settings
+    LLM_PROVIDER: str = os.getenv("LLM_PROVIDER", "auto").lower()
+    
+    GEMINI_API_KEY: Optional[str] = os.getenv("GEMINI_API_KEY")
+    GEMINI_MODEL: str = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    
+    OPENAI_API_KEY: Optional[str] = os.getenv("OPENAI_API_KEY")
+    OPENAI_BASE_URL: str = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
+    OPENAI_MODEL: str = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+    
+    GROQ_API_KEY: Optional[str] = os.getenv("GROQ_API_KEY")
+    GROQ_API_KEYS_RAW: Optional[str] = os.getenv("GROQ_API_KEYS")
+    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "qwen/qwen3.8-27b")
+
+    @property
+    def groq_api_keys(self) -> List[str]:
+        keys: List[str] = []
+        if self.GROQ_API_KEYS_RAW:
+            keys.extend([k.strip() for k in self.GROQ_API_KEYS_RAW.split(",") if k.strip()])
+        if self.GROQ_API_KEY and self.GROQ_API_KEY not in keys:
+            keys.append(self.GROQ_API_KEY)
+        return keys
+    
+    OLLAMA_BASE_URL: str = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
+    OLLAMA_MODEL: str = os.getenv("OLLAMA_MODEL", "llama3.2")
+    # Keep the local-model timeout below the Flutter client's 90-second timeout.
+    # A request that exceeds this limit returns a clear retryable error instead
+    # of continuing on the server after the UI has already timed out.
+    OLLAMA_TIMEOUT_SECONDS: float = float(os.getenv("OLLAMA_TIMEOUT_SECONDS", "80"))
+    VISION_PROVIDER: str = os.getenv("VISION_PROVIDER", "gemini").lower()
+    OLLAMA_VISION_MODEL: str = os.getenv("OLLAMA_VISION_MODEL", "qwen2.5vl:7b")
+    # Ollama silently drops the start of prompts longer than its context window
+    # (4096 by default), which removes the system rules and top-ranked chunks.
+    OLLAMA_NUM_CTX: int = int(os.getenv("OLLAMA_NUM_CTX", "8192"))
+
+    # RAG Settings
+    TOP_K_CHUNKS: int = int(os.getenv("TOP_K_CHUNKS", "4"))
+    SIMILARITY_THRESHOLD: float = float(os.getenv("SIMILARITY_THRESHOLD", "0.32"))
+    # Character budget for retrieved context sent to the LLM, so one very long
+    # chunk (e.g. a full syllabus) cannot crowd out the other chunks.
+    MAX_CHUNK_CHARS: int = int(os.getenv("MAX_CHUNK_CHARS", "6000"))
+    MAX_CONTEXT_CHARS: int = int(os.getenv("MAX_CONTEXT_CHARS", "12000"))
+    RAG_EMBEDDING_MODEL: str = os.getenv("RAG_EMBEDDING_MODEL", "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+    RAG_EMBEDDING_CACHE: str = os.getenv("RAG_EMBEDDING_CACHE", ".rag_cache")
+
+    def get_vault_path(self) -> Path:
+        """Resolve knowledge vault directory path."""
+        p = Path(self.KNOWLEDGE_VAULT_DIR)
+        if not p.is_absolute():
+            # Try repo root relative
+            candidate = BASE_DIR / self.KNOWLEDGE_VAULT_DIR
+            if candidate.exists():
+                return candidate
+            # Try cwd relative
+            candidate_cwd = Path.cwd() / self.KNOWLEDGE_VAULT_DIR
+            if candidate_cwd.exists():
+                return candidate_cwd
+        return p
+
+    def get_courses_data_path(self) -> Path:
+        """Resolve courses_data.json file path."""
+        p = Path(self.COURSES_DATA_PATH)
+        if not p.is_absolute():
+            candidate = BASE_DIR / self.COURSES_DATA_PATH
+            if candidate.exists():
+                return candidate
+            candidate_cwd = Path.cwd() / self.COURSES_DATA_PATH
+            if candidate_cwd.exists():
+                return candidate_cwd
+        return p
+
+
+settings = Settings()

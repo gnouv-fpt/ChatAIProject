@@ -15,8 +15,6 @@ namespace BusinessLogic.Services.Implementations;
 
 public sealed class ChatbotService : IChatbotService
 {
-    private const string NotFoundAnswer = "Không tìm thấy thông tin liên quan trong tài liệu đã tải lên.";
-
     private readonly IEmbeddingModelRegistry _embeddingModelRegistry;
     private readonly IEmbeddingBackfillService _embeddingBackfillService;
     private readonly IVectorSearchService _vectorSearchService;
@@ -92,7 +90,7 @@ public sealed class ChatbotService : IChatbotService
                 .ToList();
 
             LlmResponseDto? llmResponse = null;
-            var answer = NotFoundAnswer;
+            var answer = PromptBuilder.GetNotFoundAnswer(request.Question);
             if (relevantChunks.Count > 0)
             {
                 llmResponse = await _llmService.GenerateAnswerAsync(

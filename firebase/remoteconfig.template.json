@@ -1,0 +1,16 @@
+{
+  "conditions": [],
+  "parameters": {
+    "next_course_preview_limit": {
+      "defaultValue": { "value": "3" },
+      "description": "Số môn tối đa hiển thị trong khu vực xem trước, hợp lệ 1-10.",
+      "valueType": "NUMBER"
+    },
+    "enable_pe_tips": {
+      "defaultValue": { "value": "true" },
+      "description": "Bật hoặc tắt mẹo chuẩn bị PE trong giao diện.",
+      "valueType": "BOOLEAN"
+    }
+  },
+  "version": { "description": "Lab 3 local template; review before deployment" }
+}

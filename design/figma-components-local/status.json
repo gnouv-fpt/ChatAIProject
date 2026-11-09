@@ -1,0 +1,56 @@
+{
+  "status": "created_and_verified_in_figma",
+  "fileKey": "N3LyPn9HWDC0M34lVR5jCC",
+  "families": 7,
+  "variants": 20,
+  "reviewInstances": 20,
+  "sourceFrameId": "55:16",
+  "reviewFrameId": "55:17",
+  "checks": {
+    "figma_execution": "passed via local MCP Bridge",
+    "figma_screenshots": "exported and visually inspected",
+    "bounded_layout": "702 nodes; no issues",
+    "explicit_touch_targets": "44 targets checked at 48dp minimum",
+    "tokens": {
+      "totalUsages": 537,
+      "matchedUsages": 505,
+      "unmatchedUsages": 32,
+      "coverage": 0.9404,
+      "byGroup": {
+        "radius": {
+          "total": 57,
+          "matched": 50,
+          "unmatched": 7
+        },
+        "color": {
+          "total": 243,
+          "matched": 243,
+          "unmatched": 0
+        },
+        "spacing": {
+          "total": 170,
+          "matched": 145,
+          "unmatched": 25
+        },
+        "typography": {
+          "total": 67,
+          "matched": 67,
+          "unmatched": 0
+        }
+      },
+      "byMatchType": {
+        "boundVariable": 438,
+        "style": 67,
+        "exactValue": 0,
+        "none": 32
+      }
+    }
+  },
+  "remaining": [
+    "Apply instances to final screens",
+    "Complete screen alignment and three prototype flows",
+    "Six-page requirement remains blocked by Starter page limit",
+    "Real Stitch output and three iterations not yet produced"
+  ],
+  "standalone_plugin": "Prepared alternative; not executed. Do not run over bridge-created components."
+}

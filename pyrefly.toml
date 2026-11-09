@@ -1,0 +1,2 @@
+project-includes = ["python_services/**/*.py"]
+python-interpreter-path = "python_services/.venv/Scripts/python.exe"

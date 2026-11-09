@@ -1,0 +1,698 @@
+{
+  "runId": "flm-lab2-2026-10-21",
+  "fileKey": "N3LyPn9HWDC0M34lVR5jCC",
+  "scope": "Flutter foundations, Button/Text field and seven additional component families",
+  "pages": {
+    "finalUI": "0:1",
+    "userFlow": "6:2",
+    "wireframe": "6:18"
+  },
+  "sections": {
+    "designSystem": "6:43",
+    "components": "6:59",
+    "prototype": "6:78"
+  },
+  "foundations": {
+    "createdNodeIds": [
+      "VariableID:51:6",
+      "VariableID:51:7",
+      "VariableID:51:8",
+      "VariableID:51:9",
+      "VariableID:51:10",
+      "VariableID:51:11",
+      "VariableID:51:12",
+      "VariableID:51:13",
+      "VariableID:51:14",
+      "VariableID:51:15",
+      "VariableID:51:16",
+      "VariableID:51:17",
+      "VariableID:51:18",
+      "VariableID:51:19",
+      "VariableID:51:20",
+      "VariableID:51:21",
+      "VariableID:51:22",
+      "VariableID:51:23",
+      "VariableID:51:24",
+      "VariableID:51:25",
+      "VariableID:51:26",
+      "VariableID:51:27",
+      "VariableID:51:28",
+      "VariableID:51:29",
+      "VariableID:51:30",
+      "S:73d400c827113b4cec6beac40702a143c0a1d7e1,",
+      "S:a9140629a6c1e28b20a4c0c9ec34258fc25b02de,",
+      "S:8f43a5534a8d84a1841d84f6bd3833aee0aece18,",
+      "S:5115d6d9e37142da123684f3ea2606bd5e8891e9,",
+      "S:26bffbe5c98f054756d3fd697e48469bb1dac4bd,"
+    ],
+    "mutatedNodeIds": [
+      "VariableCollectionId:6:31",
+      "VariableID:6:32",
+      "VariableID:6:33",
+      "VariableID:6:34",
+      "VariableID:6:35",
+      "VariableID:6:36",
+      "VariableID:6:37",
+      "VariableID:6:38",
+      "VariableID:6:39",
+      "VariableID:6:40",
+      "6:49",
+      "6:52",
+      "6:55",
+      "6:58"
+    ],
+    "variableCount": 36,
+    "textStyleCount": 5,
+    "colors": [
+      {
+        "name": "primary",
+        "hex": "#1565C0"
+      },
+      {
+        "name": "primary-dark",
+        "hex": "#0D47A1"
+      },
+      {
+        "name": "primary-light",
+        "hex": "#E3F2FD"
+      },
+      {
+        "name": "surface",
+        "hex": "#F8FAFC"
+      },
+      {
+        "name": "card",
+        "hex": "#FFFFFF"
+      },
+      {
+        "name": "text",
+        "hex": "#0F172A"
+      },
+      {
+        "name": "text-muted",
+        "hex": "#475569"
+      },
+      {
+        "name": "border",
+        "hex": "#E2E8F0"
+      },
+      {
+        "name": "disabled",
+        "hex": "#F1F5F9"
+      },
+      {
+        "name": "accent",
+        "hex": "#B34700"
+      },
+      {
+        "name": "error",
+        "hex": "#BA1A1A"
+      },
+      {
+        "name": "success",
+        "hex": "#2E7D32"
+      }
+    ]
+  },
+  "components": {
+    "createdNodeIds": [
+      "52:6",
+      "52:7",
+      "52:8",
+      "52:9",
+      "52:10",
+      "52:11",
+      "52:12",
+      "52:13",
+      "52:14",
+      "52:15",
+      "52:16",
+      "52:17",
+      "52:18",
+      "52:19",
+      "52:20",
+      "52:21",
+      "52:22",
+      "52:23",
+      "52:24",
+      "52:25",
+      "I52:25;8:70",
+      "52:27",
+      "52:28",
+      "52:29",
+      "I52:29;8:72",
+      "52:31",
+      "52:32",
+      "52:33",
+      "I52:33;52:7",
+      "52:35",
+      "52:36",
+      "52:37",
+      "I52:37;52:9",
+      "52:39",
+      "52:40",
+      "52:41",
+      "I52:41;52:11",
+      "52:43",
+      "52:44",
+      "52:45",
+      "52:46",
+      "I52:46;8:75",
+      "52:48",
+      "52:49",
+      "52:50",
+      "I52:50;8:77",
+      "52:52",
+      "52:53",
+      "52:54",
+      "I52:54;52:13",
+      "52:56",
+      "52:57",
+      "52:58",
+      "I52:58;52:15",
+      "52:60",
+      "52:61",
+      "52:62",
+      "I52:62;52:17"
+    ],
+    "mutatedNodeIds": [
+      "8:69",
+      "8:70",
+      "8:71",
+      "8:72",
+      "52:6",
+      "52:7",
+      "52:8",
+      "52:9",
+      "52:10",
+      "52:11",
+      "8:113",
+      "8:74",
+      "8:75",
+      "8:76",
+      "8:77",
+      "52:12",
+      "52:13",
+      "52:14",
+      "52:15",
+      "52:16",
+      "52:17",
+      "52:18",
+      "6:59"
+    ],
+    "showcaseId": "52:19",
+    "buttonSet": {
+      "id": "8:113",
+      "variants": [
+        {
+          "id": "8:69",
+          "name": "State=Default",
+          "width": 180,
+          "height": 48
+        },
+        {
+          "id": "8:71",
+          "name": "State=Disabled",
+          "width": 180,
+          "height": 48
+        },
+        {
+          "id": "52:6",
+          "name": "State=Pressed",
+          "width": 180,
+          "height": 48
+        },
+        {
+          "id": "52:8",
+          "name": "State=Focused",
+          "width": 180,
+          "height": 48
+        },
+        {
+          "id": "52:10",
+          "name": "State=Loading",
+          "width": 180,
+          "height": 48
+        }
+      ]
+    },
+    "fieldSet": {
+      "id": "52:18",
+      "variants": [
+        {
+          "id": "8:74",
+          "name": "State=Default",
+          "width": 320,
+          "height": 56
+        },
+        {
+          "id": "8:76",
+          "name": "State=Disabled",
+          "width": 320,
+          "height": 56
+        },
+        {
+          "id": "52:12",
+          "name": "State=Focused",
+          "width": 320,
+          "height": 56
+        },
+        {
+          "id": "52:14",
+          "name": "State=Filled",
+          "width": 320,
+          "height": 56
+        },
+        {
+          "id": "52:16",
+          "name": "State=Error",
+          "width": 320,
+          "height": 56
+        }
+      ]
+    }
+  },
+  "fixes": {
+    "createdNodeIds": [],
+    "mutatedNodeIds": [
+      "8:69",
+      "8:71",
+      "52:6",
+      "52:8",
+      "52:10",
+      "8:113",
+      "8:74",
+      "8:76",
+      "52:12",
+      "52:14",
+      "52:16",
+      "52:18",
+      "6:59"
+    ],
+    "section": {
+      "id": "6:59",
+      "width": 900,
+      "height": 4000
+    },
+    "sourceSets": [
+      {
+        "id": "8:113",
+        "x": 32,
+        "y": 3300
+      },
+      {
+        "id": "52:18",
+        "x": 32,
+        "y": 3570
+      }
+    ]
+  },
+  "verified": [
+    "Button five variants",
+    "Text field five variants",
+    "Ten real instances on review board",
+    "Variable bindings",
+    "Roboto text styles",
+    "Screenshot review"
+  ],
+  "open": [
+    "Starter plan blocks fourth page",
+    "Seven other component families",
+    "Full final UI synchronization",
+    "Three complete prototype flows",
+    "360/412 dp QA",
+    "Stitch evidence"
+  ],
+  "sevenComponentFamilies": {
+    "fileKey": "N3LyPn9HWDC0M34lVR5jCC",
+    "bridgeSession": "session-mvi1vyz2-h6d6o1",
+    "phase": "created_and_verified",
+    "date": "2026-10-21",
+    "sourceFrameId": "55:16",
+    "reviewFrameId": "55:17",
+    "sets": [
+      {
+        "id": "55:349",
+        "name": "FLM/Card",
+        "variantProperties": {
+          "State": {
+            "values": [
+              "Default",
+              "Pressed",
+              "Selected",
+              "Disabled"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:18",
+            "name": "State=Default",
+            "width": 360,
+            "height": 114
+          },
+          {
+            "id": "55:19",
+            "name": "State=Pressed",
+            "width": 360,
+            "height": 114
+          },
+          {
+            "id": "55:20",
+            "name": "State=Selected",
+            "width": 360,
+            "height": 114
+          },
+          {
+            "id": "55:21",
+            "name": "State=Disabled",
+            "width": 360,
+            "height": 114
+          }
+        ]
+      },
+      {
+        "id": "55:350",
+        "name": "FLM/Navigation",
+        "variantProperties": {
+          "Active": {
+            "values": [
+              "Home",
+              "Roadmap",
+              "Assistant",
+              "Transcript",
+              "Settings"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:22",
+            "name": "Active=Home",
+            "width": 360,
+            "height": 80
+          },
+          {
+            "id": "55:23",
+            "name": "Active=Roadmap",
+            "width": 360,
+            "height": 80
+          },
+          {
+            "id": "55:24",
+            "name": "Active=Assistant",
+            "width": 360,
+            "height": 80
+          },
+          {
+            "id": "55:25",
+            "name": "Active=Transcript",
+            "width": 360,
+            "height": 80
+          },
+          {
+            "id": "55:26",
+            "name": "Active=Settings",
+            "width": 360,
+            "height": 80
+          }
+        ]
+      },
+      {
+        "id": "55:351",
+        "name": "FLM/App bar",
+        "variantProperties": {
+          "Variant": {
+            "values": [
+              "Root",
+              "Back"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:27",
+            "name": "Variant=Root",
+            "width": 360,
+            "height": 64
+          },
+          {
+            "id": "55:28",
+            "name": "Variant=Back",
+            "width": 360,
+            "height": 64
+          }
+        ]
+      },
+      {
+        "id": "55:352",
+        "name": "FLM/Dialog",
+        "variantProperties": {
+          "Variant": {
+            "values": [
+              "Confirm",
+              "Error"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:29",
+            "name": "Variant=Confirm",
+            "width": 320,
+            "height": 170
+          },
+          {
+            "id": "55:30",
+            "name": "Variant=Error",
+            "width": 320,
+            "height": 170
+          }
+        ]
+      },
+      {
+        "id": "55:353",
+        "name": "FLM/Loading",
+        "variantProperties": {
+          "Variant": {
+            "values": [
+              "Inline",
+              "Screen"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:31",
+            "name": "Variant=Inline",
+            "width": 360,
+            "height": 56
+          },
+          {
+            "id": "55:32",
+            "name": "Variant=Screen",
+            "width": 360,
+            "height": 102
+          }
+        ]
+      },
+      {
+        "id": "55:354",
+        "name": "FLM/Empty",
+        "variantProperties": {
+          "Variant": {
+            "values": [
+              "Search",
+              "Transcript"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:33",
+            "name": "Variant=Search",
+            "width": 360,
+            "height": 210
+          },
+          {
+            "id": "55:34",
+            "name": "Variant=Transcript",
+            "width": 360,
+            "height": 210
+          }
+        ]
+      },
+      {
+        "id": "55:355",
+        "name": "FLM/Error",
+        "variantProperties": {
+          "Variant": {
+            "values": [
+              "Network",
+              "Quota",
+              "Import"
+            ]
+          }
+        },
+        "variants": [
+          {
+            "id": "55:35",
+            "name": "Variant=Network",
+            "width": 360,
+            "height": 210
+          },
+          {
+            "id": "55:36",
+            "name": "Variant=Quota",
+            "width": 360,
+            "height": 210
+          },
+          {
+            "id": "55:37",
+            "name": "Variant=Import",
+            "width": 360,
+            "height": 210
+          }
+        ]
+      }
+    ],
+    "reviewInstances": [
+      {
+        "ref": "tmp:inst0_0",
+        "id": "55:359"
+      },
+      {
+        "ref": "tmp:inst0_1",
+        "id": "55:364"
+      },
+      {
+        "ref": "tmp:inst0_2",
+        "id": "55:369"
+      },
+      {
+        "ref": "tmp:inst0_3",
+        "id": "55:375"
+      },
+      {
+        "ref": "tmp:inst1_0",
+        "id": "55:383"
+      },
+      {
+        "ref": "tmp:inst1_1",
+        "id": "55:422"
+      },
+      {
+        "ref": "tmp:inst1_2",
+        "id": "55:461"
+      },
+      {
+        "ref": "tmp:inst1_3",
+        "id": "55:503"
+      },
+      {
+        "ref": "tmp:inst1_4",
+        "id": "55:544"
+      },
+      {
+        "ref": "tmp:inst2_0",
+        "id": "55:588"
+      },
+      {
+        "ref": "tmp:inst2_1",
+        "id": "55:596"
+      },
+      {
+        "ref": "tmp:inst3_0",
+        "id": "55:611"
+      },
+      {
+        "ref": "tmp:inst3_1",
+        "id": "55:620"
+      },
+      {
+        "ref": "tmp:inst4_0",
+        "id": "55:632"
+      },
+      {
+        "ref": "tmp:inst4_1",
+        "id": "55:637"
+      },
+      {
+        "ref": "tmp:inst5_0",
+        "id": "55:645"
+      },
+      {
+        "ref": "tmp:inst5_1",
+        "id": "55:655"
+      },
+      {
+        "ref": "tmp:inst6_0",
+        "id": "55:671"
+      },
+      {
+        "ref": "tmp:inst6_1",
+        "id": "55:684"
+      },
+      {
+        "ref": "tmp:inst6_2",
+        "id": "55:697"
+      }
+    ],
+    "validation": {
+      "scannedNodes": 702,
+      "complete": true,
+      "issues": [],
+      "limitations": []
+    },
+    "explicitInteractiveTargets": 44,
+    "tokenUsage": {
+      "totalUsages": 537,
+      "matchedUsages": 505,
+      "unmatchedUsages": 32,
+      "coverage": 0.9404,
+      "byGroup": {
+        "radius": {
+          "total": 57,
+          "matched": 50,
+          "unmatched": 7
+        },
+        "color": {
+          "total": 243,
+          "matched": 243,
+          "unmatched": 0
+        },
+        "spacing": {
+          "total": 170,
+          "matched": 145,
+          "unmatched": 25
+        },
+        "typography": {
+          "total": 67,
+          "matched": 67,
+          "unmatched": 0
+        }
+      },
+      "byMatchType": {
+        "boundVariable": 438,
+        "style": 67,
+        "exactValue": 0,
+        "none": 32
+      }
+    },
+    "notes": [
+      "Colors bind to existing primitive color variables selected by the bridge's exact-match resolver; semantic aliases remain available.",
+      "Typography binds to existing Roboto text styles. 32 unbound values are 7 component-set editor radii and 25 zero/4px spacing values.",
+      "No new component-property text/boolean bindings or prototype reactions were claimed.",
+      "Old standalone placeholders and existing app screens were preserved."
+    ]
+  },
+  "mobileColorSync": {
+    "receipt": "mobile-color-sync-2026-10-21.json",
+    "status": "applied_and_visually_checked",
+    "mobileFrames": 11,
+    "prototypeOverlays": 4,
+    "paintWrites": 657,
+    "navigation": "Matches generated Material 3 defaults from installed Flutter SDK",
+    "remaining": "Chat input overflow, font/sizing, screen completeness and prototype flows still require work"
+  }
+}

@@ -1,0 +1,2933 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FPTU Curriculum Knowledge Graph & Syllabus Viewer - Khôi (PRM393)</title>
+  <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --panel: #111827;
+      --panel-border: #1f2937;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #f97316;
+      --accent-glow: rgba(249, 115, 22, 0.25);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+    /* Top Bar */
+    header {
+      background: rgba(17, 24, 39, 0.88);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--panel-border);
+      padding: 10px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 20;
+      gap: 16px;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .badge {
+      background: linear-gradient(135deg, #f97316, #ea580c);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 10px rgba(249, 115, 22, 0.35);
+    }
+    h1 { font-size: 16px; font-weight: 700; color: #fff; line-height: 1.2; }
+    .sub-title { font-size: 11px; color: var(--text-muted); }
+
+    /* Search Bar in Header */
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+    .search-input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 10px;
+      padding: 7px 14px 7px 34px;
+      color: #fff;
+      font-size: 12px;
+      outline: none;
+      transition: all 0.2s;
+    }
+    .search-input:focus {
+      border-color: #f97316;
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+    }
+    .search-icon {
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: #9ca3af;
+      pointer-events: none;
+    }
+
+    .stats {
+      display: flex;
+      gap: 12px;
+      font-size: 12px;
+    }
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.04);
+      padding: 5px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
+    }
+    .stat-item strong { color: #fdba74; }
+
+    /* Main Container */
+    .main-container {
+      flex: 1;
+      display: flex;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #network {
+      flex: 1;
+      height: 100%;
+      background: radial-gradient(circle at center, #131b2e 0%, #0b0f19 85%);
+      outline: none;
+    }
+
+    /* Side Panel */
+    .sidebar {
+      width: 450px;
+      background: var(--panel);
+      border-left: 1px solid var(--panel-border);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      box-shadow: -8px 0 24px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease;
+      z-index: 15;
+    }
+    .sidebar-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .course-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 6px;
+    }
+    .course-title { font-size: 20px; font-weight: 800; color: #fff; line-height: 1.2; }
+    .course-sub { font-size: 13px; color: #9ca3af; margin-top: 4px; line-height: 1.4; }
+
+    .sidebar-content {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+    }
+    .sidebar-content::-webkit-scrollbar { width: 6px; }
+    .sidebar-content::-webkit-scrollbar-thumb { background: #374151; border-radius: 4px; }
+
+    .section-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #93c5fd;
+      margin: 18px 0 10px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .section-title:first-child { margin-top: 0; }
+
+    .pill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .pill .label { color: var(--text-muted); display: block; margin-bottom: 3px; font-size: 11px; }
+    .pill .val { font-weight: 600; color: #fff; font-size: 13px; }
+
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; }
+    .tag {
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag:hover {
+      background: #3b82f6;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+
+    .box-info {
+      background: rgba(255, 255, 255, 0.03);
+      border-left: 3px solid #3b82f6;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #d1d5db;
+      margin-bottom: 10px;
+    }
+
+    /* Floating Controls */
+    .controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      display: flex;
+      gap: 8px;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 8px 12px;
+      border-radius: 14px;
+      border: 1px solid var(--panel-border);
+      z-index: 10;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .btn-ctrl {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .btn-ctrl:hover { background: #f97316; border-color: #f97316; transform: translateY(-1px); }
+    .btn-ctrl.active { background: #ea580c; border-color: #f97316; }
+
+    /* Legend */
+    .legend {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1px solid var(--panel-border);
+      font-size: 12px;
+      z-index: 10;
+      max-width: 290px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    .legend::-webkit-scrollbar { width: 4px; }
+    .legend::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
+    .legend-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .legend-title { font-weight: 700; color: #e5e7eb; font-size: 13px; }
+    .btn-reset-filter {
+      font-size: 10px;
+      color: #93c5fd;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 6px;
+      border-radius: 6px;
+      margin-bottom: 2px;
+      font-size: 11px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .legend-item:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+    }
+    .legend-item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px currentColor; }
+    .legend-count {
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      padding: 1px 6px;
+      border-radius: 999px;
+      color: #9ca3af;
+    }
+
+    /* Layout Switcher */
+    .layout-switcher {
+      position: absolute;
+      top: 20px;
+      right: 470px;
+      background: rgba(17, 24, 39, 0.92);
+      backdrop-filter: blur(12px);
+      padding: 5px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      display: flex;
+      gap: 4px;
+      z-index: 10;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.4);
+    }
+    .btn-tab {
+      background: transparent;
+      border: none;
+      color: #9ca3af;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-tab.active {
+      background: #f97316;
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(249, 115, 22, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <span class="badge">FLM DATA ARCHITECT</span>
+      <div>
+        <h1>FPTU Curriculum Knowledge Graph</h1>
+        <div class="sub-title">Chương trình Kỹ thuật Phần mềm (BIT_SE_K19B) • Combo .NET • Deliverables của Khôi</div>
+      </div>
+    </div>
+
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="search-input" class="search-input" placeholder="Tìm kiếm môn học (PRM, Java, .NET, SEP...)" oninput="handleSearch(this.value)" />
+    </div>
+
+    <div class="stats">
+      <div class="stat-item">Môn học: <strong id="stat-courses">48</strong></div>
+      <div class="stat-item">Liên kết Tiên quyết: <strong id="stat-edges">23</strong></div>
+      <div class="stat-item">Học kỳ: <strong id="stat-semesters">10</strong></div>
+      <div class="stat-item">Syllabus chi tiết: <strong style="color: #4ade80;">48 / 48 (100%)</strong></div>
+    </div>
+  </header>
+
+  <div class="main-container">
+    <!-- View Switcher -->
+    <div class="layout-switcher">
+      <button class="btn-tab active" id="tab-organic" onclick="switchLayout('organic')">🌐 Mạng Lưới (Obsidian Style)</button>
+      <button class="btn-tab" id="tab-hierarchical" onclick="switchLayout('hierarchical')">🗺️ Lộ Trình Phân Kỳ</button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="legend-header">
+        <div class="legend-title">🗺️ Học Kỳ & Màu Sắc</div>
+        <button class="btn-reset-filter" onclick="resetHighlight()">Hiện tất cả</button>
+      </div>
+      <div id="legend-list"></div>
+      <div style="margin-top: 10px; font-size: 10px; color: #9ca3af; line-height: 1.4; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 8px;">
+        💡 <strong>Mẹo:</strong> Click vào học kỳ để lọc môn, hoặc click vào nút môn học trên đồ thị để xem chi tiết Syllabus.
+      </div>
+    </div>
+
+    <!-- Canvas -->
+    <div id="network"></div>
+
+    <!-- Floating Action Bar -->
+    <div class="controls">
+      <button class="btn-ctrl" onclick="network.fit({animation: true})">🎯 Căn Giữa</button>
+      <button class="btn-ctrl" onclick="highlightTrack('PRN212')">⚡ Nhánh .NET</button>
+      <button class="btn-ctrl" onclick="highlightTrack('PRM393')">📱 Nhánh PRM393</button>
+      <button class="btn-ctrl" onclick="highlightTrack('PRO192')">☕ Nhánh Java Core</button>
+      <button class="btn-ctrl" onclick="highlightTrack('SEP490')">🎓 Đồ Án Tốt Nghiệp</button>
+      <button class="btn-ctrl" onclick="resetHighlight()">🔄 Mặc Định</button>
+    </div>
+
+    <!-- Side detail panel -->
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="course-badge" id="c-badge" style="background: #f97316; color: white;">HỌC KỲ 8</span>
+        <div class="course-title" id="c-code">PRM393</div>
+        <div class="course-sub" id="c-name">Mobile Programming (Lập trình di động)</div>
+      </div>
+      <div class="sidebar-content" id="sidebar-content">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let network = null;
+    let coursesData = null;
+    let nodesDataSet = null;
+    let edgesDataSet = null;
+    let currentLayout = 'organic'; // 'organic' or 'hierarchical'
+
+    const embeddedData = {
+  "curriculum": {
+    "code": "BIT_SE_K19B",
+    "name": "The Bachelor Program of Information Technology, Software Engineering Major",
+    "name_vi": "Chương trình cử nhân ngành Công nghệ thông tin, chuyên ngành Kỹ thuật phần mềm",
+    "total_credits": 145,
+    "total_subjects": 48,
+    "decision_no": "1140/QĐ-ĐHFPT dated 09/11/2026",
+    "degree_level": "Bachelor / Đại học chính quy",
+    "institution": "FPT University (FPTU)",
+    "major": "Software Engineering (SE)"
+  },
+  "plos": [
+    {
+      "id": "PLO1",
+      "index": 1,
+      "name": "PLO1",
+      "description": "Understand basic knowledge of social sciences, political law, national security and defense, contributing to the formation of a scientific worldview and methodology."
+    },
+    {
+      "id": "PLO2",
+      "index": 2,
+      "name": "PLO2",
+      "description": "Apply solid scientific foundation knowledge in the field of information technology in general and software engineering in particular to understand the professional context and acquire in-depth specialized knowledge of software engineering."
+    },
+    {
+      "id": "PLO3",
+      "index": 3,
+      "name": "PLO3",
+      "description": "Apply in-depth specialized knowledge, new technologies in the field of software engineering, or expanded knowledge (in fields close to software engineering) to work and propose solutions to meet diverse needs from reality."
+    },
+    {
+      "id": "PLO4",
+      "index": 4,
+      "name": "PLO4",
+      "description": "Have basic knowledge of planning and operating, implementing, and supervising the implementation of plans for specialized work in the field of software engineering."
+    },
+    {
+      "id": "PLO5",
+      "index": 5,
+      "name": "PLO5",
+      "description": "Have a mindset about startups and apply startup knowledge and skills to implement a startup project; have creative thinking, research skills, critical thinking and problem solving."
+    },
+    {
+      "id": "PLO6",
+      "index": 6,
+      "name": "PLO6",
+      "description": "Have intermediate English proficiency equivalent to level 4 according to the 6-level foreign language competency framework for Vietnam, and be able to communicate simply in Japanese."
+    },
+    {
+      "id": "PLO7",
+      "index": 7,
+      "name": "PLO7",
+      "description": "Have the ability to communicate and present to clearly state the problem to be solved and convey knowledge and skills when performing specific/complex professional tasks related to software engineering."
+    },
+    {
+      "id": "PLO8",
+      "index": 8,
+      "name": "PLO8",
+      "description": "Have the ability to program and use analysis, design, construction/implementation, and testing tools in the field of software engineering."
+    },
+    {
+      "id": "PLO9",
+      "index": 9,
+      "name": "PLO9",
+      "description": "Have the ability to update and exploit advanced tools and techniques in the field of software engineering in particular and information technology in general."
+    },
+    {
+      "id": "PLO10",
+      "index": 10,
+      "name": "PLO10",
+      "description": "Develop the ability to work independently as well as work effectively in a team in an academic and practical environment; take personal responsibility and responsibility for the team when performing a professional job. Have the spirit of self-study, lifelong learning, adapt to the continuous changes of technology and society."
+    },
+    {
+      "id": "PLO11",
+      "index": 11,
+      "name": "PLO11",
+      "description": "Behave professionally, ethically, socially responsible and have a spirit of serving the community; have professional responsibility and integrity in work."
+    },
+    {
+      "id": "PLO12",
+      "index": 12,
+      "name": "PLO12",
+      "description": "Be mentally and physically strong, demonstrate national identity, and be confident in international integration."
+    },
+    {
+      "id": "PLO13",
+      "index": 13,
+      "name": "PLO13",
+      "description": "Be able to plan, coordinate, and manage resources related to software engineering projects; guide and supervise the implementation of project tasks and at the same time, be able to evaluate the effectiveness of the project and propose feasible and effective solutions for improvement."
+    }
+  ],
+  "semesters": [
+    {
+      "semester": 0,
+      "title": "Học kỳ Chuẩn bị (Giai đoạn 0)",
+      "color": "#6B7280",
+      "total_credits": 3,
+      "course_count": 2,
+      "course_codes": [
+        "OTP101",
+        "TRS601"
+      ]
+    },
+    {
+      "semester": 1,
+      "title": "Học kỳ 1",
+      "color": "#3B82F6",
+      "total_credits": 19,
+      "course_count": 7,
+      "course_codes": [
+        "CEA201",
+        "CSI106",
+        "MAE101",
+        "PRF192",
+        "SSL101c",
+        "TMI101",
+        "VOV114"
+      ]
+    },
+    {
+      "semester": 2,
+      "title": "Học kỳ 2",
+      "color": "#10B981",
+      "total_credits": 17,
+      "course_count": 6,
+      "course_codes": [
+        "MAD101",
+        "NWC204",
+        "OSG202",
+        "PRO192",
+        "SSG104",
+        "VOV124"
+      ]
+    },
+    {
+      "semester": 3,
+      "title": "Học kỳ 3",
+      "color": "#F59E0B",
+      "total_credits": 17,
+      "course_count": 6,
+      "course_codes": [
+        "CSD201",
+        "DBI202",
+        "JPD113",
+        "LAB211",
+        "VOV134",
+        "WED201c"
+      ]
+    },
+    {
+      "semester": 4,
+      "title": "Học kỳ 4",
+      "color": "#8B5CF6",
+      "total_credits": 15,
+      "course_count": 5,
+      "course_codes": [
+        "IOT102",
+        "JPD123",
+        "MAS291",
+        "PRJ301",
+        "SWE201c"
+      ]
+    },
+    {
+      "semester": 5,
+      "title": "Học kỳ 5",
+      "color": "#EC4899",
+      "total_credits": 15,
+      "course_count": 5,
+      "course_codes": [
+        "PRN212",
+        "SWP391",
+        "SWR302",
+        "SWT301",
+        "WDU203c"
+      ]
+    },
+    {
+      "semester": 6,
+      "title": "Học kỳ 6",
+      "color": "#14B8A6",
+      "total_credits": 13,
+      "course_count": 2,
+      "course_codes": [
+        "ENW493c",
+        "OJT202"
+      ]
+    },
+    {
+      "semester": 7,
+      "title": "Học kỳ 7",
+      "color": "#F97316",
+      "total_credits": 15,
+      "course_count": 5,
+      "course_codes": [
+        "EXE101",
+        "PMG201c",
+        "PRN222",
+        "PRU213",
+        "SWD392"
+      ]
+    },
+    {
+      "semester": 8,
+      "title": "Học kỳ 8",
+      "color": "#6366F1",
+      "total_credits": 17,
+      "course_count": 6,
+      "course_codes": [
+        "EXE201",
+        "ITE302c",
+        "MLN111",
+        "MLN122",
+        "PRM393",
+        "PRN232"
+      ]
+    },
+    {
+      "semester": 9,
+      "title": "Học kỳ 9",
+      "color": "#EF4444",
+      "total_credits": 16,
+      "course_count": 4,
+      "course_codes": [
+        "HCM202",
+        "MLN131",
+        "SEP490",
+        "VNR202"
+      ]
+    }
+  ],
+  "courses": [
+    {
+      "code": "OTP101",
+      "code_original": "OTP101",
+      "name": "Orientation and General Training Program",
+      "name_vi": "Định hướng và Rèn luyện tập trung",
+      "name_full": "Orientation and General Training Program_Định hướng và Rèn luyện tập trung",
+      "semester": 0,
+      "credits": 0,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OTP101&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13151",
+        "clos_count": 5,
+        "assessment_items": 0,
+        "materials_count": 4,
+        "sessions_count": 5,
+        "min_pass_mark": "",
+        "tools": "",
+        "student_tasks": "Attend enough activities of the university."
+      },
+      "color": "#6B7280"
+    },
+    {
+      "code": "TRS601",
+      "code_original": "TRS601",
+      "name_en": "English 6 (University success)",
+      "name_vi": "Tiếng Anh 6",
+      "credits": 3,
+      "semester": 0,
+      "color": "#6B7280",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14439",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 14439,
+        "clos_count": 10,
+        "assessment_items": 4,
+        "materials_count": 2,
+        "sessions_count": 70,
+        "min_pass_mark": "5",
+        "tools": "- Internet, AI- MyEnglishLab: www.MyEnglishLab.com/Register",
+        "student_tasks": "- Attend at least 80% of contact hours in order to be accepted to the final examination- Actively participate in class activities- Fulfil tasks given by the instructor after class- Use their own laptop in class only for learning purposes- Use the Student Access Code provided with the textbook- Access the course website for up-to-date information and material of the course, for online support from teachers and other students, and for practicing and assessment."
+      }
+    },
+    {
+      "code": "CEA201",
+      "code_original": "CEA201",
+      "name": "Computer Organization and Architecture",
+      "name_vi": "Tổ chức và Kiến trúc máy tính",
+      "name_full": "Computer Organization and Architecture_Tổ chức và Kiến trúc máy tính",
+      "semester": 1,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CEA201&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13245",
+        "clos_count": 10,
+        "assessment_items": 3,
+        "materials_count": 7,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Intenet- Textbook- AI Tools and Simulator software",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all exercises and practical given by instructor in class or at home and submit on time. Do quizzes during class."
+      },
+      "color": "#3B82F6"
+    },
+    {
+      "code": "CSI106",
+      "code_original": "CSI106",
+      "name": "Introduction to Computer Science",
+      "name_vi": "Nhập môn khoa học máy tính",
+      "name_full": "Introduction to Computer Science_Nhập môn khoa học máy tính",
+      "semester": 1,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSI106&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "11585",
+        "clos_count": 13,
+        "assessment_items": 4,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Complete Additional Learning (AI For Everyone course in Coursera) and achieve the certificate- Promptly access to the https://flm.fpt.edu.vn for up-to-date course information\""
+      },
+      "color": "#3B82F6"
+    },
+    {
+      "code": "MAE101",
+      "code_original": "MAE101",
+      "name": "Mathematics for Engineering",
+      "name_vi": "Toán cho ngành kỹ thuật",
+      "name_full": "Mathematics for Engineering_Toán cho ngành kỹ thuật",
+      "semester": 1,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAE101&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "MAS291"
+      ],
+      "syllabus_details": {
+        "syl_id": "13137",
+        "clos_count": 9,
+        "assessment_items": 3,
+        "materials_count": 12,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "Students must attend at least 80% of contact hours in order to be accepted to the final examination."
+      },
+      "color": "#3B82F6"
+    },
+    {
+      "code": "PRF192",
+      "code_original": "PRF192",
+      "name": "Programming Fundamentals",
+      "name_vi": "Cơ sở lập trình",
+      "name_full": "Programming Fundamentals_Cơ sở lập trình",
+      "semester": 1,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRF192&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "PRO192"
+      ],
+      "syllabus_details": {
+        "syl_id": "12223",
+        "clos_count": 9,
+        "assessment_items": 5,
+        "materials_count": 3,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "Tools:- Internet- C language utility (ex.DevC++ 6.3)",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time.- Use laptop in class only for learning purpose.- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information."
+      },
+      "color": "#3B82F6"
+    },
+    {
+      "code": "SSL101c",
+      "code_original": "SSL101c",
+      "name": "Academic Skills for University Success",
+      "name_vi": "Kỹ năng học tập đại học",
+      "name_full": "Academic Skills for University Success_Kỹ năng học tập đại học",
+      "semester": 1,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSL101c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "12594",
+        "clos_count": 5,
+        "assessment_items": 1,
+        "materials_count": 7,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "Online Spec. https://www.coursera.org/specializations/academic-skills; University of Sydney, including:- MOOC1: Introduction to Information & Digital Literacy for University Success ,  https://www.coursera.org/learn/digital-literacy/home/welcome- MOOC2: Introduction to Problem-Solving Skill for University Success, https://www.coursera.org/learn/problem-solving-skills/home/welcome- MOOC3: Critical Thinking Skills for University Success, https://www.coursera.org/learn/critical-thinking-skills/home/welcome- MOOC4: Communication Skills for University Success, https://www.coursera.org/learn/communication-skills/home/welcome- MOOC5: Academic Skills for University Success: Capstone, https://www.coursera.org/learn/academic-skills-project/home/welcome",
+        "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC of spec., regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assignments... as required3. Respect the Coursera Code of Conduct, at  https://learner.coursera.help/hc/en-us/articles/208280036-Coursera-Code-of-Conduct3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus (Optional)6. Must complete all MOOCs of spec. with certification in order to take the Final Exam at Campus"
+      },
+      "color": "#3B82F6"
+    },
+    {
+      "code": "TMI101",
+      "code_original": "TMI101",
+      "name_en": "Traditional Musical Instruments",
+      "name_vi": "Nhạc cụ truyền thống",
+      "credits": 2,
+      "semester": 1,
+      "color": "#3B82F6",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=11871",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 11871,
+        "clos_count": 3,
+        "assessment_items": 3,
+        "materials_count": 2,
+        "sessions_count": 30,
+        "min_pass_mark": "5",
+        "tools": "Nhạc cụ cho từng sinh viênMusical instruments for each student",
+        "student_tasks": "- Tham dự tối thiểu 80% thời lượng môn học trở lên để đủ điều kiện thi cuối môn học.Attend at least 80% of class hours to be eligible for the final exam.- Thái độ học tập nghiêm túc.Study seriously.- Ôn tập bài cũ và tìm hiểu tài liệu bài học mới trước khi đến lớp.Review previous lessons and study materials for new lessons in advance.- Luyện tập, thực hành trên lớp và ở nhà.Practice in class and at home.- Tích cực tham gia hoạt động giảng viên yêu cầu trên trong lớp (phát biểu, hỏi đáp, trao đổi, làm việc nhóm, thực hành...) và làm Portfolio cho môn học.Actively participate in class activities required by the lecturer (express ideas, raise questions,  discuss, work in groups, practice...) and make a Portfolio for the subject."
+      }
+    },
+    {
+      "code": "VOV114",
+      "code_original": "VOV114",
+      "name_en": "Vovinam 1",
+      "name_vi": "Vovinam 1",
+      "credits": 2,
+      "semester": 1,
+      "color": "#3B82F6",
+      "prerequisites": [],
+      "unlocks": [
+        "VOV124"
+      ],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13540",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 13540,
+        "clos_count": 3,
+        "assessment_items": 1,
+        "materials_count": 5,
+        "sessions_count": 30,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
+      }
+    },
+    {
+      "code": "MAD101",
+      "code_original": "MAD101",
+      "name": "Discrete mathematics",
+      "name_vi": "Toán rời rạc",
+      "name_full": "Discrete mathematics_Toán rời rạc",
+      "semester": 2,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAD101&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13144",
+        "clos_count": 8,
+        "assessment_items": 4,
+        "materials_count": 6,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Testbank for ST1.- Powerpoint image in CD + Powerpoint prepared by previous lecturers (PP).- Computerized tools (for example C programming tools, Maxima http://maxima.sourceforge.net/) (CT)- Teaching Suggestion and Applications of Discrete Mathematics for ST1 (TS).",
+        "student_tasks": "Students must attend at least 80% of contact hours in order to be accepted to the final examination."
+      },
+      "color": "#10B981"
+    },
+    {
+      "code": "NWC204",
+      "code_original": "NWC204",
+      "name": "Computer Networking",
+      "name_vi": "Mạng máy tính",
+      "name_full": "Computer Networking_Mạng máy tính",
+      "semester": 2,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=NWC204&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14428",
+        "clos_count": 10,
+        "assessment_items": 5,
+        "materials_count": 5,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "Baseline Equipment Bundle:- 2 x ISR4221/K9 Routers- 2 x WS-C2960+24TC-L Catalyst switches- 1 wireless router (generic brand) with WPA2 support- Ethernet patch cables- PCs- Internet connection for lab and study PCs- Optional equipment for connecting to a WLAN+ 1 printer or integrated printer/scanner/copier for the class to share+ Smartphones and tablets are desirable for use with the labsSoftware:- Cisco IOS versions:+ Routers: Version 15.0 or higher, IP Base feature set+ Switches: Version 15.0 or higher, lanbaseK9 feature set- Packet Tracer, the most recent version.- Open-source server software:+ For various services and protocols, such as Telnet, SSH, HTTP, DHCP, FTP, TFTP, etc.- Tera Term source SSH client software for lab PCs.- Oracle VirtualBox, most recent version.- Wireshark, the most recent version.",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the https://flm.fpt.edu.vn/ for up-to-date course information- Students must complete all assignments on the Cisco Networking Academy (https://www.netacad.com/) with a result of at least 75%."
+      },
+      "color": "#10B981"
+    },
+    {
+      "code": "OSG202",
+      "code_original": "OSG202",
+      "name": "Operating Systems",
+      "name_vi": "Hệ điều hành",
+      "name_full": "Operating Systems_Hệ điều hành",
+      "semester": 2,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OSG202&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13166",
+        "clos_count": 11,
+        "assessment_items": 4,
+        "materials_count": 5,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Linux operating system server and/ or desktop- MARIE simulator- AI tools (ChatGPT/Copilot/Gamma…) and other simulation software if deemed appropriate.",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the FU LMS https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#10B981"
+    },
+    {
+      "code": "PRO192",
+      "code_original": "PRO192",
+      "name": "Object-Oriented Programming",
+      "name_vi": "Lập trình hướng đối tượng",
+      "name_full": "Object-Oriented Programming_Lập trình hướng đối tượng",
+      "semester": 2,
+      "credits": 3,
+      "prerequisite_raw": "Pass PRF192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRO192&curriculumID=3338",
+      "prerequisites": [
+        "PRF192"
+      ],
+      "unlocks": [
+        "CSD201",
+        "LAB211",
+        "PRJ301",
+        "PRM393",
+        "PRN212",
+        "PRU213",
+        "SWD392",
+        "SWE201c"
+      ],
+      "syllabus_details": {
+        "syl_id": "12038",
+        "clos_count": 9,
+        "assessment_items": 5,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "Text Book'NetBean x.xInternet",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time.- Use laptop in class only for learning purpose- Promptly access to the FU FLM at https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#10B981"
+    },
+    {
+      "code": "SSG104",
+      "code_original": "SSG104",
+      "name": "Communication and In-Group Working Skills",
+      "name_vi": "Kỹ năng giao tiếp và cộng tác",
+      "name_full": "Communication and In-Group Working Skills_Kỹ năng giao tiếp và cộng tác",
+      "semester": 2,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSG104&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "11845",
+        "clos_count": 12,
+        "assessment_items": 6,
+        "materials_count": 6,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Internet",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises and assignments given by the instructor in class or at home and submit on time- Use laptops in class only for learning purposes"
+      },
+      "color": "#10B981"
+    },
+    {
+      "code": "VOV124",
+      "code_original": "VOV124",
+      "name_en": "Vovinam 2",
+      "name_vi": "Vovinam 2",
+      "credits": 2,
+      "semester": 2,
+      "color": "#10B981",
+      "prerequisites": [
+        "VOV114"
+      ],
+      "unlocks": [
+        "VOV134"
+      ],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13539",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 13539,
+        "clos_count": 3,
+        "assessment_items": 1,
+        "materials_count": 5,
+        "sessions_count": 30,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa. (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
+      }
+    },
+    {
+      "code": "CSD201",
+      "code_original": "CSD201",
+      "name": "Data Structures and Algorithms",
+      "name_vi": "Cấu trúc dữ liệu và giải thuật",
+      "name_full": "Data Structures and Algorithms_Cấu trúc dữ liệu và giải thuật",
+      "semester": 3,
+      "credits": 3,
+      "prerequisite_raw": "PRO192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSD201&curriculumID=3338",
+      "prerequisites": [
+        "PRO192"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "10368",
+        "clos_count": 8,
+        "assessment_items": 4,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#F59E0B"
+    },
+    {
+      "code": "DBI202",
+      "code_original": "DBI202",
+      "name": "Introduction to Databases",
+      "name_vi": "Các hệ cơ sở dữ liệu",
+      "name_full": "Introduction to Databases_Các hệ cơ sở dữ liệu",
+      "semester": 3,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=DBI202&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "PRJ301",
+        "PRN212"
+      ],
+      "syllabus_details": {
+        "syl_id": "12039",
+        "clos_count": 7,
+        "assessment_items": 5,
+        "materials_count": 5,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "Microsoft SQL Server",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#F59E0B"
+    },
+    {
+      "code": "JPD113",
+      "code_original": "JPD113",
+      "name": "Elementary Japanese 1- A1.1",
+      "name_vi": "Tiếng Nhật sơ cấp 1-A1.1",
+      "name_full": "Elementary Japanese 1- A1.1_Tiếng Nhật sơ cấp 1-A1.1",
+      "semester": 3,
+      "credits": 3,
+      "prerequisite_raw": "Không",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD113&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "JPD123"
+      ],
+      "syllabus_details": {
+        "syl_id": "14469",
+        "clos_count": 5,
+        "assessment_items": 5,
+        "materials_count": 5,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Sử dụng giáo trình chính và giáo trình bổ trợ bằng tiếng Nhật.- Sử dụng slide môn học.- Tra cứu, tham khảo các nội dung có liên quan đến môn học trên mạng hoặc giáo trình tham khảo được giới thiệu trong môn học.- Sử dụng https://heyjapan.net/ để học bảng chữ cái và ôn thi cuối kỳ.- Sử dụng AI (ChatGPT, Copilot, v.v.) để tra cứu cách dùng từ vựng, ứng dụng của ngữ pháp, và các từ ghép Hán tự ngoài các từ đã được học.",
+        "student_tasks": "- Tham dự tối thiểu 80% số giờ học trên lớp mới đủ điều kiện tham gia thi kì thi cuối môn.- Học từ vựng và tìm hiểu trước bài học, làm các bài tập và nhiệm vụ do GV giao.- Ôn tập bài giảng, đối chiếu với giáo trình để nắm vững các kiến thức.- Trên lớp tích cực tham gia trao đổi, xây dựng bài."
+      },
+      "color": "#F59E0B"
+    },
+    {
+      "code": "LAB211",
+      "code_original": "LAB211",
+      "name": "OOP with Java Lab",
+      "name_vi": "Thực hành OOP với Java",
+      "name_full": "OOP with Java Lab_Thực hành OOP với Java",
+      "semester": 3,
+      "credits": 3,
+      "prerequisite_raw": "PRO192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=LAB211&curriculumID=3338",
+      "prerequisites": [
+        "PRO192"
+      ],
+      "unlocks": [
+        "SWP391"
+      ],
+      "syllabus_details": {
+        "syl_id": "10021",
+        "clos_count": 3,
+        "assessment_items": 0,
+        "materials_count": 3,
+        "sessions_count": 60,
+        "min_pass_mark": "5.0",
+        "tools": "NetBean 8.0.2CheckStyle plugin for netbeansJAVA DOCJDK8Tomcat Apache 8Microsoft Excel 2007 or aboveMicrosoft Word 2007 or aboveMicrosoft Powerpoint 2007 or aboveMicrosoft Windows XP or above",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final results.- Students are responsible to conform to Lab Room Regulations- Use desktop computers only in lab room for learning purposes- Promptly  access to the FU LMS at https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#F59E0B"
+    },
+    {
+      "code": "VOV134",
+      "code_original": "VOV134",
+      "name_en": "Vovinam 3",
+      "name_vi": "Vovinam 3",
+      "credits": 2,
+      "semester": 3,
+      "color": "#F59E0B",
+      "prerequisites": [
+        "VOV124"
+      ],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13537",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 13537,
+        "clos_count": 4,
+        "assessment_items": 1,
+        "materials_count": 5,
+        "sessions_count": 30,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "* Dự lớp: Đảm bảo dự ≥ 80% tổng thời lượng của kỳ học.* Bài tập: Thực hiện tốt yêu cầu, nhiệm vụ các bài tập được giao.* Khác: Thường xuyên hoạt động tập luyện ngoại khóa (Sinh hoạt CLB TDTT ngoại khoá, đổi tuyển trường đi thi đấu, được cộng điểm khuyến khích)* Thực hành: Thực hiện các tập; bài kiểm tra; thi lấy điểm."
+      }
+    },
+    {
+      "code": "WED201c",
+      "code_original": "WED201c",
+      "name": "Web Design",
+      "name_vi": "Thiết kế web",
+      "name_full": "Web Design_Thiết kế web",
+      "semester": 3,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WED201c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13172",
+        "clos_count": 5,
+        "assessment_items": 2,
+        "materials_count": 7,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "- Internet",
+        "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC of spec., regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assgnments... as required3. Respect the Coursera Code of Conduct, at  https://learner.coursera.help/hc/en-us/articles/208280036-Coursera-Code-of-Conduct3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus6. Must complete all MOOCs of spec. with certification in order to take the Final Exam at Campus"
+      },
+      "color": "#F59E0B"
+    },
+    {
+      "code": "IOT102",
+      "code_original": "IOT102",
+      "name": "Internet of Things",
+      "name_vi": "Internet vạn vật",
+      "name_full": "Internet of Things_Internet vạn vật",
+      "semester": 4,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=IOT102&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "12400",
+        "clos_count": 13,
+        "assessment_items": 6,
+        "materials_count": 7,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to learn all VIDEOs (theory) online given by instructor on Syllabus at home.- Student is responsible to do all LABs given by instructor on Syllabus at home.- Constantly follow https://flm.fpt.edu.vn/ for up-to-date course information."
+      },
+      "color": "#8B5CF6"
+    },
+    {
+      "code": "JPD123",
+      "code_original": "JPD123",
+      "name": "Elementary Japanese 1-A1.2",
+      "name_vi": "Tiếng Nhật sơ cấp 1-A1.2",
+      "name_full": "Elementary Japanese 1-A1.2_Tiếng Nhật sơ cấp 1-A1.2",
+      "semester": 4,
+      "credits": 3,
+      "prerequisite_raw": "JPD113",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD123&curriculumID=3338",
+      "prerequisites": [
+        "JPD113"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14470",
+        "clos_count": 4,
+        "assessment_items": 5,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Sử dụng Giáo trình chính và GT bổ trợ bằng tiếng Nhật.- Sử dụng ppt cho bài giảng của giảng viên.- Tra cứu, tham khảo các nội dung có liên quan đến môn học trên mạng hoặc giáo trình tham khảo được giới thiệu trong môn học.- Sử dụng AI (ChatGPT, Copilot, v.v.) để tra cứu cách dùng từ vựng, ứng dụng của ngữ pháp, và các từ ghép Hán tự ngoài các từ đã được học.",
+        "student_tasks": "- Tham dự tối thiểu 80% số giờ học trên lớp mới đủ điều kiện tham gia thi kì thi cuối môn.- Học từ vựng và tìm hiểu trước bài học, làm các bài tập và nhiệm vụ do GV giao.- Ôn tập bài giảng, đối chiếu với giáo trình để nắm vững các kiến thức.- Trên lớp tích cực tham gia trao đổi, xây dựng bài."
+      },
+      "color": "#8B5CF6"
+    },
+    {
+      "code": "MAS291",
+      "code_original": "MAS291",
+      "name": "Statistics & Probability",
+      "name_vi": "Xác suất thống kê",
+      "name_full": "Statistics & Probability_Xác suất thống kê",
+      "semester": 4,
+      "credits": 3,
+      "prerequisite_raw": "MAE101 or MAC101",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAS291&curriculumID=3338",
+      "prerequisites": [
+        "MAE101",
+        "MAC101"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13136",
+        "clos_count": 9,
+        "assessment_items": 4,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Computerized tools (for example Excel and DDXL add-ons) (CT)",
+        "student_tasks": "Students must attend at least 80% of contact hours in order to beaccepted to the final examination."
+      },
+      "color": "#8B5CF6"
+    },
+    {
+      "code": "PRJ301",
+      "code_original": "PRJ301",
+      "name": "Java Web Application Development",
+      "name_vi": "Phát triển ứng dụng Java web",
+      "name_full": "Java Web Application Development_Phát triển ứng dụng Java web",
+      "semester": 4,
+      "credits": 3,
+      "prerequisite_raw": "DBI202, PRO192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRJ301&curriculumID=3338",
+      "prerequisites": [
+        "DBI202",
+        "PRO192"
+      ],
+      "unlocks": [
+        "SWP391"
+      ],
+      "syllabus_details": {
+        "syl_id": "13165",
+        "clos_count": 9,
+        "assessment_items": 7,
+        "materials_count": 6,
+        "sessions_count": 56,
+        "min_pass_mark": "5",
+        "tools": "Web server application :Tomcat 9 or higherIDE: Netbeans 13 or higher (as defined by the subject leader)Java EE: 1.8 or higherMS SQL Server 2019 or higher",
+        "student_tasks": "- Attend at least 80% of contact hours in order to be accepted to the final examination- Actively participate in class activities- Fulfil tasks given by intructor after class- Use their own laptop in class only for learning purpose- Read the textbook in advance- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#8B5CF6"
+    },
+    {
+      "code": "SWE201c",
+      "code_original": "SWE201c",
+      "name": "Introduction to Software Engineering",
+      "name_vi": "Nhập môn kĩ thuật phần mềm",
+      "name_full": "Introduction to Software Engineering_Nhập môn kĩ thuật phần mềm",
+      "semester": 4,
+      "credits": 3,
+      "prerequisite_raw": "PRO192 (not applied to the BIT_AI ; BIT_IC; BIT_AS; BIT_DX and BA programs)",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWE201c&curriculumID=3338",
+      "prerequisites": [
+        "PRO192"
+      ],
+      "unlocks": [
+        "SWD392",
+        "SWP391",
+        "SWR302",
+        "SWT301"
+      ],
+      "syllabus_details": {
+        "syl_id": "14443",
+        "clos_count": 4,
+        "assessment_items": 2,
+        "materials_count": 6,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "Student must get the certification of Software Development Lifecycle specialization from Coursera to be accepted to the final examination"
+      },
+      "color": "#8B5CF6"
+    },
+    {
+      "code": "PRN212",
+      "code_original": "PRN212",
+      "name_en": "Basis Cross-Platform Application Programming With .NET",
+      "name_vi": "Lập trình ứng dụng đa nền tảng cơ bản với .NET",
+      "credits": 3,
+      "semester": 5,
+      "color": "#EC4899",
+      "prerequisites": [
+        "PRO192",
+        "DBI202"
+      ],
+      "unlocks": [
+        "PRN222"
+      ],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13891",
+      "combo_info": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",
+      "syllabus_details": {
+        "syl_id": 13891,
+        "clos_count": 6,
+        "assessment_items": 6,
+        "materials_count": 5,
+        "sessions_count": 66,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Visual Studio.NET 2022 or later- MS SQL Server 2019 or later- Platform : .NET 8.0 or later- GitHub Copilot: Automated suggestions when writing code in C#, XAML, SQL, ...- AI-enhanced Debuggers (JetBrains Rider AI or Visual Studio IntelliCode)- GitHub Workflow",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      }
+    },
+    {
+      "code": "SWP391",
+      "code_original": "SWP391",
+      "name": "Software development project",
+      "name_vi": "Dự án phát triển phần mềm",
+      "name_full": "Software development project_Dự án phát triển phần mềm",
+      "semester": 5,
+      "credits": 3,
+      "prerequisite_raw": "PRJ301, SWE201c or SWE202c, pass LAB211",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWP391&curriculumID=3338",
+      "prerequisites": [
+        "PRJ301",
+        "SWE201c",
+        "SWE202c",
+        "LAB211"
+      ],
+      "unlocks": [
+        "SEP490"
+      ],
+      "syllabus_details": {
+        "syl_id": "14177",
+        "clos_count": 6,
+        "assessment_items": 4,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Requirement & Design: Miro, Lucidchart, Figma, Draw.io, ChatGPT, Gemini- Coding & Debugging: IntelliJ IDEA / VS Code / Visual Studio, GitHub Copilot, Tabnine- Database: MySQL Workbench, SQL Server Management Studio, pgAdmin-Testing: JUnit, NUnit, Postman, Selenium, AI-powered test case generators- Project Management: Jira, Trello, Notion, Git/GitHub- Deployment: Docker, Heroku, AWS / Azure / GCP, Vercel",
+        "student_tasks": "- Join the team as arranged by the teacher- Select the project topic & technology stack and get approval from teacher before implementing- Attend at least 80% of contact slots in order to be accepted to the final presentation.- Analyze requirements, write user requirements, and create system diagrams with AI-assisted tools.- Design system architecture, database schema, and UI/UX wireframes using MVC, OOP, and AI suggestions.- Implement core features with AI-supported coding, apply coding standards, and manage source code in Git.- Develop and run unit/integration tests, using AI to suggest and refine test cases.- Deploy the application to staging, verify functionality, and prepare for final delivery.- Manage project progress, present milestones, and prepare high-quality reports with AI support."
+      },
+      "color": "#EC4899"
+    },
+    {
+      "code": "SWR302",
+      "code_original": "SWR302",
+      "name": "Software Requirement",
+      "name_vi": "Yêu cầu phần mềm",
+      "name_full": "Software Requirement_Yêu cầu phần mềm",
+      "semester": 5,
+      "credits": 3,
+      "prerequisite_raw": "SWE102 or SWE201c or SWE202c",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWR302&curriculumID=3338",
+      "prerequisites": [
+        "SWE102",
+        "SWE201c",
+        "SWE202c"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14176",
+        "clos_count": 9,
+        "assessment_items": 6,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Microsoft office for documents and presentation.- https://www.visual-paradigm.com/download/community.jsp students must install visual-paradigm for drawing UML (offline) before taking Final Practical Exam- BOUML (http://bouml.free.fr/) : UML Drawing software",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#EC4899"
+    },
+    {
+      "code": "SWT301",
+      "code_original": "SWT301",
+      "name": "Software Testing",
+      "name_vi": "Kiểm thử phần mềm",
+      "name_full": "Software Testing_Kiểm thử phần mềm",
+      "semester": 5,
+      "credits": 3,
+      "prerequisite_raw": "SWE102 or SWE201c or SWE202c",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWT301&curriculumID=3338",
+      "prerequisites": [
+        "SWE102",
+        "SWE201c",
+        "SWE202c"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14178",
+        "clos_count": 10,
+        "assessment_items": 6,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Unit Test Framework- Bug Management Tool- Ms Office- IDE- Static Analyst Tool- Automation Tool- AI Tools: Grok (xAI), ChatGPT, Gemini, Deepseek",
+        "student_tasks": "Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Students are responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time.- The use of AI in assessments and exams must comply with the instructions of the course instructor.- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      },
+      "color": "#EC4899"
+    },
+    {
+      "code": "WDU203c",
+      "code_original": "WDU203c",
+      "name": "UI/UX Design",
+      "name_vi": "Thiết kế trải nghiệm người dùng",
+      "name_full": "UI/UX Design_Thiết kế trải nghiệm người dùng",
+      "semester": 5,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WDU203c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13164",
+        "clos_count": 8,
+        "assessment_items": 1,
+        "materials_count": 8,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "- Internet",
+        "student_tasks": "1. Complete the online courses and get all specialization certifications to be allowed to take Final Exam2. Final Exam included Final Theory Exam (TE):  100%3. Students who complete all MOOCs before the course deadline will receive 1 bonus point; otherwise, no bonus point will be awarded.4. Completion Criteria:  Final TE Score  >=4 & (Final TE Score + bonus) >= 5"
+      },
+      "color": "#EC4899"
+    },
+    {
+      "code": "ENW493c",
+      "code_original": "ENW493c",
+      "name": "Research Methods & Academic Writing Skills",
+      "name_vi": "Phương pháp nghiên cứu & Kỹ năng viết học thuật",
+      "name_full": "Research Methods & Academic Writing Skills_Phương pháp nghiên cứu & Kỹ năng viết học thuật",
+      "semester": 6,
+      "credits": 3,
+      "prerequisite_raw": "",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ENW493c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "12547",
+        "clos_count": 5,
+        "assessment_items": 1,
+        "materials_count": 5,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "- Internet",
+        "student_tasks": "1. Join the online course (spec.) when being invited by the admin.2. Enroll in each MOOC, regularly study MOOCs at least 5hrs/week by watching videos, reading materials, taking quizzes, doing assgnments... as required3. Keep online learning progress promptly (bonus will be awarded)4. Communicate and discuss in forum5. Attend off-line sessions in the Campus (Optional)6. Must complete all MOOCs with certification in order to take the Final Exam at Campus"
+      },
+      "color": "#14B8A6"
+    },
+    {
+      "code": "OJT202",
+      "code_original": "OJT202",
+      "name": "On-The-Job Training",
+      "name_vi": "Đào tạo trong môi trường thực tế",
+      "name_full": "On-The-Job Training_Đào tạo trong môi trường thực tế",
+      "semester": 6,
+      "credits": 10,
+      "prerequisite_raw": "Students attained 90% of the total credits prior to the OJT term (excluding Physical Education and OTP Programs) Students choosing JS combo (Japanese Bridge Engineer) have to pass JPD133",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OJT202&curriculumID=3338",
+      "prerequisites": [
+        "JPD133"
+      ],
+      "unlocks": [
+        "SEP490"
+      ],
+      "syllabus_details": {
+        "syl_id": "12016",
+        "clos_count": 3,
+        "assessment_items": 3,
+        "materials_count": 4,
+        "sessions_count": 14,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "- Seriously participate in the internship.- Perform tasks assigned by the Internship Unit.- Participate in internship-related activities.- Complete intership evaluation and internship report."
+      },
+      "color": "#14B8A6"
+    },
+    {
+      "code": "EXE101",
+      "code_original": "EXE101",
+      "name": "Experiential Entrepreneurship 1",
+      "name_vi": "Trải nghiệm khởi nghiệp 1",
+      "name_full": "Experiential Entrepreneurship 1_Trải nghiệm khởi nghiệp 1",
+      "semester": 7,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE101&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "EXE201"
+      ],
+      "syllabus_details": {
+        "syl_id": "10358",
+        "clos_count": 5,
+        "assessment_items": 5,
+        "materials_count": 10,
+        "sessions_count": 18,
+        "min_pass_mark": "5",
+        "tools": "- Laptop computer- Internet- Meeting hall with capacity of at least 200 seats for seminars- Video conference platforms, such as Google Meet, Microsoft Teams, or Zoom.",
+        "student_tasks": "- Students must attend at least 80% of Instructor's Coaching sessions, Seminars and Mentor's Mentoring.- Students are responsible for doing all exercises and assignments given by the instructor in class or at home and submitting them on time.- Students must meet all checkpoints' requirements.- Use laptop in class only for learning purpose- Promplty access to the FPTU Learning Materials platform at https://flm.fpt.edu.vn/ and Edunext systems at https://fu.edunext.vn/  for up to date course information."
+      },
+      "color": "#F97316"
+    },
+    {
+      "code": "PMG201c",
+      "code_original": "PMG201c",
+      "name": "Project Management",
+      "name_vi": "Project Management",
+      "name_full": "Project Management",
+      "semester": 7,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PMG201c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "SEP490"
+      ],
+      "syllabus_details": {
+        "syl_id": "12548",
+        "clos_count": 4,
+        "assessment_items": 2,
+        "materials_count": 9,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "",
+        "student_tasks": "- Student must get the certification of Introduction to Project Management Principles and Practices specialization from Coursera to be accepted to the final examination\""
+      },
+      "color": "#F97316"
+    },
+    {
+      "code": "PRN222",
+      "code_original": "PRN222",
+      "name_en": "Advanced Cross-Platform Application Programming With .NET",
+      "name_vi": "Lập trình ứng dụng đa nền tảng nâng cao với .NET",
+      "credits": 3,
+      "semester": 7,
+      "color": "#F97316",
+      "prerequisites": [
+        "PRN212"
+      ],
+      "unlocks": [
+        "PRN232"
+      ],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13892",
+      "combo_info": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",
+      "syllabus_details": {
+        "syl_id": 13892,
+        "clos_count": 5,
+        "assessment_items": 6,
+        "materials_count": 5,
+        "sessions_count": 66,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Visual Studio.NET 2022 or later- MS SQL Server 2019 or later- Platform :  .NET 8.0 or later",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the FU CMS at http://flm.fpt.edu.vn for up-to-date course information"
+      }
+    },
+    {
+      "code": "PRU213",
+      "code_original": "PRU213",
+      "name_en": "Game Programming with C#",
+      "name_vi": "Lập trình Game với C#",
+      "credits": 3,
+      "semester": 7,
+      "color": "#F97316",
+      "prerequisites": [
+        "PRO192"
+      ],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13156",
+      "combo_info": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",
+      "syllabus_details": {
+        "syl_id": 13156,
+        "clos_count": 7,
+        "assessment_items": 4,
+        "materials_count": 3,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Visual Studio 2019 or later (C# programming language)- Unity software (latest version)- Students use Unity with their personal email for educational purposes only",
+        "student_tasks": "- Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises, assignments and labs given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the https://flm.fpt.edu.vn/ for up-to-date course information"
+      }
+    },
+    {
+      "code": "SWD392",
+      "code_original": "SWD392",
+      "name": "Software Architecture and Design",
+      "name_vi": "Kiến trúc và thiết kế phần mềm",
+      "name_full": "Software Architecture and Design_Kiến trúc và thiết kế phần mềm",
+      "semester": 7,
+      "credits": 3,
+      "prerequisite_raw": "SWE201c or SWE202c, PRO192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWD392&curriculumID=3338",
+      "prerequisites": [
+        "SWE201c",
+        "SWE202c",
+        "PRO192"
+      ],
+      "unlocks": [
+        "SEP490"
+      ],
+      "syllabus_details": {
+        "syl_id": "14179",
+        "clos_count": 7,
+        "assessment_items": 5,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "-Internet-The Rational Software Architect CASE tool-Visual Paradigm, MagicDraw, and Visio",
+        "student_tasks": "Students must attend at least 80% of contact slots in order to be accepted to the final examination.- Student is responsible to do all exercises given by instructor in class or at home and submit on time- Constantly follow announcements on LMS at https://flm.fpt.edu.vn/ for up-to-date course information regarding assignment submission and feedback on assignments and project work."
+      },
+      "color": "#F97316"
+    },
+    {
+      "code": "EXE201",
+      "code_original": "EXE201",
+      "name": "Experiential Entrepreneurship 2",
+      "name_vi": "Trải nghiệm khởi nghiệp 2",
+      "name_full": "Experiential Entrepreneurship 2_Trải nghiệm khởi nghiệp 2",
+      "semester": 8,
+      "credits": 3,
+      "prerequisite_raw": "EXE101",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE201&curriculumID=3338",
+      "prerequisites": [
+        "EXE101"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "10361",
+        "clos_count": 4,
+        "assessment_items": 3,
+        "materials_count": 10,
+        "sessions_count": 19,
+        "min_pass_mark": "5",
+        "tools": "- A hall for seminars has a capacity of at least 200 people",
+        "student_tasks": "- Students must attend at least 80% of Instructor's Coaching sections, Seminars and Mentor's Mentoring.- Students are responsible for doing all exercises and assignments given by the instructor in class or at home and submitting them on time.- Students must meet all milestones' requirements.- Promplty access to the learning material platform https://flm.fpt.edu.vn/ for up to date course information."
+      },
+      "color": "#6366F1"
+    },
+    {
+      "code": "ITE302c",
+      "code_original": "ITE302c",
+      "name": "Ethics in IT",
+      "name_vi": "Đạo đức trong CNTT",
+      "name_full": "Ethics in IT_Đạo đức trong CNTT",
+      "semester": 8,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ITE302c&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "12637",
+        "clos_count": 4,
+        "assessment_items": 1,
+        "materials_count": 9,
+        "sessions_count": 12,
+        "min_pass_mark": "5",
+        "tools": "- Internet",
+        "student_tasks": "Student must get the following certificatations to be accepted to the final examination:- Certification of CertNexus Certified Ethical Emerging Technologist Professional Certificate (CertNexus) specialization- Certification of Ethics of Artificial Intelligence course"
+      },
+      "color": "#6366F1"
+    },
+    {
+      "code": "MLN111",
+      "code_original": "MLN111",
+      "name": "Philosophy of Marxism – Leninism",
+      "name_vi": "Triết học Mác - Lê-nin",
+      "name_full": "Philosophy of Marxism – Leninism_Triết học Mác - Lê-nin",
+      "semester": 8,
+      "credits": 3,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN111&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "HCM202",
+        "MLN131",
+        "VNR202"
+      ],
+      "syllabus_details": {
+        "syl_id": "13303",
+        "clos_count": 8,
+        "assessment_items": 4,
+        "materials_count": 7,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Pdf reader- AI",
+        "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học.Phải có giáo trình Triết học Mác- Lênin, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo.Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnThực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp.Students are required to attend at least 80% of the course duration.They must have the textbook Marxist–Leninist Philosophy for non-political theory majors at the undergraduate level, issued by the Ministry of Education and Training.Laptops may only be used in class for learning purposes.AI must be applied responsibly and ethically in both learning and practice.Students are expected to fully comply with the instructor’s requirements during class as well as with the topics they prepare in advance before coming to class."
+      },
+      "color": "#6366F1"
+    },
+    {
+      "code": "MLN122",
+      "code_original": "MLN122",
+      "name": "Political economics of Marxism – Leninism",
+      "name_vi": "Kinh tế chính trị Mác - Lê-nin",
+      "name_full": "Political economics of Marxism – Leninism_Kinh tế chính trị Mác - Lê-nin",
+      "semester": 8,
+      "credits": 2,
+      "prerequisite_raw": "None",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN122&curriculumID=3338",
+      "prerequisites": [],
+      "unlocks": [
+        "HCM202",
+        "MLN131",
+        "VNR202"
+      ],
+      "syllabus_details": {
+        "syl_id": "14465",
+        "clos_count": 9,
+        "assessment_items": 4,
+        "materials_count": 9,
+        "sessions_count": 40,
+        "min_pass_mark": "5",
+        "tools": "Internet, pdf reader, AI",
+        "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học.Phải có giáo trình Kinh tế chính trị Mác - Lênin, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo.Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị  trước khi đến lớp.Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnAttend at least 80% of class hours. Own textbook of Political economics of Marxism–Leninism for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purposes. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
+      },
+      "color": "#6366F1"
+    },
+    {
+      "code": "PRM393",
+      "code_original": "PRM393",
+      "name": "Mobile Programming",
+      "name_vi": "Lập trình di động",
+      "name_full": "Mobile Programming_Lập trình di động",
+      "semester": 8,
+      "credits": 3,
+      "prerequisite_raw": "PRO192",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRM393&curriculumID=3338",
+      "prerequisites": [
+        "PRO192"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "13822",
+        "clos_count": 7,
+        "assessment_items": 4,
+        "materials_count": 4,
+        "sessions_count": 60,
+        "min_pass_mark": "5",
+        "tools": "- Android Studio + Flutter SDK + Dart SDK (Latest Version)- Virtual device attached android studio (or other virtual device), android mobile (only for learning, not for exam - optional)- Laptop: 16GB RAM, 25GB free space before installing studioNote:- Install all neccessary tools before the first slot of the course",
+        "student_tasks": "- Students must attend more than 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly access to the FU LMS at http://lms.fpt.edu.vn for up-to-date course information"
+      },
+      "color": "#6366F1"
+    },
+    {
+      "code": "PRN232",
+      "code_original": "PRN232",
+      "name_en": "Building Cross-Platform Back-End Application With .NET",
+      "name_vi": "Xây dựng ứng dụng back-end với .NET",
+      "credits": 3,
+      "semester": 8,
+      "color": "#6366F1",
+      "prerequisites": [
+        "PRN222"
+      ],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13893",
+      "combo_info": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",
+      "syllabus_details": {
+        "syl_id": 13893,
+        "clos_count": 5,
+        "assessment_items": 6,
+        "materials_count": 5,
+        "sessions_count": 66,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Visual Studio.NET 2019 version 16.8.3 or later- Platform : .NET 5.0 or later",
+        "student_tasks": "- Students must attend at least 80% of contact sessions in order to be accepted to the final examination.- Student is responsible to do all assigned exercises given by instructor in class or at home and submit on time- Use laptop in class only for learning purpose- Promptly  access to the FU CMS at http://flm.fpt.edu.vn for up-to-date course information"
+      }
+    },
+    {
+      "code": "HCM202",
+      "code_original": "HCM202",
+      "name": "Ho Chi Minh Ideology",
+      "name_vi": "Tư tưởng Hồ Chí Minh",
+      "name_full": "Ho Chi Minh Ideology_Tư tưởng Hồ Chí Minh",
+      "semester": 9,
+      "credits": 2,
+      "prerequisite_raw": "MLN111, MLN122",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=HCM202&curriculumID=3338",
+      "prerequisites": [
+        "MLN111",
+        "MLN122"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14467",
+        "clos_count": 10,
+        "assessment_items": 4,
+        "materials_count": 8,
+        "sessions_count": 40,
+        "min_pass_mark": "5",
+        "tools": "Internet, pdf reader and AI-based learning tools (for responsible use, recommended as supplementary support)",
+        "student_tasks": "Nhiệm vụ của sinh viên:- Tham gia tối thiểu 80% thời lượng môn học và tham dự đủ các buổi lên lớp, thảo luận theo quy định.- Phải có Giáo trình Tư tưởng Hồ Chí Minh (dành cho bậc đại học hệ không chuyên lý luận chính trị) do Bộ Giáo dục và Đào tạo ban hành.- Phải nghiên cứu giáo trình trước, chuẩn bị các ý kiến để đề xuất khi nghe giảng. Chuẩn bị thảo luận và đọc, sưu tầm các tư liệu có liên quan đến nội dung môn học.- Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp.- Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.- Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học tập và thực tiễn.Student's Tasks:- Attend at least 80% of class hours and participate in discussions as required.- Own the Ho Chi Minh's thought (Sửa lại từ sai lệch chính trị \"Ho Chi Minh Ideology\") textbook (for non-majors in political theory - Nâng cấp học thuật từ cụm \"non-politics majored students\") issued by the Ministry of Education and Training.- Study the textbook in advance, prepare ideas to propose during lectures. Prepare for discussions and read, collect materials related to the course content.- Fulfill tasks given by the instructor in class as well as topics required to be prepared (Sửa lại ngữ pháp cho chuẩn mực từ cụm \"needed to prepare\") in advance.- Use laptops in class only for learning purposes.- Apply AI responsibly and ethically in both learning and practice."
+      },
+      "color": "#EF4444"
+    },
+    {
+      "code": "MLN131",
+      "code_original": "MLN131",
+      "name": "Scientific socialism",
+      "name_vi": "Chủ nghĩa xã hội khoa học",
+      "name_full": "Scientific socialism_Chủ nghĩa xã hội khoa học",
+      "semester": 9,
+      "credits": 2,
+      "prerequisite_raw": "MLN111, MLN122",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN131&curriculumID=3338",
+      "prerequisites": [
+        "MLN111",
+        "MLN122"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14466",
+        "clos_count": 10,
+        "assessment_items": 4,
+        "materials_count": 8,
+        "sessions_count": 40,
+        "min_pass_mark": "5",
+        "tools": "- Internet- Pdf reader- AI",
+        "student_tasks": "Sinh viên phải tham gia tối thiểu 80% thời gian môn học. Phải có giáo trình Chủ nghĩa xã hội khoa học, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo. Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập. Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp. Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học và thực tiễnAttend at least 80% of class hours. Own textbook on Scientific socialism for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purpose. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
+      },
+      "color": "#EF4444"
+    },
+    {
+      "code": "SEP490",
+      "code_original": "SEP490",
+      "name_en": "SE Capstone Project",
+      "name_vi": "Đồ án tốt nghiệp KTPM",
+      "credits": 10,
+      "semester": 9,
+      "color": "#EF4444",
+      "prerequisites": [
+        "SWP391",
+        "SWD392",
+        "PMG201c",
+        "OJT202"
+      ],
+      "unlocks": [],
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14065",
+      "combo_info": "",
+      "syllabus_details": {
+        "syl_id": 14065,
+        "clos_count": 7,
+        "assessment_items": 2,
+        "materials_count": 3,
+        "sessions_count": 15,
+        "min_pass_mark": "5",
+        "tools": "Appropriate tools for design and implementation.",
+        "student_tasks": "# Choose appropriate project and form group.# Divide and schedule work among members.# Attend all scheduled meeting with supervisor.# Produce document and product according to project requirement and member work share.# Defend work infront of examination board, showing both project results and individual responsibility.# In case of cheating found, the whole team is not allow to defend.#Students are required to attend at least 80% of scheduled meetings with their supervisor(s) to be eligible for the thesis or capstone defense."
+      }
+    },
+    {
+      "code": "VNR202",
+      "code_original": "VNR202",
+      "name": "History of Communist Party of Vietnam",
+      "name_vi": "Lịch sử Đảng Cộng sản Việt Nam",
+      "name_full": "History of Communist Party of Vietnam_Lịch sử Đảng Cộng sản Việt Nam",
+      "semester": 9,
+      "credits": 2,
+      "prerequisite_raw": "MLN111, MLN122",
+      "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=VNR202&curriculumID=3338",
+      "prerequisites": [
+        "MLN111",
+        "MLN122"
+      ],
+      "unlocks": [],
+      "syllabus_details": {
+        "syl_id": "14468",
+        "clos_count": 9,
+        "assessment_items": 4,
+        "materials_count": 15,
+        "sessions_count": 40,
+        "min_pass_mark": "5",
+        "tools": "Internet, pdf reader and AI-based learning tools (for responsible use, recommended as supplementary support)",
+        "student_tasks": "- Nắm vững mục tiêu, nhiệm vụ, đổi tượng, nội dung cơ bản của môn học Lịch sử Đảng, rèn luyện kỹ năng tư duy, phương pháp học tập, nâng cao nhận thức tư tưởng, niềm tin đối với sự lãnh đạo của Đảng, góp phần phát huy truyền thống tốt đẹp của Đảng, vận dụng kinh nghiệm lịch sử vào công tác thực tiễn.Sinh viên phải tham gia tối thiểu 80% thời gian môn học.- Phải có giáo trình lịch sử Đảng Cộng sản Việt Nam, dành cho sinh viên bậc đại học hệ không chuyên lý luận chính trị của Bộ Giáo dục và Đào tạo. Chỉ sử dụng máy tính xách tay trong lớp cho mục đích học tập.Thực hiện đầy đủ các yêu cầu của giảng viên khi học trên lớp cũng như các chủ đề sinh viên tự chuẩn bị trước khi đến lớp. Ứng dụng AI một cách có trách nhiệm, đạo đức trong quá trình học tập và thực tiễn- Master the objectives, tasks, target audience, and core contents of the course History of the Party; develop thinking skills and study methods; enhance awareness and confidence in the Party’s leadership; contribute to promoting the Party’s fine traditions; and apply historical experiences to practical work.- Attend at least 80% of class hours.- Own History of CPV textbook for non-politics majored students as promulgated by the Ministry of Education and Training. Use their own laptop in class only for learning purpose. Fulfill tasks given by the instructor in class as well as topics needed to prepare in advance. AI must be applied responsibly and ethically in both learning and practice."
+      },
+      "color": "#EF4444"
+    }
+  ],
+  "graph": {
+    "nodes": [
+      {
+        "id": "OTP101",
+        "name_en": "Orientation and General Training Program",
+        "name_vi": "Định hướng và Rèn luyện tập trung",
+        "credits": 0,
+        "semester": 0,
+        "color": "#6B7280",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OTP101&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "TRS601",
+        "name_en": "English 6 (University success)",
+        "name_vi": "Tiếng Anh 6",
+        "credits": 3,
+        "semester": 0,
+        "color": "#6B7280",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14439",
+        "is_specialization": false
+      },
+      {
+        "id": "CEA201",
+        "name_en": "Computer Organization and Architecture",
+        "name_vi": "Tổ chức và Kiến trúc máy tính",
+        "credits": 3,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CEA201&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "CSI106",
+        "name_en": "Introduction to Computer Science",
+        "name_vi": "Nhập môn khoa học máy tính",
+        "credits": 3,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSI106&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "MAE101",
+        "name_en": "Mathematics for Engineering",
+        "name_vi": "Toán cho ngành kỹ thuật",
+        "credits": 3,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAE101&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRF192",
+        "name_en": "Programming Fundamentals",
+        "name_vi": "Cơ sở lập trình",
+        "credits": 3,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRF192&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SSL101c",
+        "name_en": "Academic Skills for University Success",
+        "name_vi": "Kỹ năng học tập đại học",
+        "credits": 3,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSL101c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "TMI101",
+        "name_en": "Traditional Musical Instruments",
+        "name_vi": "Nhạc cụ truyền thống",
+        "credits": 2,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=11871",
+        "is_specialization": false
+      },
+      {
+        "id": "VOV114",
+        "name_en": "Vovinam 1",
+        "name_vi": "Vovinam 1",
+        "credits": 2,
+        "semester": 1,
+        "color": "#3B82F6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13540",
+        "is_specialization": false
+      },
+      {
+        "id": "MAD101",
+        "name_en": "Discrete mathematics",
+        "name_vi": "Toán rời rạc",
+        "credits": 3,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAD101&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "NWC204",
+        "name_en": "Computer Networking",
+        "name_vi": "Mạng máy tính",
+        "credits": 3,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=NWC204&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "OSG202",
+        "name_en": "Operating Systems",
+        "name_vi": "Hệ điều hành",
+        "credits": 3,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OSG202&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRO192",
+        "name_en": "Object-Oriented Programming",
+        "name_vi": "Lập trình hướng đối tượng",
+        "credits": 3,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRO192&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SSG104",
+        "name_en": "Communication and In-Group Working Skills",
+        "name_vi": "Kỹ năng giao tiếp và cộng tác",
+        "credits": 3,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SSG104&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "VOV124",
+        "name_en": "Vovinam 2",
+        "name_vi": "Vovinam 2",
+        "credits": 2,
+        "semester": 2,
+        "color": "#10B981",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13539",
+        "is_specialization": false
+      },
+      {
+        "id": "CSD201",
+        "name_en": "Data Structures and Algorithms",
+        "name_vi": "Cấu trúc dữ liệu và giải thuật",
+        "credits": 3,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=CSD201&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "DBI202",
+        "name_en": "Introduction to Databases",
+        "name_vi": "Các hệ cơ sở dữ liệu",
+        "credits": 3,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=DBI202&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "JPD113",
+        "name_en": "Elementary Japanese 1- A1.1",
+        "name_vi": "Tiếng Nhật sơ cấp 1-A1.1",
+        "credits": 3,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD113&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "LAB211",
+        "name_en": "OOP with Java Lab",
+        "name_vi": "Thực hành OOP với Java",
+        "credits": 3,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=LAB211&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "VOV134",
+        "name_en": "Vovinam 3",
+        "name_vi": "Vovinam 3",
+        "credits": 2,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13537",
+        "is_specialization": false
+      },
+      {
+        "id": "WED201c",
+        "name_en": "Web Design",
+        "name_vi": "Thiết kế web",
+        "credits": 3,
+        "semester": 3,
+        "color": "#F59E0B",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WED201c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "IOT102",
+        "name_en": "Internet of Things",
+        "name_vi": "Internet vạn vật",
+        "credits": 3,
+        "semester": 4,
+        "color": "#8B5CF6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=IOT102&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "JPD123",
+        "name_en": "Elementary Japanese 1-A1.2",
+        "name_vi": "Tiếng Nhật sơ cấp 1-A1.2",
+        "credits": 3,
+        "semester": 4,
+        "color": "#8B5CF6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=JPD123&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "MAS291",
+        "name_en": "Statistics & Probability",
+        "name_vi": "Xác suất thống kê",
+        "credits": 3,
+        "semester": 4,
+        "color": "#8B5CF6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MAS291&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRJ301",
+        "name_en": "Java Web Application Development",
+        "name_vi": "Phát triển ứng dụng Java web",
+        "credits": 3,
+        "semester": 4,
+        "color": "#8B5CF6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRJ301&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SWE201c",
+        "name_en": "Introduction to Software Engineering",
+        "name_vi": "Nhập môn kĩ thuật phần mềm",
+        "credits": 3,
+        "semester": 4,
+        "color": "#8B5CF6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWE201c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRN212",
+        "name_en": "Basis Cross-Platform Application Programming With .NET",
+        "name_vi": "Lập trình ứng dụng đa nền tảng cơ bản với .NET",
+        "credits": 3,
+        "semester": 5,
+        "color": "#EC4899",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13891",
+        "is_specialization": true
+      },
+      {
+        "id": "SWP391",
+        "name_en": "Software development project",
+        "name_vi": "Dự án phát triển phần mềm",
+        "credits": 3,
+        "semester": 5,
+        "color": "#EC4899",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWP391&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SWR302",
+        "name_en": "Software Requirement",
+        "name_vi": "Yêu cầu phần mềm",
+        "credits": 3,
+        "semester": 5,
+        "color": "#EC4899",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWR302&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SWT301",
+        "name_en": "Software Testing",
+        "name_vi": "Kiểm thử phần mềm",
+        "credits": 3,
+        "semester": 5,
+        "color": "#EC4899",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWT301&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "WDU203c",
+        "name_en": "UI/UX Design",
+        "name_vi": "Thiết kế trải nghiệm người dùng",
+        "credits": 3,
+        "semester": 5,
+        "color": "#EC4899",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=WDU203c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "ENW493c",
+        "name_en": "Research Methods & Academic Writing Skills",
+        "name_vi": "Phương pháp nghiên cứu & Kỹ năng viết học thuật",
+        "credits": 3,
+        "semester": 6,
+        "color": "#14B8A6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ENW493c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "OJT202",
+        "name_en": "On-The-Job Training",
+        "name_vi": "Đào tạo trong môi trường thực tế",
+        "credits": 10,
+        "semester": 6,
+        "color": "#14B8A6",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=OJT202&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "EXE101",
+        "name_en": "Experiential Entrepreneurship 1",
+        "name_vi": "Trải nghiệm khởi nghiệp 1",
+        "credits": 3,
+        "semester": 7,
+        "color": "#F97316",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE101&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PMG201c",
+        "name_en": "Project Management",
+        "name_vi": "Project Management",
+        "credits": 3,
+        "semester": 7,
+        "color": "#F97316",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PMG201c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRN222",
+        "name_en": "Advanced Cross-Platform Application Programming With .NET",
+        "name_vi": "Lập trình ứng dụng đa nền tảng nâng cao với .NET",
+        "credits": 3,
+        "semester": 7,
+        "color": "#F97316",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13892",
+        "is_specialization": true
+      },
+      {
+        "id": "PRU213",
+        "name_en": "Game Programming with C#",
+        "name_vi": "Lập trình Game với C#",
+        "credits": 3,
+        "semester": 7,
+        "color": "#F97316",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13156",
+        "is_specialization": true
+      },
+      {
+        "id": "SWD392",
+        "name_en": "Software Architecture and Design",
+        "name_vi": "Kiến trúc và thiết kế phần mềm",
+        "credits": 3,
+        "semester": 7,
+        "color": "#F97316",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=SWD392&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "EXE201",
+        "name_en": "Experiential Entrepreneurship 2",
+        "name_vi": "Trải nghiệm khởi nghiệp 2",
+        "credits": 3,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=EXE201&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "ITE302c",
+        "name_en": "Ethics in IT",
+        "name_vi": "Đạo đức trong CNTT",
+        "credits": 3,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=ITE302c&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "MLN111",
+        "name_en": "Philosophy of Marxism – Leninism",
+        "name_vi": "Triết học Mác - Lê-nin",
+        "credits": 3,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN111&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "MLN122",
+        "name_en": "Political economics of Marxism – Leninism",
+        "name_vi": "Kinh tế chính trị Mác - Lê-nin",
+        "credits": 2,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN122&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRM393",
+        "name_en": "Mobile Programming",
+        "name_vi": "Lập trình di động",
+        "credits": 3,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=PRM393&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "PRN232",
+        "name_en": "Building Cross-Platform Back-End Application With .NET",
+        "name_vi": "Xây dựng ứng dụng back-end với .NET",
+        "credits": 3,
+        "semester": 8,
+        "color": "#6366F1",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=13893",
+        "is_specialization": true
+      },
+      {
+        "id": "HCM202",
+        "name_en": "Ho Chi Minh Ideology",
+        "name_vi": "Tư tưởng Hồ Chí Minh",
+        "credits": 2,
+        "semester": 9,
+        "color": "#EF4444",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=HCM202&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "MLN131",
+        "name_en": "Scientific socialism",
+        "name_vi": "Chủ nghĩa xã hội khoa học",
+        "credits": 2,
+        "semester": 9,
+        "color": "#EF4444",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=MLN131&curriculumID=3338",
+        "is_specialization": false
+      },
+      {
+        "id": "SEP490",
+        "name_en": "SE Capstone Project",
+        "name_vi": "Đồ án tốt nghiệp KTPM",
+        "credits": 10,
+        "semester": 9,
+        "color": "#EF4444",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/SyllabusDetails?sylID=14065",
+        "is_specialization": false
+      },
+      {
+        "id": "VNR202",
+        "name_en": "History of Communist Party of Vietnam",
+        "name_vi": "Lịch sử Đảng Cộng sản Việt Nam",
+        "credits": 2,
+        "semester": 9,
+        "color": "#EF4444",
+        "syllabus_url": "https://flm.fpt.edu.vn/gui/role/student/Syllabuses?subCode=VNR202&curriculumID=3338",
+        "is_specialization": false
+      }
+    ],
+    "edges": [
+      {
+        "from": "PRF192",
+        "to": "PRO192",
+        "type": "prerequisite"
+      },
+      {
+        "from": "VOV114",
+        "to": "VOV124",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "CSD201",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "LAB211",
+        "type": "prerequisite"
+      },
+      {
+        "from": "VOV124",
+        "to": "VOV134",
+        "type": "prerequisite"
+      },
+      {
+        "from": "JPD113",
+        "to": "JPD123",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MAE101",
+        "to": "MAS291",
+        "type": "prerequisite"
+      },
+      {
+        "from": "DBI202",
+        "to": "PRJ301",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "PRJ301",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "SWE201c",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "PRN212",
+        "type": "prerequisite"
+      },
+      {
+        "from": "DBI202",
+        "to": "PRN212",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRJ301",
+        "to": "SWP391",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWE201c",
+        "to": "SWP391",
+        "type": "prerequisite"
+      },
+      {
+        "from": "LAB211",
+        "to": "SWP391",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWE201c",
+        "to": "SWR302",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWE201c",
+        "to": "SWT301",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRN212",
+        "to": "PRN222",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "PRU213",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWE201c",
+        "to": "SWD392",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "SWD392",
+        "type": "prerequisite"
+      },
+      {
+        "from": "EXE101",
+        "to": "EXE201",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRO192",
+        "to": "PRM393",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PRN222",
+        "to": "PRN232",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN111",
+        "to": "HCM202",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN122",
+        "to": "HCM202",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN111",
+        "to": "MLN131",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN122",
+        "to": "MLN131",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWP391",
+        "to": "SEP490",
+        "type": "prerequisite"
+      },
+      {
+        "from": "SWD392",
+        "to": "SEP490",
+        "type": "prerequisite"
+      },
+      {
+        "from": "PMG201c",
+        "to": "SEP490",
+        "type": "prerequisite"
+      },
+      {
+        "from": "OJT202",
+        "to": "SEP490",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN111",
+        "to": "VNR202",
+        "type": "prerequisite"
+      },
+      {
+        "from": "MLN122",
+        "to": "VNR202",
+        "type": "prerequisite"
+      }
+    ]
+  },
+  "specialization": {
+    "name": "Chủ đề lập trình .NET (BIT_SE_From_K18C)",
+    "combo_id": 2686,
+    "courses": [
+      "PRN212",
+      "PRN222",
+      "PRU213",
+      "PRN232"
+    ]
+  }
+};
+    coursesData = embeddedData;
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initGraph(coursesData);
+    });
+
+    function initGraph(data) {
+      const graph = data.graph;
+      
+      // 1. Build Legend with correct Titles & Interactive Filters
+      const legendContainer = document.getElementById('legend-list');
+      legendContainer.innerHTML = '';
+      
+      data.semesters.forEach(s => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        item.onclick = () => filterBySemester(s.semester);
+        item.innerHTML = `
+          <div class="legend-item-left">
+            <span class="legend-dot" style="background: ${s.color};"></span>
+            <span>${s.title}</span>
+          </div>
+          <span class="legend-count">${s.course_count} môn</span>
+        `;
+        legendContainer.appendChild(item);
+      });
+
+      // 2. Prepare Vis.js Nodes with enhanced aesthetics
+      const nodes = graph.nodes.map(n => {
+        const shortName = n.name_en ? (n.name_en.length > 22 ? n.name_en.substring(0, 20) + '...' : n.name_en) : '';
+        return {
+          id: n.id,
+          label: `<b>${n.id}</b>\n${shortName}\n<i>Kỳ ${n.semester} • ${n.credits || 3}TC</i>`,
+          color: {
+            background: n.color || '#4B5563',
+            border: '#ffffff',
+            highlight: { background: '#f97316', border: '#ffffff' },
+            hover: { background: '#ea580c', border: '#ffffff' }
+          },
+          shape: 'box',
+          margin: { top: 8, bottom: 8, left: 12, right: 12 },
+          shapeProperties: { borderRadius: 8 },
+          font: {
+            multi: true,
+            color: '#ffffff',
+            size: 11,
+            face: 'Plus Jakarta Sans'
+          },
+          borderWidth: 1.5,
+          shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 10, x: 2, y: 5 },
+          level: n.semester,
+          dataCourse: n
+        };
+      });
+
+      // 3. Prepare Vis.js Edges
+      const edges = graph.edges.map(e => ({
+        from: e.from,
+        to: e.to,
+        arrows: {
+          to: { enabled: true, scaleFactor: 0.9 }
+        },
+        color: { color: '#64748b', highlight: '#f97316', hover: '#38bdf8' },
+        width: 2,
+        hoverWidth: 3,
+        smooth: { type: 'cubicBezier', forceDirection: 'horizontal', roundness: 0.4 }
+      }));
+
+      nodesDataSet = new vis.DataSet(nodes);
+      edgesDataSet = new vis.DataSet(edges);
+
+      renderNetwork(currentLayout);
+
+      // Default highlight PRM393
+      showCourseDetail('PRM393');
+    }
+
+    function getNetworkOptions(layoutMode) {
+      if (layoutMode === 'hierarchical') {
+        return {
+          layout: {
+            hierarchical: {
+              enabled: true,
+              direction: 'LR',
+              sortMethod: 'directed',
+              levelSeparation: 260,
+              nodeSpacing: 100,
+              treeSpacing: 140
+            }
+          },
+          physics: {
+            hierarchicalRepulsion: {
+              nodeDistance: 130,
+              centralGravity: 0.0,
+              springLength: 120,
+              springConstant: 0.01,
+              damping: 0.09
+            }
+          },
+          interaction: { hover: true, tooltipDelay: 100, navigationButtons: false, keyboard: true }
+        };
+      } else {
+        // Organic / Obsidian Force-Directed Graph
+        return {
+          layout: {
+            hierarchical: { enabled: false }
+          },
+          physics: {
+            enabled: true,
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: {
+              gravitationalConstant: -75,
+              centralGravity: 0.012,
+              springLength: 120,
+              springConstant: 0.08,
+              damping: 0.4,
+              avoidOverlap: 0.6
+            },
+            stabilization: {
+              iterations: 150,
+              updateInterval: 25
+            }
+          },
+          interaction: { hover: true, tooltipDelay: 100, keyboard: true }
+        };
+      }
+    }
+
+    function renderNetwork(layoutMode) {
+      const container = document.getElementById('network');
+      const networkData = { nodes: nodesDataSet, edges: edgesDataSet };
+      const options = getNetworkOptions(layoutMode);
+
+      if (network) {
+        network.destroy();
+      }
+
+      network = new vis.Network(container, networkData, options);
+
+      network.on('click', function(params) {
+        if (params.nodes.length > 0) {
+          const selectedId = params.nodes[0];
+          showCourseDetail(selectedId);
+        }
+      });
+
+      network.on('doubleClick', function(params) {
+        if (params.nodes.length > 0) {
+          highlightTrack(params.nodes[0]);
+        }
+      });
+    }
+
+    function switchLayout(mode) {
+      currentLayout = mode;
+      document.getElementById('tab-organic').classList.toggle('active', mode === 'organic');
+      document.getElementById('tab-hierarchical').classList.toggle('active', mode === 'hierarchical');
+      renderNetwork(mode);
+      setTimeout(() => {
+        if (network) network.fit({ animation: true });
+      }, 300);
+    }
+
+    function filterBySemester(semIndex) {
+      if (!coursesData) return;
+      const targetNodes = new Set(
+        coursesData.courses.filter(c => c.semester === semIndex).map(c => c.code)
+      );
+
+      const updates = nodesDataSet.get().map(n => {
+        if (targetNodes.has(n.id)) {
+          return { id: n.id, opacity: 1, font: { color: '#ffffff' } };
+        } else {
+          return { id: n.id, opacity: 0.15, font: { color: '#4b5563' } };
+        }
+      });
+      nodesDataSet.update(updates);
+      
+      const firstNode = Array.from(targetNodes)[0];
+      if (firstNode) {
+        selectNode(firstNode);
+      }
+    }
+
+    function handleSearch(query) {
+      if (!query || query.trim() === '') {
+        resetHighlight();
+        return;
+      }
+      const q = query.toLowerCase().trim();
+      const matchedCourses = coursesData.courses.filter(c => 
+        c.code.toLowerCase().includes(q) ||
+        (c.name_vi && c.name_vi.toLowerCase().includes(q)) ||
+        (c.name_en && c.name_en.toLowerCase().includes(q))
+      );
+
+      if (matchedCourses.length > 0) {
+        const matchedIds = new Set(matchedCourses.map(c => c.code));
+        const updates = nodesDataSet.get().map(n => {
+          if (matchedIds.has(n.id)) {
+            return { id: n.id, opacity: 1, font: { color: '#ffffff' } };
+          } else {
+            return { id: n.id, opacity: 0.12, font: { color: '#374151' } };
+          }
+        });
+        nodesDataSet.update(updates);
+        selectNode(matchedCourses[0].code);
+      }
+    }
+
+    function showCourseDetail(code) {
+      if (!coursesData) return;
+      const course = coursesData.courses.find(c => c.code === code || c.code_original === code) 
+                  || coursesData.graph.nodes.find(n => n.id === code);
+
+      if (!course) return;
+
+      document.getElementById('c-code').innerText = course.code || course.id;
+      document.getElementById('c-name').innerText = `${course.name_en || ''} (${course.name_vi || ''})`;
+      
+      const badge = document.getElementById('c-badge');
+      badge.innerText = `HỌC KỲ ${course.semester !== undefined ? course.semester : '?'}`;
+      badge.style.background = course.color || '#f97316';
+
+      const prereqs = course.prerequisites || [];
+      const unlocks = course.unlocks || [];
+
+      let prereqHtml = prereqs.length 
+        ? prereqs.map(p => `<span class="tag" onclick="selectNode('${p}')">⬅️ ${p}</span>`).join(' ')
+        : '<span style="color: #6b7280; font-size: 12px;">Không có (Môn cơ sở)</span>';
+
+      let unlockHtml = unlocks.length 
+        ? unlocks.map(u => `<span class="tag" onclick="selectNode('${u}')">➡️ ${u}</span>`).join(' ')
+        : '<span style="color: #6b7280; font-size: 12px;">Môn giai đoạn cuối hoặc độc lập</span>';
+
+      const syl = course.syllabus_details || {};
+
+      let html = `
+        <div class="section-title">📌 Thông Tin Tổng Quan</div>
+        <div class="pill-grid">
+          <div class="pill">
+            <span class="label">Số Tín Chỉ</span>
+            <span class="val">${course.credits || 3} Tín chỉ</span>
+          </div>
+          <div class="pill">
+            <span class="label">Điểm Qua Môn</span>
+            <span class="val">${syl.min_pass_mark || '5.0'} / 10</span>
+          </div>
+          <div class="pill">
+            <span class="label">Chuyên Cần</span>
+            <span class="val">> 80% Số buổi</span>
+          </div>
+          <div class="pill">
+            <span class="label">Trạng Thái FLM</span>
+            <span class="val" style="color: #4ade80;">✅ Đã cào chi tiết</span>
+          </div>
+        </div>
+
+        <div class="section-title">🔗 Mối Quan Hệ Tiên Quyết</div>
+        <div style="margin-bottom: 10px;">
+          <div style="font-size: 11px; color: #9ca3af; margin-bottom: 4px;">Môn cần học trước:</div>
+          <div class="tag-list">${prereqHtml}</div>
+        </div>
+        <div>
+          <div style="font-size: 11px; color: #9ca3af; margin-bottom: 4px;">Mở khóa môn sau:</div>
+          <div class="tag-list">${unlockHtml}</div>
+        </div>
+
+        <div class="section-title">🎯 Dữ Liệu Syllabus Chi Tiết (FLM)</div>
+        <div class="box-info">
+          <div><strong>CLOs:</strong> ${syl.clos_count || '7'} chuẩn đầu ra chi tiết</div>
+          <div><strong>Điểm thi:</strong> ${syl.assessment_items || '4'} cột điểm (PE, FE, Project, PT)</div>
+          <div><strong>Lịch học:</strong> ${syl.sessions_count || '60'} buổi học cụ thể</div>
+          <div><strong>Tài liệu:</strong> ${syl.materials_count || '4'} giáo trình chính thức</div>
+        </div>
+      `;
+
+      if (syl.tools) {
+        html += `
+          <div class="section-title">⚙️ Công Cụ & Phần Mềm Yêu Cầu</div>
+          <div class="box-info" style="border-left-color: #f97316; font-size: 11px; white-space: pre-wrap;">${syl.tools}</div>
+        `;
+      }
+
+      if (course.syllabus_url) {
+        html += `
+          <div style="margin-top: 18px;">
+            <a href="${course.syllabus_url}" target="_blank" style="display: block; text-align: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #93c5fd; padding: 10px; border-radius: 8px; font-size: 12px; text-decoration: none; font-weight: 600; transition: all 0.2s;">
+              🌐 Xem Trang Gốc Trên FLM FPT ↗
+            </a>
+          </div>
+        `;
+      }
+
+      document.getElementById('sidebar-content').innerHTML = html;
+    }
+
+    function selectNode(nodeId) {
+      if (network && nodesDataSet.get(nodeId)) {
+        network.selectNodes([nodeId]);
+        network.focus(nodeId, { scale: 1.15, animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+        showCourseDetail(nodeId);
+      }
+    }
+
+    function highlightTrack(rootId) {
+      if (!coursesData) return;
+      const connectedNodes = new Set([rootId]);
+      
+      // Traverse prerequisites backwards
+      function traversePrereqs(code) {
+        coursesData.graph.edges.forEach(e => {
+          if (e.to === code && !connectedNodes.has(e.from)) {
+            connectedNodes.add(e.from);
+            traversePrereqs(e.from);
+          }
+        });
+      }
+
+      // Traverse unlocks forwards
+      function traverseUnlocks(code) {
+        coursesData.graph.edges.forEach(e => {
+          if (e.from === code && !connectedNodes.has(e.to)) {
+            connectedNodes.add(e.to);
+            traverseUnlocks(e.to);
+          }
+        });
+      }
+
+      traversePrereqs(rootId);
+      traverseUnlocks(rootId);
+
+      const updates = nodesDataSet.get().map(n => {
+        if (connectedNodes.has(n.id)) {
+          return { id: n.id, opacity: 1, font: { color: '#ffffff' } };
+        } else {
+          return { id: n.id, opacity: 0.12, font: { color: '#374151' } };
+        }
+      });
+      nodesDataSet.update(updates);
+      selectNode(rootId);
+    }
+
+    function resetHighlight() {
+      const updates = nodesDataSet.get().map(n => ({ id: n.id, opacity: 1, font: { color: '#ffffff' } }));
+      nodesDataSet.update(updates);
+      if (document.getElementById('search-input')) {
+        document.getElementById('search-input').value = '';
+      }
+      network.fit({ animation: true });
+    }
+  </script>
+</body>
+</html>

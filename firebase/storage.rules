@@ -1,0 +1,19 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /reports/{uid}/{fileName} {
+      function isOwner() { return request.auth != null && request.auth.uid == uid; }
+      function isValidPdf() {
+        return request.resource != null
+          && request.resource.size > 0
+          && request.resource.size <= 10 * 1024 * 1024
+          && request.resource.contentType == 'application/pdf'
+          && fileName.matches('^[0-9]{10,30}\\.pdf$')
+          && request.resource.metadata.ownerUid == uid;
+      }
+      allow read, delete: if isOwner();
+      allow create, update: if isOwner() && isValidPdf();
+    }
+    match /{allPaths=**} { allow read, write: if false; }
+  }
+}

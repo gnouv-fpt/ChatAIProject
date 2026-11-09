@@ -1,0 +1,30 @@
+# =============================================================================
+# .gitattributes — Dự án FLM Obsidian & Chat AI (PRM393 Lab 1)
+#
+# Mục đích: cố định xuống dòng LF cho ĐÚNG các thư mục dữ liệu / dữ liệu sinh ra
+# của dự án, để `git diff` chỉ hiển thị thay đổi nội dung thật (không nhiễu do
+# CRLF/LF trên máy Windows — repo đặt core.autocrlf=true).
+#
+# Cố ý KHÔNG áp dụng toàn repo: các file scaffold sẵn có của Flutter
+# (flutter_app/ios, flutter_app/macos) giữ nguyên như đã commit.
+# =============================================================================
+
+# Tài liệu tri thức + dữ liệu sinh ra (Khối A)
+flm_knowledge_vault/**       text eol=lf
+flm_flutter_data/**          text eol=lf
+flutter_app/assets/**        text eol=lf
+
+# Script trích xuất / kiểm chứng
+scripts/**                   text eol=lf
+
+# Quy chế tính điểm (nguồn sự thật dùng chung cho mọi khối)
+grading_rules.yaml           text eol=lf
+
+# Tệp nhị phân — không xử lý text
+*.png   binary
+*.jpg   binary
+*.jpeg  binary
+*.gif   binary
+*.pdf   binary
+*.docx  binary
+*.pptx  binary
