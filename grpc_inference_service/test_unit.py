@@ -475,6 +475,9 @@ def test_chat_v2_processes_history_and_images_with_citation_hash():
     assert response.contract_version == 2 and response.images_processed
     assert response.tokens_used == 15 and response.citations[0].content_hash == "a" * 64
     retrieval = service.vector_store.search_verified_chunks.call_args.args[0]
-    assert "previous" not in retrieval and "Scene" in retrieval and "fixture" in retrieval
+    assert "previous" not in retrieval and "Scene" not in retrieval
+    assert "fixture query" in retrieval and "fixture" in retrieval
     assert "previous" in service.rag_generator.generate.call_args.args[0]
+    assert "Scene" in service.rag_generator.generate.call_args.args[0]
     assert service.rag_generator.generate.call_args.kwargs["current_question"] == request.prompt
+    assert service.rag_generator.generate.call_args.kwargs["prefer_gemini"] is True

@@ -28,7 +28,7 @@ class TrafficVisionEngine:
         if self.api_key:
             try:
                 from rag.gemini_api import GeminiModel
-                self._gemini_model = GeminiModel(self.api_key, os.getenv("GEMINI_VISION_MODEL", "gemini-2.5-flash"))
+                self._gemini_model = GeminiModel(self.api_key, os.getenv("GEMINI_VISION_MODEL", "gemini-3.6-flash"))
                 logger.info("[VisionEngine] Initialized configured Gemini REST model.")
             except Exception as e:
                 logger.warning(f"[VisionEngine] Gemini Vision init failed: {e}")
@@ -69,9 +69,22 @@ class TrafficVisionEngine:
             "1. Kiểm tra chất lượng ảnh: Ảnh có quá mờ, tối, vỡ nét hoặc bị cắt mất biển báo/phương tiện không?\n"
             "   Nếu KHÔNG THỂ XÁC ĐỊNH RÕ tình huống, hãy trả lời chính xác: 'REQUIRES_CLARIFICATION: <lý do>'\n"
             "2. Nếu ảnh rõ ràng:\n"
-            "   - Miêu tả ngắn gọn hiện trường, loại phương tiện, biển báo, vạch kẻ đường quan sát được. "
-            "Phân biệt biển báo thật với mũi tên minh họa hướng di chuyển.\n"
+            "   - Nếu là sa hình, ghi riêng từng xe theo nhãn/số/màu, loại xe, vị trí, hướng mũi tên "
+            "và đường xe dự định đi. Ghi rõ đèn tín hiệu, biển ưu tiên, biển đường chính, "
+            "biển nhường đường, vạch dừng và người điều khiển giao thông nếu nhìn thấy. "
+            "Ghi rõ xe nào đã vượt vạch dừng hoặc đã ở trong nơi giao nhau; "
+            "nếu ảnh tĩnh không cho biết điều đó thì nêu là chưa xác định. "
+            "Với mỗi mũi tên, lần theo nét vẽ từ đuôi ở gần xe đến đầu mũi tên; "
+            "nêu điểm xuất phát và điểm đến, nhất là khi các đường mũi tên giao nhau. "
+            "Không suy hướng rẽ chỉ từ vị trí xe hoặc từ đầu mũi tên đứng riêng. "
+            "Phân biệt biển báo thật với mũi tên minh họa hướng di chuyển. "
+            "Không tự kết luận thứ tự xe đi hay phương án đúng từ hình ảnh.\n"
+            "   - Nếu câu hỏi cần xác định thứ tự/đáp án mà nhãn xe, mũi tên hoặc biển báo "
+            "quyết định đáp án bị mờ, khuất, cắt mất hoặc không lần theo được do chồng nét, "
+            "đặt is_clear=false.\n"
             "   - Đưa ra cụm từ tìm kiếm pháp lý (SEARCH_QUERY) phù hợp câu hỏi kèm theo. "
+            "Với sa hình, ưu tiên từ khóa quy tắc nhường đường tại nơi giao nhau, xe ưu tiên, "
+            "đường ưu tiên và chuyển hướng theo đúng yếu tố quan sát được. "
             "Chỉ tìm mức xử phạt nếu người dùng thực sự hỏi về xử phạt.\n"
             "Định dạng trả về JSON:\n"
             "{\n"
@@ -88,7 +101,7 @@ class TrafficVisionEngine:
                     {"inline_data": {"mime_type": mime_type, "data": image_base64}}
                 ]
                 
-                resp = self._gemini_model.generate_content(content_parts, request_options={"timeout": 15}, token_budget=token_budget)
+                resp = self._gemini_model.generate_content(content_parts, request_options={"timeout": 30}, token_budget=token_budget)
                 self.last_tokens = getattr(getattr(resp, "usage_metadata", None), "total_token_count", None)
                 if resp and resp.text:
                     return self._parse_observation(resp.text)

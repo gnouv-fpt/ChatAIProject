@@ -85,8 +85,9 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response.violation_keywords.extend(keywords)
             return response
         vision_tokens = 0
-        budget = request.max_tokens or 4096
+        budget = request.max_tokens or 8192
         observations = []
+        vision_queries = []
         for image in request.images:
             if not context.is_active():
                 context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
@@ -96,15 +97,18 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             vision_tokens = -1 if usage is None or vision_tokens < 0 else vision_tokens + usage
             if clarify:
                 return self._response(observation, tokens=vision_tokens, status="NeedsClarification", images=True)
-            observations.append(observation + " " + query)
+            observations.append(observation)
+            vision_queries.append(query)
         history = "\n".join(f"{h.role}: {h.content}" for h in request.history[-10:])
         query = "\n".join([history, *observations, prompt]).strip()
         # Keep old assistant wording out of retrieval so a changed subject (red -> yellow light)
         # can retrieve new evidence. History remains available to grounded answer generation.
-        retrieval_query = "\n".join([*observations, prompt]).strip()
-        chunks = self.vector_store.search_verified_chunks(retrieval_query, top_k=5, score_threshold=0.20)
+        retrieval_query = "\n".join([*vision_queries, prompt]).strip()
+        chunks = self.vector_store.search_verified_chunks(
+            retrieval_query, top_k=5, score_threshold=0.20)
         text, citations, tokens, verified = self.rag_generator.generate(
-            query, chunks, max(0, budget - vision_tokens), current_question=prompt)
+            query, chunks, max(0, budget - vision_tokens), current_question=prompt,
+            prefer_gemini=bool(request.images))
         if not context.is_active():
             context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
         allowed = {"document_title", "article_number", "clause_number", "source_url", "excerpt",

@@ -2,8 +2,8 @@ namespace BusinessLogic.Infrastructure.Settings;
 
 public sealed class ChatSettings
 {
-    public int ReservationTokens { get; set; } = 4096;
-    public int InferenceTimeoutSeconds { get; set; } = 60;
+    public int ReservationTokens { get; set; } = 8192;
+    public int InferenceTimeoutSeconds { get; set; } = 90;
     public int IndexingTimeoutSeconds { get; set; } = 300;
     public string AttachmentRoot { get; set; } = "data/attachments";
     public int AttachmentRetentionHours { get; set; } = 24;

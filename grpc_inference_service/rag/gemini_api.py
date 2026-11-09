@@ -17,7 +17,7 @@ class GeminiModel:
             {'inlineData': {'mimeType': part['inline_data']['mime_type'], 'data': part['inline_data']['data']}}
             if 'inline_data' in part else part for part in content]
         body = {'contents': [{'role': 'user', 'parts': parts}],
-                'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 1500,
+                'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 3000,
                                      'thinkingConfig': {'thinkingBudget': 0}}}
         if self.json_response:
             body['generationConfig']['responseMimeType'] = 'application/json'
@@ -33,7 +33,7 @@ class GeminiModel:
             available = token_budget - input_tokens - 32
             if available < 64:
                 raise RuntimeError('The reserved token budget cannot cover this context')
-            body['generationConfig']['maxOutputTokens'] = min(1500, available)
+            body['generationConfig']['maxOutputTokens'] = min(3000, available)
         request = Request(f'https://generativelanguage.googleapis.com/v1beta/models/{self.model}:generateContent',
                           data=json.dumps(body).encode(), headers={'x-goog-api-key': self.api_key, 'Content-Type': 'application/json'})
         with urlopen(request, timeout=(request_options or {}).get('timeout', 20)) as response:
