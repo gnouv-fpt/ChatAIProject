@@ -23,6 +23,7 @@
 - Kho luật thử nghiệm VBHN 55: **113/113** chunk SQL/Qdrant khớp ID, nội dung hash, vị trí điều/khoản/điểm và URL; `artifacts/local-ai/integration-law-parity.json`.
 - Phạm vi xử phạt hẹp: **16/16** chunk verified ở Content SQL và Qdrant cùng document ID; `artifacts/local-ai/targeted-sanction-parity-2026-11-10.json`.
 - Phạm vi QCVN hẹp: **5/5** chunk Phụ lục B mục B.1/B.2 ở Content SQL và Qdrant thử nghiệm, document ID `cc542621-efde-4a57-922c-7a971895e36e`.
+- Với runtime demo `local-learning` cô lập đã khởi động bằng `scripts/start-local-learning.ps1 -EnableAi`, chạy `python -X utf8 scripts/import-reviewed-qcvn-signs.py --local-learning` để nhập đúng gói hai biển vào Content SQL/Qdrant của runtime đó. Script tự tải PDF Chính phủ nếu chưa có bản cache, kiểm hash trước khi gửi API, và từ chối database không mang hậu tố `WebLearning` hợp lệ. Dữ liệu QCVN của môi trường thử nghiệm **không tự xuất hiện** trong database demo khác.
 - Một vòng Gateway trung gian gặp **HTTP 503 ở ca thứ bảy**, cùng thời điểm Groq trả 429 và token balance của tài khoản thử xuống còn 1.613, thấp hơn budget cần cho ngữ cảnh. Đã nạp lại quota **chỉ trong DB thử nghiệm**, chạy lại chậm hơn và đạt 8/8. Bộ đánh giá đã được sửa để lưu từng ca ngay và ghi HTTP lỗi. Dịch vụ gRPC nay báo `RESOURCE_EXHAUSTED` cho thiếu budget ngữ cảnh; adapter đổi thành HTTP 429 với thông báo quota rõ ràng. Đây không phải bằng chứng rằng Groq sẽ không còn 429 khi tải cao.
 
 ## Chưa đạt để tuyên bố ổn hoàn toàn
