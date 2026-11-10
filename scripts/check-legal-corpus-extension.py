@@ -21,8 +21,16 @@ def main():
              "d.VerificationStatus,d.ContentHash,d.SourceUrl,c.Id AS ChunkId,c.Article,c.Clause,c.Point,"
              "c.Content,c.IsVerified,c.VectorId FROM LegalDocuments d JOIN LegalDocumentChunks c ON c.DocumentId=d.Id "
              "WHERE d.DocumentNumber='55/VBHN-VPQH' FOR JSON PATH, INCLUDE_NULL_VALUES;")
-    process = subprocess.run(['sqlcmd', '-S', '.\\MSSQLSERVER_VUON', '-E', '-d', database, '-y', '0', '-w', '65535',
-                              '-b', '-Q', query], capture_output=True, text=True, encoding='utf8', check=True)
+    if runtime.get('sqlMode') == 'docker':
+        sqlcmd_args = ['docker', 'exec', 'prn-c2-localtest-sqlserver-1', '/opt/mssql-tools18/bin/sqlcmd',
+                       '-S', 'localhost', '-U', 'sa', '-P', runtime['sqlPassword'], '-C',
+                       '-d', database, '-y', '0', '-w', '65535', '-b', '-Q', query]
+    else:
+        sqlcmd_args = ['sqlcmd', '-S', '.\\MSSQLSERVER_VUON', '-E', '-d', database, '-y', '0', '-w', '65535',
+                       '-b', '-Q', query]
+    process = subprocess.run(sqlcmd_args, capture_output=True, text=True, encoding='utf8')
+    if process.returncode:
+        raise RuntimeError(f'Content SQL verification unavailable (exit {process.returncode})')
     rows = json.loads(''.join(process.stdout.splitlines()).strip())
     version = rows[0]['Version']
     expected = {2: (49, 536), 3: (55, 596), 4: (89, 975)}

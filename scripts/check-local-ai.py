@@ -30,11 +30,17 @@ def main():
     database = checks.runtime['contentDatabase']
     if not re.fullmatch(r'TrafficContent_WebLearning_[a-f0-9]{8}', database):
         raise ValueError('Unexpected isolated Content database')
-    rows = subprocess.run(['sqlcmd','-S','.\\MSSQLSERVER_VUON','-E','-d',database,
-        '-y','0','-w','65535','-b','-Q', 'SET NOCOUNT ON; SELECT c.Id,c.Content,c.Article,c.Clause,c.Point,d.SourceUrl,d.IsActive,c.IsVerified '
-        'FROM LegalDocumentChunks c JOIN LegalDocuments d ON d.Id=c.DocumentId FOR JSON PATH, INCLUDE_NULL_VALUES;'],
-        capture_output=True,text=True,check=True,encoding='utf8')
-    chunks = {row['Id'].lower():row for row in json.loads(''.join(rows.stdout.splitlines()).strip())}
+    query = ('SET NOCOUNT ON; SELECT c.Id,c.Content,c.Article,c.Clause,c.Point,d.SourceUrl,d.IsActive,c.IsVerified '
+             'FROM LegalDocumentChunks c JOIN LegalDocuments d ON d.Id=c.DocumentId FOR JSON PATH, INCLUDE_NULL_VALUES;')
+    if checks.runtime.get('sqlMode') == 'docker':
+        sqlcmd_cmd = ['docker', 'exec', 'prn-c2-localtest-sqlserver-1', '/opt/mssql-tools18/bin/sqlcmd',
+                      '-S', 'localhost', '-U', 'sa', '-P', checks.runtime['sqlPassword'], '-C',
+                      '-d', database, '-y', '0', '-w', '65535', '-b', '-Q', query]
+    else:
+        sqlcmd_cmd = ['sqlcmd', '-S', '.\\MSSQLSERVER_VUON', '-E', '-d', database,
+                      '-y', '0', '-w', '65535', '-b', '-Q', query]
+    rows = subprocess.run(sqlcmd_cmd, capture_output=True, text=True, check=True, encoding='utf8')
+    chunks = {row['Id'].lower(): row for row in json.loads(''.join(rows.stdout.splitlines()).strip())}
     results = {}
     def send(name, prompt, expected_status, attachments=None):
         request_id = str(uuid.uuid4())
