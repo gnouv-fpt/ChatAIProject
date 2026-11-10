@@ -3,6 +3,7 @@ import json
 import logging
 import re
 import threading
+from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError
 from typing import List, Dict, Any, Tuple, Optional
 
@@ -84,7 +85,8 @@ class TrafficRagGenerator:
         # the current administrative sanction requested by the user.
         question = current_question if current_question is not None else prompt
         asks_for_sanction = re.search(
-            r"xử phạt|mức phạt|bị phạt|phạt bao nhiêu", question, re.IGNORECASE)
+            r"\bphạt\b|\bphat\b|xử lý vi phạm|trừ điểm|tước|tịch thu|khắc phục",
+            question, re.IGNORECASE)
         if asks_for_sanction and all(
             c.get("document_number") == "55/VBHN-VPQH" for c in verified_chunks
         ):
@@ -117,6 +119,8 @@ class TrafficRagGenerator:
             )
             context_blocks.append(block)
         context_str = "\n\n".join(context_blocks)
+        logger.info("RAG evidence context: %d chunks, %d characters, budget %d tokens",
+                    len(verified_chunks), len(context_str), token_budget)
 
         system_instruction = (
             "Bạn là Trợ lý AI Tư vấn Pháp luật Giao thông Đường bộ Việt Nam chuyên nghiệp và chuẩn xác.\n"
@@ -139,12 +143,24 @@ class TrafficRagGenerator:
             "các dữ kiện quyết định và căn cứ phù hợp; không đoán từ vị trí xe đơn thuần. "
             "Không tự động xếp xe ưu tiên đầu tiên nếu ảnh cho thấy xe khác đã vào nơi giao nhau. "
             "Nếu không xác định được yếu tố này hoặc hướng đi mâu thuẫn, trả NoMatch.\n"
+            "Khi căn cứ là Nghị định 168/2024/NĐ-CP đã sửa đổi, phải kiểm tra khoản 2, 3, 4 Điều 53 "
+            "nếu có trong căn cứ. Các ngoại lệ về thiết bị ghi nhận hình ảnh phụ thuộc loại xe và mốc "
+            "2028/2029; điểm b khoản 1 Điều 32 phụ thuộc quy định kiểm định khí thải. "
+            "Chỉ kết luận mức phạt sau khi đối chiếu đúng loại xe và ngày vi phạm với ngoại lệ. "
+            "Nếu người dùng không nêu ngày vi phạm, dùng ngày hiện tại theo giờ Việt Nam. "
+            "Nếu thiếu dữ kiện quyết định hoặc chưa xác định hiệu lực, trả NoMatch.\n"
+            "Nếu câu hỏi về xe kinh doanh vận tải hàng hóa không lắp thiết bị ghi nhận hình ảnh "
+            "người lái xe trong năm 2026, phân biệt trách nhiệm người điều khiển tại điểm b "
+            "khoản 3 Điều 21 (kiểm tra khoản 3 Điều 53 về mốc 2028) với trách nhiệm cá nhân "
+            "hoặc tổ chức sử dụng xe tại điểm g khoản 7 Điều 26. Không gộp hai chủ thể "
+            "thành một mức phạt; chỉ kết luận từng mức khi đủ căn cứ tương ứng.\n"
             '6. Chỉ trả JSON: {"status":"Answered" hoặc "NoMatch","answer":"câu trả lời","chunk_ids":["ID căn cứ thực sự dùng"]}. '
             "Answered phải nêu Điều/Khoản/Điểm có trong căn cứ và chỉ chọn chunk_ids đã được cung cấp."
         )
 
         user_content = (
             f"--- CĂN CỨ PHÁP LÝ ĐÃ XÁC THỰC ---\n{context_str}\n\n"
+            f"--- NGÀY HIỆN TẠI (VIỆT NAM) ---\n{datetime.now(timezone(timedelta(hours=7))).date().isoformat()}\n\n"
             f"--- CÂU HỎI CỦA NGƯỜI DÙNG ---\n{prompt}"
         )
 
@@ -204,7 +220,8 @@ class TrafficRagGenerator:
                         continue
                     break
                 except Exception as error:
-                    logger.error("Gemini generation model %s failed: %s", index + 1, type(error).__name__)
+                    detail = str(error) if isinstance(error, RuntimeError) else type(error).__name__
+                    logger.error("Gemini generation model %s failed: %s", index + 1, detail[:160])
                     break
                 if res and res.text:
                     answer = res.text.strip()

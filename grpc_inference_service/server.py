@@ -1,6 +1,7 @@
 import base64
 import functools
 import os
+import re
 import sys
 from concurrent import futures
 import logging
@@ -76,6 +77,18 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response.tokens_used = tokens
         return response
 
+    @staticmethod
+    def _supplement_refers_to_point(content, clause, point):
+        for segment in content.lower().split(';'):
+            previous_end = 0
+            for match in re.finditer(r'khoản\s+(\d+[a-z]?)', segment):
+                prefix = segment[previous_end:match.start()]
+                points = re.findall(r'điểm\s+([a-zđ]\d*)', prefix)
+                if match.group(1) == clause and (not points or point in points):
+                    return True
+                previous_end = match.end()
+        return False
+
     @rpc_errors
     def ProcessChatMessage(self, request, context):
         prompt = request.prompt.strip()
@@ -84,6 +97,12 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response = self._response(warning, status="Blocked", images=bool(request.images))
             response.violation_keywords.extend(keywords)
             return response
+        if re.search(r'\b(?:đèn|den)\s+(?:đỏ|do)\b', prompt, re.IGNORECASE) and \
+                QdrantTrafficStore._is_sanction_query(prompt) and not re.search(
+                    r'xe\s+(?:máy|mô\s*tô|gắn\s*máy|đạp|tải|ô\s*tô|chuyên\s*dùng)|\bô\s*tô\b',
+                    prompt, re.IGNORECASE):
+            return self._response('Vui lòng nêu loại phương tiện để xác định đúng mức phạt vượt đèn đỏ.',
+                                  status='NeedsClarification', images=bool(request.images))
         vision_tokens = 0
         budget = request.max_tokens or 8192
         observations = []
@@ -106,9 +125,107 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         retrieval_query = "\n".join([*vision_queries, prompt]).strip()
         chunks = self.vector_store.search_verified_chunks(
             retrieval_query, top_k=5, score_threshold=0.20)
+        if not chunks and request.images and vision_queries:
+            # A visual description can dominate the embedding and hide a relevant rule.
+            # Retry retrieval using the user's legal question; generation still needs citations.
+            chunks = self.vector_store.search_verified_chunks(
+                prompt, top_k=5, score_threshold=0.20)
+        prompt_lower = prompt.lower()
+        if QdrantTrafficStore._is_sanction_query(prompt) and any(
+                c.get('document_number') == '168/2024/NĐ-CP' for c in chunks):
+            chunks = [c for c in chunks if c.get('document_number') == '168/2024/NĐ-CP']
+        camera_question = 'ghi nhận hình ảnh' in prompt_lower or 'camera' in prompt_lower
+        if camera_question and 'vận tải hàng hóa' in prompt_lower:
+            # Article 21 covers cargo drivers; Article 26 covers transport operators.
+            # Passenger and school-transport articles describe different vehicle classes.
+            chunks = [c for c in chunks if c.get('document_number') != '168/2024/NĐ-CP'
+                      or str(c.get('article')) in {'21', '26'}]
+        delayed = {(20, '5', 'l'): '3', (21, '3', 'b'): '3', (32, '9a', 'b'): '3',
+                   (20, '5', 'n'): '4', (26, '7', 'k'): '4', (26, '7', 'l'): '4',
+                   (32, '1', 'b'): '2'}
+        companions = {}
+        parents = {}
+        for chunk in chunks:
+            if chunk.get('document_number') != '168/2024/NĐ-CP':
+                continue
+            article = str(chunk.get('article', ''))
+            if not article.isdigit():
+                continue
+            clause = delayed.get((int(article), chunk.get('clause'), chunk.get('point')))
+            if clause:
+                companions[(chunk['document_id'], clause)] = chunk
+            if chunk.get('point') and chunk.get('clause'):
+                parents[(chunk['document_id'], article, chunk['clause'], chunk['point'])] = chunk
+        sanction_documents = {chunk['document_id'] for chunk in chunks
+                              if chunk.get('document_number') == '168/2024/NĐ-CP'
+                              and chunk.get('document_id')}
+        if camera_question:
+            for document_id in sanction_documents:
+                companions[(document_id, '3')] = None
+                if 'vận tải hàng hóa' not in prompt_lower:
+                    companions[(document_id, '4')] = None
+        if 'khí thải' in prompt_lower:
+            for document_id in sanction_documents:
+                companions[(document_id, '2')] = None
+        for (document_id, clause), _ in companions.items():
+            evidence = self.vector_store.get_verified_chunk(document_id, '53', clause)
+            if evidence is None:
+                return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch', images=bool(request.images))
+            if evidence['chunk_id'] not in {c['chunk_id'] for c in chunks}:
+                chunks.append(evidence)
+        wants_additional_sanctions = bool(re.search(
+            r'xử phạt thế nào|trừ điểm|tước|tịch thu|khắc phục|hình phạt bổ sung',
+            prompt, re.IGNORECASE))
+        if QdrantTrafficStore._is_sanction_query(prompt):
+            supplements = []
+            article_rows = {}
+            titled_articles = {(chunk['document_id'], str(chunk['article'])) for chunk in chunks
+                              if chunk.get('document_number') == '168/2024/NĐ-CP'
+                              and chunk.get('document_id') and chunk.get('clause')
+                              and str(chunk.get('article', '')).isdigit()}
+            for document_id, article in titled_articles:
+                title = self.vector_store.get_verified_chunk(document_id, article, '', point='')
+                if title is None:
+                    return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch',
+                                          images=bool(request.images))
+                if title['chunk_id'] not in {c['chunk_id'] for c in chunks}:
+                    chunks.append(title)
+            for document_id, article, clause, point in parents:
+                article_key = (document_id, article)
+                header = self.vector_store.get_verified_chunk(document_id, article, clause, point='')
+                if header is None:
+                    return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch', images=bool(request.images))
+                if header['chunk_id'] not in {c['chunk_id'] for c in chunks}:
+                    chunks.append(header)
+                if wants_additional_sanctions:
+                    if article_key not in article_rows:
+                        article_rows[article_key] = self.vector_store.get_verified_article_chunks(document_id, article)
+                    for row in article_rows[article_key]:
+                        content = row.get('content', '').lower()
+                        if self._supplement_refers_to_point(content, clause, point) and any(term in content for term in
+                                ('trừ điểm', 'tước quyền', 'tịch thu', 'buộc')):
+                            supplements.append(row)
+            for row in supplements[:8]:
+                if row.get('point') and row.get('clause'):
+                    related_header = self.vector_store.get_verified_chunk(
+                        row['document_id'], row['article'], row['clause'], point='')
+                    if related_header is None:
+                        return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch',
+                                              images=bool(request.images))
+                    if related_header['chunk_id'] not in {c['chunk_id'] for c in chunks}:
+                        chunks.append(related_header)
+                if row['chunk_id'] not in {c['chunk_id'] for c in chunks}:
+                    chunks.append(row)
+        if QdrantTrafficStore._is_sanction_query(prompt):
+            logger.info("Sanction evidence locations: %s", [(c.get('article'), c.get('clause'),
+                c.get('point')) for c in chunks])
         text, citations, tokens, verified = self.rag_generator.generate(
             query, chunks, max(0, budget - vision_tokens), current_question=prompt,
             prefer_gemini=bool(request.images))
+        if verified and camera_question and 'vận tải hàng hóa' in prompt_lower and \
+                not (any(c.get('article_number') == '53' and c.get('clause_number') == '3'
+                         for c in citations) and '2028' in text):
+            text, citations, verified = self.rag_generator.NO_MATCH_RESPONSE, [], False
         if not context.is_active():
             context.abort(grpc.StatusCode.CANCELLED, "Request cancelled")
         allowed = {"document_title", "article_number", "clause_number", "source_url", "excerpt",

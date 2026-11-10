@@ -1,5 +1,6 @@
 import re
 import datetime
+import hashlib
 from typing import Dict, Any, Optional
 
 class DataVerificationEngine:
@@ -74,6 +75,15 @@ class DataVerificationEngine:
         }
     }
 
+    # Exact lines of the 55-article 168/2024 text after the reviewed 238/2026 edits.
+    # This scope includes Article 53's delayed-effect clauses, which the chat must apply.
+    REVIEWED_168_238_LINES_SHA256 = "31429b5b9a954b20d84a36af517a175933eae2d5890d548a269d94896e30e560"
+
+    @staticmethod
+    def _line_set_hash(content: str) -> str:
+        lines = sorted(line.strip() for line in content.splitlines() if line.strip())
+        return hashlib.sha256("\n".join(lines).encode("utf8")).hexdigest()
+
     def normalize_doc_number(self, doc_number: str) -> str:
         """Normalize document number string for registry lookup."""
         if not doc_number:
@@ -113,6 +123,13 @@ class DataVerificationEngine:
                 pass
 
         norm_number = self.normalize_doc_number(document_number)
+        if norm_number == "168/2024/ND-CP":
+            if datetime.date.today() < datetime.date(2026, 8, 15) or \
+                    self._line_set_hash(content) != self.REVIEWED_168_238_LINES_SHA256:
+                return {"is_valid": False, "status": "Pending",
+                        "notes": "Chỉ xác minh đúng toàn văn 168/2024 đã đối chiếu sửa đổi 238/2026 và hiệu lực."}
+            return {"is_valid": True, "status": "Verified",
+                    "notes": "Toàn văn 55 điều khớp gói nguồn đã đối chiếu; áp dụng ngoại lệ hiệu lực Điều 53 theo trường hợp."}
         
         # 2. Check known registry
         matched_info = None

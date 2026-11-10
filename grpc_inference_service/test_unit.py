@@ -2,6 +2,9 @@ import pytest
 import os
 import sys
 import json
+import io
+from pathlib import Path
+from urllib.error import HTTPError, URLError
 from types import SimpleNamespace
 from unittest.mock import Mock
 from qdrant_client import QdrantClient
@@ -16,6 +19,7 @@ from rag.embeddings import EmbeddingEngine
 from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
+from server import TrafficRagInferenceServicer, chat_inference_pb2
 from data.seed_traffic_law import get_seed_traffic_law_chunks
 
 @pytest.fixture(autouse=True)
@@ -49,6 +53,231 @@ def test_document_index_parity_detects_metadata_drift_and_extra_points():
     extra = dict(chunk, chunk_id="reviewed-2")
     store.upsert_chunks([extra])
     assert store.verify_document_index([chunk])[0] is False
+
+
+def test_effective_date_companion_requires_same_active_document():
+    store = QdrantTrafficStore(embedding_engine=FixtureEmbedding(), client=QdrantClient(":memory:"))
+    base = {"document_number": "168/2024/NĐ-CP", "document_id": "current-edition",
+            "article": "53", "clause": "3", "point": "", "content": "3. Hiệu lực từ 2028",
+            "is_verified": True, "is_active": True}
+    store.upsert_chunks([dict(base, chunk_id="effective-current"),
+                         dict(base, document_id="other-edition", chunk_id="effective-other"),
+                         dict(base, clause="4", chunk_id="inactive-clause", is_active=False)])
+    result = store.get_verified_chunk("current-edition", "53", "3")
+    assert result["chunk_id"] == "effective-current"
+    assert store.get_verified_chunk("current-edition", "53", "4") is None
+
+
+def test_sanction_point_finds_its_own_fine_range_header():
+    store = QdrantTrafficStore(embedding_engine=FixtureEmbedding(), client=QdrantClient(':memory:'))
+    base = {'document_number': '168/2024/NĐ-CP', 'document_id': 'current-edition',
+            'article': '7', 'clause': '7', 'is_verified': True, 'is_active': True}
+    store.upsert_chunks([
+        dict(base, chunk_id='article-title', clause='', point='', content='Điều 7. Người điều khiển xe mô tô'),
+        dict(base, chunk_id='fine-range', point='', content='7. Phạt tiền từ 4.000.000 đến 6.000.000 đồng'),
+        dict(base, chunk_id='red-light', point='c', content='c) Không chấp hành hiệu lệnh của đèn tín hiệu giao thông')])
+    assert store.get_verified_chunk('current-edition', '7', '', point='')['chunk_id'] == 'article-title'
+    assert store.get_verified_chunk('current-edition', '7', '7', point='')['chunk_id'] == 'fine-range'
+    assert store.get_verified_chunk('current-edition', '7', '7') is None
+    assert {row['chunk_id'] for row in store.get_verified_article_chunks('current-edition', '7')} == \
+        {'article-title', 'fine-range', 'red-light'}
+
+
+def test_sanction_chat_supplies_fine_range_and_license_points_to_generator():
+    service = object.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = SimpleNamespace(check=lambda _: (False, [], ''))
+    point = {'chunk_id': 'red-light', 'document_number': '168/2024/NĐ-CP', 'document_id': 'law',
+             'article': '7', 'clause': '7', 'point': 'c', 'content': 'c) Không chấp hành hiệu lệnh của đèn tín hiệu'}
+    title = dict(point, chunk_id='article-title', clause='', point='',
+                 content='Điều 7. Xử phạt người điều khiển xe mô tô, xe gắn máy')
+    header = dict(point, chunk_id='fine-range', point='', content='7. Phạt tiền từ 4 đến 6 triệu đồng')
+    deduction_header = dict(point, chunk_id='deduction-header', clause='13', point='',
+                            content='13. Người điều khiển xe còn bị trừ điểm giấy phép lái xe')
+    deduction = dict(point, chunk_id='license-points', clause='13', point='b',
+                     content='b) Điểm c khoản 7 Điều này bị trừ điểm giấy phép lái xe 04 điểm')
+    def matching_header(_, __, clause, **kwargs):
+        return title if clause == '' else deduction_header if clause == '13' else header
+    service.vector_store = SimpleNamespace(
+        search_verified_chunks=lambda *args, **kwargs: [point],
+        get_verified_chunk=matching_header,
+        get_verified_article_chunks=lambda *args, **kwargs: [deduction])
+    generate = Mock(return_value=('fixture', [], 0, False))
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='No match', generate=generate)
+    request = chat_inference_pb2.ChatInferenceRequest(prompt='Vượt đèn đỏ xe máy bị xử phạt thế nào?')
+    context = SimpleNamespace(is_active=lambda: True)
+    service.ProcessChatMessage(request, context)
+    supplied = generate.call_args.args[1]
+    assert {row['chunk_id'] for row in supplied} == {
+        'red-light', 'article-title', 'fine-range', 'deduction-header', 'license-points'}
+
+
+def test_sanction_supplement_matches_point_within_the_referenced_clause():
+    refers = TrafficRagInferenceServicer._supplement_refers_to_point
+    four_points = ('điểm đ khoản 4; điểm a khoản 6; '
+                   'điểm c, điểm d, điểm đ khoản 7; điểm a khoản 8 bị trừ 04 điểm')
+    two_points = ('điểm b khoản 3; khoản 5; điểm b, điểm c khoản 6; '
+                  'điểm a khoản 7 bị trừ 02 điểm')
+    assert refers(four_points, '7', 'c')
+    assert not refers(two_points, '7', 'c')
+    assert refers(two_points, '5', 'c')
+    assert not refers(four_points, '7', 'b')
+
+
+def test_cargo_camera_answer_requires_2028_effectivity_citation():
+    service = object.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = SimpleNamespace(check=lambda _: (False, [], ''))
+    base = {'document_number': '168/2024/NĐ-CP', 'document_id': 'law',
+            'is_verified': True, 'is_active': True}
+    driver = dict(base, chunk_id='driver', article='21', clause='3', point='b', content='Camera driver')
+    operator = dict(base, chunk_id='operator', article='26', clause='7', point='g', content='Camera operator')
+    def evidence(_, article, clause, **kwargs):
+        return dict(base, chunk_id=f'{article}-{clause}', article=article, clause=clause,
+                    point='', content='Verified legal evidence')
+    service.vector_store = SimpleNamespace(search_verified_chunks=lambda *a, **k: [driver, operator],
+                                           get_verified_chunk=evidence)
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='No match',
+        generate=lambda *a, **k: ('Only the operator fine.',
+            [{'article_number': '26', 'clause_number': '7', 'chunk_id': 'operator'}], 50, True))
+    request = chat_inference_pb2.ChatInferenceRequest(
+        prompt='Năm 2026, xe ô tô kinh doanh vận tải hàng hóa không lắp thiết bị ghi nhận hình ảnh người lái xe bị phạt bao nhiêu?')
+    response = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert response.result_status == 'NoMatch' and not response.citations
+
+
+def test_clause_only_fine_supplies_article_scope_to_generator():
+    service = object.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = SimpleNamespace(check=lambda _: (False, [], ''))
+    fine = {'chunk_id': 'fine-clause', 'document_number': '168/2024/NĐ-CP',
+            'document_id': 'law', 'article': '20', 'clause': '2', 'point': '',
+            'content': '2. Phạt tiền trên mỗi người chở vượt quá quy định'}
+    title = dict(fine, chunk_id='article-title', clause='', content='Điều 20. Người điều khiển xe chở khách')
+    service.vector_store = SimpleNamespace(
+        search_verified_chunks=lambda *args, **kwargs: [fine],
+        get_verified_chunk=lambda *args, **kwargs: title)
+    generate = Mock(return_value=('fixture', [], 0, False))
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='No match', generate=generate)
+    request = chat_inference_pb2.ChatInferenceRequest(prompt='Chở quá số người bị phạt bao nhiêu?')
+    service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert {row['chunk_id'] for row in generate.call_args.args[1]} == {'fine-clause', 'article-title'}
+
+
+def test_two_points_in_one_clause_keep_their_distinct_license_deductions():
+    service = object.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = SimpleNamespace(check=lambda _: (False, [], ''))
+    base = {'document_number': '168/2024/NĐ-CP', 'document_id': 'law', 'article': '7'}
+    points = [dict(base, chunk_id='behavior-a', clause='7', point='a', content='a) Hành vi thứ nhất'),
+              dict(base, chunk_id='behavior-c', clause='7', point='c', content='c) Hành vi thứ hai')]
+    title = dict(base, chunk_id='title', clause='', point='', content='Điều 7. Xe máy')
+    fine = dict(base, chunk_id='fine', clause='7', point='', content='7. Phạt tiền từ 4 đến 6 triệu đồng')
+    deduction_header = dict(base, chunk_id='deduction-header', clause='13', point='',
+                            content='13. Ngoài phạt tiền còn trừ điểm')
+    deductions = [dict(base, chunk_id='deduction-a', clause='13', point='a',
+                       content='a) Điểm a khoản 7 Điều này bị trừ điểm giấy phép lái xe 02 điểm'),
+                  dict(base, chunk_id='deduction-c', clause='13', point='b',
+                       content='b) Điểm c khoản 7 Điều này bị trừ điểm giấy phép lái xe 04 điểm')]
+    service.vector_store = SimpleNamespace(
+        search_verified_chunks=lambda *args, **kwargs: points,
+        get_verified_chunk=lambda _, __, clause, **kwargs:
+            title if clause == '' else deduction_header if clause == '13' else fine,
+        get_verified_article_chunks=lambda *args, **kwargs: deductions)
+    generate = Mock(return_value=('fixture', [], 0, False))
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='No match', generate=generate)
+    request = chat_inference_pb2.ChatInferenceRequest(prompt='Hai hành vi này bị phạt và trừ điểm thế nào?')
+    service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    supplied = {row['chunk_id'] for row in generate.call_args.args[1]}
+    assert {'behavior-a', 'behavior-c', 'deduction-a', 'deduction-c'} <= supplied
+
+
+def test_document_embedding_retries_transient_network_failure(monkeypatch):
+    embedding = EmbeddingEngine.__new__(EmbeddingEngine)
+    embedding._embed = Mock(side_effect=[URLError("temporary network failure"), [[1.0, 0.0, 0.0]]])
+    monkeypatch.setattr("rag.embeddings.time.sleep", lambda _: None)
+    assert embedding.embed_documents(["sanction text"]) == [[1.0, 0.0, 0.0]]
+    assert embedding._embed.call_count == 2
+
+
+def test_document_embedding_stops_when_daily_quota_is_exhausted(monkeypatch):
+    embedding = EmbeddingEngine.__new__(EmbeddingEngine)
+    error = HTTPError('https://example.test', 429, 'quota', {},
+                      io.BytesIO(b'{"error":{"message":"Requests per day quota exceeded"}}'))
+    embedding._embed = Mock(side_effect=error)
+    sleep = Mock()
+    monkeypatch.setattr('rag.embeddings.time.sleep', sleep)
+    with pytest.raises(HTTPError):
+        embedding.embed_documents(['sanction text'])
+    assert embedding._embed.call_count == 1
+    sleep.assert_not_called()
+
+
+def test_lexical_retrieval_keeps_sanction_chat_available_during_embedding_quota():
+    embedding = FixtureEmbedding()
+    embedding.embed_query = Mock(side_effect=AssertionError('Strong sanction match should not embed'))
+    store = QdrantTrafficStore(embedding_engine=embedding, client=QdrantClient(':memory:'))
+    base = {'document_number': '168/2024/NĐ-CP', 'is_verified': True, 'is_active': True}
+    store.upsert_chunks([
+        dict(base, chunk_id='motor-title', document_id='law', article='7', clause='', point='',
+             content='Điều 7. Người điều khiển xe mô tô, xe gắn máy'),
+        dict(base, chunk_id='motor-red', document_id='law', article='7', clause='7', point='c',
+             content='c) Không chấp hành hiệu lệnh của đèn tín hiệu giao thông;'),
+        dict(base, chunk_id='car-title', document_id='law', article='6', clause='', point='',
+             content='Điều 6. Người điều khiển xe ô tô'),
+        dict(base, chunk_id='car-red', document_id='law', article='6', clause='9', point='b',
+             content='b) Không chấp hành hiệu lệnh của đèn tín hiệu giao thông;'),
+    ])
+    rows = store.search_verified_chunks('Vượt đèn đỏ xe máy bị phạt thế nào?', top_k=4)
+    assert rows and rows[0]['chunk_id'] == 'motor-red'
+    assert 'car-red' not in {row['chunk_id'] for row in rows}
+    car_rows = store.search_verified_chunks('Ô tô vượt đèn đỏ bị phạt thế nào?', top_k=4)
+    assert car_rows and car_rows[0]['chunk_id'] == 'car-red'
+    assert 'motor-red' not in {row['chunk_id'] for row in car_rows}
+    embedding.embed_query.assert_not_called()
+
+
+def test_lexical_retrieval_ignores_unverified_sanction_points():
+    embedding = FixtureEmbedding()
+    embedding.embed_query = Mock(side_effect=HTTPError('https://example.test', 429, 'quota', {}, None))
+    store = QdrantTrafficStore(embedding_engine=embedding, client=QdrantClient(':memory:'))
+    store.upsert_chunks([{'chunk_id': 'pending', 'document_number': '168/2024/NĐ-CP',
+                          'document_id': 'law', 'article': '7', 'clause': '7', 'point': 'c',
+                          'content': 'c) Không chấp hành hiệu lệnh của đèn tín hiệu giao thông',
+                          'is_verified': False, 'is_active': False}])
+    assert store.search_verified_chunks('Xe máy vượt đèn đỏ bị phạt bao nhiêu?') == []
+
+
+def test_speed_range_does_not_trigger_red_light_boost():
+    embedding = FixtureEmbedding()
+    embedding.embed_query = Mock(side_effect=AssertionError('Strong sanction match should not embed'))
+    store = QdrantTrafficStore(embedding_engine=embedding, client=QdrantClient(':memory:'))
+    base = {'document_number': '168/2024/NĐ-CP', 'document_id': 'law', 'article': '7',
+            'is_verified': True, 'is_active': True}
+    store.upsert_chunks([
+        dict(base, chunk_id='title', clause='', point='', content='Điều 7. Người điều khiển xe mô tô'),
+        dict(base, chunk_id='red', clause='7', point='c',
+             content='c) Không chấp hành hiệu lệnh của đèn tín hiệu giao thông;'),
+        dict(base, chunk_id='speed', clause='4', point='a',
+             content='a) Điều khiển xe chạy quá tốc độ quy định từ 10 km/h đến 20 km/h;'),
+    ])
+    rows = store.search_verified_chunks('Xe máy chạy quá tốc độ từ 10 đến 20 km/h bị phạt bao nhiêu?')
+    assert rows[0]['chunk_id'] == 'speed'
+
+
+def test_sanction_retrieval_prefers_direct_fine_over_supplementary_clause():
+    embedding = FixtureEmbedding()
+    embedding.embed_query = Mock(side_effect=AssertionError('Lexical evidence should be sufficient'))
+    store = QdrantTrafficStore(embedding_engine=embedding, client=QdrantClient(':memory:'))
+    base = {'document_number': '168/2024/NĐ-CP', 'document_id': 'law', 'article': '7',
+            'is_verified': True, 'is_active': True}
+    behavior = 'Không chấp hành hiệu lệnh của đèn tín hiệu giao thông'
+    store.upsert_chunks([
+        dict(base, chunk_id='title', clause='', point='', content='Điều 7. Xe mô tô, xe gắn máy'),
+        dict(base, chunk_id='fine-header', clause='7', point='', content='7. Phạt tiền từ 4 đến 6 triệu đồng'),
+        dict(base, chunk_id='fine-point', clause='7', point='c', content='c) ' + behavior),
+        dict(base, chunk_id='extra-header', clause='13', point='',
+             content='13. Ngoài việc bị phạt tiền, người lái xe còn bị trừ điểm'),
+        dict(base, chunk_id='extra-point', clause='13', point='b', content='b) ' + behavior),
+    ])
+    rows = store.search_verified_chunks('Xe máy vượt đèn đỏ bị phạt bao nhiêu?')
+    assert rows[0]['chunk_id'] == 'fine-point'
 
 
 # ==============================================================================
@@ -90,6 +319,16 @@ def test_verification_valid_and_outdated_documents():
     assert res3["status"] == "Pending"
     for number in ["100/2019/NĐ-CP", "123/2021/NĐ-CP", "23/2008/QH12", "36/2024/QH15"]:
         assert engine.verify_document("Legacy source", number)["status"] == "Pending"
+
+
+def test_sanction_verification_requires_exact_reviewed_full_text():
+    package = json.loads((Path(__file__).resolve().parents[1] /
+        "content-bank/legal/168-238-all-articles-merged-review.json").read_text(encoding="utf8"))
+    content = "\n".join(article["content"] for article in package["articles"])
+    verifier = DataVerificationEngine()
+    assert verifier.verify_document("168 amended by 238", "168/2024/NĐ-CP", content)["status"] == "Verified"
+    assert verifier.verify_document("168 amended by 238", "168/2024/NĐ-CP", content.replace(
+        "4.000.000 đồng", "3.000.000 đồng", 1))["status"] == "Pending"
 
 # ==============================================================================
 # 3. TEST EMBEDDINGS & VECTOR STORE (QDRANT IN-MEMORY)
@@ -481,3 +720,25 @@ def test_chat_v2_processes_history_and_images_with_citation_hash():
     assert "Scene" in service.rag_generator.generate.call_args.args[0]
     assert service.rag_generator.generate.call_args.kwargs["current_question"] == request.prompt
     assert service.rag_generator.generate.call_args.kwargs["prefer_gemini"] is True
+
+
+def test_image_retrieval_retries_with_question_when_visual_query_misses():
+    from server import TrafficRagInferenceServicer
+    import chat_inference_pb2 as proto
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.vision_engine = SimpleNamespace(last_tokens=5, analyze_traffic_image=lambda *args: (
+        "Vạch và biển chỉ làn", False, "mô tả ảnh quá dài"))
+    search = Mock(side_effect=[[], [{"chunk_id": "law", "content": "Quy tắc báo hiệu"}]])
+    service.vector_store = SimpleNamespace(search_verified_chunks=search)
+    service.rag_generator = SimpleNamespace(generate=Mock(return_value=(
+        "Trả lời có căn cứ", [{"chunk_id": "law"}], 10, True)))
+    question = "Phải chấp hành biển báo và vạch kẻ đường thế nào?"
+    request = proto.ChatInferenceRequest(prompt=question, images=[proto.ChatImage(
+        content=b"fixture", mime_type="image/png")])
+    response = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert response.result_status == "Answered"
+    assert search.call_count == 2
+    assert search.call_args_list[0].args[0] != question
+    assert search.call_args_list[1].args[0] == question
+    assert service.rag_generator.generate.call_args.args[1][0]["chunk_id"] == "law"

@@ -2,7 +2,7 @@ import json
 import math
 import os
 import time
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 
@@ -31,10 +31,17 @@ class EmbeddingEngine:
         for attempt in range(8):
             try:
                 return self._embed(texts, "RETRIEVAL_DOCUMENT")
-            except HTTPError as error:
-                if error.code != 429 or attempt == 7:
+            except (HTTPError, URLError, TimeoutError) as error:
+                if (isinstance(error, HTTPError) and error.code != 429) or attempt == 7:
                     raise
-                retry_after = error.headers.get("Retry-After") if error.headers else None
+                if isinstance(error, HTTPError):
+                    try:
+                        message = json.loads(error.read().decode('utf8')).get('error', {}).get('message', '').lower()
+                    except (UnicodeError, ValueError, OSError):
+                        message = ''
+                    if any(term in message for term in ('per day', 'daily', 'requests per day')):
+                        raise
+                retry_after = error.headers.get("Retry-After") if isinstance(error, HTTPError) and error.headers else None
                 try:
                     delay = int(retry_after)
                 except (TypeError, ValueError):
