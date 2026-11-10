@@ -286,6 +286,17 @@ public sealed class ChatTests : IAsyncLifetime
         Assert.Empty(response.Citations);
         Assert.Equal(0, inference.Calls);
     }
+    [Fact]
+    public void PracticeAnswerMayCarryReviewedLegalCitationsOnlyWhenVerified()
+    {
+        var answer = Answer();
+        answer.Status = "PracticeAnswered";
+        answer.TokensUsed = 0;
+        answer.Citations = [new CitationResultDto { ChunkId = Guid.NewGuid().ToString() }];
+        ChatbotService.ValidateResult(answer, false);
+        answer.DataVerified = false;
+        Assert.Throws<ServiceUnavailableException>(() => ChatbotService.ValidateResult(answer, false));
+    }
     private ChatbotService NewService(UserDbContext otherDb) => new(new ChatSessionRepository(otherDb), new ChatMessageRepository(otherDb),
         new UserRepository(otherDb), inference, new ChatTurnRepository(otherDb), new PrivateAttachmentService(settings, new ChatSessionRepository(otherDb)),
         settings, NullLogger<ChatbotService>.Instance, content);

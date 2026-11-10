@@ -1,0 +1,18 @@
+{
+  "reviewStatus": "TwoOfficialSignClausesReviewed",
+  "isActive": false,
+  "documentNumber": "QCVN 41:2024/BGTVT",
+  "documentTitle": "Quy chuẩn kỹ thuật quốc gia về báo hiệu đường bộ, Phụ lục B",
+  "sourceUrl": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf",
+  "officialSourceUrl": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf",
+  "officialPdfSha256": "b6b99d0a0aeb13fe79072831857ece15bb254d8fb7817e80e4a2739a0d2145ce",
+  "pdfPage": 80,
+  "effectiveFrom": "2025-01-01",
+  "articles": [
+    "Phụ lục B"
+  ],
+  "content": "Phụ lục B. Ý nghĩa - Sử dụng biển báo cấm\nB.1 Biển số P.101 \"Đường cấm\"\na) Để báo đường cấm các loại phương tiện đi lại cả hai hướng, trừ các xe được ưu tiên theo quy định, đặt biển số P.101 \"Đường cấm\".\nB.2 Biển số P.102 \"Cấm đi ngược chiều\"\na) Để báo đường cấm các loại xe (cơ giới và thô sơ) đi vào theo chiều đặt biển, trừ các xe được ưu tiên theo quy định, đặt biển số P.102 \"Cấm đi ngược chiều\". Người đi bộ được phép đi trên vỉa hè hoặc lề đường.",
+  "contentSha256": "fabf70942ec9df0a2fd0289477e127401d71fda4c0e969da5ea3314ce8e71488",
+  "lineSetSha256": "4736e0cce0ebaab40542a9855ebefe22257c429d52775a18cb9a44934d3873c7",
+  "notes": "Chỉ mục B.1 điểm a và B.2 điểm a, đối chiếu trang 80 PDF chính thức kèm TT 51/2024/TT-BGTVT."
+}

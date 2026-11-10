@@ -213,9 +213,18 @@ class TrafficRagGenerator:
         # Context assembly
         context_blocks = []
         for idx, c in enumerate(verified_chunks, start=1):
-            point_info = f" {c.get('point', '')}" if c.get("point") else ""
+            if str(c.get('article', '')).startswith('Phụ lục '):
+                location = str(c['article'])
+                if c.get('clause'):
+                    location += f" mục {c['clause']}"
+                if c.get('point'):
+                    location += f" điểm {c['point']}"
+            else:
+                location = f"Điều {c.get('article', '')} Khoản {c.get('clause', '')}"
+                if c.get('point'):
+                    location += f" Điểm {c['point']}"
             block = (
-                f"[{idx}] chunk_id={c.get('chunk_id', '')}; {c.get('document_title', '')} - Điều {c.get('article', '')} Khoản {c.get('clause', '')}{point_info}:\n"
+                f"[{idx}] chunk_id={c.get('chunk_id', '')}; {c.get('document_title', '')} - {location}:\n"
                 f"{c.get('content', '')}\n"
                 f"Nguồn: {c.get('source_url', '')}"
             )
@@ -228,7 +237,7 @@ class TrafficRagGenerator:
             "Bạn là Trợ lý AI Tư vấn Pháp luật Giao thông Đường bộ Việt Nam chuyên nghiệp và chuẩn xác.\n"
             "QUY TẮC BẮT BUỘC:\n"
             "1. Chỉ trả lời dựa trên CĂN CỨ PHÁP LÝ đã được cung cấp dưới đây.\n"
-            "2. Nêu rõ văn bản quy phạm, Điều, Khoản, Điểm liên quan. Chỉ nêu mức phạt khi câu hỏi yêu cầu "
+            "2. Nêu rõ văn bản quy phạm, Điều/Khoản/Điểm hoặc Phụ lục/mục/điểm liên quan. Chỉ nêu mức phạt khi câu hỏi yêu cầu "
             "và căn cứ đã cung cấp quy định mức phạt đó.\n"
             "2a. Trả lời đúng trọng tâm câu hỏi cuối cùng; nếu là trắc nghiệm, ghi rõ số phương án "
             "và đối chiếu nội dung phương án trước khi kết luận. Mỗi kết luận phải gắn với "
@@ -366,9 +375,14 @@ class TrafficRagGenerator:
         legal_sources = []
         for source in selected:
             if source['document_title'] and source['article_number']:
-                location = f"{source['document_title']}, Điều {source['article_number']}"
-                if source['clause_number']:
-                    location += f" khoản {source['clause_number']}"
+                if str(source['article_number']).startswith('Phụ lục '):
+                    location = f"{source['document_title']}, {source['article_number']}"
+                    if source['clause_number']:
+                        location += f" mục {source['clause_number']}"
+                else:
+                    location = f"{source['document_title']}, Điều {source['article_number']}"
+                    if source['clause_number']:
+                        location += f" khoản {source['clause_number']}"
                 if source['point_number']:
                     location += f" điểm {source['point_number']}"
                 legal_sources.append(f"{location} ({source['source_url']})")

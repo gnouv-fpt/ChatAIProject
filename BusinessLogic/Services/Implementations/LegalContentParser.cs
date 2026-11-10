@@ -9,11 +9,13 @@ public sealed record LegalChunk(string? Article, string? Clause, string? Point, 
 
 public static class LegalContentParser
 {
-    public static bool IsAllowedSource(Uri uri) => uri.Scheme == "https" &&
-        uri.Host.Equals("thuvienphapluat.vn", StringComparison.OrdinalIgnoreCase) && uri.IsDefaultPort &&
+    public static bool IsAllowedSource(Uri uri) => uri.Scheme == "https" && uri.IsDefaultPort &&
         string.IsNullOrEmpty(uri.UserInfo) && string.IsNullOrEmpty(uri.Query) && string.IsNullOrEmpty(uri.Fragment) &&
         !uri.OriginalString.Contains('\\') && !Uri.UnescapeDataString(uri.OriginalString).Split('/').Any(p => p is "." or "..") &&
-        uri.AbsolutePath.StartsWith("/van-ban/", StringComparison.OrdinalIgnoreCase);
+        (uri.Host.Equals("thuvienphapluat.vn", StringComparison.OrdinalIgnoreCase) &&
+         uri.AbsolutePath.StartsWith("/van-ban/", StringComparison.OrdinalIgnoreCase) ||
+         uri.Host.Equals("datafiles.chinhphu.vn", StringComparison.OrdinalIgnoreCase) &&
+         uri.AbsolutePath == "/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf");
 
     public static ParsedLegalContent Parse(string html)
     {
@@ -43,9 +45,15 @@ public static class LegalContentParser
         foreach (var line in content.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var a = Regex.Match(line, @"^Điều\s+(\d+[a-zđ]?)\s*[.:]", RegexOptions.IgnoreCase);
+            var appendix = Regex.Match(line, @"^(Phụ\s+lục\s+[A-Z])\s*[.:]", RegexOptions.IgnoreCase);
+            var appendixSection = Regex.Match(line, @"^([A-Z]\.\d+)\s+Biển\s+số\s+", RegexOptions.IgnoreCase);
             var c = Regex.Match(line, @"^(\d+[a-zđ]?)\.\s", RegexOptions.IgnoreCase);
             var p = Regex.Match(line, @"^([a-zđ](?:\d+)?)\)\s", RegexOptions.IgnoreCase);
             if (a.Success) { Flush(); article = a.Groups[1].Value; clause = null; point = null; }
+            else if (appendix.Success) { Flush(); article = appendix.Groups[1].Value; clause = null; point = null; }
+            else if (appendixSection.Success && article is not null &&
+                     appendixSection.Groups[1].Value.StartsWith(article[^1] + ".", StringComparison.OrdinalIgnoreCase))
+            { Flush(); clause = appendixSection.Groups[1].Value; point = null; }
             else if (c.Success && article is not null) { Flush(); clause = c.Groups[1].Value; point = null; }
             else if (p.Success && clause is not null) { Flush(); point = p.Groups[1].Value; }
             if (lines.Sum(x => x.Length) + line.Length > 6000) Flush();

@@ -1,0 +1,30 @@
+{
+  "sourceUrl": "https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf",
+  "officialPdfSha256": "b6b99d0a0aeb13fe79072831857ece15bb254d8fb7817e80e4a2739a0d2145ce",
+  "pdfPage": 80,
+  "hashSize": 32,
+  "signs": [
+    {
+      "code": "P.101",
+      "clause": "B.1",
+      "visual_hash": "fffe7fffffe007ffff8001fffe00007ffc00003ff801801ff00ff00fe03ffc07e07ffe07c0ffff03c1ffff8381ffff8183ffffc183ffffc183ffffc183ffffc183ffffc183ffffc183ffffc183ffffc183ffffc1c1ffff83c1ffff83c0ffff03e07ffe07f01ff80ff007e00ff800001ffc00003fff0000ffffc001fffff00fff",
+      "crop120dpi": [
+        427,
+        548,
+        578,
+        693
+      ]
+    },
+    {
+      "code": "P.102",
+      "clause": "B.2",
+      "visual_hash": "fffffffffff00fffff8001ffff0000fffc00003ff800001ff000000ff000000fe0000007c0000007c0000003c0000003800000038000000187ffffe187ffffe187ffffe187ffffc18000000180000003c0000003c0000003e0000007e0000007f000000ff800001ffc00003ffe00007fff0001ffffe007ffffffffffffffffff",
+      "crop120dpi": [
+        427,
+        915,
+        578,
+        1067
+      ]
+    }
+  ]
+}

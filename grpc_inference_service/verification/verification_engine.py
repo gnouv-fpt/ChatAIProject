@@ -79,6 +79,7 @@ class DataVerificationEngine:
     # The 55-article consolidation still carries a pending legal review and
     # must never become active merely because its text has a known hash.
     TARGETED_168_238_LINES_SHA256 = "0dce3b8559d0730ce587bf0767fac822b6c27d78d2c3bb69fc326f56ba4d1de7"
+    REVIEWED_QCVN_P101_P102_LINES_SHA256 = "4736e0cce0ebaab40542a9855ebefe22257c429d52775a18cb9a44934d3873c7"
 
     @staticmethod
     def _line_set_hash(content: str) -> str:
@@ -124,6 +125,13 @@ class DataVerificationEngine:
                 pass
 
         norm_number = self.normalize_doc_number(document_number)
+        if norm_number == "QCVN41:2024/BGTVT":
+            if datetime.date.today() < datetime.date(2025, 1, 1) or \
+                    self._line_set_hash(content) != self.REVIEWED_QCVN_P101_P102_LINES_SHA256:
+                return {"is_valid": False, "status": "Pending",
+                        "notes": "Chỉ mục B.1/B.2 đã đối chiếu PDF chính thức được xác thực."}
+            return {"is_valid": True, "status": "Verified",
+                    "notes": "Phụ lục B mục B.1/B.2 điểm a, PDF QCVN 41:2024 trang 80 đã rà soát."}
         if norm_number == "168/2024/ND-CP":
             if datetime.date.today() < datetime.date(2025, 1, 1) or \
                     self._line_set_hash(content) != self.TARGETED_168_238_LINES_SHA256:

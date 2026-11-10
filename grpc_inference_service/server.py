@@ -20,6 +20,7 @@ from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
 from rag.visual_question_matcher import PublishedVisualQuestionMatcher
+from rag.qcvn_sign_matcher import QcvnSignMatcher
 from data.seed_traffic_law import get_seed_traffic_law_chunks
 
 # These will be available after compiling protos
@@ -60,9 +61,19 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
     """
     SIGN_SOURCE_MISSING = (
         'Ảnh này chưa khớp duy nhất với câu hỏi trong bộ đề đã kiểm chứng. '
-        'Hệ thống chưa có mục QCVN 41:2024/BGTVT tương ứng được xác thực để '
-        'kết luận ý nghĩa biển hoặc vạch cụ thể, nên chưa thể trả lời chắc chắn.'
+        'Hệ thống chưa đối chiếu được ảnh với mục QCVN 41:2024/BGTVT tương ứng đã xác thực, '
+        'nên chưa thể kết luận ý nghĩa biển hoặc vạch cụ thể.'
     )
+    REVIEWED_SCENARIO_LAW = {
+        494: ((('27', '2', 'a'), ('27', '2', 'c'), ('27', '5', '')),
+              'Điều 27 khoản 2 điểm a xếp xe chữa cháy đang làm nhiệm vụ trước điểm c '
+              'là xe cứu thương đang làm nhiệm vụ; khoản 5 buộc xe con nhường đường cho xe ưu tiên. '
+              'Với ba xe và hướng đi thể hiện trong ảnh, xe chữa cháy đi trước, rồi xe cứu thương, rồi xe con.'),
+        498: ((('27', '2', 'a'), ('27', '2', 'b')),
+              'Điều 27 khoản 2 điểm a xếp xe chữa cháy đang làm nhiệm vụ trước điểm b '
+              'là xe công an đang làm nhiệm vụ khẩn cấp. Hai xe trong ảnh thuộc hai nhóm này; '
+              'vì vậy xe chữa cháy đi trước.'),
+    }
 
     def __init__(self):
         logger.info("Initializing TrafficRagInferenceServicer components...")
@@ -73,6 +84,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         self.rag_generator = TrafficRagGenerator()
         self.vision_engine = TrafficVisionEngine()
         self.visual_question_matcher = PublishedVisualQuestionMatcher()
+        self.qcvn_sign_matcher = QcvnSignMatcher()
 
         logger.info("All components initialized successfully.")
 
@@ -80,7 +92,8 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
     def _response(text, citations=(), tokens=0, status="NoMatch", images=False):
         response = chat_inference_pb2.ChatInferenceResponse(
             response_text=text, citations=[chat_inference_pb2.CitationDto(**c) for c in citations],
-            data_verified=status == "Answered", is_violation=status == "Blocked",
+            data_verified=status == "Answered" or status == "PracticeAnswered" and bool(citations),
+            is_violation=status == "Blocked",
             requires_clarification=status == "NeedsClarification", result_status=status,
             contract_version=2, images_processed=images)
         if tokens is not None and tokens >= 0:
@@ -108,6 +121,22 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
                               r'vạch.*(?:tác dụng|ý nghĩa|phân chia)|vạch\s+nào',
                               prompt, re.IGNORECASE))
 
+    def _reviewed_sign_answer(self, code, clause, images=False):
+        source = self.vector_store.get_verified_standard_clause('QCVN 41:2024/BGTVT', clause)
+        if not source or code not in source.get('content', '') or \
+                source.get('article') != 'Phụ lục B' or source.get('source_url') != \
+                'https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf':
+            return None
+        citation = {'chunk_id': source['chunk_id'], 'content_hash': source['content_hash'],
+                    'document_title': source['document_title'],
+                    'article_number': source['article'], 'clause_number': source['clause'],
+                    'point_number': source['point'], 'document_version': source['document_version'],
+                    'source_url': source['source_url'], 'excerpt': source['content'][:250]}
+        answer = (f"Biển {code} — {QcvnSignMatcher.MEANINGS[code]}\n\n"
+                  f"Căn cứ: QCVN 41:2024/BGTVT, Phụ lục B mục {clause} "
+                  f"điểm a ({source['source_url']}).")
+        return self._response(answer, citations=[citation], status='Answered', images=images)
+
     @rpc_errors
     def ProcessChatMessage(self, request, context):
         prompt = request.prompt.strip()
@@ -116,11 +145,57 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response = self._response(warning, status="Blocked", images=bool(request.images))
             response.violation_keywords.extend(keywords)
             return response
+        if not request.images and self._requires_sign_standard(prompt):
+            mentioned_codes = {'P.' + number for number in re.findall(
+                r'\bP\.?\s*(\d{3})\b', prompt, re.IGNORECASE)}
+            if len(mentioned_codes) == 1:
+                code = next(iter(mentioned_codes))
+                if code in QcvnSignMatcher.MEANINGS:
+                    clause = 'B.1' if code == 'P.101' else 'B.2'
+                    answer = self._reviewed_sign_answer(code, clause)
+                    if answer:
+                        return answer
+                return self._response(
+                    'Chưa có mục QCVN 41:2024/BGTVT tương ứng đã xác thực để trả lời chắc chắn về mã biển này.')
         matcher = getattr(self, "visual_question_matcher", None)
         if matcher is not None and len(request.images) == 1 and not QdrantTrafficStore._is_sanction_query(prompt):
             published = matcher.match(prompt, request.images[0].content)
             if published:
+                number_match = re.match(r'Câu\s+(\d{3})\s+', published)
+                number = int(number_match.group(1)) if number_match else None
+                if number in self.REVIEWED_SCENARIO_LAW:
+                    locations, reasoning = self.REVIEWED_SCENARIO_LAW[number]
+                    points = [self.vector_store.get_verified_location('55/VBHN-VPQH', article, clause, point)
+                              for article, clause, point in locations]
+                    if all(points):
+                        citations = [{'chunk_id': row['chunk_id'], 'content_hash': row['content_hash'],
+                                      'document_title': row['document_title'],
+                                      'article_number': row['article'], 'clause_number': row['clause'],
+                                      'point_number': row['point'], 'document_version': row['document_version'],
+                                      'source_url': row['source_url'], 'excerpt': row['content'][:250]}
+                                     for row in points]
+                        explanation = ('\n\nCăn cứ luật cho tình huống này: ' + reasoning +
+                                       '\nNguồn luật: ' + points[0]['source_url'])
+                        published = published.replace(
+                            'Lưu ý: nguồn đáp án bộ đề chưa phải trích dẫn điều luật hoặc quy chuẩn cho lời giải.',
+                            'Đáp án PDF và căn cứ luật dưới đây là hai nguồn độc lập.')
+                        return self._response(published + explanation, citations=citations,
+                                              status='PracticeAnswered', images=True)
                 return self._response(published, status="PracticeAnswered", images=True)
+        if len(request.images) == 1 and self._requires_sign_standard(prompt):
+            official_matcher = getattr(self, 'qcvn_sign_matcher', None)
+            official_sign = official_matcher.match(request.images[0].content) if official_matcher else None
+            if official_sign:
+                mentioned_codes = {'P.' + number for number in re.findall(
+                    r'\bP\.?\s*(\d{3})\b', prompt, re.IGNORECASE)}
+                if mentioned_codes and mentioned_codes != {official_sign['code']}:
+                    return self._response(
+                        'Mã biển nêu trong câu hỏi không khớp ảnh đã nhận diện. Vui lòng kiểm tra lại ảnh hoặc mã biển.',
+                        status='NeedsClarification', images=True)
+                answer = self._reviewed_sign_answer(official_sign['code'], official_sign['clause'], images=True)
+                if answer:
+                    return answer
+            return self._response(self.SIGN_SOURCE_MISSING, status='NoMatch', images=True)
         if re.search(r'\b(?:đèn|den)\s+(?:đỏ|do)\b', prompt, re.IGNORECASE) and \
                 QdrantTrafficStore._is_sanction_query(prompt) and not re.search(
                     r'xe\s+(?:máy|mô\s*tô|gắn\s*máy|đạp|tải|ô\s*tô|chuyên\s*dùng)|\bô\s*tô\b',
@@ -207,10 +282,6 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         # Article 11 defines broad classes of signs, but does not identify
         # a pictured sign or marking. A visually specific answer needs the
         # verified QCVN 41 sign/marking provision, not that generic article.
-        if request.images and self._requires_sign_standard(prompt) and not any(
-                c.get('document_number') == 'QCVN 41:2024/BGTVT' for c in chunks):
-            return self._response(self.SIGN_SOURCE_MISSING, tokens=vision_tokens,
-                                  status='NoMatch', images=True)
         prompt_lower = prompt.lower()
         if QdrantTrafficStore._is_sanction_query(prompt) and any(
                 c.get('document_number') == '168/2024/NĐ-CP' for c in chunks):

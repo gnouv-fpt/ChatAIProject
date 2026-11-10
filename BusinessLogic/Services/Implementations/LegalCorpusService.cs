@@ -60,7 +60,9 @@ public sealed class LegalCorpusService(ILegalSourcePreviewService source, IDocum
         var selected = evidence.Chunks.Where(c => c.Article is not null && articles.Contains(c.Article)).ToArray();
         if (selected.Length == 0 || articles.Any(a => !selected.Any(c => c.Article == a)))
             throw new BadRequestException("Không trích xuất đủ các Điều đã chọn; không nhập gói thiếu.");
-        var scope = "trích Điều " + string.Join(", ", articles);
+        var scope = articles.All(a => a.StartsWith("Phụ lục ", StringComparison.OrdinalIgnoreCase))
+            ? "trích " + string.Join(", ", articles)
+            : "trích Điều " + string.Join(", ", articles);
         var title = evidence.Title + " · " + scope;
         if (title.Length > 500) throw new BadRequestException("Phạm vi/tên văn bản vượt giới hạn lưu trữ.");
         var canonical = JsonSerializer.Serialize(selected.Select(c => new { c.Article, c.Clause, c.Point, c.Content }));

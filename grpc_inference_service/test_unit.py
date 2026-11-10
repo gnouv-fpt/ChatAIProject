@@ -21,6 +21,7 @@ from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
 from rag.visual_question_matcher import PublishedVisualQuestionMatcher
+from rag.qcvn_sign_matcher import QcvnSignMatcher
 from server import TrafficRagInferenceServicer, chat_inference_pb2, rpc_errors
 from data.seed_traffic_law import get_seed_traffic_law_chunks
 
@@ -564,6 +565,103 @@ def test_unmatched_sign_image_cannot_cite_generic_sign_category_as_specific_mean
     assert result.result_status == 'NoMatch' and not result.citations
     assert 'QCVN 41:2024/BGTVT' in result.response_text
     service.rag_generator.generate.assert_not_called()
+
+
+def test_qcvn_sign_matcher_rejects_blank_and_distinguishes_official_references():
+    from PIL import Image
+    matcher = QcvnSignMatcher()
+    for row, fingerprint in matcher.rows:
+        image = Image.new('RGB', (32, 32))
+        image.putdata([(255, 255, 255) if fingerprint >> i & 1 else (0, 0, 0)
+                       for i in range(1024)])
+        stream = io.BytesIO()
+        image.save(stream, 'PNG')
+        assert matcher.match(stream.getvalue())['code'] == row['code']
+    stream = io.BytesIO()
+    Image.new('RGB', (32, 32), 'white').save(stream, 'PNG')
+    assert matcher.match(stream.getvalue()) is None
+
+
+def test_reviewed_qcvn_sign_returns_exact_official_clause_citation():
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.visual_question_matcher = SimpleNamespace(match=lambda *_: None)
+    service.qcvn_sign_matcher = SimpleNamespace(match=lambda *_: {'code': 'P.101', 'clause': 'B.1'})
+    source = {'chunk_id': '11111111-1111-1111-1111-111111111111', 'content_hash': 'hash',
+              'document_title': 'QCVN 41', 'document_version': '1',
+              'article': 'Phụ lục B', 'clause': 'B.1', 'point': 'a',
+              'content': 'a) Biển P.101 báo đường cấm cả hai hướng',
+              'source_url': 'https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf'}
+    service.vector_store = SimpleNamespace(get_verified_standard_clause=lambda *args: source)
+    request = chat_inference_pb2.ChatInferenceRequest(
+        prompt='Biển này có ý nghĩa gì?',
+        images=[chat_inference_pb2.ChatImage(content=b'image', mime_type='image/png')])
+    response = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert response.result_status == 'Answered' and response.data_verified
+    assert len(response.citations) == 1 and response.citations[0].clause_number == 'B.1'
+    assert 'Đường cấm' in response.response_text
+    mismatched = service.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(
+        prompt='Biển P.102 trong ảnh này có ý nghĩa gì?',
+        images=[chat_inference_pb2.ChatImage(content=b'image', mime_type='image/png')]),
+        SimpleNamespace(is_active=lambda: True))
+    assert mismatched.result_status == 'NeedsClarification' and not mismatched.citations
+
+
+def test_reviewed_qcvn_text_question_uses_exact_clause_without_provider():
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.vector_store = SimpleNamespace(get_verified_standard_clause=lambda *args: {
+        'chunk_id': '11111111-1111-1111-1111-111111111111', 'content_hash': 'hash',
+        'document_title': 'QCVN 41', 'document_version': '1',
+        'article': 'Phụ lục B', 'clause': 'B.2', 'point': 'a',
+        'content': 'B.2 Biển P.102 Cấm đi ngược chiều',
+        'source_url': 'https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf'})
+    service.rag_generator = SimpleNamespace(generate=Mock())
+    result = service.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(
+        prompt='Biển P.102 cấm gì?'), SimpleNamespace(is_active=lambda: True))
+    assert result.result_status == 'Answered' and result.data_verified
+    assert result.tokens_used == 0 and len(result.citations) == 1
+    assert result.citations[0].clause_number == 'B.2'
+    assert 'Cấm đi ngược chiều' in result.response_text
+    service.rag_generator.generate.assert_not_called()
+
+
+def test_appendix_citation_is_named_as_appendix_not_article():
+    from rag.rag_generator import TrafficRagGenerator
+    generator = TrafficRagGenerator.__new__(TrafficRagGenerator)
+    citation = {'chunk_id': 'qcvn', 'document_title': 'QCVN 41',
+                'article_number': 'Phụ lục B', 'clause_number': 'B.1',
+                'point_number': 'a', 'source_url': 'https://example.org/official.pdf'}
+    answer, _, _, verified = generator._grounded_result(
+        json.dumps({'status': 'Answered', 'answer': 'Đường cấm', 'chunk_ids': ['qcvn']}),
+        [citation], 10)
+    assert verified and 'Phụ lục B mục B.1 điểm a' in answer
+    assert 'Điều Phụ lục' not in answer
+
+
+@pytest.mark.parametrize('number, expected', [(494, {('2', 'a'), ('2', 'c'), ('5', '')}),
+                                              (498, {('2', 'a'), ('2', 'b')})])
+def test_reviewed_fire_priority_scenario_cites_its_legal_points(number, expected):
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.visual_question_matcher = PublishedVisualQuestionMatcher()
+    base = {'document_title': 'Luật TTATGTĐB VBHN 55', 'document_version': '1',
+            'article': '27', 'source_url': 'https://thuvienphapluat.vn/van-ban/test.aspx'}
+    service.vector_store = SimpleNamespace(get_verified_location=lambda *args:
+        dict(base, clause=args[-2], point=args[-1], chunk_id='chunk-' + args[-2] + args[-1],
+             content_hash='hash-' + args[-2] + args[-1], content='Điều 27 xe ưu tiên'))
+    image = (Path(__file__).resolve().parents[1] /
+             f'content-animations/bank-review/{number}/image-1.jpeg').read_bytes()
+    source = json.loads((Path(__file__).resolve().parents[1] /
+        'content-bank/csgt-2025-B-current/package.json').read_text(encoding='utf8'))
+    question = next(q['text'] for q in source['bank']['questions'] if q['number'] == number)
+    response = service.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(
+        prompt=f'Câu {number}: {question}',
+        images=[chat_inference_pb2.ChatImage(content=image, mime_type='image/jpeg')]),
+        SimpleNamespace(is_active=lambda: True))
+    assert response.result_status == 'PracticeAnswered' and response.data_verified
+    assert {(c.clause_number, c.point_number) for c in response.citations} == expected
+    assert 'Đáp án: 2.' in response.response_text and 'Điều 27 khoản 2' in response.response_text
 
 
 def test_recoded_published_image_uses_answer_key_before_vision_or_rag():

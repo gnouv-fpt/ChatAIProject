@@ -17,6 +17,8 @@ public sealed class LegalContentTests
     [InlineData("https://thuvienphapluat.vn.evil.org/van-ban/test.aspx", false)]
     [InlineData("http://thuvienphapluat.vn/van-ban/test.aspx", false)]
     [InlineData("https://user:password@thuvienphapluat.vn/van-ban/test.aspx", false)]
+    [InlineData("https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf", true)]
+    [InlineData("https://datafiles.chinhphu.vn/cpp/files/vbpq/2024/11/other.pdf", false)]
     public void SourceIsRestricted(string source, bool expected) => Assert.Equal(expected, LegalContentParser.IsAllowedSource(new(source)));
 
     [Fact]
@@ -43,6 +45,17 @@ public sealed class LegalContentTests
         Assert.Contains(chunks, c => c.Article == "32" && c.Clause == "9a" && c.Point == "b");
         Assert.Contains(chunks, c => c.Article == "41" && c.Clause == "4" && c.Point == "k1");
         Assert.DoesNotContain(chunks, c => c.Clause == "9" && c.Content.Contains("Mức phạt mới"));
+    }
+
+    [Fact]
+    public void ChunkKeepsQcvnAppendixSectionAndPoint()
+    {
+        const string text = "Phụ lục B. Ý nghĩa biển cấm\nB.1 Biển số P.101 Đường cấm\n" +
+            "a) Cấm hai hướng\nB.2 Biển số P.102 Cấm đi ngược chiều\na) Cấm chiều đặt biển";
+        var chunks = LegalContentParser.Chunk(text);
+        Assert.Contains(chunks, c => c.Article == "Phụ lục B" && c.Clause == "B.1" && c.Point == "a");
+        Assert.Contains(chunks, c => c.Article == "Phụ lục B" && c.Clause == "B.2" && c.Point == "a");
+        Assert.Equal(5, chunks.Count);
     }
 
     [Fact]

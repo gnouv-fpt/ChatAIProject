@@ -281,3 +281,24 @@ class QdrantTrafficStore:
             if offset is None:
                 break
         return rows
+
+    def get_verified_standard_clause(self, document_number, clause, point='a'):
+        selector = models.Filter(must=[models.FieldCondition(key=key, match=models.MatchValue(value=value))
+            for key, value in (("document_number", document_number), ("clause", clause),
+                               ("point", point), ("is_verified", True), ("is_active", True))])
+        rows, _ = self._client.scroll(self.COLLECTION_NAME, scroll_filter=selector,
+                                      limit=2, with_payload=True)
+        if len(rows) != 1:
+            return None
+        return dict(rows[0].payload)
+
+    def get_verified_location(self, document_number, article, clause, point):
+        selector = models.Filter(must=[models.FieldCondition(key=key, match=models.MatchValue(value=value))
+            for key, value in (("document_number", document_number), ("article", article),
+                               ("clause", clause), ("point", point),
+                               ("is_verified", True), ("is_active", True))])
+        rows, _ = self._client.scroll(self.COLLECTION_NAME, scroll_filter=selector,
+                                      limit=2, with_payload=True)
+        if len(rows) != 1:
+            return None
+        return dict(rows[0].payload)

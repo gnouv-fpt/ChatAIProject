@@ -337,7 +337,8 @@ public class ChatbotService : IChatbotService
             result.Status is not ("Answered" or "PracticeAnswered" or "NoMatch" or "Blocked" or "NeedsClarification") ||
             (result.Status == "Blocked") != result.IsViolation ||
             (result.Status == "Answered" && (!result.DataVerified || result.Citations.Count == 0)) ||
-            (result.Status == "PracticeAnswered" && (result.Citations.Count != 0 || result.TokensUsed != 0)))
+            (result.Status == "PracticeAnswered" && (result.TokensUsed != 0 ||
+                result.Citations.Count > 0 && !result.DataVerified)))
             throw new ServiceUnavailableException("Phản hồi AI không hợp lệ hoặc chưa có căn cứ pháp lý xác thực.");
     }
 
@@ -353,6 +354,9 @@ public class ChatbotService : IChatbotService
         var answer = await _content.ResolveScenarioAsync(number, hashes, ct);
         if (answer is null) return null;
         if (!AsksForScenarioAnswer(prompt, answer.Question, number.HasValue)) return null;
+        // The reviewed fire-versus-police scenario has exact legal points in
+        // Qdrant. Let gRPC attach those citations to the PDF answer for images.
+        if (answer.Number is 494 or 498 && images.Count == 1) return null;
         var selected = answer.Options.Where(option => answer.CorrectOptionIds.Contains(option.Id))
             .Select(option => $"{option.Id}. {option.Text}").ToArray();
         var text = $"Câu {answer.Number} trong bộ 600 câu CSGT 2025: {answer.Question}\n" +
@@ -439,7 +443,9 @@ public class ChatbotService : IChatbotService
         (chunk.Document.EffectiveDate == null || chunk.Document.EffectiveDate <= DateTime.UtcNow) &&
         (chunk.Document.ExpirationDate == null || chunk.Document.ExpirationDate > DateTime.UtcNow) &&
         Uri.TryCreate(chunk.Document.SourceUrl, UriKind.Absolute, out var source) && source.Scheme == "https" &&
-        (source.Host == "thuvienphapluat.vn" || source.Host.EndsWith(".thuvienphapluat.vn", StringComparison.OrdinalIgnoreCase));
+        (source.Host == "thuvienphapluat.vn" || source.Host.EndsWith(".thuvienphapluat.vn", StringComparison.OrdinalIgnoreCase) ||
+         source.Host == "datafiles.chinhphu.vn" &&
+         source.AbsolutePath == "/cpp/files/vbpq/2024/11/51-bgtvt-kem.pdf");
 
     public static string Hash(string content) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(content))).ToLowerInvariant();
     private static Guid[] ParseAttachments(string? json) => json == null ? [] : JsonSerializer.Deserialize<Guid[]>(json) ?? [];
