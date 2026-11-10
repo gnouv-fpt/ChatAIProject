@@ -43,8 +43,8 @@ public static class LegalContentParser
         foreach (var line in content.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             var a = Regex.Match(line, @"^Điều\s+(\d+[a-zđ]?)\s*[.:]", RegexOptions.IgnoreCase);
-            var c = Regex.Match(line, @"^(\d+)\.\s");
-            var p = Regex.Match(line, @"^([a-zđ])\)\s", RegexOptions.IgnoreCase);
+            var c = Regex.Match(line, @"^(\d+[a-zđ]?)\.\s", RegexOptions.IgnoreCase);
+            var p = Regex.Match(line, @"^([a-zđ](?:\d+)?)\)\s", RegexOptions.IgnoreCase);
             if (a.Success) { Flush(); article = a.Groups[1].Value; clause = null; point = null; }
             else if (c.Success && article is not null) { Flush(); clause = c.Groups[1].Value; point = null; }
             else if (p.Success && clause is not null) { Flush(); point = p.Groups[1].Value; }

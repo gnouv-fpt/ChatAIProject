@@ -33,6 +33,19 @@ public sealed class LegalContentTests
     }
 
     [Fact]
+    public void ChunkKeepsAmendedClauseAndPointIdentifiers()
+    {
+        const string content = "Điều 32. Xử phạt chủ phương tiện\n9. Nội dung cũ\n9a. Mức phạt mới\n" +
+            "a) Hành vi thứ nhất\nb) Hành vi thứ hai\nĐiều 41. Thẩm quyền\n4. Danh mục\n" +
+            "k) Điểm cũ\nk1) Điểm mới";
+        var chunks = LegalContentParser.Chunk(content);
+        Assert.Contains(chunks, c => c.Article == "32" && c.Clause == "9a" && c.Point == "a");
+        Assert.Contains(chunks, c => c.Article == "32" && c.Clause == "9a" && c.Point == "b");
+        Assert.Contains(chunks, c => c.Article == "41" && c.Clause == "4" && c.Point == "k1");
+        Assert.DoesNotContain(chunks, c => c.Clause == "9" && c.Content.Contains("Mức phạt mới"));
+    }
+
+    [Fact]
     public async Task ExpiryIsIdempotentAndPreservesChatHistory()
     {
         await using var db = new ContentDbContext(new DbContextOptionsBuilder<ContentDbContext>()
