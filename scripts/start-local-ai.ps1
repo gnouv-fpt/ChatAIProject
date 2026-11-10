@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([switch]$Stop)
+param([switch]$Stop, [ValidateSet('auto','groq','gemini')][string]$GenerationProvider = 'auto')
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
 $work = Join-Path $root 'artifacts/local-ai'
@@ -59,9 +59,9 @@ if ($runtime.userDatabase -ne "TrafficUser_WebLearning_$suffix") {
 $response = Invoke-WebRequest 'http://127.0.0.1:16333/readyz' -TimeoutSec 5
 if ($response.StatusCode -ne 200) { throw 'Local Qdrant is not ready.' }
 $values = @{
-    GEMINI_API_KEY = $key; GENERATION_PROVIDER = $(if ($groqKeys.Count) { 'auto' } else { 'gemini' }); GEMINI_MODEL = 'gemini-3.6-flash'
-    GEMINI_FALLBACK_MODEL = 'gemini-3.5-flash'
-    GEMINI_VISION_MODEL = 'gemini-3.6-flash'; EMBEDDING_PROVIDER = 'gemini'; EMBEDDING_API_KEY = $key
+    GEMINI_API_KEY = $key; GENERATION_PROVIDER = $(if ($GenerationProvider -eq 'auto' -and !$groqKeys.Count) { 'gemini' } else { $GenerationProvider }); GEMINI_MODEL = 'gemini-3.5-flash-lite'
+    GEMINI_FALLBACK_MODEL = 'gemini-2.5-flash-lite'
+    GEMINI_VISION_MODEL = 'gemini-3.5-flash-lite'; EMBEDDING_PROVIDER = 'gemini'; EMBEDDING_API_KEY = $key
     EMBEDDING_MODEL = 'gemini-embedding-001'; EMBEDDING_DIMENSION = '768'
     QDRANT_HOST = '127.0.0.1'; QDRANT_PORT = '16333'; QDRANT_COLLECTION = "traffic_law_learning_${suffix}_gemini768_v1"
     GRPC_PORT = '15051'; GRPC_BIND_HOST = '127.0.0.1'; PYTHONUNBUFFERED = '1'

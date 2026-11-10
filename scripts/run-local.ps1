@@ -1,4 +1,4 @@
-﻿<#
+<#
   Chay toan bo he thong local (SQL Server trong Docker + API + gateway + web) chi bang 1 lenh.
   Dung:  pwsh -File scripts/run-local.ps1 [-SkipImport] [-Stop]
   Truyen -SqlServer neu muon dung SQL Server cai truc tiep tren may.
@@ -21,6 +21,7 @@ function Need($cmd, $hint) {
 
 if ($Stop) {
     Step 'Dung backend'
+    try { & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'start-local-ai.ps1') -Stop } catch {}
     & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'start-local-learning.ps1') -Stop
     & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'start-c2-test-infrastructure.ps1') -Stop -Sql:$dockerSql
     return
@@ -137,7 +138,17 @@ if ($alreadyUp) {
         & $pwsh -NoProfile -File $launcher -InitOnly -SqlServer $SqlServer
         if ($LASTEXITCODE) { throw 'Khoi tao runtime that bai.' }
     }
-    & $pwsh -NoProfile -File $launcher -SqlServer $SqlServer -DockerSql:$dockerSql
+    $hasAiVenv = Test-Path (Join-Path $root 'artifacts/c2-python/.venv/Scripts/python.exe')
+    $enableAi = $false
+    if ($hasAiVenv) {
+        try {
+            & $pwsh -NoProfile -File (Join-Path $PSScriptRoot 'start-local-ai.ps1')
+            if ($LASTEXITCODE -eq 0) { $enableAi = $true; Ok 'AI gRPC service dang chay (127.0.0.1:15051)' }
+        } catch {
+            Write-Host '    Bo qua AI (chua bat duoc AI service).' -ForegroundColor Yellow
+        }
+    }
+    & $pwsh -NoProfile -File $launcher -SqlServer $SqlServer -DockerSql:$dockerSql -EnableAi:$enableAi
     if ($LASTEXITCODE) { throw "Khoi dong backend that bai. Xem log trong $work" }
     Ok 'Backend dang chay'
 }

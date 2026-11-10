@@ -16,14 +16,21 @@ if ($Stop) {
             $process = Get-CimInstance Win32_Process -Filter "ProcessId = $($item.id)" -ErrorAction SilentlyContinue
             if ($process -and $process.CommandLine.Contains($item.marker)) { Stop-Process -Id $item.id }
         }
+        Remove-Item -LiteralPath $processPath -Force -ErrorAction SilentlyContinue
     }
     Write-Host 'Stopped only processes recorded by this local-learning launcher; databases and Redis remain.'
     return
 }
 if (!$InitOnly -and (Test-Path -LiteralPath $processPath)) {
     $saved = Get-Content -LiteralPath $processPath -Raw | ConvertFrom-Json
-    if ($saved | Where-Object { Get-Process -Id $_.id -ErrorAction SilentlyContinue }) {
+    $active = $saved | Where-Object {
+        $proc = Get-CimInstance Win32_Process -Filter "ProcessId = $($_.id)" -ErrorAction SilentlyContinue
+        $proc -and $proc.CommandLine.Contains($_.marker)
+    }
+    if ($active) {
         throw 'Local-learning processes are already recorded as running. Use -Stop before restarting.'
+    } else {
+        Remove-Item -LiteralPath $processPath -Force -ErrorAction SilentlyContinue
     }
 }
 if (!(Test-Path -LiteralPath $runtimePath)) {
