@@ -22,6 +22,7 @@ public sealed record BankSummaryDto(Guid Id, string Version, string Title, strin
     IReadOnlyDictionary<string, int>? CategoryCounts = null);
 public sealed record QuestionDto(Guid Id, int Number, string Topic, string Text, bool IsCritical,
     bool AllowOptionShuffle, IReadOnlyList<ContentQuestionOption> Options, IReadOnlyList<QuestionAsset> Assets, string SourceUrl);
+public sealed record LearningAnswerDto(IReadOnlyList<string> CorrectOptionIds, string Explanation);
 public sealed record BankPreviewDto(BankSummaryDto Summary, ContentBank Bank, IReadOnlyList<string> Errors);
 public sealed record ScenarioAnswerDto(int Number, string Question, IReadOnlyList<ContentQuestionOption> Options,
     IReadOnlyList<string> CorrectOptionIds, string Explanation, string SourceUrl, string? OriginalImageUrl);

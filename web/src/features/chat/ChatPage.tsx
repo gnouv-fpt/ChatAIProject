@@ -65,9 +65,15 @@ function noMatchGuidance(question?: Message): { title: string; nextStep: string 
   return statusGuidance.NoMatch;
 }
 
-function practiceAnswerContent(content: string) {
-  return content.split(/(https:\/\/[^\s]+)/g).map((part, index) => {
-    if (!part.startsWith('https://')) return part;
+function answerContent(content: string, hasStructuredCitations: boolean, linkifyPractice: boolean) {
+  const withoutRepeatedLegalBasis = hasStructuredCitations
+    ? content.replace(/(?:^|\n)\s*(?:\*\*)?Căn cứ pháp lý:?(?:\*\*)?[\s\S]*$/i, '').trimEnd()
+    : content;
+  return withoutRepeatedLegalBasis.split(/(\*\*[^*]+\*\*|https:\/\/[^\s]+)/g).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={index}>{part.slice(2, -2)}</strong>;
+    }
+    if (!linkifyPractice || !part.startsWith('https://')) return part;
     try {
       const url = new URL(part);
       if (url.hostname === 'khodulieu.sohoa.tuyenquang.gov.vn' ||
@@ -410,9 +416,7 @@ export function ChatPage() {
                     )}
 
                     <div className="message-content">
-                      {message.status === 'PracticeAnswered'
-                        ? practiceAnswerContent(message.content)
-                        : message.content}
+                      {answerContent(message.content, !isUser && (message.citations?.length ?? 0) > 0, message.status === 'PracticeAnswered')}
                     </div>
 
                     {/* Distinct presentation for NoMatch, NeedsClarification, Blocked */}

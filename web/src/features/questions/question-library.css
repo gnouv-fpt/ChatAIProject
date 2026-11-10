@@ -367,6 +367,25 @@
   color: var(--text-primary);
 }
 
+.ql-option-item.correct {
+  border-color: #168a58;
+  background: #eaf8f0;
+}
+
+.ql-answer-reveal {
+  margin: 12px 0 18px;
+  padding: 14px 16px;
+  border-left: 4px solid #168a58;
+  border-radius: var(--radius-sm);
+  background: #eaf8f0;
+  color: var(--text-primary);
+}
+
+.ql-answer-reveal p {
+  margin: 6px 0 0;
+  line-height: 1.65;
+}
+
 .ql-option-letter {
   width: 28px;
   height: 28px;

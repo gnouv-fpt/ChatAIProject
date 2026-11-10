@@ -39,6 +39,8 @@ type BookmarkRecord = {
   contentPreview?: string;
 };
 
+type LearningAnswer = { correctOptionIds: string[]; explanation: string };
+
 function inferLicenseLabel(bank: Bank, progress?: BankProgressOverview): string {
   if (progress?.licenseClass) return `Hạng ${progress.licenseClass}`;
   const pid = bank.profile.id.toLowerCase();
@@ -83,6 +85,8 @@ export function QuestionLibrary({
   const [bookmarkLoading, setBookmarkLoading] = useState(false);
   const [bookmarkError, setBookmarkError] = useState('');
   const [bookmarkReload, setBookmarkReload] = useState(0);
+  const [revealedAnswers, setRevealedAnswers] = useState<Record<string, LearningAnswer>>({});
+  const [answerBusy, setAnswerBusy] = useState<Set<string>>(new Set());
 
   const bank = banks.find(b => `${b.id}/${b.version}` === selected);
   const official = bank?.profile.id.startsWith('gplx-') ?? false;
@@ -153,7 +157,7 @@ export function QuestionLibrary({
     }
     setBookmarkLoading(true);
     api<Page<BookmarkRecord>>(
-      `/api/learning/banks/${encodeURIComponent(bank.id)}/bookmarks?page=1&pageSize=100`,
+      `/api/learning/bookmarks?bankId=${encodeURIComponent(bank.id)}&pageIndex=1&pageSize=100`,
       { signal: controller.signal }
     )
       .then(data => {
@@ -179,7 +183,7 @@ export function QuestionLibrary({
     setBookmarkBusy(previous => new Set(previous).add(questionId));
     try {
       await api(
-        `/api/learning/banks/${encodeURIComponent(bank.id)}/bookmarks/${encodeURIComponent(questionId)}`,
+        `/api/learning/bookmarks/${encodeURIComponent(questionId)}`,
         { method: saved ? 'DELETE' : 'PUT' }
       );
       setBookmarks(previous => {
@@ -204,6 +208,25 @@ export function QuestionLibrary({
       setBookmarkError(e instanceof Error ? e.message : 'Không cập nhật được đánh dấu câu hỏi.');
     } finally {
       setBookmarkBusy(previous => {
+        const next = new Set(previous);
+        next.delete(questionId);
+        return next;
+      });
+    }
+  }
+
+  async function revealAnswer(questionId: string) {
+    if (!bank || answerBusy.has(questionId) || revealedAnswers[questionId]) return;
+    setAnswerBusy(previous => new Set(previous).add(questionId));
+    try {
+      const answer = await api<LearningAnswer>(
+        `${bankPath(bank)}/questions/${encodeURIComponent(questionId)}/answer`
+      );
+      setRevealedAnswers(previous => ({ ...previous, [questionId]: answer }));
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Không tải được đáp án.');
+    } finally {
+      setAnswerBusy(previous => {
         const next = new Set(previous);
         next.delete(questionId);
         return next;
@@ -868,12 +891,23 @@ export function QuestionLibrary({
 
               <ol className="ql-options-list">
                 {q.options.map((o, idx) => (
-                  <li key={o.id} className="ql-option-item">
+                  <li key={o.id} className={`ql-option-item ${revealedAnswers[q.id]?.correctOptionIds.includes(o.id) ? 'correct' : ''}`}>
                     <span className="ql-option-letter">{String.fromCharCode(65 + idx)}</span>
                     <span>{o.text}</span>
                   </li>
                 ))}
               </ol>
+
+              {revealedAnswers[q.id] ? (
+                <div className="ql-answer-reveal" role="status">
+                  <strong>Đáp án: {revealedAnswers[q.id].correctOptionIds.join(', ')}</strong>
+                  <p>{revealedAnswers[q.id].explanation}</p>
+                </div>
+              ) : (
+                <button type="button" className="btn-secondary" disabled={answerBusy.has(q.id)} onClick={() => void revealAnswer(q.id)}>
+                  {answerBusy.has(q.id) ? 'Đang tải đáp án…' : 'Xem đáp án và giải thích'}
+                </button>
+              )}
 
               <div className="ql-question-footer">
                 <span className="muted">Mã câu: {q.number}</span>

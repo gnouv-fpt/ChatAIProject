@@ -18,4 +18,9 @@ public sealed class QuestionBanksController(IQuestionBankService service) : Cont
         [FromQuery] string? topic = null, [FromQuery] int? from = null, [FromQuery] int? to = null,
         [FromQuery] int page = 1, [FromQuery] int pageSize = 20) =>
         Ok(await service.GetQuestionsAsync(id, version, topic, from, to, page, pageSize, cancellationToken));
+
+    [HttpGet("{id:guid}/versions/{version}/questions/{questionId:guid}/answer")]
+    public async Task<IActionResult> LearningAnswer(Guid id, string version, Guid questionId,
+        CancellationToken cancellationToken) =>
+        Ok(await service.GetLearningAnswerAsync(id, version, questionId, cancellationToken));
 }

@@ -144,6 +144,19 @@ public sealed class QuestionBankService(IContentBankRepository repository, Busin
             .Select(q => new QuestionDto(q.Id, q.Number, q.Topic, q.Text, q.IsCritical, q.AllowOptionShuffle, q.Options, q.Assets, q.SourceUrl)).ToList() };
     }
 
+    public async Task<LearningAnswerDto> GetLearningAnswerAsync(Guid bankId, string version, Guid questionId,
+        CancellationToken cancellationToken = default)
+    {
+        var package = await GetAsync(bankId, version, cancellationToken);
+        if (!package.IsPublished) throw new NotFoundException("Không tìm thấy ngân hàng đã xuất bản.");
+        var question = package.Bank.Questions.FirstOrDefault(q => q.Id == questionId)
+            ?? throw new NotFoundException("Không tìm thấy câu hỏi.");
+        var explanation = Regex.Replace(question.Explanation,
+            @"\r?\nTheo phương án gạch chân trong PDF Cục CSGT 2025, trang PDF \d+\. Không bổ sung diễn giải hay căn cứ điều luật ngoài tài liệu nguồn\.",
+            string.Empty);
+        return new LearningAnswerDto(question.CorrectOptionIds, explanation);
+    }
+
     private async Task<QuestionBankPackage> GetAsync(Guid id, string version, CancellationToken cancellationToken)
     {
         if (!ValidVersion(version)) throw new BadRequestException("Version không hợp lệ.");

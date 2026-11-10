@@ -461,18 +461,123 @@
 }
 
 .exam-category-mix {
-  margin-top: 18px;
-  padding: 16px;
-  border: 1px solid var(--border-default);
+  margin: 20px 0 4px;
+  padding: 20px;
+  border: 1px solid var(--border-light);
   border-radius: var(--radius-md);
+  background: var(--bg-subtle);
 }
 
-.exam-category-mix legend { font-weight: 700; padding: 0 6px; }
-.exam-category-mix > label { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
-.exam-category-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px 16px; margin-top: 14px; }
-.exam-category-grid label { display: grid; gap: 5px; }
-.exam-category-grid small { color: var(--text-secondary); font-weight: 400; }
-.exam-category-grid input { width: 100%; }
+.exam-page .exam-category-mix legend {
+  padding: 0 8px;
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.exam-category-modes {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.exam-page .exam-category-mix > .exam-category-modes > .exam-category-mode {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+  min-height: 86px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.exam-page .exam-category-mode.active {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+  box-shadow: 0 0 0 2px rgb(var(--primary-rgb) / 0.1);
+}
+
+.exam-page .exam-category-mix .exam-category-mode > input[type='radio'] {
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  margin: 2px 0 0;
+  padding: 0;
+  accent-color: var(--primary);
+}
+
+.exam-category-mode > span,
+.exam-category-count-name {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.exam-category-mode strong {
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.exam-category-mode small,
+.exam-category-count-name small {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.exam-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.exam-page .exam-category-grid > .exam-category-count-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 72px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.exam-category-count-name {
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.exam-page .exam-category-mix .exam-category-count-card > input {
+  width: 76px;
+  max-width: 76px;
+  min-height: 42px;
+  padding: 8px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 600px) {
+  .exam-category-modes {
+    grid-template-columns: 1fr;
+  }
+
+  .exam-category-mix {
+    padding: 16px 12px;
+  }
+}
 
 .exam-palette-legend {
   display: flex;

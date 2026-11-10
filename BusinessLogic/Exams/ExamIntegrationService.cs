@@ -121,7 +121,19 @@ public sealed class ExamResultService(IExamAttemptRepository attempts, IUserRepo
         if (source is null)
             throw new NotFoundException("Mô phỏng chưa được phát hành hoặc cần được duyệt lại.");
 
-        var assetBaseUrl = animationUri.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/";
+        var configuredAssetBaseUrl = configuration["Content:AnimationAssetBaseUrl"]?.Trim();
+        if (!Uri.TryCreate(configuredAssetBaseUrl, UriKind.Absolute, out var configuredAssetRoot) ||
+            configuredAssetRoot.Scheme != Uri.UriSchemeHttps || configuredAssetRoot.UserInfo.Length != 0 ||
+            configuredAssetRoot.Query.Length != 0 || configuredAssetRoot.Fragment.Length != 0 ||
+            configuredAssetRoot.AbsolutePath != "/" ||
+            !hosts.Contains(configuredAssetRoot.Host, StringComparer.OrdinalIgnoreCase))
+        {
+            if (animationUri.Scheme != Uri.UriSchemeHttps)
+                throw new ConflictException("Máy chủ tài nguyên mô phỏng HTTPS chưa được cấu hình hợp lệ.");
+            configuredAssetRoot = animationUri;
+        }
+
+        var assetBaseUrl = configuredAssetRoot.GetLeftPart(UriPartial.Authority).TrimEnd('/') + "/";
         var images = source.Images.Select(image => image with
         {
             Url = new Uri(new Uri(assetBaseUrl), image.Url).AbsoluteUri

@@ -977,14 +977,22 @@ export function ExamPage() {
                     {!isSelectedBankOfficial && selectedBank && (
                       <fieldset className="exam-category-mix">
                         <legend>Chọn cách lấy câu hỏi</legend>
-                        <label><input type="radio" name="category-mode" checked={!mixByCategory} onChange={() => setMixByCategory(false)} /> Ngẫu nhiên từ toàn bộ ngân hàng</label>
-                        <label><input type="radio" name="category-mode" checked={mixByCategory} onChange={() => setMixByCategory(true)} disabled={!selectedBank.categoryCounts} /> Tự chọn số câu theo nhóm</label>
+                        <div className="exam-category-modes">
+                          <label className={`exam-category-mode${!mixByCategory ? ' active' : ''}`}>
+                            <input type="radio" name="category-mode" checked={!mixByCategory} onChange={() => setMixByCategory(false)} />
+                            <span><strong>Ngẫu nhiên toàn bộ</strong><small>Lấy câu ngẫu nhiên từ tất cả nhóm trong ngân hàng.</small></span>
+                          </label>
+                          <label className={`exam-category-mode${mixByCategory ? ' active' : ''}`}>
+                            <input type="radio" name="category-mode" checked={mixByCategory} onChange={() => setMixByCategory(true)} disabled={!selectedBank.categoryCounts} />
+                            <span><strong>Tự chọn theo nhóm</strong><small>Nhập số câu muốn lấy ở từng nhóm.</small></span>
+                          </label>
+                        </div>
                         {mixByCategory && (
                           <>
                             <div className="exam-category-grid">
                               {Object.entries(selectedBank.categoryCounts ?? {}).filter(([, available]) => available > 0).map(([key, available]) => (
-                                <label key={key}>
-                                  {categoryNames[key] ?? key} <small>({available} câu có sẵn)</small>
+                                <label key={key} className="exam-category-count-card">
+                                  <span className="exam-category-count-name">{categoryNames[key] ?? key}<small>{available} câu có sẵn</small></span>
                                   <input type="number" min="0" max={Math.min(100, available)} value={categoryCounts[key] ?? 0}
                                     onChange={e => setCategoryCounts(previous => ({ ...previous, [key]: Number(e.target.value) }))} />
                                 </label>
