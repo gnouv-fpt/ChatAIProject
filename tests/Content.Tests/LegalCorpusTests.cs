@@ -26,6 +26,7 @@ public sealed class LegalCorpusTests
             content, hash, ["11"], "https://datafiles.chinhphu.vn/test.pdf", "Synthetic test only; never activate.");
         var imported = await service.ImportCapturedAsync(request, default);
         var saved = await db.LegalDocuments.SingleAsync();
+        Assert.Equal("TEST FIXTURE", saved.Title);
         Assert.False(saved.IsActive);
         Assert.Equal(BusinessObject.Enums.VerificationStatus.Pending, saved.VerificationStatus);
         Assert.All(await db.DocumentChunks.ToListAsync(), chunk => Assert.False(chunk.IsVerified));

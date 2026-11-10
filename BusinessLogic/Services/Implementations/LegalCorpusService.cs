@@ -63,8 +63,12 @@ public sealed class LegalCorpusService(ILegalSourcePreviewService source, IDocum
         var scope = articles.All(a => a.StartsWith("Phụ lục ", StringComparison.OrdinalIgnoreCase))
             ? "trích " + string.Join(", ", articles)
             : "trích Điều " + string.Join(", ", articles);
-        var title = evidence.Title + " · " + scope;
-        if (title.Length > 500) throw new BadRequestException("Phạm vi/tên văn bản vượt giới hạn lưu trữ.");
+        // Keep the legal document title stable. The selected article list is an
+        // import-scope detail, not a citation for every answer; appending all
+        // selected articles here makes the UI look as if every article was cited.
+        var title = evidence.Title.Trim();
+        if (title.Length == 0 || title.Length > 500)
+            throw new BadRequestException("Phạm vi/tên văn bản vượt giới hạn lưu trữ.");
         var canonical = JsonSerializer.Serialize(selected.Select(c => new { c.Article, c.Clause, c.Point, c.Content }));
         var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical)));
         var existing = (await documents.FindAsync(d => d.DocumentNumber == evidence.DocumentNumber, ct)).SingleOrDefault();
