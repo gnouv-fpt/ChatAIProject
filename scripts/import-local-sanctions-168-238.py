@@ -29,12 +29,13 @@ def main():
             package['baseArticleHashes'] != [a['contentSha256'] for a in base['articles']] or \
             package['amendmentContentSha256'] != amendment['contentSha256']:
         raise ValueError('Reviewed corpus or effectivity inventory changed')
+    if args.activate or args.trial_activate:
+        raise ValueError('The 55-article consolidation is still pending legal/effectivity review. '
+                         'Use import-targeted-sanctions.py for the reviewed narrow scope.')
     for article in package['articles']:
         if hashlib.sha256(article['content'].encode()).hexdigest() != article['contentSha256']:
             raise ValueError(f'Article {article["number"]} hash changed')
     content = '\n'.join(a['content'] for a in package['articles'])
-    if args.activate and package['reviewStatus'] != 'ApprovedForRuntime':
-        raise ValueError('Final legal/effectivity review has not approved corpus activation')
     runtime = json.loads((ROOT / 'artifacts/local-learning/runtime.json').read_text(encoding='utf-8-sig'))
     if runtime['gateway'] != 'http://127.0.0.1:18080' or \
             not re.fullmatch(r'TrafficContent_WebLearning_[a-f0-9]{8}', runtime['contentDatabase']) or \
@@ -72,23 +73,8 @@ def main():
                               'toàn văn 55 điều hợp nhất. Điều 53 khoản 2, 3, 4 chứa ngoại lệ hiệu lực; '
                               'phải đối chiếu loại xe và ngày vi phạm. Nguồn sửa đổi: ' + amendment['sourceUrl']}
     imported = api('/documents/import-reviewed-capture', payload, token)
-    if not (args.activate or args.trial_activate):
-        print(json.dumps({'localOnly': True, 'documentId': imported['documentId'],
-                          'chunkCount': imported['chunkCount'], 'active': False}))
-        return
-    document = api('/documents/' + imported['documentId'], token=token)
-    if not document['isActive']:
-        result = api('/documents/' + imported['documentId'] + '/verify-and-index',
-                     {'evidenceUrl': base['sourceUrl'], 'effectiveDate': '2026-08-14T17:00:00Z',
-                      'sourceAndAmendmentsReviewed': True, 'reviewNotes': payload['reviewNotes']}, token)
-        if not result['success'] or result['indexedCount'] != imported['chunkCount']:
-            raise RuntimeError('Local sanction index count does not match SQL import')
-    document = api('/documents/' + imported['documentId'], token=token)
-    if not document['isActive']:
-        raise RuntimeError('Local sanction document is not active')
     print(json.dumps({'localOnly': True, 'documentId': imported['documentId'],
-                      'chunkCount': imported['chunkCount'], 'active': True,
-                      'trial': args.trial_activate}))
+                      'chunkCount': imported['chunkCount'], 'active': False}))
 
 
 if __name__ == '__main__':

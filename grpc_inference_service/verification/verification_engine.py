@@ -18,7 +18,7 @@ class DataVerificationEngine:
             "effective_date": "2026-07-01", "expiration_date": None,
             "status": "Verified", "is_active": True,
             "notes": "Đối chiếu bản hợp nhất Chính phủ ngày 23/03/2026 và nguồn TVPL; "
-                     "chỉ kích hoạt phạm vi Điều 1–33 đã duyệt trong Content SQL, gồm sửa đổi Luật 118/2025."
+                     "chỉ kích hoạt những điều đã duyệt trong Content SQL, gồm sửa đổi Luật 118/2025."
         },
         "123/2021/ND-CP": {
             "title": "Nghị định 123/2021/NĐ-CP",
@@ -75,9 +75,10 @@ class DataVerificationEngine:
         }
     }
 
-    # Exact lines of the 55-article 168/2024 text after the reviewed 238/2026 edits.
-    # This scope includes Article 53's delayed-effect clauses, which the chat must apply.
-    REVIEWED_168_238_LINES_SHA256 = "31429b5b9a954b20d84a36af517a175933eae2d5890d548a269d94896e30e560"
+    # Only the explicitly checked, unchanged points of Articles 6, 7 and 12.
+    # The 55-article consolidation still carries a pending legal review and
+    # must never become active merely because its text has a known hash.
+    TARGETED_168_238_LINES_SHA256 = "0dce3b8559d0730ce587bf0767fac822b6c27d78d2c3bb69fc326f56ba4d1de7"
 
     @staticmethod
     def _line_set_hash(content: str) -> str:
@@ -124,12 +125,12 @@ class DataVerificationEngine:
 
         norm_number = self.normalize_doc_number(document_number)
         if norm_number == "168/2024/ND-CP":
-            if datetime.date.today() < datetime.date(2026, 8, 15) or \
-                    self._line_set_hash(content) != self.REVIEWED_168_238_LINES_SHA256:
+            if datetime.date.today() < datetime.date(2025, 1, 1) or \
+                    self._line_set_hash(content) != self.TARGETED_168_238_LINES_SHA256:
                 return {"is_valid": False, "status": "Pending",
-                        "notes": "Chỉ xác minh đúng toàn văn 168/2024 đã đối chiếu sửa đổi 238/2026 và hiệu lực."}
+                        "notes": "Chỉ phạm vi điểm 6/7/12 đã rà soát mới được kích hoạt; bản hợp nhất toàn văn còn chờ duyệt."}
             return {"is_valid": True, "status": "Verified",
-                    "notes": "Toàn văn 55 điều khớp gói nguồn đã đối chiếu; áp dụng ngoại lệ hiệu lực Điều 53 theo trường hợp."}
+                    "notes": "Chỉ các điểm 6/7/12 không đổi theo 238/2026, khớp nguồn đã rà soát; không xác minh toàn văn."}
         
         # 2. Check known registry
         matched_info = None

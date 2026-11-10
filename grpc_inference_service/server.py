@@ -19,6 +19,7 @@ from rag.embeddings import EmbeddingEngine
 from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
+from rag.visual_question_matcher import PublishedVisualQuestionMatcher
 from data.seed_traffic_law import get_seed_traffic_law_chunks
 
 # These will be available after compiling protos
@@ -43,7 +44,10 @@ def rpc_errors(method):
             return method(self, request, context)
         except grpc.RpcError:
             raise
-        except Exception:
+        except Exception as error:
+            if isinstance(error, RuntimeError) and 'reserved token budget cannot cover this context' in str(error):
+                context.abort(grpc.StatusCode.RESOURCE_EXHAUSTED,
+                              'Reserved token budget is insufficient for the verified context')
             logger.exception("Inference RPC failed: %s", method.__name__)
             context.abort(grpc.StatusCode.UNAVAILABLE, "Inference dependency unavailable")
     return wrapped
@@ -54,6 +58,11 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
     Maintained by Khoi: Groq Generation, Qdrant Vector Store, Vision Analysis,
     Document Verification, and Question Explanation.
     """
+    SIGN_SOURCE_MISSING = (
+        'Ảnh này chưa khớp duy nhất với câu hỏi trong bộ đề đã kiểm chứng. '
+        'Hệ thống chưa có mục QCVN 41:2024/BGTVT tương ứng được xác thực để '
+        'kết luận ý nghĩa biển hoặc vạch cụ thể, nên chưa thể trả lời chắc chắn.'
+    )
 
     def __init__(self):
         logger.info("Initializing TrafficRagInferenceServicer components...")
@@ -63,6 +72,7 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
         self.vector_store = QdrantTrafficStore(self.embedding_engine)
         self.rag_generator = TrafficRagGenerator()
         self.vision_engine = TrafficVisionEngine()
+        self.visual_question_matcher = PublishedVisualQuestionMatcher()
 
         logger.info("All components initialized successfully.")
 
@@ -89,6 +99,15 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
                 previous_end = match.end()
         return False
 
+    @staticmethod
+    def _requires_sign_standard(prompt):
+        if re.search(r'thứ tự|đi trước|nhường đường', prompt, re.IGNORECASE):
+            return False
+        return bool(re.search(r'biển(?:\s+báo)?\s+(?:nào|này|số)|'
+                              r'biển.*(?:ý nghĩa|tác dụng|cấm|báo hiệu)|'
+                              r'vạch.*(?:tác dụng|ý nghĩa|phân chia)|vạch\s+nào',
+                              prompt, re.IGNORECASE))
+
     @rpc_errors
     def ProcessChatMessage(self, request, context):
         prompt = request.prompt.strip()
@@ -97,6 +116,11 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             response = self._response(warning, status="Blocked", images=bool(request.images))
             response.violation_keywords.extend(keywords)
             return response
+        matcher = getattr(self, "visual_question_matcher", None)
+        if matcher is not None and len(request.images) == 1 and not QdrantTrafficStore._is_sanction_query(prompt):
+            published = matcher.match(prompt, request.images[0].content)
+            if published:
+                return self._response(published, status="PracticeAnswered", images=True)
         if re.search(r'\b(?:đèn|den)\s+(?:đỏ|do)\b', prompt, re.IGNORECASE) and \
                 QdrantTrafficStore._is_sanction_query(prompt) and not re.search(
                     r'xe\s+(?:máy|mô\s*tô|gắn\s*máy|đạp|tải|ô\s*tô|chuyên\s*dùng)|\bô\s*tô\b',
@@ -116,6 +140,17 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             vision_tokens = -1 if usage is None or vision_tokens < 0 else vision_tokens + usage
             if clarify:
                 return self._response(observation, tokens=vision_tokens, status="NeedsClarification", images=True)
+            # A still image often cannot establish whether a vehicle has
+            # already entered the junction. That fact can reverse the order
+            # even when an emergency vehicle is present, so do not guess.
+            asks_order = re.search(r"thứ tự|đi trước|đi đầu tiên|nhường đường", prompt, re.IGNORECASE)
+            uncertain_entry = re.search(r"chưa xác định|không xác định|không rõ|chưa rõ", observation, re.IGNORECASE)
+            emergency_vehicle = re.search(r"xe cứu thương|xe ưu tiên|xe chữa cháy|xe công an", observation, re.IGNORECASE)
+            if asks_order and (uncertain_entry or emergency_vehicle):
+                return self._response(
+                    "Ảnh chưa đủ tin cậy để xác định thứ tự xe qua giao lộ, đặc biệt là vị trí xe đã vào nơi giao nhau "
+                    "và tín hiệu của xe ưu tiên. Vui lòng cung cấp số câu trong bộ đề hoặc mô tả rõ vị trí từng xe.",
+                    tokens=vision_tokens, status="NeedsClarification", images=True)
             observations.append(observation)
             vision_queries.append(query)
         history = "\n".join(f"{h.role}: {h.content}" for h in request.history[-10:])
@@ -130,6 +165,52 @@ class TrafficRagInferenceServicer(chat_inference_pb2_grpc.TrafficRagInferenceSer
             # Retry retrieval using the user's legal question; generation still needs citations.
             chunks = self.vector_store.search_verified_chunks(
                 prompt, top_k=5, score_threshold=0.20)
+        # A compound age question can need both A1 and B classification
+        # clauses. Vector top-5 often contains the age clause but only one
+        # classification clause; fetch the exact verified siblings before
+        # generation and keep the generator's all-citations check.
+        age_classes = TrafficRagGenerator.required_age_classes(prompt)
+        if age_classes:
+            document_ids = {c.get('document_id') for c in chunks
+                            if c.get('document_number') == '55/VBHN-VPQH' and c.get('document_id')}
+            present_ids = {c['chunk_id'] for c in chunks}
+            for document_id in document_ids:
+                for article in ('57', '59'):
+                    for row in self.vector_store.get_verified_article_chunks(document_id, article):
+                        content = row.get('content', '')
+                        if article == '57':
+                            relevant = any(re.search(r'\bhạng\s+' + re.escape(licence_class) + r'\s+cấp\b',
+                                                      content, re.IGNORECASE) for licence_class in age_classes)
+                        else:
+                            relevant = any(re.search(r'\b' + re.escape(licence_class) + r'\b',
+                                                      content, re.IGNORECASE) for licence_class in age_classes)
+                        if relevant and row['chunk_id'] not in present_ids:
+                            chunks.append(row)
+                            present_ids.add(row['chunk_id'])
+        sanction_locations = TrafficRagGenerator.required_sanction_locations(prompt)
+        if sanction_locations:
+            sanction_docs = {c.get('document_id') for c in chunks
+                             if c.get('document_number') == '168/2024/NĐ-CP' and c.get('document_id')}
+            if not sanction_docs:
+                return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch',
+                                      images=bool(request.images))
+            present_ids = {c['chunk_id'] for c in chunks}
+            for document_id in sanction_docs:
+                for article, clause, point in sanction_locations:
+                    row = self.vector_store.get_verified_chunk(document_id, article, clause, point=point)
+                    if row is None:
+                        return self._response(self.rag_generator.NO_MATCH_RESPONSE, status='NoMatch',
+                                              images=bool(request.images))
+                    if row['chunk_id'] not in present_ids:
+                        chunks.append(row)
+                        present_ids.add(row['chunk_id'])
+        # Article 11 defines broad classes of signs, but does not identify
+        # a pictured sign or marking. A visually specific answer needs the
+        # verified QCVN 41 sign/marking provision, not that generic article.
+        if request.images and self._requires_sign_standard(prompt) and not any(
+                c.get('document_number') == 'QCVN 41:2024/BGTVT' for c in chunks):
+            return self._response(self.SIGN_SOURCE_MISSING, tokens=vision_tokens,
+                                  status='NoMatch', images=True)
         prompt_lower = prompt.lower()
         if QdrantTrafficStore._is_sanction_query(prompt) and any(
                 c.get('document_number') == '168/2024/NĐ-CP' for c in chunks):

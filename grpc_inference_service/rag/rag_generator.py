@@ -3,6 +3,7 @@ import json
 import logging
 import re
 import threading
+import unicodedata
 from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError
 from typing import List, Dict, Any, Tuple, Optional
@@ -20,6 +21,74 @@ class TrafficRagGenerator:
     NO_MATCH_RESPONSE = (
         "Hiện tại hệ thống chưa tìm thấy quy định pháp lý tương ứng trong các văn bản giao thông đã được xác thực."
     )
+
+    @staticmethod
+    def required_age_classes(question: str) -> tuple[str, ...]:
+        if not (re.search(r"tuổi", question, re.IGNORECASE) and re.search(
+                r"giấy phép lái xe|gplx", question, re.IGNORECASE)):
+            return ()
+        classes = [value.upper() for value in re.findall(
+            r"\bhạng\s+([A-Z][A-Z0-9]*)\b", question, re.IGNORECASE)]
+        if re.search(r"mô\s*tô\s*hai\s*bánh", question, re.IGNORECASE) and re.search(
+                r"125\s*(?:cm|xăng\s*ti\s*mét)", question, re.IGNORECASE):
+            classes.append("A1")
+        if re.search(r"ô\s*tô\s*chở\s*người[^\n;]*?8\s*chỗ", question, re.IGNORECASE) or re.search(
+                r"ô\s*tô\s*tải[^\n;]*?(?:đến|không\s*quá)\s*3[.,]?500\s*kg", question, re.IGNORECASE):
+            classes.append("B")
+        return tuple(dict.fromkeys(classes))
+
+    @staticmethod
+    def required_sanction_locations(question: str) -> tuple[tuple[str, str, str], ...]:
+        """Facts needed to prove both parts of certain compound sanction questions."""
+        if not re.search(r'\bô\s*tô\b', question, re.IGNORECASE):
+            if re.search(r'người\s+được\s+chở', question, re.IGNORECASE) and re.search(
+                    r'mũ\s+bảo\s+hiểm', question, re.IGNORECASE) and re.search(
+                    r'người\s+điều\s+khiển', question, re.IGNORECASE):
+                return (('7', '2', ''), ('7', '2', 'i'), ('12', '5', ''), ('12', '5', 'b'))
+            return ()
+        if not re.search(r'xử\s*phạt|hình\s*thức\s*phạt|bị\s*phạt', question, re.IGNORECASE):
+            return ()
+        if re.search(r'chất\s+ma\s+túy', question, re.IGNORECASE):
+            return (('6', '11', ''), ('6', '11', 'c'), ('6', '15', 'c'))
+        if re.search(r'nồng\s+độ\s+cồn', question, re.IGNORECASE):
+            return (('6', '6', ''), ('6', '6', 'c'), ('6', '11', ''),
+                    ('6', '11', 'a'), ('6', '15', 'c'))
+        return ()
+
+    @staticmethod
+    def _label_mc_answer(question: str, answer: str) -> str:
+        options = {int(number): text for number, text in re.findall(
+            r'^\s*(\d{1,2})[.)]\s+(.+?)\s*$', question, re.MULTILINE)}
+        if len(options) < 2:
+            return answer
+        direct = re.match(r'^\s*(\d{1,2})[.)]\s+', answer)
+        if direct and int(direct.group(1)) in options:
+            return answer
+        stated = re.search(r'\b(?:đáp\s+án|phương\s+án|câu\s+trả\s+lời)\s*(?:đúng\s+là\s*)?:?\s*(\d{1,2})\b',
+                           answer, re.IGNORECASE)
+        if stated and int(stated.group(1)) in options:
+            return f"{stated.group(1)}. {answer}"
+
+        def normalized(value):
+            value = unicodedata.normalize('NFKC', value).lower()
+            return re.sub(r'\s+', ' ', re.sub(r'[^\w\s]', ' ', value)).strip()
+
+        answer_text = normalized(answer)
+        matching = [number for number, option in options.items()
+                    if len(normalized(option)) >= 5 and answer_text.startswith(normalized(option))]
+        if len(matching) == 1:
+            return f"{matching[0]}. {answer}"
+        mentioned = [number for number, option in options.items()
+                     if len(normalized(option)) >= 5 and
+                     re.search(r'(?<!\w)' + re.escape(normalized(option)) + r'(?!\w)', answer_text)]
+        if len(mentioned) == 1:
+            return f"{mentioned[0]}. {answer}"
+        combined = [number for number, option in options.items()
+                    if normalized(option) == 'cả hai ý trên']
+        if len(combined) == 1 and (answer_text.startswith('cả hai hình thức') or
+                                   'bị xử phạt cả hai hình thức' in answer_text):
+            return f"{combined[0]}. {answer}"
+        return answer
 
     def __init__(self, groq_api_key: Optional[str] = None, gemini_api_key: Optional[str] = None):
         self.groq_api_key = groq_api_key or os.getenv("GROQ_API_KEY")
@@ -87,6 +156,14 @@ class TrafficRagGenerator:
         asks_for_sanction = re.search(
             r"\bphạt\b|\bphat\b|xử lý vi phạm|trừ điểm|tước|tịch thu|khắc phục",
             question, re.IGNORECASE)
+        # A question about restoring licence points is governed by traffic-law
+        # Article 58, even when it describes points that were previously deducted.
+        asks_about_restoration = re.search(
+            r"phục hồi điểm|khôi phục điểm|lấy lại điểm", question, re.IGNORECASE)
+        if asks_about_restoration and not re.search(
+            r"mức phạt|xử phạt|phạt bao nhiêu|trừ bao nhiêu điểm", question, re.IGNORECASE
+        ):
+            asks_for_sanction = None
         if asks_for_sanction and all(
             c.get("document_number") == "55/VBHN-VPQH" for c in verified_chunks
         ):
@@ -107,6 +184,31 @@ class TrafficRagGenerator:
                 "excerpt": c.get("content", "")[:250]
             }
             citations.append(citation)
+
+        # A vehicle's minimum driving age needs two separate facts: which
+        # licence class covers it (Article 57) and the age for that class
+        # (Article 59). Require the exact retrieved chunks in the provider's
+        # evidence list; a prompt instruction alone did not enforce this.
+        required_ids = set()
+        age_classes = self.required_age_classes(question)
+        if age_classes:
+            for licence_class in age_classes:
+                class_pattern = re.compile(r"\bhạng\s+" + re.escape(licence_class) + r"\s+cấp\b", re.IGNORECASE)
+                class_chunks = [c for c in verified_chunks if str(c.get('article')) == '57'
+                                and class_pattern.search(c.get('content', ''))]
+                age_chunks = [c for c in verified_chunks if str(c.get('article')) == '59'
+                              and re.search(r"\b" + re.escape(licence_class) + r"\b", c.get('content', ''), re.IGNORECASE)]
+                if not class_chunks or not age_chunks:
+                    return self.NO_MATCH_RESPONSE, [], 0, False
+                required_ids.update((class_chunks[0]['chunk_id'], age_chunks[0]['chunk_id']))
+        sanction_locations = self.required_sanction_locations(question)
+        for article, clause, point in sanction_locations:
+            candidates = [c for c in verified_chunks if c.get('document_number') == '168/2024/NĐ-CP'
+                          and str(c.get('article')) == article and str(c.get('clause')) == clause
+                          and str(c.get('point') or '') == point]
+            if not candidates:
+                return self.NO_MATCH_RESPONSE, [], 0, False
+            required_ids.add(candidates[0]['chunk_id'])
 
         # Context assembly
         context_blocks = []
@@ -163,6 +265,11 @@ class TrafficRagGenerator:
             f"--- NGÀY HIỆN TẠI (VIỆT NAM) ---\n{datetime.now(timezone(timedelta(hours=7))).date().isoformat()}\n\n"
             f"--- CÂU HỎI CỦA NGƯỜI DÙNG ---\n{prompt}"
         )
+        if required_ids:
+            user_content += ("\n\nCác chunk_id căn cứ bắt buộc để chứng minh mọi phần của kết luận: "
+                             + ", ".join(sorted(required_ids))
+                             + ". Nếu không sử dụng đủ các căn cứ này, trả NoMatch.")
+        invalid_grounding = False
 
         # 1. Use each configured Groq key at most once per turn. A 429 may be
         # shared across keys in one organization, so never loop indefinitely.
@@ -195,11 +302,12 @@ class TrafficRagGenerator:
                     tokens_used = completion.usage.total_tokens if completion.usage else -1
                     if tokens_used > token_budget:
                         raise ValueError("Groq usage exceeds the reserved token budget")
-                    result = self._grounded_result(answer, citations, tokens_used)
+                    result = self._grounded_result(answer, citations, tokens_used, required_ids, question)
                     logger.info("Groq generation completed via key slot %s.", slot + 1)
                     return result
                 except (AttributeError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
                     logger.warning("Groq generation returned an invalid grounded result: %s", type(error).__name__)
+                    invalid_grounding = True
                     break
 
         # 2. Try Gemini API as secondary
@@ -227,11 +335,19 @@ class TrafficRagGenerator:
                     answer = res.text.strip()
                     usage = getattr(res, "usage_metadata", None)
                     tokens_used = getattr(usage, "total_token_count", None)
-                    return self._grounded_result(answer, citations, tokens_used if tokens_used is not None else -1)
+                    try:
+                        return self._grounded_result(answer, citations, tokens_used if tokens_used is not None else -1,
+                                                     required_ids, question)
+                    except (ValueError, TypeError, json.JSONDecodeError) as error:
+                        logger.warning("Gemini generation returned invalid grounded evidence: %s", type(error).__name__)
+                        invalid_grounding = True
+                        continue
 
+        if invalid_grounding:
+            return self.NO_MATCH_RESPONSE, [], 0, False
         raise RuntimeError("Generation API unavailable; no local synthesis fallback")
 
-    def _grounded_result(self, text, citations, tokens):
+    def _grounded_result(self, text, citations, tokens, required_ids=(), question=''):
         result = json.loads(text)
         if result.get('status') == 'NoMatch' and result.get('chunk_ids') == []:
             return self.NO_MATCH_RESPONSE, [], tokens, False
@@ -241,7 +357,25 @@ class TrafficRagGenerator:
         allowed = {c['chunk_id']: c for c in citations}
         if any(i not in allowed for i in ids) or not isinstance(result.get('answer'), str) or not result['answer'].strip():
             raise ValueError('Generation returned unknown evidence IDs or an empty answer')
-        return result['answer'].strip(), [allowed[i] for i in dict.fromkeys(ids)], tokens, True
+        if not set(required_ids).issubset(ids):
+            raise ValueError('Generation omitted required evidence for the conclusion')
+        selected = [allowed[i] for i in dict.fromkeys(ids)]
+        # Show the verified location in the answer itself as well as in the
+        # structured citation cards. The model may otherwise omit the law
+        # reference from an otherwise correct short answer.
+        legal_sources = []
+        for source in selected:
+            if source['document_title'] and source['article_number']:
+                location = f"{source['document_title']}, Điều {source['article_number']}"
+                if source['clause_number']:
+                    location += f" khoản {source['clause_number']}"
+                if source['point_number']:
+                    location += f" điểm {source['point_number']}"
+                legal_sources.append(f"{location} ({source['source_url']})")
+        answer = self._label_mc_answer(question, result['answer'].strip())
+        if legal_sources:
+            answer += "\n\nCăn cứ pháp lý:\n" + "\n".join(f"- {source}" for source in legal_sources)
+        return answer, selected, tokens, True
 
     def _synthesize_local_response(self, prompt: str, chunks: List[Dict[str, Any]]) -> str:
         primary = chunks[0]

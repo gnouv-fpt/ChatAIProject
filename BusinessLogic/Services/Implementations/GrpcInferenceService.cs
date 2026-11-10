@@ -78,6 +78,8 @@ public class GrpcInferenceService(
             logger.LogWarning("Chat RPC failed: {Status}", ex.StatusCode);
             if (ex.StatusCode == StatusCode.DeadlineExceeded)
                 throw new BusinessLogic.Exceptions.UpstreamTimeoutException("Dịch vụ AI phản hồi quá chậm. Vui lòng thử lại.");
+            if (ex.StatusCode == StatusCode.ResourceExhausted)
+                throw new BusinessLogic.Exceptions.QuotaExceededException("Quota còn lại chưa đủ cho ngữ cảnh và căn cứ của câu hỏi. Vui lòng nạp thêm quota hoặc rút ngắn câu hỏi.");
             throw new BusinessLogic.Exceptions.ServiceUnavailableException("Dịch vụ AI tạm thời không khả dụng. Vui lòng thử lại.");
         }
     }

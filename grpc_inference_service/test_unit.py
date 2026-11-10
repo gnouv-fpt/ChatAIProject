@@ -1,4 +1,5 @@
 import pytest
+import grpc
 import os
 import sys
 import json
@@ -19,7 +20,8 @@ from rag.embeddings import EmbeddingEngine
 from rag.vector_store import QdrantTrafficStore
 from rag.rag_generator import TrafficRagGenerator
 from rag.vision_engine import TrafficVisionEngine
-from server import TrafficRagInferenceServicer, chat_inference_pb2
+from rag.visual_question_matcher import PublishedVisualQuestionMatcher
+from server import TrafficRagInferenceServicer, chat_inference_pb2, rpc_errors
 from data.seed_traffic_law import get_seed_traffic_law_chunks
 
 @pytest.fixture(autouse=True)
@@ -321,14 +323,65 @@ def test_verification_valid_and_outdated_documents():
         assert engine.verify_document("Legacy source", number)["status"] == "Pending"
 
 
-def test_sanction_verification_requires_exact_reviewed_full_text():
-    package = json.loads((Path(__file__).resolve().parents[1] /
-        "content-bank/legal/168-238-all-articles-merged-review.json").read_text(encoding="utf8"))
-    content = "\n".join(article["content"] for article in package["articles"])
+def test_sanction_verification_only_accepts_exact_reviewed_targeted_scope():
+    root = Path(__file__).resolve().parents[1] / "content-bank/legal"
+    package = json.loads((root / "168-238-targeted-sanctions-reviewed.json").read_text(encoding="utf8"))
+    content = package["content"]
     verifier = DataVerificationEngine()
     assert verifier.verify_document("168 amended by 238", "168/2024/NĐ-CP", content)["status"] == "Verified"
     assert verifier.verify_document("168 amended by 238", "168/2024/NĐ-CP", content.replace(
-        "4.000.000 đồng", "3.000.000 đồng", 1))["status"] == "Pending"
+        "30.000.000 đồng", "29.000.000 đồng", 1))["status"] == "Pending"
+    full = json.loads((root / "168-238-all-articles-merged-review.json").read_text(encoding="utf8"))
+    assert verifier.verify_document("168 amended by 238", "168/2024/NĐ-CP",
+        "\n".join(article["content"] for article in full["articles"]))["status"] == "Pending"
+
+
+def test_compound_sanction_questions_require_each_distinct_legal_fact():
+    requirements = TrafficRagGenerator.required_sanction_locations
+    assert requirements('Người lái xe ô tô có chất ma túy bị áp dụng hình thức xử phạt nào?') == (
+        ('6', '11', ''), ('6', '11', 'c'), ('6', '15', 'c'))
+    assert requirements('Người lái xe ô tô có nồng độ cồn bị xử phạt hình thức nào?') == (
+        ('6', '6', ''), ('6', '6', 'c'), ('6', '11', ''), ('6', '11', 'a'), ('6', '15', 'c'))
+    assert requirements('Người được chở không đội mũ bảo hiểm, người điều khiển có bị phạt?') == (
+        ('7', '2', ''), ('7', '2', 'i'), ('12', '5', ''), ('12', '5', 'b'))
+    assert not requirements('Người đi bộ không đội mũ bảo hiểm có bị phạt không?')
+
+
+def test_compound_sanction_answer_abstains_without_passenger_provision():
+    chunks = [{'chunk_id': str(i), 'document_number': '168/2024/NĐ-CP',
+               'article': article, 'clause': clause, 'point': point, 'content': 'Verified text'}
+              for i, (article, clause, point) in enumerate((
+                  ('7', '2', ''), ('7', '2', 'i'), ('12', '5', '')), start=1)]
+    answer, citations, tokens, grounded = TrafficRagGenerator().generate(
+        'Người được chở không đội mũ bảo hiểm và người điều khiển bị phạt không?', chunks)
+    assert answer == TrafficRagGenerator.NO_MATCH_RESPONSE
+    assert not citations and tokens == 0 and not grounded
+
+
+def test_insufficient_context_budget_has_distinct_rpc_status():
+    class Broken:
+        @rpc_errors
+        def ProcessChatMessage(self, request, context):
+            raise RuntimeError('The reserved token budget cannot cover this context')
+
+    def abort(code, detail):
+        assert code == grpc.StatusCode.RESOURCE_EXHAUSTED
+        raise grpc.RpcError(detail)
+
+    with pytest.raises(grpc.RpcError):
+        Broken().ProcessChatMessage(None, SimpleNamespace(is_active=lambda: True, abort=abort))
+
+
+def test_mc_option_label_uses_only_explicit_or_unique_answer_text():
+    label = TrafficRagGenerator._label_mc_answer
+    question = 'Tối thiểu bao nhiêu tuổi?\n1. 16 tuổi.\n2. 17 tuổi.\n3. 18 tuổi.'
+    assert label(question, '18 tuổi. Theo Điều 59...').startswith('3. 18 tuổi.')
+    assert label(question, 'Theo luật, đáp án đúng là 3.').startswith('3. Theo luật')
+    assert label(question, 'Theo luật, 18 tuổi là tối thiểu.').startswith('3. Theo luật')
+    assert label('Hỏi gì?\n1. Phạt tiền.\n2. Tước GPLX.\n3. Cả hai ý trên.',
+                 'Hành vi bị xử phạt cả hai hình thức: phạt tiền và tước GPLX.').startswith('3. ')
+    assert label('Hỏi gì?\n1. A.\n2. B.\n3. C.\n4. Cả ba ý trên.',
+                 'Câu trả lời đúng là 4.').startswith('4. ')
 
 # ==============================================================================
 # 3. TEST EMBEDDINGS & VECTOR STORE (QDRANT IN-MEMORY)
@@ -438,6 +491,104 @@ def test_vision_engine_clarification():
     assert len(obs2) > 0
 
 
+def test_vision_retries_fallback_model_after_transient_quota_error():
+    vision = TrafficVisionEngine()
+    primary = Mock(side_effect=HTTPError('https://provider.example', 429, 'quota', {}, io.BytesIO(b'{}')))
+    fallback = Mock(return_value=SimpleNamespace(text=json.dumps({
+        "is_clear": True, "observations": "Xe A ở ngã tư.",
+        "search_query": "nhường đường tại nơi giao nhau"}),
+        usage_metadata=SimpleNamespace(total_token_count=120)))
+    vision._gemini_model = SimpleNamespace(generate_content=primary)
+    vision._gemini_fallback_model = SimpleNamespace(generate_content=fallback)
+    observation, clarify, query = vision.analyze_traffic_image('aW1hZ2U=', 'image/jpeg', 'Xe nào đi trước?')
+    assert not clarify and observation == 'Xe A ở ngã tư.' and 'nhường đường' in query
+    assert vision.last_tokens == 120
+    primary.assert_called_once()
+    fallback.assert_called_once()
+
+
+def test_published_visual_lookup_accepts_recoded_unique_scenarios_only():
+    from PIL import Image
+    matcher = PublishedVisualQuestionMatcher()
+    root = Path(__file__).resolve().parents[1]
+    for number, expected in ((490, '3.'), (493, '1.')):
+        original = root / f'content-animations/bank-review/{number}/image-1.jpeg'
+        with Image.open(original) as image:
+            recoded = io.BytesIO()
+            image.resize((300, 170)).save(recoded, 'JPEG', quality=65)
+        answer = matcher.match(f'Câu {number}: thứ tự các xe đi thế nào?', recoded.getvalue())
+        assert answer and f'Câu {number}' in answer and f'Đáp án: {expected}' in answer
+        assert 'Nguồn đáp án bộ đề CSGT' in answer
+        assert matcher.match('Mô tả màu sắc trong ảnh này', recoded.getvalue()) is None
+        assert matcher.match(f'Câu {number} trong ảnh có mấy xe màu đỏ?', recoded.getvalue()) is None
+    duplicated = (root / 'content-animations/bank-review/486/image-1.jpeg').read_bytes()
+    assert matcher.match('Đáp án câu này là gì?', duplicated) is None
+    assert 'Câu 486' in matcher.match('Câu 486 đáp án gì?', duplicated)
+    unrelated = io.BytesIO()
+    Image.new('RGB', (496, 280), color=(25, 80, 180)).save(unrelated, 'JPEG')
+    assert matcher.match('Câu 490 đáp án gì?', unrelated.getvalue()) is None
+
+
+def test_published_sign_image_uses_source_key_without_inventing_a_law_citation():
+    from PIL import Image
+    matcher = PublishedVisualQuestionMatcher()
+    root = Path(__file__).resolve().parents[1]
+    original = root / 'content-animations/question-bank-600/310/image-1.jpeg'
+    with Image.open(original) as image:
+        recoded = io.BytesIO()
+        image.thumbnail((300, 300))
+        image.save(recoded, 'JPEG', quality=65)
+    answer = matcher.match('Câu 310: Biển nào cấm xe ô tô tải vượt?', recoded.getvalue())
+    assert answer and 'Đáp án: 4. Biển 2 và biển 3.' in answer
+    assert 'nguồn đáp án' in answer.lower() and 'chưa phải trích dẫn điều luật' in answer
+    assert matcher.match('Câu 310 trong ảnh có mấy màu đỏ?', recoded.getvalue()) is None
+
+
+def test_unmatched_sign_image_cannot_cite_generic_sign_category_as_specific_meaning():
+    from PIL import Image
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.visual_question_matcher = SimpleNamespace(match=lambda *_: None)
+    service.vision_engine = SimpleNamespace(last_tokens=100, analyze_traffic_image=lambda *a, **k:
+                                            ('Ba biển rõ nét.', False, 'biển báo cấm đi ngược chiều'))
+    law = {'chunk_id': 'generic', 'document_number': '55/VBHN-VPQH', 'article': '11',
+           'clause': '5', 'content': 'Biển báo cấm để biểu thị điều cấm.'}
+    service.vector_store = SimpleNamespace(search_verified_chunks=lambda *a, **k: [law])
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='Không đủ căn cứ.', generate=Mock())
+    image = io.BytesIO()
+    Image.new('RGB', (64, 64), 'white').save(image, 'PNG')
+    result = service.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(
+        prompt='Biển nào là biển cấm đi ngược chiều?',
+        images=[chat_inference_pb2.ChatImage(content=image.getvalue(), mime_type='image/png')]),
+        SimpleNamespace(is_active=lambda: True))
+    assert result.result_status == 'NoMatch' and not result.citations
+    assert 'QCVN 41:2024/BGTVT' in result.response_text
+    service.rag_generator.generate.assert_not_called()
+
+
+def test_recoded_published_image_uses_answer_key_before_vision_or_rag():
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.visual_question_matcher = PublishedVisualQuestionMatcher()
+    service.vision_engine = SimpleNamespace(analyze_traffic_image=Mock())
+    service.vector_store = SimpleNamespace(search_verified_chunks=Mock())
+    service.rag_generator = SimpleNamespace(generate=Mock())
+    root = Path(__file__).resolve().parents[1]
+    from PIL import Image
+    with Image.open(root / 'content-animations/bank-review/493/image-1.jpeg') as image:
+        recoded = io.BytesIO()
+        image.save(recoded, 'JPEG', quality=70)
+    request = chat_inference_pb2.ChatInferenceRequest(
+        prompt='Câu 493: Thứ tự các xe đi như thế nào?',
+        images=[chat_inference_pb2.ChatImage(content=recoded.getvalue(), mime_type='image/jpeg')])
+    result = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert result.result_status == 'PracticeAnswered' and 'Đáp án: 1.' in result.response_text
+    assert result.images_processed and not result.citations and result.tokens_used == 0
+    service.vision_engine.analyze_traffic_image.assert_not_called()
+    service.vector_store.search_verified_chunks.assert_not_called()
+    service.rag_generator.generate.assert_not_called()
+
+
 def test_embedding_requires_explicit_api_configuration(monkeypatch):
     monkeypatch.delenv("EMBEDDING_API_URL", raising=False)
     with pytest.raises(RuntimeError, match="Configure HTTPS"):
@@ -533,6 +684,105 @@ def test_sanction_question_abstains_when_only_traffic_law_is_retrieved():
                                 current_question="Quy tắc hiện tại?")
     assert answer[0] == "Quy tắc hiện tại." and answer[3]
     provider.assert_called_once()
+
+
+@pytest.mark.parametrize("question", [
+    "Người chưa bị trừ hết 12 điểm được phục hồi điểm giấy phép lái xe khi nào?",
+    "Đã bị trừ hết điểm phải làm gì để phục hồi điểm giấy phép lái xe?",
+    "Bị trừ điểm thì khi nào được phục hồi điểm giấy phép lái xe?",
+])
+def test_licence_point_restoration_uses_traffic_law_evidence(question):
+    assert not QdrantTrafficStore._is_sanction_query(question)
+    generator = TrafficRagGenerator()
+    law = [{"chunk_id": "article-58", "document_number": "55/VBHN-VPQH",
+            "article": "58", "clause": "2", "content": "Điều 58. Phục hồi điểm giấy phép lái xe."}]
+    provider = Mock(return_value=SimpleNamespace(text=json.dumps({
+        "status": "Answered", "answer": "Theo Điều 58 về phục hồi điểm.",
+        "chunk_ids": ["article-58"]}),
+        usage_metadata=SimpleNamespace(total_token_count=20)))
+    generator._gemini_client = SimpleNamespace(generate_content=provider)
+    answer, citations, _, verified = generator.generate(question, law)
+    assert verified and citations[0]["article_number"] == "58"
+    assert "phục hồi" in answer and provider.called
+
+
+def test_driving_age_answer_requires_class_and_age_evidence():
+    generator = TrafficRagGenerator()
+    chunks = [
+        {"chunk_id": "class-c1", "article": "57", "clause": "1",
+         "content": "Điều 57. Hạng C1 cấp cho người lái xe ô tô tải trên 3.500 kg đến 7.500 kg."},
+        {"chunk_id": "age-c1", "article": "59", "clause": "1",
+         "content": "Điều 59. Người đủ 18 tuổi được cấp giấy phép lái xe hạng A1, A, B1, B, C1."},
+    ]
+    incomplete = Mock(return_value=SimpleNamespace(text=json.dumps({
+        "status": "Answered", "answer": "18 tuổi, hạng C1 theo Điều 59.",
+        "chunk_ids": ["age-c1"]}), usage_metadata=SimpleNamespace(total_token_count=40)))
+    complete = Mock(return_value=SimpleNamespace(text=json.dumps({
+        "status": "Answered", "answer": "18 tuổi, hạng C1 theo Điều 57 và 59.",
+        "chunk_ids": ["class-c1", "age-c1"]}), usage_metadata=SimpleNamespace(total_token_count=41)))
+    generator._gemini_client = SimpleNamespace(generate_content=incomplete)
+    generator._gemini_fallback_client = SimpleNamespace(generate_content=complete)
+    question = "Đủ bao nhiêu tuổi để được cấp giấy phép lái xe hạng C1?"
+    result = generator.generate(question, chunks)
+    assert {citation["chunk_id"] for citation in result[1]} == {"class-c1", "age-c1"}
+    assert result[3]
+    incomplete.assert_called_once()
+    complete.assert_called_once()
+
+
+def test_driving_age_abstains_when_vehicle_class_rule_is_missing():
+    generator = TrafficRagGenerator()
+    provider = Mock()
+    generator._gemini_client = SimpleNamespace(generate_content=provider)
+    result = generator.generate("Bao nhiêu tuổi được cấp giấy phép lái xe hạng C1?", [
+        {"chunk_id": "age-c1", "article": "59", "clause": "1",
+         "content": "Người đủ 18 tuổi được cấp giấy phép lái xe hạng C1."}])
+    assert result == (generator.NO_MATCH_RESPONSE, [], 0, False)
+    provider.assert_not_called()
+
+
+def test_driving_age_infers_a1_and_b_evidence_from_vehicle_descriptions():
+    generator = TrafficRagGenerator()
+    chunks = [
+        {"chunk_id": "classes", "article": "57", "clause": "1", "content":
+         "Điều 57. Hạng A1 cấp cho người lái xe mô tô hai bánh đến 125 cm3; "
+         "Hạng B cấp cho người lái ô tô chở người đến 8 chỗ, ô tô tải đến 3.500 kg."},
+        {"chunk_id": "ages", "article": "59", "clause": "1", "content":
+         "Điều 59. Người đủ 18 tuổi được cấp giấy phép lái xe hạng A1, A, B1, B, C1."},
+    ]
+    provider = Mock(return_value=SimpleNamespace(text=json.dumps({
+        "status": "Answered", "answer": "18 tuổi theo Điều 57 và Điều 59.",
+        "chunk_ids": ["classes", "ages"]}), usage_metadata=SimpleNamespace(total_token_count=40)))
+    generator._gemini_client = SimpleNamespace(generate_content=provider)
+    question = ("Bao nhiêu tuổi được cấp giấy phép lái xe mô tô hai bánh đến 125 cm3 "
+                "và ô tô chở người đến 8 chỗ, ô tô tải đến 3.500 kg?")
+    answer, citations, _, verified = generator.generate(question, chunks)
+    assert verified and "18 tuổi" in answer
+    assert {citation["article_number"] for citation in citations} == {"57", "59"}
+    provider.assert_called_once()
+
+
+def test_compound_age_question_fetches_both_verified_class_rules_beyond_vector_top_five():
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = SimpleNamespace(check=lambda _: (False, [], ''))
+    base = {'document_id': 'law', 'document_number': '55/VBHN-VPQH', 'is_verified': True,
+            'is_active': True}
+    age = dict(base, chunk_id='age', article='59', clause='1', point='b',
+               content='Người đủ 18 tuổi được cấp giấy phép lái xe hạng A1 và hạng B.')
+    car = dict(base, chunk_id='class-b', article='57', clause='1', point='d',
+               content='Hạng B cấp cho người lái ô tô chở người đến 8 chỗ, xe tải đến 3.500 kg.')
+    motor = dict(base, chunk_id='class-a1', article='57', clause='1', point='a',
+                 content='Hạng A1 cấp cho người lái xe mô tô hai bánh đến 125 cm3.')
+    service.vector_store = SimpleNamespace(search_verified_chunks=lambda *a, **k: [age, car],
+                                           get_verified_article_chunks=lambda _, article:
+                                           [motor, car] if article == '57' else [age])
+    generate = Mock(return_value=('Không đủ căn cứ.', [], 0, False))
+    service.rag_generator = SimpleNamespace(NO_MATCH_RESPONSE='Không đủ căn cứ.', generate=generate)
+    question = ('Người đủ bao nhiêu tuổi được cấp giấy phép lái xe mô tô hai bánh đến 125 cm3 '
+                'và xe ô tô chở người đến 8 chỗ, xe tải đến 3.500 kg?')
+    service.ProcessChatMessage(chat_inference_pb2.ChatInferenceRequest(prompt=question),
+                               SimpleNamespace(is_active=lambda: True))
+    assert {row['chunk_id'] for row in generate.call_args.args[1]} == {'age', 'class-b', 'class-a1'}
 
 
 def test_gemini_fallback_uses_same_grounded_ids_after_transient_provider_error():
@@ -675,6 +925,7 @@ def test_gemini_counts_context_before_generation_and_honors_reservation(monkeypa
             return io.StringIO('{"totalTokens":100}')
         body = json.loads(request.data)
         assert body['generationConfig']['maxOutputTokens'] == 68
+        assert 'thinkingConfig' not in body['generationConfig']
         assert 'fixture-key' not in request.full_url
         return io.StringIO(json.dumps({'candidates':[{'content':{'parts':[{'text':'fixture'}]}}],
                                       'usageMetadata':{'totalTokenCount':130}}))
@@ -720,6 +971,25 @@ def test_chat_v2_processes_history_and_images_with_citation_hash():
     assert "Scene" in service.rag_generator.generate.call_args.args[0]
     assert service.rag_generator.generate.call_args.kwargs["current_question"] == request.prompt
     assert service.rag_generator.generate.call_args.kwargs["prefer_gemini"] is True
+
+
+@pytest.mark.parametrize("observation", [
+    "Xe A trước vạch dừng; chưa xác định chính xác xe nào đã vào nơi giao nhau trong ảnh tĩnh.",
+    "Xe cứu thương bật đèn ưu tiên; xe A và B ở gần vạch dừng.",
+])
+def test_uncertain_junction_entry_does_not_guess_vehicle_order(observation):
+    service = TrafficRagInferenceServicer.__new__(TrafficRagInferenceServicer)
+    service.moderation_engine = ModerationEngine()
+    service.vision_engine = SimpleNamespace(last_tokens=5, analyze_traffic_image=lambda *args: (
+        observation, False, "quy tắc nhường đường"))
+    service.vector_store = SimpleNamespace(search_verified_chunks=Mock())
+    service.rag_generator = SimpleNamespace(generate=Mock())
+    request = chat_inference_pb2.ChatInferenceRequest(prompt="Thứ tự các xe đi thế nào?",
+        images=[chat_inference_pb2.ChatImage(content=b"fixture", mime_type="image/jpeg")])
+    result = service.ProcessChatMessage(request, SimpleNamespace(is_active=lambda: True))
+    assert result.result_status == "NeedsClarification" and not result.citations
+    service.vector_store.search_verified_chunks.assert_not_called()
+    service.rag_generator.generate.assert_not_called()
 
 
 def test_image_retrieval_retries_with_question_when_visual_query_misses():

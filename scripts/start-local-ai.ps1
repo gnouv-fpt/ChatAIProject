@@ -60,7 +60,7 @@ $response = Invoke-WebRequest 'http://127.0.0.1:16333/readyz' -TimeoutSec 5
 if ($response.StatusCode -ne 200) { throw 'Local Qdrant is not ready.' }
 $values = @{
     GEMINI_API_KEY = $key; GENERATION_PROVIDER = $(if ($GenerationProvider -eq 'auto' -and !$groqKeys.Count) { 'gemini' } else { $GenerationProvider }); GEMINI_MODEL = 'gemini-3.5-flash-lite'
-    GEMINI_FALLBACK_MODEL = 'gemini-2.5-flash-lite'
+    GEMINI_FALLBACK_MODEL = 'gemini-3.6-flash'
     GEMINI_VISION_MODEL = 'gemini-3.5-flash-lite'; EMBEDDING_PROVIDER = 'gemini'; EMBEDDING_API_KEY = $key
     EMBEDDING_MODEL = 'gemini-embedding-001'; EMBEDDING_DIMENSION = '768'
     QDRANT_HOST = '127.0.0.1'; QDRANT_PORT = '16333'; QDRANT_COLLECTION = "traffic_law_learning_${suffix}_gemini768_v1"

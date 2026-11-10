@@ -147,6 +147,10 @@ class QdrantTrafficStore:
 
     @staticmethod
     def _is_sanction_query(query):
+        if re.search(r'phục hồi điểm|khôi phục điểm|lấy lại điểm', query, re.IGNORECASE) and not re.search(
+            r'mức phạt|xử phạt|phạt bao nhiêu|trừ bao nhiêu điểm', query, re.IGNORECASE
+        ):
+            return False
         return bool(re.search(r'\bphạt\b|\bphat\b|xử phạt|xử lý vi phạm|trừ điểm|tước|tịch thu|khắc phục',
                               query, re.IGNORECASE))
 

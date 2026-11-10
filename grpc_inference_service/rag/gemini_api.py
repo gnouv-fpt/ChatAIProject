@@ -16,9 +16,10 @@ class GeminiModel:
         parts = [{'text': content}] if isinstance(content, str) else [
             {'inlineData': {'mimeType': part['inline_data']['mime_type'], 'data': part['inline_data']['data']}}
             if 'inline_data' in part else part for part in content]
+        # Gemini 3.5 Flash Lite rejects thinkingBudget=0 with HTTP 400, for both
+        # text and image requests. Let the model use its supported default.
         body = {'contents': [{'role': 'user', 'parts': parts}],
-                'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 3000,
-                                     'thinkingConfig': {'thinkingBudget': 0}}}
+                'generationConfig': {'temperature': 0.1, 'maxOutputTokens': 3000}}
         if self.json_response:
             body['generationConfig']['responseMimeType'] = 'application/json'
         if response_schema is not None:

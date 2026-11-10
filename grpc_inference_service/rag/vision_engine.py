@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import threading
+from urllib.error import HTTPError, URLError
 from typing import Tuple, Dict, Any, Optional
 
 logger = logging.getLogger("TrafficVisionEngine")
@@ -24,11 +25,15 @@ class TrafficVisionEngine:
         self._usage = threading.local()
         self.api_key = api_key or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
         self._gemini_model = None
+        self._gemini_fallback_model = None
 
         if self.api_key:
             try:
                 from rag.gemini_api import GeminiModel
                 self._gemini_model = GeminiModel(self.api_key, os.getenv("GEMINI_VISION_MODEL", "gemini-3.6-flash"))
+                fallback = os.getenv("GEMINI_FALLBACK_MODEL")
+                if fallback and fallback != self._gemini_model.model:
+                    self._gemini_fallback_model = GeminiModel(self.api_key, fallback)
                 logger.info("[VisionEngine] Initialized configured Gemini REST model.")
             except Exception as e:
                 logger.warning(f"[VisionEngine] Gemini Vision init failed: {e}")
@@ -94,19 +99,27 @@ class TrafficVisionEngine:
             "}"
         )
 
-        if self._gemini_model:
+        content_parts = [
+            {"text": f"{prompt_instruction}\nCâu hỏi kèm theo: {user_prompt}"},
+            {"inline_data": {"mime_type": mime_type, "data": image_base64}}
+        ]
+        for model in (self._gemini_model, self._gemini_fallback_model):
+            if model is None:
+                continue
             try:
-                content_parts = [
-                    {"text": f"{prompt_instruction}\nCâu hỏi kèm theo: {user_prompt}"},
-                    {"inline_data": {"mime_type": mime_type, "data": image_base64}}
-                ]
-                
-                resp = self._gemini_model.generate_content(content_parts, request_options={"timeout": 30}, token_budget=token_budget)
+                resp = model.generate_content(content_parts, request_options={"timeout": 30}, token_budget=token_budget)
                 self.last_tokens = getattr(getattr(resp, "usage_metadata", None), "total_token_count", None)
                 if resp and resp.text:
                     return self._parse_observation(resp.text)
-            except Exception as e:
-                logger.warning("[VisionEngine] Gemini inference failed: %s", type(e).__name__)
+            except HTTPError as error:
+                logger.warning("[VisionEngine] Gemini vision HTTP %s", error.code)
+                if error.code not in (429, 500, 502, 503, 504):
+                    break
+            except (URLError, TimeoutError) as error:
+                logger.warning("[VisionEngine] Gemini vision transient failure: %s", type(error).__name__)
+            except Exception as error:
+                logger.warning("[VisionEngine] Gemini vision failed: %s", type(error).__name__)
+                break
 
         raise RuntimeError("Vision API unavailable; image observations were not produced")
 

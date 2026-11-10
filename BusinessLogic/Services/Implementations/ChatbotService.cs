@@ -352,11 +352,13 @@ public class ChatbotService : IChatbotService
         var hashes = images.Select(image => HashBytes(image.Content)).ToArray();
         var answer = await _content.ResolveScenarioAsync(number, hashes, ct);
         if (answer is null) return null;
+        if (!AsksForScenarioAnswer(prompt, answer.Question, number.HasValue)) return null;
         var selected = answer.Options.Where(option => answer.CorrectOptionIds.Contains(option.Id))
             .Select(option => $"{option.Id}. {option.Text}").ToArray();
         var text = $"Câu {answer.Number} trong bộ 600 câu CSGT 2025: {answer.Question}\n" +
             $"Đáp án: {string.Join("; ", selected)}\n\n{answer.Explanation.Trim()}\n\n" +
-            $"Nguồn CSGT: {answer.SourceUrl}" +
+            $"Nguồn đáp án bộ đề CSGT: {answer.SourceUrl}\n" +
+            "Lưu ý: nguồn đáp án bộ đề chưa phải trích dẫn điều luật cho toàn bộ lời giải sa hình." +
             (string.IsNullOrWhiteSpace(answer.OriginalImageUrl) ? "" : $"\nẢnh gốc: {answer.OriginalImageUrl}");
         return new ChatInferenceResultDto { ContractVersion = 2, Status = "PracticeAnswered",
             ResponseText = text, TokensUsed = 0, ImagesProcessed = images.Count > 0 };
@@ -364,6 +366,36 @@ public class ChatbotService : IChatbotService
 
     private static string HashBytes(byte[] bytes) =>
         Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
+
+    private static bool AsksForScenarioAnswer(string prompt, string sourceQuestion, bool hasQuestionNumber)
+    {
+        var withoutNumber = Regex.Replace(prompt, @"^\s*câu(?:\s+(?:hỏi|số))?\s*\d{1,3}\s*[:.\-]?\s*", "",
+            RegexOptions.IgnoreCase);
+        var firstLine = withoutNumber.Split('\n', 2)[0].Trim();
+        if (string.Equals(Regex.Replace(firstLine, @"\W", ""), Regex.Replace(sourceQuestion, @"\W", ""),
+            StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (Regex.IsMatch(prompt, @"đáp án\s*(?:nào|gì|đúng|là|số)|chọn\s*(?:đáp án|phương án)|phương án\s*(?:nào|đúng|số)", RegexOptions.IgnoreCase) ||
+            hasQuestionNumber && Regex.IsMatch(prompt, @"giải thích\s*(?:câu|đáp án)|vì sao\s*(?:câu|đáp án)", RegexOptions.IgnoreCase))
+            return true;
+        // An image hash identifies the published question, but a user can ask
+        // about a different detail in that image. Keep the answer-key route
+        // for matching question types only.
+        static bool Has(string text, string pattern) => Regex.IsMatch(text, pattern, RegexOptions.IgnoreCase);
+        return (Has(sourceQuestion, @"thứ tự|đi trước|nhường đường|đi đầu tiên") &&
+                Has(prompt, @"thứ tự|đi trước|nhường đường|đi đầu tiên")) ||
+            (Has(sourceQuestion, @"hướng nào|được phép đi|được đi|quay đầu|rẽ") &&
+                Has(prompt, @"hướng nào|được phép đi|được đi|quay đầu|rẽ")) ||
+            (Has(sourceQuestion, @"vi phạm|chấp hành|đúng quy tắc|có đúng") &&
+                Has(prompt, @"vi phạm|chấp hành|đúng quy tắc|có đúng|xe nào.*đúng")) ||
+            (Has(sourceQuestion, @"xử lý|làm gì|nên làm") && Has(prompt, @"xử lý|làm gì|nên làm")) ||
+            (Has(sourceQuestion, @"vượt xe|được phép vượt|có được.*vượt") &&
+                Has(prompt, @"vượt xe|được phép vượt|có được.*vượt")) ||
+            (Has(sourceQuestion, @"dừng xe|dừng lại|dừng đúng|đỗ xe") &&
+                Has(prompt, @"dừng xe|dừng lại|dừng đúng|đỗ xe")) ||
+            (Has(sourceQuestion, @"nhập làn|vào làn|chuyển làn") &&
+                Has(prompt, @"nhập làn|vào làn|chuyển làn"));
+    }
 
     private async Task<List<Citation>> ValidateCitationsAsync(List<CitationResultDto> citations, CancellationToken ct,
         bool historicalSnapshot = false)

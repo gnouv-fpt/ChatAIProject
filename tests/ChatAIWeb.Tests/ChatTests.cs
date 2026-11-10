@@ -6,6 +6,7 @@ using BusinessLogic.Services.Implementations;
 using BusinessLogic.Services.Interfaces;
 using BusinessObject.Entities;
 using BusinessObject.Enums;
+using System.Text.Json;
 using DataAccess;
 using DataAccess.Repositories.Implementations;
 using Microsoft.Data.Sqlite;
@@ -224,16 +225,80 @@ public sealed class ChatTests : IAsyncLifetime
         var next = Request(); next.UsePreviousAttachments = false; await service.SendMessageAsync(userId, sessionId, next);
         Assert.Empty(inference.LastInput!.Images);
     }
+    [Fact] public async Task PublishedScenarioAnswerFollowsImageQuestionIntent()
+    {
+        var uploaded = await attachments.UploadAsync(userId, sessionId, "image/png", new MemoryStream(Png), default);
+        content.ScenarioHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(Png)).ToLowerInvariant();
+        content.Scenario = new ScenarioAnswerDto(493,
+            "Thứ tự các xe đi như thế nào là đúng quy tắc giao thông?",
+            [new ContentQuestionOption("1", "Xe con A đi trước."), new ContentQuestionOption("2", "Xe cứu thương đi trước.")],
+            ["1"], "Đáp án được gạch chân trong PDF nguồn.", "https://example.test/csgt.pdf", null);
+        var order = Request("Thứ tự các xe đi thế nào?");
+        order.AttachmentIds = [uploaded.Id];
+        var answer = await service.SendMessageAsync(userId, sessionId, order);
+        Assert.Equal("PracticeAnswered", answer.Status);
+        Assert.Contains("1. Xe con A đi trước.", answer.Content);
+        Assert.Contains("Nguồn đáp án bộ đề CSGT:", answer.Content);
+        Assert.Empty(answer.Citations);
+        Assert.Equal(0, answer.TokensUsed);
+        Assert.Equal(0, inference.Calls);
+
+        inference.Result = Answer();
+        inference.Result.ImagesProcessed = true;
+        var differentQuestion = Request("Mô tả sa hình này có màu gì?");
+        differentQuestion.AttachmentIds = [uploaded.Id];
+        var response = await service.SendMessageAsync(userId, sessionId, differentQuestion);
+        Assert.Equal("Answered", response.Status);
+        Assert.Equal(1, inference.Calls);
+
+        var numberedDetail = Request("Câu 493 trong ảnh có mấy xe màu đỏ?");
+        numberedDetail.AttachmentIds = [uploaded.Id];
+        var detailResponse = await service.SendMessageAsync(userId, sessionId, numberedDetail);
+        Assert.Equal("Answered", detailResponse.Status);
+        Assert.Equal(2, inference.Calls);
+    }
+    [Theory]
+    [InlineData(490, "3")]
+    [InlineData(493, "1")]
+    public async Task OriginalPublishedScenarioImageReturnsThePdfAnswerWithoutAi(int number, string expectedOption)
+    {
+        var root = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../../../"));
+        var source = await File.ReadAllTextAsync(Path.Combine(root, "content-bank/csgt-2025-B-current/package.json"));
+        using var package = System.Text.Json.JsonDocument.Parse(source);
+        var bank = package.RootElement.GetProperty("bank").Deserialize<ContentBank>(
+            new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+        var question = bank.Questions.Single(q => q.Number == number);
+        var bytes = await File.ReadAllBytesAsync(Path.Combine(root,
+            $"content-animations/bank-review/{number}/image-1.jpeg"));
+        var hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(bytes)).ToLowerInvariant();
+        Assert.Equal(question.Assets[0].Sha256, hash);
+        content.ScenarioHash = hash;
+        content.Scenario = new ScenarioAnswerDto(number, question.Text, question.Options,
+            question.CorrectOptionIds, question.Explanation, question.SourceUrl, question.Assets[0].Url);
+        var uploaded = await attachments.UploadAsync(userId, sessionId, "image/jpeg", new MemoryStream(bytes), default);
+        var request = Request("Theo hướng mũi tên, thứ tự các xe đi như thế nào?");
+        request.AttachmentIds = [uploaded.Id];
+        var response = await service.SendMessageAsync(userId, sessionId, request);
+        var selected = question.Options.Single(option => option.Id == expectedOption);
+        Assert.Equal("PracticeAnswered", response.Status);
+        Assert.Contains($"Đáp án: {expectedOption}. {selected.Text}", response.Content);
+        Assert.Contains(question.SourceUrl, response.Content);
+        Assert.Empty(response.Citations);
+        Assert.Equal(0, inference.Calls);
+    }
     private ChatbotService NewService(UserDbContext otherDb) => new(new ChatSessionRepository(otherDb), new ChatMessageRepository(otherDb),
         new UserRepository(otherDb), inference, new ChatTurnRepository(otherDb), new PrivateAttachmentService(settings, new ChatSessionRepository(otherDb)),
         settings, NullLogger<ChatbotService>.Instance, content);
     private sealed class TestContentCatalog : IContentCatalogClient
     {
         public List<DocumentChunk> Chunks { get; } = [];
+        public ScenarioAnswerDto? Scenario { get; set; }
+        public string? ScenarioHash { get; set; }
         public Task<List<DocumentChunk>> GetChunksAsync(Guid[] ids, CancellationToken ct) =>
             Task.FromResult(Chunks.Where(c => ids.Contains(c.Id)).ToList());
         public Task<ScenarioAnswerDto?> ResolveScenarioAsync(int? number, IReadOnlyList<string> imageHashes,
-            CancellationToken ct) => Task.FromResult<ScenarioAnswerDto?>(null);
+            CancellationToken ct) => Task.FromResult(number == Scenario?.Number ||
+                ScenarioHash != null && imageHashes.Contains(ScenarioHash) ? Scenario : null);
     }
     private ChatInferenceResultDto Answer() => new()
     {

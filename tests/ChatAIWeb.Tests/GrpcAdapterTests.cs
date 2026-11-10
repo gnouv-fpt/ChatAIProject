@@ -13,6 +13,7 @@ public sealed class GrpcAdapterTests
 {
     private static ChatInferenceInputDto Input => new(Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid(), "test", [], [], 100);
     [Theory] [InlineData(StatusCode.Unavailable, 503)] [InlineData(StatusCode.DeadlineExceeded, 504)]
+    [InlineData(StatusCode.ResourceExhausted, 429)]
     public async Task RpcErrorsBecomeProblemStatusWithoutUpstreamDetails(StatusCode code, int expected)
     {
         var client = new FakeClient { Error = new RpcException(new Status(code, "private upstream details")) };
