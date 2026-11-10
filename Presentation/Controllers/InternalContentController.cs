@@ -10,9 +10,15 @@ namespace Presentation.Controllers;
 [ApiController]
 [Route("internal/content")]
 [Authorize(AuthenticationSchemes = "ContentService", Policy = "ContentRead")]
-public sealed class InternalContentController(IContentChunkService chunks) : ControllerBase
+public sealed class InternalContentController(IContentChunkService chunks, IQuestionBankService banks) : ControllerBase
 {
     [HttpPost("chunks")]
     public Task<IReadOnlyList<ContentChunkSnapshotDto>> GetChunks(Guid[] ids, CancellationToken ct) =>
         chunks.GetAsync(ids, ct);
+
+    [HttpPost("scenario-answer")]
+    public Task<ScenarioAnswerDto?> ResolveScenario(ScenarioLookupRequest request, CancellationToken ct) =>
+        banks.ResolveScenarioAsync(request.Number, request.ImageHashes, ct);
 }
+
+public sealed record ScenarioLookupRequest(int? Number, IReadOnlyList<string> ImageHashes);

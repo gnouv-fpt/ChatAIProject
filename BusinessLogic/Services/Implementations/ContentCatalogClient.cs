@@ -36,4 +36,26 @@ public sealed class ContentCatalogClient(HttpClient http, IJwtTokenService token
             throw new ServiceUnavailableException("Dịch vụ nội dung chưa sẵn sàng.");
         }
     }
+
+    public async Task<ScenarioAnswerDto?> ResolveScenarioAsync(int? number,
+        IReadOnlyList<string> imageHashes, CancellationToken ct)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, "internal/content/scenario-answer");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", tokens.CreateContentServiceToken());
+            request.Content = JsonContent.Create(new { number, imageHashes });
+            using var response = await http.SendAsync(request, ct);
+            if (!response.IsSuccessStatusCode)
+                throw new ServiceUnavailableException("Không thể tra cứu bộ câu hỏi sa hình.");
+            if (response.StatusCode == System.Net.HttpStatusCode.NoContent)
+                return null;
+            return await response.Content.ReadFromJsonAsync<ScenarioAnswerDto>(JsonOptions, ct);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException ||
+            ex is OperationCanceledException && !ct.IsCancellationRequested)
+        {
+            throw new ServiceUnavailableException("Dịch vụ nội dung chưa sẵn sàng.");
+        }
+    }
 }

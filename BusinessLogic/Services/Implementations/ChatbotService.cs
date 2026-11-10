@@ -1,6 +1,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using BusinessLogic.DTOs;
 using BusinessLogic.Infrastructure.Settings;
 using BusinessLogic.DTOs.Requests;
@@ -249,8 +250,9 @@ public class ChatbotService : IChatbotService
             ChatInferenceResultDto result;
             try
             {
-                result = await _grpcInferenceService.ProcessTurnAsync(new(userId, sessionId, request.RequestId,
-                    prompt, images, history, turn.ReservedTokens), deadline.Token);
+                result = await TryAnswerScenarioAsync(prompt, images, deadline.Token) ??
+                    await _grpcInferenceService.ProcessTurnAsync(new(userId, sessionId, request.RequestId,
+                        prompt, images, history, turn.ReservedTokens), deadline.Token);
             }
             catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
             {
@@ -332,11 +334,36 @@ public class ChatbotService : IChatbotService
         if (result.ContractVersion < 2 || (hasImages && !result.ImagesProcessed))
             throw new ServiceUnavailableException("Dịch vụ AI chưa hỗ trợ hợp đồng chat yêu cầu.");
         if (result.TokensUsed < 0 || string.IsNullOrWhiteSpace(result.ResponseText) || result.ResponseText.Length > 32000 ||
-            result.Status is not ("Answered" or "NoMatch" or "Blocked" or "NeedsClarification") ||
+            result.Status is not ("Answered" or "PracticeAnswered" or "NoMatch" or "Blocked" or "NeedsClarification") ||
             (result.Status == "Blocked") != result.IsViolation ||
-            (result.Status == "Answered" && (!result.DataVerified || result.Citations.Count == 0)))
+            (result.Status == "Answered" && (!result.DataVerified || result.Citations.Count == 0)) ||
+            (result.Status == "PracticeAnswered" && (result.Citations.Count != 0 || result.TokensUsed != 0)))
             throw new ServiceUnavailableException("Phản hồi AI không hợp lệ hoặc chưa có căn cứ pháp lý xác thực.");
     }
+
+    private async Task<ChatInferenceResultDto?> TryAnswerScenarioAsync(string prompt,
+        IReadOnlyList<ChatImageDto> images, CancellationToken ct)
+    {
+        if (Regex.IsMatch(prompt, "xử phạt|mức phạt|phạt bao nhiêu", RegexOptions.IgnoreCase)) return null;
+        var match = Regex.Match(prompt, @"\bcâu(?:\s+(?:hỏi|số))?\s*(\d{3})\b", RegexOptions.IgnoreCase);
+        int? number = match.Success && int.TryParse(match.Groups[1].Value, out var parsed) && parsed is >= 486 and <= 600
+            ? parsed : null;
+        if (number is null && images.Count == 0) return null;
+        var hashes = images.Select(image => HashBytes(image.Content)).ToArray();
+        var answer = await _content.ResolveScenarioAsync(number, hashes, ct);
+        if (answer is null) return null;
+        var selected = answer.Options.Where(option => answer.CorrectOptionIds.Contains(option.Id))
+            .Select(option => $"{option.Id}. {option.Text}").ToArray();
+        var text = $"Câu {answer.Number} trong bộ 600 câu CSGT 2025: {answer.Question}\n" +
+            $"Đáp án: {string.Join("; ", selected)}\n\n{answer.Explanation.Trim()}\n\n" +
+            $"Nguồn CSGT: {answer.SourceUrl}" +
+            (string.IsNullOrWhiteSpace(answer.OriginalImageUrl) ? "" : $"\nẢnh gốc: {answer.OriginalImageUrl}");
+        return new ChatInferenceResultDto { ContractVersion = 2, Status = "PracticeAnswered",
+            ResponseText = text, TokensUsed = 0, ImagesProcessed = images.Count > 0 };
+    }
+
+    private static string HashBytes(byte[] bytes) =>
+        Convert.ToHexString(SHA256.HashData(bytes)).ToLowerInvariant();
 
     private async Task<List<Citation>> ValidateCitationsAsync(List<CitationResultDto> citations, CancellationToken ct,
         bool historicalSnapshot = false)

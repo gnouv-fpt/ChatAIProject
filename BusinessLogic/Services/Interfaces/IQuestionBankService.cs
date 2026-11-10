@@ -11,4 +11,6 @@ public interface IQuestionBankService
     Task<IReadOnlyList<BankSummaryDto>> ListAsync(bool includeDrafts, CancellationToken cancellationToken = default);
     Task<PagedResult<QuestionDto>> GetQuestionsAsync(Guid id, string version, string? topic, int? from, int? to,
         int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<ScenarioAnswerDto?> ResolveScenarioAsync(int? number, IReadOnlyList<string> imageHashes,
+        CancellationToken cancellationToken = default);
 }

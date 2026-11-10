@@ -232,6 +232,8 @@ public sealed class ChatTests : IAsyncLifetime
         public List<DocumentChunk> Chunks { get; } = [];
         public Task<List<DocumentChunk>> GetChunksAsync(Guid[] ids, CancellationToken ct) =>
             Task.FromResult(Chunks.Where(c => ids.Contains(c.Id)).ToList());
+        public Task<ScenarioAnswerDto?> ResolveScenarioAsync(int? number, IReadOnlyList<string> imageHashes,
+            CancellationToken ct) => Task.FromResult<ScenarioAnswerDto?>(null);
     }
     private ChatInferenceResultDto Answer() => new()
     {

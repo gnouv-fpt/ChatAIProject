@@ -18,6 +18,7 @@ import { api } from '../../api';
 import type { Attachment, Message, SendRequest, Session } from '../../api';
 
 const statusLabels: Record<string, string> = {
+  PracticeAnswered: 'Đáp án bộ CSGT',
   NoMatch: 'Chưa tìm được căn cứ',
   Blocked: 'Không thể hỗ trợ',
   NeedsClarification: 'Cần thêm thông tin',
@@ -40,6 +41,44 @@ const statusGuidance: Record<string, { title: string; nextStep: string }> = {
       'Gợi ý bước tiếp theo: Vui lòng đặt câu hỏi xoay quanh quy tắc giao thông, biển báo, giấy tờ xe hoặc mức xử phạt vi phạm hành chính.',
   },
 };
+
+function noMatchGuidance(question?: Message): { title: string; nextStep: string } {
+  const text = question?.content ?? '';
+  if (/xử phạt|mức phạt|bị phạt|phạt bao nhiêu/i.test(text)) {
+    return {
+      title: 'Chưa đủ căn cứ để xác định mức xử phạt cho tình huống này',
+      nextStep: 'Hãy nêu rõ loại xe, hành vi và ngày vi phạm; với quy định về thiết bị ghi hình, cần thêm loại hình vận tải. Bạn cũng có thể tra cứu văn bản gốc tại mục Văn bản pháp luật.',
+    };
+  }
+  if (question?.attachmentIds?.length) {
+    return {
+      title: 'Chưa đủ căn cứ để kết luận từ ảnh này',
+      nextStep: 'Hãy kiểm tra ảnh có đủ mũi tên, biển báo và các phương án. Với sa hình, hệ thống chỉ chọn thứ tự xe khi đọc rõ tình huống và đối chiếu được quy tắc.',
+    };
+  }
+  if (/sa hình|thứ tự.*xe|xe.*đi trước|hướng mũi tên/i.test(text) && !question?.attachmentIds?.length) {
+    return {
+      title: 'Cần ảnh sa hình gốc để xác định vị trí và hướng đi của từng xe',
+      nextStep: 'Hãy đính kèm ảnh sa hình và ghi số câu hoặc các phương án. Chỉ mô tả bằng chữ không đủ dữ kiện để xác định thứ tự xe.',
+    };
+  }
+  return statusGuidance.NoMatch;
+}
+
+function practiceAnswerContent(content: string) {
+  return content.split(/(https:\/\/[^\s]+)/g).map((part, index) => {
+    if (!part.startsWith('https://')) return part;
+    try {
+      const url = new URL(part);
+      if (url.hostname === 'khodulieu.sohoa.tuyenquang.gov.vn' ||
+          url.hostname === 'content-animations.vercel.app') {
+        const label = url.hostname === 'content-animations.vercel.app' ? 'Xem ảnh gốc' : 'Mở PDF câu hỏi CSGT';
+        return <a key={index} href={url.href} target="_blank" rel="noopener noreferrer">{label}</a>;
+      }
+    } catch { /* Keep malformed source text visible. */ }
+    return part;
+  });
+}
 
 export function ChatPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
@@ -322,7 +361,7 @@ export function ChatPage() {
 
               <div className="suggestions">
                 {[
-                  'Vượt đèn đỏ xe máy bị xử phạt thế nào?',
+                  'Khi đèn tín hiệu màu đỏ, xe máy phải làm gì?',
                   'Cần mang giấy tờ gì khi lái xe?',
                   'Giải thích biển báo trong ảnh của tôi',
                 ].map((text, i) => (
@@ -343,9 +382,13 @@ export function ChatPage() {
             </section>
           ) : (
             <div className="messages">
-              {messages.map(message => {
+              {messages.map((message, index) => {
                 const isUser = message.senderRole === 'User';
-                const guidance = !isUser && message.status !== 'Answered' ? statusGuidance[message.status] : undefined;
+                const guidance = !isUser && !['Answered', 'PracticeAnswered'].includes(message.status)
+                  ? message.status === 'NoMatch'
+                    ? noMatchGuidance(messages.slice(0, index).reverse().find(item => item.senderRole === 'User'))
+                    : statusGuidance[message.status]
+                  : undefined;
                 return (
                   <article key={message.id} className={`message ${isUser ? 'from-user' : 'from-assistant'}`}>
                     <div className="message-author">
@@ -366,7 +409,11 @@ export function ChatPage() {
                       </div>
                     )}
 
-                    <div className="message-content">{message.content}</div>
+                    <div className="message-content">
+                      {message.status === 'PracticeAnswered'
+                        ? practiceAnswerContent(message.content)
+                        : message.content}
+                    </div>
 
                     {/* Distinct presentation for NoMatch, NeedsClarification, Blocked */}
                     {guidance && (
@@ -420,6 +467,12 @@ export function ChatPage() {
                               {isLegalUrl(citation.sourceUrl) && (
                                 <a href={citation.sourceUrl} target="_blank" rel="noopener noreferrer">
                                   Đọc văn bản gốc <ArrowUpRight size={14} />
+                                </a>
+                              )}
+                              {citation.documentTitle.includes('168/2024/NĐ-CP') && (
+                                <a href="https://vanban.chinhphu.vn/?classid=0&docid=218613&pageid=27160"
+                                  target="_blank" rel="noopener noreferrer">
+                                  Đọc Nghị định sửa đổi 238/2026 <ArrowUpRight size={14} />
                                 </a>
                               )}
                             </details>

@@ -11,6 +11,33 @@ namespace BusinessLogic.Services.Implementations;
 
 public sealed class QuestionBankService(IContentBankRepository repository, BusinessLogic.Infrastructure.Settings.AnimationSettings? animationSettings = null) : IQuestionBankService
 {
+    private static readonly Guid ScenarioBankId = Guid.Parse("cfa49411-a01c-50d6-88a2-7e25b1e888f7");
+    private const string ScenarioBankHash = "F5DC146565D8D2DB072F245E94278D36909FFAE668383802D7EEE7B18414C65B";
+
+    public async Task<ScenarioAnswerDto?> ResolveScenarioAsync(int? number, IReadOnlyList<string> imageHashes,
+        CancellationToken cancellationToken = default)
+    {
+        if (number is < 486 or > 600 || imageHashes.Count > 4 ||
+            imageHashes.Any(hash => !Regex.IsMatch(hash, "^[a-fA-F0-9]{64}$"))) return null;
+        var package = await repository.GetAsync(ScenarioBankId, "1", cancellationToken);
+        if (package is null || !package.IsPublished ||
+            !string.Equals(package.Hash, ScenarioBankHash, StringComparison.OrdinalIgnoreCase) ||
+            Hash(package.Bank) != package.Hash || package.Bank.Questions.Count != 600) return null;
+        var candidates = package.Bank.Questions.Where(q => q.Number is >= 486 and <= 600 &&
+            q.CategoryType == "SCENARIO" && (number.HasValue ? q.Number == number.Value :
+                imageHashes.Any(hash => q.Assets.Any(asset =>
+                    string.Equals(asset.Sha256, hash, StringComparison.OrdinalIgnoreCase))))).ToList();
+        if (candidates.Count != 1) return null;
+        var question = candidates[0];
+        if (number.HasValue && question.Number != number.Value || imageHashes.Count > 0 &&
+            !imageHashes.Any(hash => question.Assets.Any(asset =>
+                string.Equals(asset.Sha256, hash, StringComparison.OrdinalIgnoreCase)))) return null;
+        if (question.CorrectOptionIds.Count == 0 || question.CorrectOptionIds.Any(id =>
+            !question.Options.Any(option => option.Id == id)) || !Https(question.SourceUrl)) return null;
+        return new ScenarioAnswerDto(question.Number, question.Text, question.Options,
+            question.CorrectOptionIds, question.Explanation, question.SourceUrl,
+            question.Assets.FirstOrDefault()?.Url);
+    }
     public static IReadOnlyList<string> Validate(ContentBank bank, string? localAssetOrigin = null)
     {
         var errors = new List<string>();
