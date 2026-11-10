@@ -1,0 +1,257 @@
+{
+  "reviewStatus": "PartialMergePendingArticle19AndFinalReview",
+  "isActive": false,
+  "baseDocument": "168/2024/NĐ-CP",
+  "amendingDocument": "238/2026/NĐ-CP",
+  "baseArticleHashes": [
+    "b5a4870421ca9393db319e00ed358b5ed73620bcd064d950dc55f941e93045b7",
+    "411eb45d8b577f4b8e9e56e288812625a442bf2408f0aa45d7e48e56141d01d5",
+    "3ab083957be7d2466cd5ed713f9a5c0a14229e6a0c036aee7da3a32238b1e0d9",
+    "03f4a2802d408c7f7dba456dda54cddc973bd0953894bd03d60098641cc7e69e",
+    "56bd1cfbe395a06d779f92370f988153916bac5f68fc65ed00cdcb62dc4cb6ec",
+    "f8b964124cd8c31a35bcde49c4874462eddec33b876c413d2a38f37df6048aa2",
+    "82128b62ec6159a68cd4fcfa59af088b18a62ae36d005787889f71302da0636b",
+    "91283f11e163827f2a1bdbc90b653efcc2ef4b5d970fde3d04c0a93c5d0c4427",
+    "8fc0c02f7b1dc6b504449ebdb748d242a1f6ea21756a0cafbe8449e86f0210ca",
+    "40b668597a59521dc244389d2b84107917bdddbeff1fb59a1c656cb30d23f68c",
+    "51df93a846e244a7ad1d0a337ccc8f5a97386fc363ceac05610c536316243e12",
+    "0b921c3618f9b0f5dd7c107f18cf92d1d4c6c8c85cfe7b1c0dff1535552bc06f",
+    "50e43fceebe5b39afe4eeadc85867fbb96b0a9f96ccf138c7e2063667ca240f1",
+    "b22df8f183c53b1c9ed9bc753e9261f7e554d54f8ffac7b8d79d1d5b817925e9",
+    "9b0cb276c1644779c4e91056e532039997d5308f7f23cd44fa9bb32013c3dbd4",
+    "c65cf3e05d7652ca44897bfcac6aac570a0edbcbb0c8fb8c3ca6adcebc6cdeff",
+    "df23f10ba35f6f93e59bcd6b8dd831691399d0f294dfbc2a35bc784b65987c2c",
+    "710c571e961e6b4f6687e899746e01b8af4df6504ef18c1bdc8df82ead240606",
+    "43661927ab7bd047e2b839ace75d6da52f68e32b818ba39ced3fb139e48b61a6",
+    "8d7f1fbe29b0594ed01539330ba21620a693bb318ea57acc48ec5bdb65937e19",
+    "2f4586a4c39b6bb43e1b2d519e46460af2ee8c4d104d237fc9c46805432eb941",
+    "19bdf5621c575d207c46b999120bb2b43f0992e300cb2f4a37e56dbfec16effa",
+    "bcef7fe6eb9e089c9f61b4aaeff77412bc7abd18be1610130f475e715f01f85e",
+    "34b5f3c50f5c4efd6dc8ea8981fc124a16b0bedab15bdfc766811ff664d82d06",
+    "59d435101f25e158b7dc7ed808445b9fcd87b457b129a68c01edbbf2ee10f62e",
+    "1ae6a02cd64505c48fe6f9a0ea938ec21a9a574563f9dd4c1893786476a48696",
+    "ad4d12933af296c6b742dc4b447aeca714e8e80960abf19f858fbceb0deaba15",
+    "d256bff8a001582de01287fad99c65efc3c3382ae0a93b79a589b9c50989cdd8",
+    "bd8f0dce66cdc9c6d3a21369a3935cfbe514fee9cc0c52b29253ee451e5c4368",
+    "c377cc2cbb70f78baa10a06d8f6f85f92596f48969b8ceea4e8ac860d67ba943",
+    "e44075c766010a267c62e8229485fe6c8434587b6b62bc140cad3485bc5fca5e",
+    "5f88c95badedf46729d9255ce748894a9559c5480aa0a38315f365f950611104",
+    "f09d26d8945f94d58d3da3af38b2c8497da765fd4edd4953e30d109b4a47b02d",
+    "3b608e4cb97f032b2d4f22fc32e921d73121e63ab577870a571cc1656dba7dc0",
+    "e56865f409a2be256599f3f02e131c8a72f69f1203b4492d959100f05abc0b79",
+    "6d60457d991360421439e3acaf927cdb26e3a3661ed6fef5aa2c28caab36ebd2",
+    "6a912657535d2b433e77bbd7523597a12ee780828b0a2b88c38f47a695c4b8c9",
+    "01c5dbd24e7d28ee6842c65498f9b3a35cd020c1efceb2b27b55aed0b7171e95",
+    "b813d635d061894e6ad4e15c09f51cbf8d10a7fded4e04eee2acff1558618f57",
+    "16ea88afa37de8ef84a054c97a5c44fe994d0ecfa0f6e8783d54aa34b8d14fc9",
+    "9fc9b3836e4ee4d8f97c1b16cce02d65c18e76e3d46ade54c708f0830f10e986",
+    "bd21403fa32eb41426e7c1d8a2b90e7b346eabd4a26090e213a98956326eb90a",
+    "786f543266887ba602a575ce4f44f0e208f9fb8f1fe971472f6283d1fae0a003",
+    "a6ec9c1e74178f8faaf1fe59ff6891ab975c0338233e9ee013031df7c651a950",
+    "86a968469b1cf8bede51afd64451c6db0e912a8f47757e6892f375148dcca39e",
+    "08b774795bfb38ff4832e81fee38322e6c827698d2d5ff85bac8a97ab361aab1",
+    "027b64deaf9116f777c85508fad4f4d6ec30b06aa1986ab4b20e34bcc017e8bc",
+    "5c807a8f353ab894ccf2eee838c3c64fdf415eb227ae4dc9eac53308cf45816b",
+    "de47749fc87780b2b2849c09984e3cfe3eab847f8800484a7ff27a064ac9061d",
+    "af2a4c7049d6c9618a81dedc5fc3574663360a87d9cc2aae77c6a9cc044376b3",
+    "ac6f8ec4c3400af643c8d15334f8255dfb7578a73c482bbff6838383216e1c47",
+    "2329bcd94e93e730082f59491ce6d14385ff3c51dacd31494a8bfaf9c9def611",
+    "67c19b414c5d0ae0c092677168f4a2f5adf7d45e0af188b16770a84c6a8f41e3",
+    "42d991389b2f13b8f05b4467b53e31b49a7796a2fd523ea7673270b564068eb3",
+    "78a10add091797218dbca44960630f47e3e43bdd157058119ce6f2a59874a050"
+  ],
+  "amendmentContentSha256": "245f3542bf0841a91e4ea71529b43f9f25d8db3afd1fcc3dbb6f6aeec1480b59",
+  "appliedUnits": [
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 1,
+      "article": 20,
+      "clause": "5",
+      "point": "đ",
+      "operation": "replace",
+      "oldUnitSha256": "2a50d2cf4a92b82bbed691b490bde6ca58d4009d9344dcecfc10f98c12303d0e"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 1,
+      "article": 20,
+      "clause": "5",
+      "point": "g",
+      "operation": "replace",
+      "oldUnitSha256": "e62fee2a090abb43bea536b867688752c739cb8f3be187b419bbd3d157203c18"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 1,
+      "article": 20,
+      "clause": "5",
+      "point": "l",
+      "operation": "replace",
+      "oldUnitSha256": "3d553f5197b0a530fb420b909e26c6c202537f863833919419a2991d777e13ff"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 1,
+      "article": 20,
+      "clause": "5",
+      "point": "m",
+      "operation": "replace",
+      "oldUnitSha256": "f86b8d651a77ac4b862359f5cc1d35e9da9df976177696f4ed700a674458fe43"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 1,
+      "article": 20,
+      "clause": "5",
+      "priorPoint": "m",
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 2,
+      "article": 20,
+      "clause": "6",
+      "point": "đ",
+      "operation": "replace",
+      "oldUnitSha256": "420045920d34570baa46c3f08e4ea9144c9e72298f20cf2412afdae2b94dfb98"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 3,
+      "article": 20,
+      "clause": "8",
+      "priorPoint": null,
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 7,
+      "sourceUnit": 4,
+      "article": 20,
+      "clause": "10",
+      "point": "c",
+      "operation": "replace",
+      "oldUnitSha256": "226d841cc90b67617e0670343a3ba95e4b5d04a3189d3d085933fc9040c36d8a"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 1,
+      "article": 21,
+      "clause": "2",
+      "point": "b",
+      "operation": "replace",
+      "oldUnitSha256": "a7e09844ae1e89a3c70669f921f707122e9472b8bc523de667702f39622aab4b"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 2,
+      "article": 21,
+      "clause": "3",
+      "point": "b",
+      "operation": "replace",
+      "oldUnitSha256": "d63ff41481353881a1a3b02872ff4ae59860a2327e2bd3549369ce09c328feaf"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 3,
+      "article": 21,
+      "clause": "5",
+      "point": "c",
+      "operation": "replace",
+      "oldUnitSha256": "1beae3e63f97aae062d82e3265c2ecd0579fdf5675ed5cb5bb3e41317de639aa"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 4,
+      "article": 21,
+      "clause": "8",
+      "point": "d",
+      "operation": "replace",
+      "oldUnitSha256": "357fd88ed15f60058debc9eb3dfd7a35dd254ee67adf81d6091a936b4fc3ec1a"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 4,
+      "article": 21,
+      "clause": "8",
+      "point": "đ",
+      "operation": "replace",
+      "oldUnitSha256": "dde2ae14bc47b1ed61f3c62c716c6b824ce19168488f86797e422e7c93db487f"
+    },
+    {
+      "sourceArticle": 8,
+      "sourceUnit": 4,
+      "article": 21,
+      "clause": "8",
+      "priorPoint": "đ",
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 1,
+      "article": 26,
+      "clause": "7",
+      "point": "e",
+      "operation": "replace",
+      "oldUnitSha256": "211a9a77cd581814b257dc3e58a702697e49a362d6c6eb32d55e7975201c1872"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 1,
+      "article": 26,
+      "clause": "7",
+      "priorPoint": "i",
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 1,
+      "article": 26,
+      "clause": "7",
+      "priorPoint": "k",
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 2,
+      "article": 26,
+      "clause": "8",
+      "priorPoint": "c",
+      "operation": "insert"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 3,
+      "article": 26,
+      "clause": "13",
+      "point": "c",
+      "operation": "replace",
+      "oldUnitSha256": "f8b1e05a1fb7d1333ea3381e144fddd91e3575d37549503270ff6b31d61f315e"
+    },
+    {
+      "sourceArticle": 9,
+      "sourceUnit": 3,
+      "article": 26,
+      "clause": "13",
+      "point": "d",
+      "operation": "replace",
+      "oldUnitSha256": "45cb99351034925da14afc5144719693d2a8c850e5241d936a4290ae7f4c72cf"
+    }
+  ],
+  "articles": [
+    {
+      "number": 20,
+      "content": "Điều 20. Xử phạt, trừ điểm giấy phép lái xe của người điều khiển xe ô tô chở hành khách, ô tô chở người và các loại xe tương tự xe ô tô chở hành khách vi phạm quy định về bảo đảm trật tự, an toàn giao thông \n1. Phạt tiền từ 100.000 đồng đến 200.000 đồng đối với hành vi vi phạm: không hướng dẫn hành khách đứng, nằm, ngồi đúng vị trí quy định trong xe.\n2. Phạt tiền từ 400.000 đồng đến 600.000 đồng trên mỗi người vượt quá quy định được phép chở của phương tiện nhưng tổng mức phạt tiền tối đa không vượt quá 75.000.000 đồng đối với người điều khiển xe ô tô chở hành khách, ô tô chở người (trừ xe buýt) thực hiện hành vi vi phạm chở quá số người quy định được phép chở của phương tiện, trừ các hành vi vi phạm quy định tại khoản 4 Điều này.\n3. Phạt tiền từ 600.000 đồng đến 800.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Không đóng cửa lên xuống khi xe đang chạy;\nb) Để người ngồi trên xe khi xe xuống phà, đang trên phà và khi lên bến (trừ người lái xe, trẻ em, phụ nữ mang thai, người già yếu, người bệnh, người khuyết tật); \nc) Không chạy đúng tuyến đường, lịch trình, hành trình vận tải được phép hoạt động theo quy định; \nd) Để người mắc võng nằm trên xe khi xe đang chạy;\nđ) Sắp xếp, chằng buộc hành lý, hàng hóa không bảo đảm an toàn; để rơi hành lý, hàng hóa trên xe xuống đường; để hàng hóa trong khoang chở hành khách;\ne) Chở hành lý, hàng hóa vượt quá kích thước bao ngoài của xe;\ng) Điều khiển xe vận tải hành khách không có nhân viên phục vụ trên xe đối với những xe quy định phải có nhân viên phục vụ;\nh) Điều khiển xe ô tô kinh doanh vận tải không có dây đai an toàn tại các vị trí ghế ngồi, giường nằm theo quy định (trừ xe buýt nội tỉnh);\ni) Điều khiển xe ô tô kinh doanh vận tải không có hướng dẫn cho hành khách về an toàn giao thông và thoát hiểm khi xảy ra sự cố trên xe theo quy định;\nk) Điều khiển xe không niêm yết hành trình chạy xe hoặc niêm yết hành trình chạy xe không đúng với hành trình đã được cơ quan có thẩm quyền cấp phép.\n4. Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng trên mỗi người vượt quá quy định được phép chở của phương tiện nhưng tổng mức phạt tiền tối đa không vượt quá 75.000.000 đồng đối với người điều khiển xe ô tô chở hành khách (kinh doanh vận tải hành khách theo tuyến cố định, hợp đồng) chạy tuyến có cự ly lớn hơn 300 km thực hiện hành vi vi phạm chở quá số người quy định được phép chở của phương tiện.\n5. Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Để người lên, xuống xe khi xe đang chạy;\nb) Xếp hành lý, hàng hóa trên xe làm lệch xe; \nc) Đón, trả hành khách không đúng nơi quy định trên những tuyến đường đã xác định nơi đón, trả khách hoặc dừng đón, trả hành khách quá thời gian quy định, trừ hành vi vi phạm quy định tại khoản 8 Điều này;\nd) Đón, trả hành khách tại nơi cấm dừng, cấm đỗ, nơi đường cong tầm nhìn bị che khuất, trừ hành vi vi phạm quy định tại khoản 8 Điều này; \nđ) Điều khiển xe vận tải hành khách theo hợp đồng sử dụng hợp đồng bằng văn bản giấy mà không có hợp đồng vận tải, danh sách hành khách theo quy định; có hợp đồng vận tải nhưng không đúng theo quy định; đón khách, chở người không có tên trong danh sách hành khách theo hợp đồng đã ký;\ne) Vận chuyển hành khách theo tuyến cố định không có hoặc không mang theo lệnh vận chuyển hoặc có mang theo lệnh vận chuyển nhưng không ghi đầy đủ thông tin, không có xác nhận của bến xe khách nơi đi, bến xe khách nơi đến theo quy định; \ng) Điều khiển xe vận chuyển hành khách theo hợp đồng mà đón, trả khách tại trụ sở chính, trụ sở chi nhánh, văn phòng đại diện hoặc tại một địa điểm cố định khác do đơn vị kinh doanh vận tải thuê, hợp tác kinh doanh, trên các tuyến đường phố; đón, trả hành khách, cán bộ, công chức, viên chức, công nhân không đúng địa điểm được ghi trong hợp đồng vận tải đã ký, trừ hành vi vi phạm quy định tại khoản 8 Điều này; vận chuyển không đúng đối tượng theo quy định (áp dụng đối với xe kinh doanh vận tải hành khách theo hợp đồng vận chuyển trẻ em mầm non, học sinh, sinh viên, cán bộ, công chức, viên chức, công nhân);\nh) Vận chuyển khách liên vận quốc tế theo tuyến cố định không có hoặc không mang theo lệnh vận chuyển, không có danh sách hành khách theo quy định hoặc chở người không có tên trong danh sách hành khách, trừ hành vi vi phạm quy định tại điểm b khoản 1 Điều 37 của Nghị định này; \ni) Chở hành lý, hàng hóa vượt quá trọng tải theo thiết kế của xe;\nk) Không sử dụng thẻ nhận dạng lái xe để đăng nhập thông tin theo quy định hoặc sử dụng thẻ nhận dạng lái xe của lái xe khác để đăng nhập thông tin khi điều khiển xe ô tô chở khách;\nl) Điều khiển xe kinh doanh vận tải hành khách, xe vận tải nội bộ không lắp thiết bị ghi nhận hình ảnh người lái xe hoặc có lắp thiết bị ghi nhận hình ảnh người lái xe nhưng không có tác dụng trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô;\nm) Điều khiển xe vận tải hành khách theo hợp đồng sử dụng hợp đồng điện tử không có thiết bị do đơn vị kinh doanh vận tải cung cấp để truy cập được nội dung của hợp đồng điện tử, danh sách hành khách hoặc có thiết bị do đơn vị kinh doanh vận tải cung cấp nhưng không truy cập được nội dung của hợp đồng điện tử, danh sách hành khách; có hợp đồng điện tử nhưng không đúng theo quy định hoặc tự ý thay đổi thông tin của hợp đồng điện tử, danh sách hành khách đã ký; đón khách, chở người không có tên trong danh sách hành khách theo hợp đồng đã ký;\nn) Điều khiển xe ô tô kinh doanh vận tải hành khách từ 08 chỗ trở lên (không kể chỗ của người lái xe) không lắp thiết bị ghi nhận hình ảnh khoang chở khách hoặc có lắp thiết bị ghi nhận hình ảnh khoang chở khách nhưng không có tác dụng trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị ghi nhận hình ảnh khoang chở khách lắp trên xe ô tô.\n6. Phạt tiền từ 3.000.000 đồng đến 5.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Vận chuyển hàng hóa nguy hiểm, hàng độc hại, dễ cháy, dễ nổ, động vật, hàng có mùi hôi thối hoặc hàng hóa khác ảnh hưởng đến sức khỏe của hành khách trên xe; \nb) Chở người trên mui xe, trong khoang chở hành lý của xe;\nc) Đe dọa, xúc phạm, tranh giành, lôi kéo hành khách; đe doạ, cưỡng ép hành khách sử dụng dịch vụ ngoài ý muốn; chuyển tải, xuống khách hoặc các hành vi khác nhằm trốn tránh phát hiện xe chở quá tải, quá số người theo quy định của pháp luật; \nd) Điều khiển xe ô tô kinh doanh vận tải quá thời gian quy định tại khoản 1 Điều 64 của Luật Trật tự, an toàn giao thông đường bộ; không thực hiện đúng quy định về thời gian nghỉ giữa hai lần lái xe liên tục của người lái xe;\nđ) Điều khiển xe kinh doanh vận tải hành khách, xe vận tải nội bộ không lắp thiết bị giám sát hành trình của xe theo quy định hoặc có lắp thiết bị giám sát hành trình của xe nhưng thiết bị không hoạt động theo quy định hoặc làm sai lệch dữ liệu của thiết bị giám sát hành trình của xe ô tô;\ne) Điều khiển xe chở hành khách liên vận quốc tế không có hoặc không gắn ký hiệu phân biệt quốc gia.\n7. Phạt tiền từ 5.000.000 đồng đến 7.000.000 đồng đối với hành vi vi phạm điều khiển xe chở hành khách không có hoặc không gắn phù hiệu theo quy định hoặc có nhưng đã hết giá trị sử dụng hoặc sử dụng phù hiệu không do cơ quan có thẩm quyền cấp.\n8. Phạt tiền từ 10.000.000 đồng đến 12.000.000 đồng đối với người điều khiển xe thực hiện hành vi đón, trả hành khách trên đường cao tốc.\n8a. Phạt tiền từ 12.000.000 đồng đến 14.000.000 đồng đối với người điều khiển xe ô tô không kinh doanh vận tải hành khách nhưng chở người có thu tiền hoặc ký hợp đồng, nhận đặt chỗ để chở người trên xe.\n9. Ngoài việc bị áp dụng hình thức xử phạt, người điều khiển phương tiện thực hiện hành vi vi phạm quy định tại khoản 7 Điều này bị thu hồi phù hiệu đã hết giá trị sử dụng hoặc phù hiệu không do cơ quan có thẩm quyền cấp.\n10. Ngoài việc bị áp dụng hình thức xử phạt, người điều khiển phương tiện thực hiện hành vi vi phạm còn bị trừ điểm giấy phép lái xe như sau:\na) Thực hiện hành vi quy định tại điểm c, điểm d, điểm e khoản 3; điểm a, điểm b, điểm c, điểm d, điểm đ, điểm e, điểm g, điểm h, điểm i, điểm k, điểm m khoản 5; khoản 6; khoản 7 Điều này bị trừ điểm giấy phép lái xe 02 điểm;\nb) Thực hiện hành vi quy định tại khoản 2, khoản 4 (trường hợp vượt trên 50% đến 100% số người quy định được phép chở của phương tiện) Điều này bị trừ điểm giấy phép lái xe 04 điểm; \nc) Thực hiện hành vi vi phạm quy định tại khoản 8, khoản 8a Điều này bị trừ điểm giấy phép lái xe 06 điểm;\nd) Thực hiện hành vi quy định tại khoản 2, khoản 4 (trường hợp vượt trên 100% số người quy định được phép chở của phương tiện) Điều này bị trừ điểm giấy phép lái xe 10 điểm.",
+      "contentSha256": "e285631a086a8f13724dabab387d583c3ed3a981d7e554dda8615d4d7f8fcdee"
+    },
+    {
+      "number": 21,
+      "content": "Điều 21. Xử phạt, trừ điểm giấy phép lái xe của người điều khiển xe ô tô tải, máy kéo (bao gồm cả rơ moóc hoặc sơ mi rơ moóc được kéo theo) và các loại xe tương tự xe ô tô vận chuyển hàng hóa vi phạm quy định về bảo đảm trật tự, an toàn giao thông đường bộ với xe ô tô vận chuyển hàng hóa \n1. Phạt tiền từ 600.000 đồng đến 800.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Điều khiển xe xếp hàng trên nóc buồng lái, xếp hàng làm lệch xe;\nb) Không chốt, đóng cố định cửa sau, cửa bên thùng xe khi xe đang chạy. \n2. Phạt tiền từ 800.000 đồng đến 1.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Điều khiển xe (kể cả rơ moóc và sơ mi rơ moóc) chở hàng vượt trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 10% đến 30% (trừ xe xi téc chở chất lỏng), trên 20% đến 30% đối với xe xi téc chở chất lỏng;\nb) Chở hàng trên nóc thùng xe; chở hàng vượt quá bề rộng thùng xe (kể cả bề rộng rơ moóc và sơ mi rơ moóc); chở hàng vượt phía trước, phía sau thùng xe (kể cả rơ moóc và sơ mi rơ moóc) trên 10% chiều dài toàn bộ của xe theo thiết kế được ghi trong chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe, trừ hành vi vi phạm quy định tại điểm d khoản 8 Điều 21 Nghị định này\nc) Chở người trên mui xe;\nd) Điều khiển xe kéo theo rơ moóc, sơ mi rơ moóc mà khối lượng toàn bộ (bao gồm khối lượng bản thân rơ moóc, sơ mi rơ moóc và khối lượng hàng chuyên chở) của rơ moóc, sơ mi rơ moóc vượt khối lượng cho phép kéo theo được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 10% đến 30%;\nđ) Điều khiển xe kinh doanh vận tải hàng hóa không có hoặc không mang theo giấy vận tải bằng văn bản giấy theo quy định hoặc không có thiết bị để truy cập vào được phần mềm thể hiện nội dung của giấy vận tải theo quy định hoặc có thiết bị để truy cập nhưng không cung cấp cho lực lượng chức năng khi có yêu cầu.\n3. Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Không sử dụng thẻ nhận dạng lái xe để đăng nhập thông tin theo quy định hoặc sử dụng thẻ nhận dạng lái xe của lái xe khác để đăng nhập thông tin khi điều khiển xe tham gia kinh doanh vận tải hàng hóa;\nb) Điều khiển xe ô tô kinh doanh vận tải, xe ô tô đầu kéo, xe vận tải nội bộ không lắp thiết bị ghi nhận hình ảnh người lái xe hoặc có lắp thiết bị ghi nhận hình ảnh người lái xe nhưng không có tác dụng trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô.\n4. Phạt tiền từ 2.000.000 đồng đến 3.000.000 đồng đối với người điều khiển xe thực hiện hành vi chở hàng vượt quá chiều cao xếp hàng cho phép đối với xe ô tô tải (kể cả rơ moóc và sơ mi rơ moóc).\n5. Phạt tiền từ 3.000.000 đồng đến 5.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Điều khiển xe (kể cả rơ moóc và sơ mi rơ moóc) chở hàng vượt trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 30% đến 50%;\nb) Điều khiển xe ô tô kinh doanh vận tải quá thời gian quy định tại khoản 1 Điều 64 của Luật Trật tự, an toàn giao thông đường bộ; không thực hiện đúng quy định về thời gian nghỉ giữa hai lần lái xe liên tục của người lái xe;\nc) Điều khiển xe ô tô kinh doanh vận tải, xe ô tô đầu kéo, xe vận tải nội bộ không lắp thiết bị giám sát hành trình hoặc có lắp thiết bị giám sát hành trình nhưng không có tác dụng trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị giám sát hành trình lắp trên xe ô tô;\nd) Điều khiển xe kéo theo rơ moóc, sơ mi rơ moóc mà khối lượng toàn bộ (bao gồm khối lượng bản thân rơ moóc, sơ mi rơ moóc và khối lượng hàng chuyên chở) của rơ moóc, sơ mi rơ moóc vượt khối lượng cho phép kéo theo được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 30% đến 50%.\n6. Phạt tiền từ 5.000.000 đồng đến 7.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Điều khiển xe (kể cả rơ moóc và sơ mi rơ moóc) chở hàng vượt trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 50% đến 100%;\nb) Điều khiển xe kéo theo rơ moóc, sơ mi rơ moóc mà khối lượng toàn bộ (bao gồm khối lượng bản thân rơ moóc, sơ mi rơ moóc và khối lượng hàng chuyên chở) của rơ moóc, sơ mi rơ moóc vượt khối lượng cho phép kéo theo được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 50% đến 100%;\nc) Điều khiển xe không có hoặc không gắn phù hiệu theo quy định (đối với loại xe có quy định phải gắn phù hiệu) hoặc có phù hiệu nhưng đã hết giá trị sử dụng hoặc sử dụng phù hiệu không do cơ quan có thẩm quyền cấp;\nd) Điều khiển xe chở hàng trong đô thị không chạy đúng tuyến, phạm vi, thời gian quy định;\nđ) Vận chuyển hàng hóa, cung ứng dịch vụ không có giấy phép (đối với trường hợp phải có giấy phép) hoặc có nhưng không thực hiện đúng quy định ghi trong giấy phép, trừ các hành vi vi phạm quy định tại điểm b khoản 1, điểm a, điểm c, điểm d khoản 3 Điều 22; khoản 5 Điều 23; khoản 1, điểm b khoản 3 Điều 34 của Nghị định này.\n7. Phạt tiền từ 7.000.000 đồng đến 8.000.000 đồng đối với một trong các hành vi sau đây:\na) Điều khiển xe (kể cả rơ moóc và sơ mi rơ moóc) chở hàng vượt trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 100% đến 150%;\nb) Điều khiển xe kéo theo rơ moóc, sơ mi rơ moóc mà khối lượng toàn bộ (bao gồm khối lượng bản thân rơ moóc, sơ mi rơ moóc và khối lượng hàng chuyên chở) của rơ moóc, sơ mi rơ moóc vượt khối lượng cho phép kéo theo được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 100% đến 150%.\n8. Phạt tiền từ 8.000.000 đồng đến 12.000.000 đồng đối với một trong các hành vi sau đây:\na) Điều khiển xe (kể cả rơ moóc và sơ mi rơ moóc) chở hàng vượt trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 150%;\nb) Điều khiển xe kéo theo rơ moóc, sơ mi rơ moóc mà khối lượng toàn bộ (bao gồm khối lượng bản thân rơ moóc, sơ mi rơ moóc và khối lượng hàng chuyên chở) của rơ moóc, sơ mi rơ moóc vượt khối lượng cho phép kéo theo được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 150%;\nc) Chở công-ten-nơ trên xe (kể cả sơ mi rơ moóc) không bảo đảm quy chuẩn, tiêu chuẩn kỹ thuật của công-ten-nơ theo quy định; \nd) Chở thiết bị có hình dạng thùng hoặc có hình dạng như công-ten-nơ (không phải công-ten-nơ) vượt quá chiều dài toàn bộ được ghi trong chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của rơ moóc, sơ mi rơ moóc; chở loại hàng không đúng với thông tin ghi trong chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của rơ moóc, sơ mi rơ moóc;\nđ) Vận chuyển hàng trên xe không chằng buộc hoặc có chằng buộc nhưng không bảo đảm an toàn, trừ hành vi vi phạm quy định tại khoản 10 Điều này; vận chuyển hàng rời, vật liệu xây dựng trên xe mà xe không có thành thùng.\ne) Điều khiển xe ô tô không kinh doanh vận tải hàng hóa nhưng chở hàng hóa trên xe có thu tiền.\n9. Phạt tiền từ 10.000.000 đồng đến 12.000.000 đồng đối với người điều khiển xe thực hiện hành vi nhận, trả hàng trên đường cao tốc. \n10. Phạt tiền từ 18.000.000 đồng đến 22.000.000 đồng đối với một trong các hành vi vi phạm sau đây:\na) Vận chuyển hàng hóa là phương tiện vận tải, máy móc, thiết bị kỹ thuật, hàng dạng trụ không chằng buộc hoặc chằng buộc không theo quy định (trừ việc vận chuyển máy móc khổ lớn (quá khổ) trên phương tiện chuyên dùng và phải có giấy phép lưu hành trên đường bộ);\nb) Chở công-ten-nơ trên xe (kể cả sơ mi rơ moóc) mà không sử dụng cơ cấu khóa hãm công-ten-nơ với xe hoặc có sử dụng cơ cấu khóa hãm nhưng công-ten-nơ vẫn bị xê dịch trong quá trình vận chuyển.\n11. Phạt tiền từ 30.000.000 đồng đến 35.000.000 đồng đối với hành vi vi phạm quy định tại khoản 1, điểm đ khoản 8, khoản 10 Điều này mà gây tai nạn giao thông.\n12. Ngoài việc bị áp dụng hình thức xử phạt, người điều khiển phương tiện thực hiện hành vi vi phạm quy định tại điểm c khoản 6 Điều này bị thu hồi phù hiệu đã hết giá trị sử dụng hoặc phù hiệu không do cơ quan có thẩm quyền cấp.\n13. Ngoài việc bị áp dụng hình thức xử phạt, người điều khiển phương tiện thực hiện hành vi vi phạm còn bị trừ điểm giấy phép lái xe như sau:\na) Thực hiện hành vi quy định tại điểm b, điểm c, điểm đ khoản 2; điểm a khoản 3; khoản 4; khoản 5; điểm c, điểm d, điểm đ khoản 6 Điều này bị trừ điểm giấy phép lái xe (khi điều khiển xe ô tô) 02 điểm; \nb) Thực hiện hành vi quy định tại điểm a, điểm b khoản 6; điểm c, điểm d, điểm đ khoản 8; khoản 10 Điều này bị trừ điểm giấy phép lái xe 04 điểm; \nc) Thực hiện hành vi quy định tại khoản 9 Điều này bị trừ điểm giấy phép lái xe 06 điểm; \nd) Thực hiện hành vi quy định tại khoản 7 Điều này bị trừ điểm giấy phép lái xe 08 điểm;\nđ) Thực hiện hành vi quy định tại điểm a, điểm b khoản 8; khoản 11 Điều này bị trừ điểm giấy phép lái xe 10 điểm.",
+      "contentSha256": "27179f7e9885aff9fb7c172111b22563543f22ffdf500d67f034514debd5eb74"
+    },
+    {
+      "number": 26,
+      "content": "Điều 26. Xử phạt các hành vi vi phạm quy định về trật tự, an toàn giao thông đường bộ trong vận tải đường bộ, dịch vụ hỗ trợ vận tải đường bộ\n1. Phạt tiền từ 500.000 đồng đến 1.000.000 đồng đối với cá nhân, từ 1.000.000 đồng đến 2.000.000 đồng đối với tổ chức thực hiện một trong các hành vi vi phạm sau đây:\na) Xếp hàng hóa lên mỗi xe ô tô (kể cả rơ moóc và sơ mi rơ moóc) vượt quá trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 10% đến 50% (trừ xe xi téc chở chất lỏng), trên 20% đến 50% đối với xe xi téc chở chất lỏng;\nb) Xếp hàng hóa lên xe ô tô mà không ký xác nhận việc xếp hàng hóa vào giấy vận tải theo quy định.\n2. Phạt tiền từ 1.000.000 đồng đến 2.000.000 đồng đối với cá nhân, từ 2.000.000 đồng đến 4.000.000 đồng đối với tổ chức kinh doanh vận tải, dịch vụ hỗ trợ vận tải thực hiện một trong các hành vi vi phạm sau đây:\na) Không đánh số thứ tự ghế ngồi, giường nằm trên xe ô tô chở hành khách theo quy định;\nb) Sử dụng xe ô tô kinh doanh vận tải hành khách theo tuyến cố định, xe ô tô kinh doanh vận tải hành khách bằng xe buýt không có chỗ ưu tiên cho người khuyết tật, người cao tuổi và phụ nữ mang thai theo quy định;\nc) Sử dụng xe ô tô kinh doanh vận tải hành khách không có hướng dẫn cho hành khách về an toàn giao thông, thoát hiểm khi xảy ra sự cố trên xe theo quy định;\nd) Không bố trí người áp tải trên xe vận chuyển hàng hóa nguy hiểm đối với những trường hợp quy định phải có người áp tải;\nđ) Không cấp lệnh vận chuyển, giấy vận tải cho lái xe hoặc cấp lệnh vận chuyển, giấy vận tải nhưng không đúng theo quy định (đối với loại xe quy định phải cấp lệnh vận chuyển, giấy vận tải);\ne) Sử dụng xe vận chuyển hàng hóa nguy hiểm mà không làm sạch hoặc không bóc (xóa) biểu trưng nguy hiểm trên phương tiện khi không tiếp tục vận chuyển loại hàng hóa đó.\n3. Phạt tiền từ 2.000.000 đồng đến 3.000.000 đồng đối với cá nhân, từ 4.000.000 đồng đến 6.000.000 đồng đối với tổ chức thực hiện hành vi vi phạm xếp hàng hóa lên mỗi xe ô tô (kể cả rơ moóc và sơ mi rơ moóc) vượt quá trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 50% đến 100%.\n4. Phạt tiền từ 3.000.000 đồng đến 4.000.000 đồng đối với cá nhân, từ 6.000.000 đồng đến 8.000.000 đồng đối với tổ chức kinh doanh vận tải, dịch vụ hỗ trợ vận tải thực hiện một trong các hành vi vi phạm sau đây:\na) Không cấp thẻ nhận dạng lái xe cho lái xe theo quy định;\nb) Sử dụng lái xe, nhân viên phục vụ trên xe để tham gia kinh doanh vận tải bằng xe ô tô mà không được tập huấn, hướng dẫn về nghiệp vụ vận tải hành khách và an toàn giao thông theo quy định (đối với hình thức kinh doanh vận tải có quy định lái xe, nhân viên phục vụ trên xe phải được tập huấn, hướng dẫn nghiệp vụ), trừ các hành vi vi phạm quy định tại điểm c, điểm d khoản này;\nc) Sử dụng lái xe, người quản lý trên xe để tham gia kinh doanh vận tải bằng xe ô tô mà không được hướng dẫn về quy trình bảo đảm an toàn khi đưa đón trẻ em mầm non, học sinh; \nd) Sử dụng lái xe, người áp tải vận chuyển hàng hóa nguy hiểm mà không được tập huấn về vận chuyển hàng hóa nguy hiểm; \nđ) Sử dụng xe ô tô kinh doanh vận tải hành khách không có dây đai an toàn tại các vị trí ghế ngồi, giường nằm theo quy định (trừ xe buýt nội tỉnh);\ne) Sử dụng xe ô tô kinh doanh vận tải chở trẻ em mầm non, học sinh tiểu học, xe ô tô kinh doanh vận tải kết hợp với hoạt động đưa đón trẻ em mầm non, học sinh tiểu học không có dây đai an toàn phù hợp với lứa tuổi hoặc không có ghế ngồi phù hợp với lứa tuổi theo quy định; \ng) Không thực hiện việc niêm yết thông tin trên xe theo quy định hoặc có niêm yết nhưng không chính xác, không đầy đủ thông tin theo quy định.\n5. Phạt tiền từ 4.000.000 đồng đến 5.000.000 đồng đối với cá nhân, từ 8.000.000 đồng đến 10.000.000 đồng đối với tổ chức xếp hàng hóa lên mỗi xe ô tô (kể cả rơ moóc và sơ mi rơ moóc) vượt quá trọng tải (khối lượng hàng chuyên chở) cho phép tham gia giao thông được ghi trong giấy chứng nhận kiểm định an toàn kỹ thuật và bảo vệ môi trường của xe trên 100%.\n6. Phạt tiền từ 4.000.000 đồng đến 6.000.000 đồng đối với cá nhân, từ 8.000.000 đồng đến 12.000.000 đồng đối với tổ chức kinh doanh vận tải thực hiện một trong các hành vi vi phạm sau đây: \na) Sử dụng xe vận chuyển động vật sống không có kết cấu phù hợp với loại động vật chuyên chở theo quy định;\nb) Sử dụng xe ô tô kinh doanh vận tải chở trẻ em mầm non, học sinh, xe ô tô kinh doanh vận tải kết hợp với hoạt động đưa đón trẻ em mầm non, học sinh không có thiết bị ghi nhận hình ảnh trẻ em mầm non, học sinh hoặc không có thiết bị có chức năng cảnh báo, chống bỏ quên trẻ em trên xe hoặc không có thiết bị ghi nhận hình ảnh trẻ em mầm non, học sinh và thiết bị có chức năng cảnh báo, chống bỏ quên trẻ em trên xe;\nc) Sử dụng xe ô tô kinh doanh vận tải chở trẻ em mầm non, học sinh không có màu sơn theo quy định;\nd) Sử dụng xe ô tô kinh doanh vận tải chở trẻ em mầm non, học sinh, xe ô tô kinh doanh vận tải kết hợp với hoạt động đưa đón trẻ em mầm non, học sinh không có biển báo dấu hiệu nhận biết là xe chở trẻ em mầm non, học sinh theo quy định.\n7. Phạt tiền từ 5.000.000 đồng đến 6.000.000 đồng đối với cá nhân, từ 10.000.000 đồng đến 12.000.000 đồng đối với tổ chức kinh doanh vận tải, dịch vụ hỗ trợ vận tải thực hiện một trong các hành vi vi phạm sau đây:\na) Không thực hiện việc cung cấp, cập nhật, truyền, lưu trữ, quản lý thông tin, dữ liệu từ thiết bị giám sát hành trình theo quy định; \nb) Không thực hiện đúng nội dung thông tin đã niêm yết trên xe theo quy định;\nc) Sử dụng phương tiện kinh doanh vận tải không lắp thiết bị giám sát hành trình của xe (đối với hình thức kinh doanh vận tải có quy định phương tiện phải lắp thiết bị) hoặc lắp thiết bị nhưng thiết bị không hoạt động, không đúng quy chuẩn theo quy định hoặc làm sai lệch dữ liệu của thiết bị giám sát hành trình của xe ô tô;\nd) Sử dụng xe trung chuyển chở hành khách không đúng quy định;\nđ) Sử dụng lái xe điều khiển xe khách giường nằm hai tầng, xe ô tô đưa đón trẻ em mầm non, học sinh chưa đủ số năm kinh nghiệm theo quy định;\ne) Sử dụng xe kinh doanh vận tải hành khách theo hợp đồng mà trên xe không có hợp đồng vận tải, danh sách hành khách; không có thiết bị để truy cập nội dung hợp đồng điện tử, danh sách hành khách theo quy định; có hợp đồng nhưng không đúng theo quy định; tự ý thay đổi thông tin của hợp đồng điện tử, danh sách hành khách đã ký; đón khách, chở người không có tên trong danh sách hành khách theo hợp đồng đã ký; đón, trả khách tại trụ sở chính, trụ sở chi nhánh, văn phòng đại diện hoặc tại một địa điểm cố định khác do đơn vị kinh doanh vận tải thuê, hợp tác kinh doanh, trên các tuyến đường phố; vận chuyển không đúng đối tượng theo quy định (áp dụng đối với xe kinh doanh vận tải hành khách theo hợp đồng vận chuyển trẻ em mầm non, học sinh, sinh viên, cán bộ, công chức, viên chức, công nhân);\ng) Sử dụng xe ô tô kinh doanh vận tải không lắp thiết bị ghi nhận hình ảnh người lái xe theo quy định (đối với loại xe có quy định phải lắp thiết bị ghi nhận hình ảnh người lái xe) hoặc có lắp thiết bị ghi nhận hình ảnh người lái xe nhưng không ghi, không lưu trữ được dữ liệu trên xe trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô;\nh) Không thực hiện việc cung cấp, cập nhật, truyền dẫn, lưu trữ, quản lý thông tin, dữ liệu thu thập từ thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô theo quy định; \ni) Sử dụng phương tiện kinh doanh vận tải có niên hạn sử dụng không bảo đảm điều kiện của hình thức kinh doanh đã đăng ký.\nk) Sử dụng xe ô tô kinh doanh vận tải hành khách từ 08 chỗ trở lên (không kể chỗ của người lái xe) không lắp thiết bị ghi nhận hình ảnh khoang chở khách theo quy định hoặc có lắp thiết bị ghi nhận hình ảnh khoang chở khách nhưng không ghi, không lưu trữ được dữ liệu trên xe trong quá trình xe tham gia giao thông theo quy định hoặc làm sai lệch dữ liệu của thiết bị ghi nhận hình ảnh khoang chở khách trên xe ô tô;\nl)  Không thực hiện việc cung cấp, cập nhật, truyền dẫn, lưu trữ, quản lý thông tin, dữ liệu thu thập từ thiết bị ghi nhận hình ảnh khoang chở khách lắp trên xe ô tô theo quy định.\n8. Phạt tiền từ 10.000.000 đồng đến 12.000.000 đồng đối với cá nhân, từ 20.000.000 đồng đến 24.000.000 đồng đối với tổ chức kinh doanh vận tải, dịch vụ hỗ trợ vận tải thực hiện một trong các hành vi vi phạm sau đây:\na) Không tổ chức khám sức khỏe định kỳ cho lái xe theo quy định hoặc có tổ chức khám nhưng không đầy đủ các nội dung theo quy định;\nb) Vi phạm quy định về kinh doanh, điều kiện kinh doanh vận tải bằng xe ô tô để xảy ra tai nạn giao thông gây hậu quả từ mức nghiêm trọng trở lên;\nc) Sử dụng xe ô tô kinh doanh vận tải để đón, trả khách; nhận, trả hàng trên đường cao tốc.\nd) Sử dụng xe ô tô kinh doanh vận tải hành khách theo hợp đồng mà xác nhận đặt chỗ cho từng hành khách đi xe ngoài hợp đồng đã ký kết hoặc bán vé, thu tiền ngoài hợp đồng đã ký kết; ấn định hành trình, lịch trình cố định để phục vụ cho nhiều hành khách hoặc nhiều người thuê vận tải khác nhau.\n9. Phạt tiền từ 20.000.000 đồng đến 40.000.000 đồng đối với đơn vị sản xuất, lắp ráp, nhập khẩu thiết bị giám sát hành trình của xe ô tô, đơn vị cung cấp dịch vụ liên quan đến giám sát hành trình, ghi nhận hình ảnh người lái xe thực hiện một trong các hành vi sau: \na) Đơn vị sản xuất, lắp ráp, nhập khẩu thiết bị giám sát hành trình của xe ô tô không có nhân sự cho từng vị trí công việc theo quy định;\nb) Đơn vị sản xuất, lắp ráp, nhập khẩu thiết bị giám sát hành trình của xe ô tô không báo cáo về việc cập nhật, thay đổi phần mềm của thiết bị theo quy định.\n10. Phạt tiền từ 40.000.000 đồng đến 60.000.000 đồng đối với đơn vị sản xuất, lắp ráp, nhập khẩu thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô, đơn vị cung cấp dịch vụ liên quan đến giám sát hành trình, ghi nhận hình ảnh người lái xe thực hiện một trong các hành vi vi phạm sau đây:\na) Làm sai lệch thông tin, dữ liệu của thiết bị giám sát hành trình của xe ô tô;\nb) Làm sai lệch thông tin, dữ liệu của thiết bị ghi nhận hình ảnh người lái xe lắp trên xe ô tô.\n11. Phạt tiền từ 40.000.000 đồng đến 50.000.000 đồng đối với cá nhân, từ 80.000.000 đồng đến 100.000.000 đồng đối với tổ chức kinh doanh vận tải, dịch vụ hỗ trợ vận tải tái phạm hành vi quy định tại điểm a, điểm h khoản 7 Điều này.\n12. Ngoài việc bị phạt tiền, cá nhân, tổ chức thực hiện hành vi vi phạm quy định tại điểm c khoản 2; điểm a, điểm b, điểm đ, điểm g khoản 4; điểm b, điểm c, điểm d, điểm đ, điểm e, điểm g khoản 7; điểm c khoản 8 Điều này còn bị áp dụng các hình thức xử phạt bổ sung tước quyền sử dụng phù hiệu từ 01 tháng đến 03 tháng (nếu có hoặc đã được cấp) đối với xe vi phạm. \n13. Ngoài việc bị áp dụng hình thức xử phạt, cá nhân, tổ chức thực hiện hành vi vi phạm còn bị áp dụng các biện pháp khắc phục hậu quả sau đây:\na) Thực hiện hành vi quy định tại điểm a khoản 4 Điều này buộc cấp thẻ nhận dạng lái xe cho lái xe theo quy định;\nb) Thực hiện hành vi quy định tại điểm b, điểm c, điểm d khoản 4; điểm a khoản 8 Điều này buộc tổ chức tập huấn, hướng dẫn nghiệp vụ, quy trình hoặc tổ chức khám sức khỏe định kỳ cho lái xe và nhân viên phục vụ trên xe theo quy định;\nc) Thực hiện hành vi quy định tại điểm đ, điểm e khoản 4; điểm c, điểm g, điểm k khoản 7 Điều này buộc lắp đặt thiết bị giám sát hành trình, thiết bị ghi nhận hình ảnh người lái xe, thiết bị ghi nhận hình ảnh khoang chở khách, dây đai an toàn, ghế ngồi cho trẻ em mầm non, học sinh tiểu học trên xe theo đúng quy định;\nd) Thực hiện hành vi quy định tại điểm a, điểm h, điểm l khoản 7; khoản 11 Điều này buộc cung cấp, cập nhật, truyền dẫn, lưu trữ, quản lý thông tin, dữ liệu thu thập từ thiết bị giám sát hành trình, thiết bị ghi nhận hình ảnh người lái xe, thiết bị ghi nhận hình ảnh khoang chở khách lắp trên xe ô tô theo quy định;\nđ) Thực hiện hành vi quy định tại điểm c, điểm d khoản 6 Điều này buộc thực hiện đúng quy định về màu sơn, biển báo dấu hiệu nhận biết của xe.\n14. Ngoài việc bị áp dụng hình thức xử phạt, người điều khiển phương tiện thực hiện hành vi vi phạm còn bị trừ điểm giấy phép lái xe như sau:\na) Thực hiện hành vi quy định tại điểm đ khoản 2; điểm b, điểm c, điểm d khoản 6; điểm b, điểm c, điểm e, điểm i khoản 7 Điều này trong trường hợp cá nhân kinh doanh vận tải là người trực tiếp điều khiển phương tiện còn bị trừ điểm giấy phép lái xe 02 điểm; \nb) Thực hiện hành vi quy định tại điểm c khoản 8 Điều này trong trường hợp cá nhân kinh doanh vận tải là người trực tiếp điều khiển phương tiện còn bị trừ điểm giấy phép lái xe 06 điểm.",
+      "contentSha256": "82dbfc40a7f70ba7b4f28d93a6650424ab53dd231a9887c490fb487c964f5f44"
+    }
+  ]
+}
